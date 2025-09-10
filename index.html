@@ -75,7 +75,7 @@
 </div>
 <label for="nombre">Nombre:</label>
 <input type="text" type="name" id="nombre">
-    <button style="color: #000;" onclick="abrirCalendario()">📅 Elegir día</button>
+    <button style="color: #000;" onclick="abrirCalendario()">📅 Elegir/Cambiar: Día</button>
     <input type="date" id="fecha" class="oculto" required>
 
     <label for="hora">Seleccionar hora:</label>
@@ -95,7 +95,7 @@
       <option value="20:00">20:00</option>
     </select>
 
-    <button onclick="reservarHora()">Reservar</button>
+    <button hidden id="reservar-button" onclick="reservarHora()">Reservar</button>
 
     <h2>Horas Reservadas</h2>
     <div id="reservas-lista"></div>
