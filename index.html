@@ -12,6 +12,10 @@
   <div class="container">
     <center><img id="logo" src="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" style="width: 50%; border-radius: 50%;" alt=""></center>
     <h1>Reservar Hora</h1>
+    <div style="margin-bottom: 10px;">
+
+</div>
+
 <!-- Modal de Acceso -->
 <div id="modal-acceso"  class="ventana-secreta fantasma">
   <div class="caja-misteriosa">
@@ -33,10 +37,12 @@
     <br><br>
     <button onclick="mostrarModalMensaje()">Cerrar Barbería</button>
     <br><br>
-    <button onclick="cerrarModal('modal-control');borrarTodasLasHorasEnPantalla()">🧹 Limpiar pantalla de reservas</button>
+    <button onclick="cerrarModal('modal-control');borrarTodasLasHorasEnPantalla()">🧹 borrar TODAS las reservas</button>
 
      <br><br>
     <button onclick="borrarHorasMesHastaHoy()">Borrar horas antiguas del MES</button>
+    <br><br>
+      <button style="background: #00cc66; color: black;" onclick="mostrarBotonesX()">ELIMINAR 1 RESERVA❌</button>
     <br><br>
     <button onclick="cerrarModal('modal-control')">Cerrar</button>
   </div>
@@ -65,7 +71,7 @@
 </div>
 <label for="nombre">Nombre:</label>
 <input type="text" type="name" id="nombre">
-    <button onclick="abrirCalendario()">📅 Elegir día</button>
+    <button style="color: #000;" onclick="abrirCalendario()">📅 Elegir día</button>
     <input type="date" id="fecha" class="oculto" required>
 
     <label for="hora">Seleccionar hora:</label>
