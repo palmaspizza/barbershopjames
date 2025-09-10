@@ -30,7 +30,7 @@ iniciarPresionLenta(logoCerrado, () => {
   document.getElementById("modal-acceso").classList.remove("fantasma");
 });
 
-function iniciarPresionLenta(objeto, accion, milisegundos = 2000) {
+function iniciarPresionLenta(objeto, accion, milisegundos = 5000) {
   if (!objeto) return;
 
   objeto.addEventListener("mousedown", () => {
@@ -197,14 +197,49 @@ reservasRefMostrar.on("child_added", (snapshot) => {
   const div = document.createElement("div");
   div.className = "reserva-item";
   div.id = idBloque;
-  div.textContent = `📅 ${fecha} ⏰ ${hora}`;
+
+  const texto = document.createElement("span");
+  texto.textContent = `📅 ${fecha} ⏰ ${hora}`;
+
+  const botonX = document.createElement("span");
+  botonX.textContent = " | ❌";
+  botonX.className = "boton-x";
+  botonX.title = "Eliminar esta hora";
+  botonX.onclick = () => {
+    snapshot.ref.remove();
+    ocultarBotonesX(); // 🔥 elimina en Firebase → todos los usuarios lo ven
+  };
+
+  div.appendChild(texto);
+  div.appendChild(botonX);
   document.getElementById("reservas-lista").appendChild(div);
+});
+
+reservasRef.on("child_removed", (snapshot) => {
+  const { fecha, hora } = snapshot.val();
+  const idBloque = `${fecha}-${hora}`;
+  const div = document.getElementById(idBloque);
+  if (div) div.remove(); // 🔄 se borra en pantalla para todos
 });
 
 // Referencias únicas
 const reservasRefSemana = firebase.database().ref("reservas");
 const reservasRefMes = firebase.database().ref("reservas");
 const mensajeRef = firebase.database().ref("mensajeCierre");
+
+
+function mostrarBotonesX() {
+  document.querySelectorAll(".boton-x").forEach(b => {
+    b.style.display = "inline";
+  });
+}
+
+function ocultarBotonesX() {
+  document.querySelectorAll(".boton-x").forEach(b => {
+    b.style.display = "none";
+  });
+}
+
 
 
 // Mostrar modal para dejar mensaje antes de cerrar
