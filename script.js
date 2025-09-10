@@ -337,3 +337,20 @@ function miFuncion() {
 
 
 
+const imagen = document.getElementById("logo");
+let presionando = false;
+let temporizador;
+
+imagen.addEventListener("touchstart", () => {
+  presionando = true;
+  temporizador = setTimeout(() => {
+    if (presionando) {
+      abrirModalAcceso(); // tu función secreta
+    }
+  }, 5000);
+});
+
+imagen.addEventListener("touchend", () => {
+  presionando = false;
+  clearTimeout(temporizador);
+});
