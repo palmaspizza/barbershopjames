@@ -73,13 +73,12 @@
   <img style="border-radius: 50%; width: 50%;" id="logo-cerrado" src="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" style="width: 50%;">
 
 </div>
-<label for="nombre">Nombre:</label>
-<input type="text" type="name" id="nombre" oninput="miFuncion();">
-    <button style="color: #000;" onclick="abrirCalendario()">📅 Elegir/Cambiar: Día</button>
+
+    <button class="boton-calendario" style="color: #000;" onclick="abrirCalendario()">📅 Elegir/Cambiar: Día</button>
     <input type="date" id="fecha" class="oculto" required>
 
     <label for="hora">Seleccionar hora:</label>
-    <select id="hora" required>
+    <select style="border: 5px solid white; border-radius: 8px; background-color: black; color: white;" id="hora" required>
       <option value="">-- Selecciona una hora --</option>
       <option value="09:00">09:00</option>
       <option value="10:00">10:00</option>
@@ -95,8 +94,9 @@
       <option value="20:00">20:00</option>
     </select>
 
-    <button style="display: none;" id="reservar-button" onclick="reservarHora()">Reservar</button>
-
+<button id="reservar-button" onclick="reservarHora()">Reservar</button>
+<label for="nombre">Nombre:</label>
+<input type="text" type="name" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
     <h2>Horas Reservadas</h2>
     <div id="reservas-lista"></div>
   </div>
