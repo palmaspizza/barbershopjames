@@ -401,5 +401,4 @@ img {
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   user-select: none;
-  pointer-events: none; /* opcional si no necesitas clics en la imagen */
 }
