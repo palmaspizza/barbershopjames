@@ -332,7 +332,7 @@ function miFuncion() {
   const valor = document.getElementById("nombre").value;
   console.log("Escribiendo:", valor);
   // Aquí puedes hacer lo que quieras con el valor
-  document.getElementById("reservar-button").hidden = false;
+  document.getElementById("reservar-button").style.display = 'block';
 }
 
 
