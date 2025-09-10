@@ -18,15 +18,15 @@ body {
 
 h1, h2 {
   text-align: center;
-  color: #FF7300;
+  color: #FF7700 !important;
 }
 
 #modal-acceso{
-  z-index: 11;
+  z-index: 2000;
 }
 
 button {
-  background-color: #FF7300;
+  background-color: #FF7700;
   color: #fff;
   border: none;
   padding: 10px 15px;
@@ -211,10 +211,10 @@ button:hover {
 
 /* Reservas en pantalla */
 .reserva-item {
-  background-color: #2a2a2a;
+  background-color: #2b2b2b;
   padding: 10px;
   margin: 5px 0;
-  border-left: 5px solid #00cc66;
+  border-left: 8px solid red;
   border-radius: 5px;
 }
 
@@ -288,7 +288,7 @@ button:hover {
 /* Logo */
 #logo, #logo-cerrado {
   border-radius: 10px;
-  box-shadow: 0 0 10px #ff5500;
+  box-shadow: 0 0 10px #ff7700;
 }
 
 /* Botón de calendario */
@@ -298,4 +298,8 @@ button[onclick*="abrirCalendario"] {
 
 button[onclick*="abrirCalendario"]:hover {
   background-color: #00994d;
+}
+
+#modal-control{
+  z-index: 3000;
 }
