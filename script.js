@@ -22,6 +22,80 @@ function abrirCalendario() {
   fechaInput.showPicker?.() || fechaInput.click();
 }
 
+// Actualizar el texto del botón cuando se elige una fecha
+fechaInput.addEventListener("change", () => {
+  const fechaElegida = new Date(fechaInput.value);
+  const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
+  const fechaFormateada = fechaElegida.toLocaleDateString('es-CL', opciones);
+
+  document.getElementById("boton").innerHTML = `📅 ${fechaFormateada}`;
+  document.getElementById("botonCambiar").classList.remove("oculto"); // 👈 Esta línea es la clave
+});
+
+document.getElementById("buscadorGlobal").addEventListener("input", () => {
+  const filtro = document.getElementById("buscadorGlobal").value.trim();
+  const contenedor = document.getElementById("reservas-lista");
+
+  if (!contenedor) return;
+
+  // Limpiar resaltados anteriores
+  contenedor.querySelectorAll(".resaltado").forEach(span => {
+    const parent = span.parentNode;
+    if (parent) {
+      parent.replaceChild(document.createTextNode(span.textContent), span);
+      parent.normalize();
+    }
+  });
+
+  if (filtro === "") return;
+
+  const elementos = contenedor.querySelectorAll("*");
+  let primeraCoincidencia = null;
+
+  elementos.forEach(el => {
+    el.childNodes.forEach(node => {
+      if (node.nodeType === 3 && node.textContent.includes(filtro)) {
+        const partes = node.textContent.split(filtro);
+        const fragmento = document.createDocumentFragment();
+
+        partes.forEach((parte, i) => {
+          fragmento.appendChild(document.createTextNode(parte));
+          if (i < partes.length - 1) {
+            const span = document.createElement("span");
+            span.className = "resaltado";
+            span.textContent = filtro;
+            fragmento.appendChild(span);
+          }
+        });
+
+        el.replaceChild(fragmento, node);
+        if (!primeraCoincidencia) primeraCoincidencia = el;
+      }
+    });
+  });
+
+  // Deslizar hasta la primera coincidencia
+  if (primeraCoincidencia) {
+    setTimeout(() => {
+      primeraCoincidencia.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }, 50);
+  }
+});
+
+setTimeout(() => {
+  const primeraCoincidencia = document.querySelector(".resaltado");
+  if (primeraCoincidencia) {
+    primeraCoincidencia.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }
+}, 100);
+
+
 
 let temporizadorPresion;
 const logoCerrado = document.getElementById("logo-cerrado");
@@ -354,3 +428,4 @@ imagen.addEventListener("touchend", () => {
   presionando = false;
   clearTimeout(temporizador);
 });
+
