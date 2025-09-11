@@ -19,6 +19,7 @@ body {
 h1, h2 {
   text-align: center;
   color: #F5A122 !important;
+  text-shadow: #000 1px 1px 2px;
 }
 
 #modal-acceso{
@@ -38,6 +39,7 @@ button {
 
 button:hover {
   background-color: #ffa64d;
+  text-shadow: #000 1px 1px 2px;
 }
 
 select, input[type="date"] {
@@ -135,7 +137,10 @@ select, input[type="date"] {
   align-items: center;
 }
 
-
+#buscadorGlobal::placeholder{
+color: rgb(0, 245, 0);
+text-shadow: #000 1px 1px 2px;
+}
 
 /* Fondo general */
 body {
@@ -144,7 +149,10 @@ body {
   background: linear-gradient(to bottom, #111, #222);
   color: #fff;
 }
+label{
 
+  text-shadow: #000 1px 1px 2px;
+}
 /* Contenedor principal */
 .container {
   max-width: 600px;
@@ -203,6 +211,7 @@ button {
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.3s ease;
+  text-shadow: #000 1px 1px 2px;
 }
 
 button:hover {
@@ -364,7 +373,7 @@ button[onclick*="abrirCalendario"]:hover {
   z-index: 1;
   box-shadow: 0 0 15px rgba(255, 100, 0, 0.6), 0 0 25px rgba(255, 150, 0, 0.4);
   transition: transform 0.2s ease;
-  overflow: hidden;
+
 }
 
 /* Borde animado delgado */
@@ -429,4 +438,122 @@ img {
     transform: translateY(0px);
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
   }
+}
+
+.boton-calendario {
+  background-color: #FF7700; /* Naranja vibrante */
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  margin-top: 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.1em;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.boton-calendario:hover {
+  background-color: #e65c00;
+  transform: scale(1.05);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+.boton-calendario {
+  background-color: #FFA64D; /* Naranja dorado vibrante */
+  color: #1a1a1a; /* Texto oscuro para contraste */
+  border: 2px solid #FF4D00; /* Borde naranja intenso */
+  padding: 12px 20px;
+  margin-top: 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1.1em;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 165, 0, 0.4); /* Sombra cálida */
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.boton-calendario:hover {
+  background-color: #FF4D00; /* Naranja más intenso al pasar el mouse */
+  color: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(255, 77, 0, 0.5);
+}
+.oculto {
+  display: none;
+}
+
+.boton-cambiar {
+  background-color: #FFD700; /* Dorado brillante */
+  color: #000;
+  border: 2px solid #FF7700;
+  padding: 10px 18px;
+  margin-top: 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1em;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 215, 0, 0.5);
+  transition: all 0.3s ease;
+}
+.boton-cambiar:hover {
+  background-color: #FFAA00;
+  box-shadow: 0 6px 18px rgba(255, 170, 0, 0.6);
+}
+
+.oculto {
+  display: none;
+}
+.boton-cambiar {
+  background-color: #FF6B6B !important; /* Rojo claro vibrante, sin tono rosado */
+  color: #fff; /* Letras blancas para contraste fuerte */
+  border: 2px solid #00CC66; /* Verde brillante para el borde */
+  padding: 12px 22px;
+  margin-top: 15px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1.05em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  /* Box shadow verde intenso */
+  box-shadow:
+    0 0 0 3px rgba(0, 204, 102, 0.4),
+    0 8px 20px rgba(0, 204, 102, 0.6);
+
+  /* Sombra de texto para que las letras floten */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.boton-cambiar:hover {
+  background-color: #FF4D4D; /* Rojo más intenso al pasar el mouse */
+  transform: scale(1.06);
+  box-shadow:
+    0 0 0 4px rgba(0, 204, 102, 0.5),
+    0 10px 24px rgba(0, 204, 102, 0.7);
+}
+
+
+.resaltado {
+  background-color: #FF4D00;
+  color: #fff;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 4px;
+  box-shadow: 0 0 6px rgba(255, 77, 0, 0.5);
+}
+@keyframes resaltarPulse {
+  0% { box-shadow: 0 0 8px rgba(255, 77, 0, 0.5); }
+  50% { box-shadow: 0 0 16px rgba(255, 77, 0, 0.8); }
+  100% { box-shadow: 0 0 8px rgba(255, 77, 0, 0.5); }
+}
+
+.resaltado {
+  animation: resaltarPulse 1s ease-in-out;
 }
