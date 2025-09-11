@@ -23,8 +23,9 @@
   border-radius: 50%;
   margin: auto;
 "></div>
+<input type="text" id="buscadorGlobal" placeholder="Buscar día" />
 
-    <h1>Reservar Hora</h1>
+    <h1 style="text-shadow: #000 3px 3px 5px;">Reservar Hora</h1>
     <div style="margin-bottom: 10px;">
 
 </div>
@@ -90,11 +91,12 @@
   margin: auto;
 "></div>
 </div>
-
-    <button class="boton-calendario" style="color: #000;" onclick="abrirCalendario()">📅 Elegir/Cambiar: Día</button>
+   <label style="margin-bottom: -15px;" for="fecha">Seleccionar fecha</label>
+    <button id="boton" class="boton-calendario" style="color: #000; text-shadow: #fff 1px 1px 4px" onclick="abrirCalendario()">📅 Elegir Día</button>
+    <button id="botonCambiar" class="boton-cambiar oculto" onclick="abrirCalendario()">🔄 Cambiar</button>
     <input type="date" id="fecha" class="oculto" required>
 
-    <label for="hora">Seleccionar hora:</label>
+    <label style="margin-bottom: -3px;" for="hora">Seleccionar hora</label>
     <select style="border: 5px solid white; border-radius: 8px; background-color: black; color: white;" id="hora" required>
       <option value="">HORA:</option>
       <option value="09:00">09:00</option>
@@ -112,9 +114,9 @@
     </select>
 
 <button id="reservar-button" onclick="reservarHora()">Reservar</button>
-<label for="nombre">Nombre:</label>
+<label style="margin-bottom: -5px;" for="nombre">Nombre</label>
 <input type="text" type="name" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
-    <h2>Horas Reservadas</h2>
+    <h2 style="color: red !important; text-shadow: #000 1px 1px 2px;">Horas Reservadas</h2>
     <div id="reservas-lista"></div>
   </div>
 
