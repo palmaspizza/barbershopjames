@@ -402,3 +402,31 @@ img {
   -webkit-touch-callout: none;
   user-select: none;
 }
+#hora {
+  border: 5px solid white;
+  border-radius: 8px;
+  background-color: black;
+  color: white;
+  padding: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  animation: moverSelect 2s infinite ease-in-out;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  transition: transform 0.3s ease;
+}
+
+/* Animación constante */
+@keyframes moverSelect {
+  0% {
+    transform: translateY(0px);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    transform: translateY(-3px);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+  }
+  100% {
+    transform: translateY(0px);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+}
