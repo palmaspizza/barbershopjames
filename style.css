@@ -39,10 +39,7 @@ button {
   cursor: pointer;
 }
 
-button:hover {
-  background-color: #ffa64d;
-  text-shadow: #000 1px 1px 2px;
-}
+
 
 select, input[type="date"] {
   width: 100%;
