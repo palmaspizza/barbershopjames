@@ -5,7 +5,9 @@ body {
   margin: 0;
   padding: 20px;
 }
-
+input {
+  text-transform: capitalize;
+}
 .container {
   max-width: 90%;
   margin: auto;
@@ -138,7 +140,7 @@ select, input[type="date"] {
 }
 
 #buscadorGlobal::placeholder{
-color: rgb(0, 245, 0);
+color: white;
 text-shadow: #000 1px 1px 2px;
 }
 
