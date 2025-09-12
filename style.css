@@ -216,9 +216,6 @@ button {
   text-shadow: #000 1px 1px 2px;
 }
 
-button:hover {
-  background-color: #e63946;
-}
 
 /* Reservas en pantalla */
 .reserva-item {
@@ -737,10 +734,7 @@ img {
   opacity: 0.7;
 }
 
-.bloqueHora:hover:not(.horaOcupada) {
-  transform: scale(1.03);
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
-}
+
 .botonMes {
   padding: 6px 12px;
   font-size: 18px;
@@ -812,8 +806,3 @@ img {
   color: white;
   cursor: default;
 }
-
-
-
-
-
