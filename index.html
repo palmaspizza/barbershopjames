@@ -115,7 +115,7 @@
         </div>
 
         <h2 style="color: red !important; text-shadow: #000 1px 1px 2px;">Horas Reservadas</h2>
-        <input style="border: 1px solid red;" type="text" id="buscadorGlobal" placeholder="Buscar día..." />
+        <input style="border: 1px solid red;" type="text" id="buscadorGlobal" placeholder="Buscar por Año|Mes|Día" />
         <div id="reservas-lista"></div>
     </div>
     
@@ -124,7 +124,7 @@
             <h3>Nombre</h3>
             <input type="text" type="name" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
             <br><br>
-            <button id="reservar-button" onclick="reservarHora()">Reservar</button>
+            <button id="reservar-button" onclick="reservarHora();window.location.reload()">Reservar</button>
         </div>
     </div>
 
