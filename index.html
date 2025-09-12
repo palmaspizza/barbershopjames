@@ -42,7 +42,7 @@
                 <h3>ACCESO</h3>
                 <input type="password" id="clave-input" maxlength="4" placeholder="Clave de 4 dígitos">
                 <br><br>
-                <button onclick="validarClave()">Ingresar</button>
+                <button onclick="validarClave();ingresarllave();">Ingresar</button>
                 <br><br>
                 <button onclick="cerrarModal('modal-acceso')">Cerrar</button>
             </div>
@@ -55,6 +55,8 @@
                 <br><br>
                 <button onclick="mostrarModalMensaje()">Cerrar Barbería</button>
                 <br><br>
+                <button onclick="activarModoHorarios();">⚙️ Gestionar Horarios por Día</button>
+                <br><br>
                 <button onclick="cerrarModal('modal-control');borrarTodasLasHorasEnPantalla()">🧹 borrar TODAS las reservas</button>
                 <br><br>
                 <button onclick="actiwar();cerrarModal('modal-control');" style="border: 2px solid white;" id="activarBloqueoDias">🔒 Activar bloqueo de días</button>
@@ -64,6 +66,39 @@
                 <button style="background: #00cc66; color: black;" onclick="mostrarBotonesX();cerrarModal('modal-control');">ELIMINAR 1 RESERVA❌</button>
                 <br><br>
                 <button onclick="cerrarModal('modal-control')">Cerrar</button>
+            </div>
+        </div>
+<script>
+    function mostrarModalHorarios() {
+  // 1. Seleccionar el elemento div por su ID
+  const modal = document.getElementById('modal-configuracion-horarios');
+
+  // 2. Verificar si el elemento existe antes de manipularlo
+  if (modal) {
+    // 3. Eliminar la clase "fantasma"
+    modal.classList.remove('fantasma');
+    console.log('Se ha quitado la clase "fantasma" del modal.');
+  } else {
+    console.log('Error: No se encontró el elemento con el ID "modal-configuracion-horarios".');
+  }
+}
+</script>
+        <div id="modal-configuracion-horarios" class="ventana-secreta fantasma">
+            <div class="caja-misteriosa">
+                <h3 id="titulo-config-horarios">Configurar Horario</h3>
+                <p id="fecha-config-horarios"></p>
+                <br>
+                <div id="botones-horarios-predeterminados" style="display: flex; flex-direction: column; gap: 5px;">
+                    <button hidden id="boton-horario-semana">Horario de Semana</button>
+                    <button hidden id="boton-horario-sabado">Horario de Sábado</button>
+                    <button hidden id="boton-horario-cerrado">Día Cerrado</button>
+                </div>
+                <hr>
+                <div id="botones-toggle-horas" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                </div>
+                <br><br>
+                <button onclick="guardarHorarioPersonalizado()">Guardar Horario</button>
+                <button onclick="cerrarModal('modal-configuracion-horarios')">Cerrar</button>
             </div>
         </div>
 
@@ -107,7 +142,7 @@
             }
         </script>
         
-        <div id="ventanaHorarios" class="modalBarberia">
+        <div id="modal-horarios" class="modalBarberia">
             <div class="contenidoModal">
                 <span id="cerrarVentana" class="cerrarModal">&times;</span>
                 <h3 id="tituloVentana"></h3>
@@ -122,7 +157,7 @@
     
     <div id="modal-hora-personalizada" class="modal hidden">
         <div class="modal-content">
-            <h3>Nombre</h3>
+            <h3 id="namex">Nombre</h3>
             <input type="text" type="name" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
             <br><br>
             <button id="reservar-button" onclick="reservarHora();window.location.reload()">Reservar</button>
@@ -149,11 +184,12 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const reservasRef = db.ref("reservas");
+        const horariosRef = db.ref("horarios"); // Nueva referencia para los horarios personalizados
 
         const fechaInput = document.getElementById("fecha");
         const listaReservas = document.getElementById("reservas-lista");
         const cuadroCalendario = document.getElementById("cuadroCalendario");
-        const ventanaHorarios = document.getElementById("ventanaHorarios");
+        const ventanaHorarios = document.getElementById("modal-horarios");
         const cerrarVentana = document.getElementById("cerrarVentana");
         const tituloVentana = document.getElementById("tituloVentana");
         const horariosDisponibles = document.getElementById("horariosDisponibles");
@@ -163,16 +199,23 @@
         const botonSiguiente = document.getElementById("mesSiguiente");
         const botonActivarBloqueo = document.getElementById("activarBloqueoDias");
         const botonDesactivarBloqueo = document.getElementById("desactivarBloqueoDias");
+        const modalConfiguracionHorarios = document.getElementById("modal-configuracion-horarios");
+        const tituloConfigHorarios = document.getElementById("titulo-config-horarios");
+        const fechaConfigHorarios = document.getElementById("fecha-config-horarios");
+        const botonesToggleHoras = document.getElementById("botones-toggle-horas");
 
         let modoBloqueoDias = false;
+        let modoGestionHorarios = false;
         let diasBloqueados = [];
+        let horariosPersonalizados = {};
         let reservasPorDia = {};
         let fechaActualCalendario = new Date();
+        let fechaSeleccionadaParaConfigurar = "";
 
-        const bloquesHorarios = [
-            "09:00", "10:00", "11:00", "12:00",
-            "14:00", "15:00", "16:00", "17:00"
-        ];
+        const horarioSemana = ["09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"];
+        const horarioSabado = ["09:00", "10:00", "11:00", "12:00"];
+        const bloquesBase = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30"];
+
 
         const mesesTexto = [
             "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -187,7 +230,10 @@
         reservasRef.on("value", snapshot => {
             reservasPorDia = {};
             snapshot.forEach(child => {
-                const { fecha, hora } = child.val();
+                const {
+                    fecha,
+                    hora
+                } = child.val();
                 if (!reservasPorDia[fecha]) reservasPorDia[fecha] = [];
                 reservasPorDia[fecha].push(hora);
             });
@@ -202,6 +248,16 @@
             });
             actualizarBarraMes();
         });
+
+        // Escuchar horarios personalizados en tiempo real
+        horariosRef.on("value", snapshot => {
+            horariosPersonalizados = snapshot.val() || {};
+            actualizarBarraMes();
+        });
+
+        function ingresarllave() {
+            document.getElementById("clave-input").value = '';
+        }
 
         function generarCuadroCalendario() {
             const mesStr = `${fechaActualCalendario.getFullYear()}-${String(fechaActualCalendario.getMonth() + 1).padStart(2, "0")}`;
@@ -224,8 +280,9 @@
                 celda.textContent = dia;
 
                 const horasReservadas = reservasPorDia[fechaActual] || [];
-                const estaBloqueado = diasBloqueados.includes(fechaActual);
-                const estaOcupado = horasReservadas.length >= bloquesHorarios.length;
+                const horarioDelDia = horariosPersonalizados[fechaActual] || horarioSemana;
+                const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0;
+                const estaOcupado = horasReservadas.length >= horarioDelDia.length;
 
                 if (estaBloqueado) {
                     celda.classList.add("diaBloqueado");
@@ -239,7 +296,10 @@
                 }
 
                 celda.onclick = () => {
-                    if (modoBloqueoDias) {
+                    if (modoGestionHorarios) {
+                        fechaSeleccionadaParaConfigurar = fechaActual;
+                        abrirModalConfiguracionHorarios();
+                    } else if (modoBloqueoDias) {
                         if (estaBloqueado) {
                             diasBloqueadosRef.once("value", snapshot => {
                                 snapshot.forEach(child => {
@@ -290,22 +350,22 @@
 
         window.addEventListener("DOMContentLoaded", () => {
             actualizarBarraMes();
-            // Ocultar el botón de desactivar bloqueo al iniciar la página
             botonDesactivarBloqueo.style.display = 'none';
         });
 
-       botonActivarBloqueo.onclick = () => {
-    modoBloqueoDias = true;
-    botonActivarBloqueo.style.display = 'none';
-    botonDesactivarBloqueo.style.display = 'block';
-    generarCuadroCalendario();
-    console.log("Modo bloqueo ACTIVADO");
-    cerrarModal('modal-control'); // Esta es la línea que cierra la ventana
-};
+        botonActivarBloqueo.onclick = () => {
+            modoBloqueoDias = true;
+            modoGestionHorarios = false;
+            botonActivarBloqueo.style.display = 'none';
+            botonDesactivarBloqueo.style.display = 'block';
+            generarCuadroCalendario();
+            console.log("Modo bloqueo ACTIVADO");
+            cerrarModal('modal-control');
+        };
 
         botonDesactivarBloqueo.onclick = () => {
             modoBloqueoDias = false;
-            botonActivarBloqueo.style.display = 'none';
+            botonActivarBloqueo.style.display = 'block';
             botonDesactivarBloqueo.style.display = 'none';
             generarCuadroCalendario();
             console.log("Modo bloqueo DESACTIVADO");
@@ -379,8 +439,9 @@
         let temporizadorPresion;
         const logoCerrado = document.getElementById("logo-cerrado");
         const logo = document.getElementById("logo");
-        
+
         function iniciarPresionLenta(objeto) {
+            if (!objeto) return;
             objeto.addEventListener("mousedown", () => {
                 temporizadorPresion = setTimeout(() => {
                     document.getElementById("modal-acceso").classList.remove("fantasma");
@@ -395,7 +456,7 @@
             });
             objeto.addEventListener("touchend", () => clearTimeout(temporizadorPresion));
         }
-        
+
         if (logo) {
             iniciarPresionLenta(logo);
         }
@@ -404,7 +465,10 @@
         }
 
         reservasRef.on("child_removed", (snapshot) => {
-            const { fecha, hora } = snapshot.val();
+            const {
+                fecha,
+                hora
+            } = snapshot.val();
             const idBloque = `${fecha}-${hora}`;
             console.log("Eliminando visualmente:", idBloque);
             const div = document.getElementById(idBloque);
@@ -495,7 +559,11 @@
 
         const reservasRefMostrar = firebase.database().ref("reservas");
         reservasRefMostrar.on("child_added", (snapshot) => {
-            const { fecha, hora, nombre } = snapshot.val();
+            const {
+                fecha,
+                hora,
+                nombre
+            } = snapshot.val();
             const idBloque = `${fecha}-${hora}`;
             if (document.getElementById(idBloque)) return;
             const div = document.createElement("div");
@@ -572,7 +640,9 @@
 
             reservasRef.once("value", snapshot => {
                 snapshot.forEach(child => {
-                    const { fecha } = child.val();
+                    const {
+                        fecha
+                    } = child.val();
                     const [año, mes, dia] = fecha.split("-").map(Number);
                     if (año === añoActual && mes === mesActual && dia < diaActual) {
                         reservasRef.child(child.key).remove();
@@ -590,7 +660,9 @@
             tituloVentana.textContent = `Horarios para ${fecha}`;
             horariosDisponibles.innerHTML = "";
             const horasReservadas = reservasPorDia[fecha] || [];
-            bloquesHorarios.forEach(hora => {
+            const horarioDelDia = horariosPersonalizados[fecha] || horarioSemana;
+
+            horarioDelDia.forEach(hora => {
                 const bloque = document.createElement("div");
                 bloque.classList.add("bloqueHora");
                 if (horasReservadas.includes(hora)) {
@@ -632,6 +704,87 @@
             const mensaje = `Hola, soy ${nombre}. Quiero reservar para el día ${fecha} a las ${hora}.`;
             const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`;
             window.open(url, "_blank");
+        }
+
+        // NUEVA FUNCIONALIDAD: GESTIÓN DE HORARIOS PERSONALIZADOS
+
+        function activarModoHorarios() {
+            modoBloqueoDias = false;
+            modoGestionHorarios = true;
+            cerrarModal('modal-control');
+            generarCuadroCalendario();
+            console.log("Modo de gestión de horarios ACTIVADO");
+            alert("Ahora haz clic en un día para personalizar su horario.");
+        }
+
+        function abrirModalConfiguracionHorarios() {
+            const diaSemana = new Date(fechaSeleccionadaParaConfigurar).getDay();
+            const esSabado = diaSemana === 6;
+
+            tituloConfigHorarios.textContent = `Configurar Horario (${fechaSeleccionadaParaConfigurar})`;
+            fechaConfigHorarios.textContent = ``;
+
+            document.getElementById("boton-horario-semana").onclick = () => {
+                cargarHorasEnModal(horarioSemana);
+            };
+            document.getElementById("boton-horario-sabado").onclick = () => {
+                cargarHorasEnModal(horarioSabado);
+            };
+            document.getElementById("boton-horario-cerrado").onclick = () => {
+                cargarHorasEnModal([]);
+            };
+
+            const horarioActual = horariosPersonalizados[fechaSeleccionadaParaConfigurar] || [];
+            cargarHorasEnModal(horarioActual);
+
+            modalConfiguracionHorarios.classList.remove("fantasma");
+        }
+
+        function cargarHorasEnModal(horasActivas) {
+            botonesToggleHoras.innerHTML = "";
+            bloquesBase.forEach(hora => {
+                const boton = document.createElement("button");
+                boton.textContent = hora;
+                boton.classList.add("toggle-hora-btn");
+                if (horasActivas.includes(hora)) {
+                    boton.classList.add("activo");
+                }
+                boton.onclick = () => {
+                    boton.classList.toggle("activo");
+                };
+                botonesToggleHoras.appendChild(boton);
+            });
+        }
+
+        function guardarHorarioPersonalizado() {
+            const horasSeleccionadas = [];
+            document.querySelectorAll("#botones-toggle-horas .activo").forEach(boton => {
+                horasSeleccionadas.push(boton.textContent);
+            });
+
+            if (horasSeleccionadas.length > 0) {
+                horariosRef.child(fechaSeleccionadaParaConfigurar).set(horasSeleccionadas)
+                    .then(() => {
+                        alert("Horario guardado con éxito.");
+                        cerrarModal('modal-configuracion-horarios');
+                        modoGestionHorarios = false;
+                        generarCuadroCalendario();
+                    })
+                    .catch(error => {
+                        alert("Error al guardar el horario: " + error.message);
+                    });
+            } else {
+                horariosRef.child(fechaSeleccionadaParaConfigurar).remove()
+                    .then(() => {
+                        alert("Horario borrado con éxito. El día se marcará como cerrado.");
+                        cerrarModal('modal-configuracion-horarios');
+                        modoGestionHorarios = false;
+                        generarCuadroCalendario();
+                    })
+                    .catch(error => {
+                        alert("Error al borrar el horario: " + error.message);
+                    });
+            }
         }
     </script>
 </body>
