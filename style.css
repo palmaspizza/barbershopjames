@@ -413,50 +413,7 @@ button[onclick*="abrirCalendario"]:hover {
   }
 }
 
-.boton-calendario {
-  position: relative;
-  background-color: #1a1a1a; /* fondo estático oscuro */
-  color: #fff;
-  font-weight: bold;
-  padding: 10px 20px;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 1;
-  box-shadow: 0 0 15px rgba(255, 100, 0, 0.6), 0 0 25px rgba(255, 150, 0, 0.4);
-  transition: transform 0.2s ease;
 
-}
-
-/* Borde animado delgado */
-.boton-calendario::before {
-  content: "";
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border-radius: 10px;
-  padding: 2px;
-  background: linear-gradient(270deg, orange, #ff9900, #ff6600, orange);
-  background-size: 400% 400%;
-  animation: bordeFluido 3s linear infinite;
-  z-index: -1;
-  mask: 
-    linear-gradient(#fff 0 0) content-box, 
-    linear-gradient(#fff 0 0);
-  -webkit-mask: 
-    linear-gradient(#fff 0 0) content-box, 
-    linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  -webkit-mask-composite: destination-out;
-}
-
-/* Hover con sombra más intensa */
-.boton-calendario:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 25px rgba(255, 140, 0, 1), 0 0 50px rgba(255, 180, 0, 0.9);
-}
 
 img {
   -webkit-user-select: none;
@@ -492,51 +449,7 @@ img {
   }
 }
 
-.boton-calendario {
-  background-color: #FF7700; /* Naranja vibrante */
-  color: #fff;
-  border: none;
-  padding: 12px 20px;
-  margin-top: 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 1.1em;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
 
-.boton-calendario:hover {
-  background-color: #e65c00;
-  transform: scale(1.05);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
-}
-.boton-calendario {
-  background-color: #FFA64D; /* Naranja dorado vibrante */
-  color: #1a1a1a; /* Texto oscuro para contraste */
-  border: 2px solid #FF4D00; /* Borde naranja intenso */
-  padding: 12px 20px;
-  margin-top: 20px;
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 1.1em;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(255, 165, 0, 0.4); /* Sombra cálida */
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.boton-calendario:hover {
-  background-color: #FF4D00; /* Naranja más intenso al pasar el mouse */
-  color: #fff;
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(255, 77, 0, 0.5);
-}
 .oculto {
   display: none;
 }
