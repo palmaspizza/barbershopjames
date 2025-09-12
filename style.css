@@ -324,18 +324,74 @@ button[onclick*="abrirCalendario"]:hover {
 }
 #reservar-button {
   display: none; /* se mostrará dinámicamente */
-  padding: 16px 32px;
-  font-size: 20px;
-  font-weight: bold;
-  background-color: orange;
-  color: black;
-  border: 3px solid white;
-  border-radius: 12px;
+  padding: 14px 28px;
+  font-size: 18px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #ffa500, #ff6f00);
+  color: white;
+  border: none;
+  border-radius: 50px;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(255, 165, 0, 0.3);
+  transition: all 0.3s ease;
   animation: pulsoElegante 2s infinite;
-  transition: transform 0.3s ease;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
+
+#reservar-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 25px rgba(255, 140, 0, 0.5);
+  background: linear-gradient(135deg, #ff6f00, #ffa500);
+}
+
+@keyframes pulsoElegante {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.4);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 20px rgba(255, 165, 0, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.4);
+  }
+}
+#namex {
+  font-size: 22px;
+  color: #ffa500;
+  margin-bottom: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: left;
+}
+
+#nombre {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 2px solid #ffa500;
+  border-radius: 8px;
+  background-color: #1a1a1a;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(255, 165, 0, 0.2);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#nombre::placeholder {
+  color: #ccc;
+  font-style: italic;
+}
+
+#nombre:focus {
+  outline: none;
+  border-color: #ff6f00;
+  box-shadow: 0 0 15px rgba(255, 111, 0, 0.4);
+}
+
 
 #reservar-button:hover {
   transform: scale(1.05);
@@ -508,7 +564,10 @@ img {
   background-color: #FFAA00;
   box-shadow: 0 6px 18px rgba(255, 170, 0, 0.6);
 }
-
+.activo{
+  background-color: green;
+  color: white;
+}
 .oculto {
   display: none;
 }
@@ -672,7 +731,7 @@ img {
 }
 
 .horaOcupada {
-  background-color: #ff4d4d;
+  background-color: #ff0000;
   color: white;
   pointer-events: none;
   opacity: 0.7;
@@ -753,3 +812,8 @@ img {
   color: white;
   cursor: default;
 }
+
+
+
+
+
