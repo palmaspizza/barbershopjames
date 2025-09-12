@@ -28,13 +28,14 @@
                 <button id="mesSiguiente" class="botonMes">→</button>
             </div>
         </div>
+        Selecciona un día
         <div id="cuadroCalendario"></div>
 
         <input type="month" hidden id="selectorMes"/>
 
         <button onclick="desactiwar();" hidden id="desactivarBloqueoDias">✅ Desactivar bloqueo</button>
-        <h1 style="text-shadow: #000 3px 3px 5px;">Hora</h1>
-        <div style="margin-bottom: 10px;"></div>
+        <h1 style="text-shadow: #000 3px 3px 5px;" hidden>Hora</h1>
+        <div h style="margin-bottom: 10px;"></div>
 
         <div id="modal-acceso" class="ventana-secreta fantasma">
             <div class="caja-misteriosa">
@@ -56,7 +57,7 @@
                 <br><br>
                 <button onclick="cerrarModal('modal-control');borrarTodasLasHorasEnPantalla()">🧹 borrar TODAS las reservas</button>
                 <br><br>
-                <button onclick="actiwar();document.getElementById('modal-control').classList.add('fantasma');" style="border: 2px solid white;" id="activarBloqueoDias">🔒 Activar bloqueo de días</button>
+                <button onclick="actiwar();cerrarModal('modal-control');" style="border: 2px solid white;" id="activarBloqueoDias">🔒 Activar bloqueo de días</button>
                 <br><br>
                 <button onclick="borrarHorasMesHastaHoy()">Borrar horas antiguas del MES</button>
                 <br><br>
@@ -92,7 +93,7 @@
         <input type="date" id="fecha" hidden class="" required>
         
         <center>
-            <input type="time" id="hora">
+            <input hidden type="time" id="hora">
             <div style="margin-bottom: 10px;"></div>
         </center>
         
@@ -293,13 +294,14 @@
             botonDesactivarBloqueo.style.display = 'none';
         });
 
-        botonActivarBloqueo.onclick = () => {
-            modoBloqueoDias = true;
-            botonActivarBloqueo.style.display = 'none';
-            botonDesactivarBloqueo.style.display = 'block';
-            generarCuadroCalendario();
-            console.log("Modo bloqueo ACTIVADO");
-        };
+       botonActivarBloqueo.onclick = () => {
+    modoBloqueoDias = true;
+    botonActivarBloqueo.style.display = 'none';
+    botonDesactivarBloqueo.style.display = 'block';
+    generarCuadroCalendario();
+    console.log("Modo bloqueo ACTIVADO");
+    cerrarModal('modal-control'); // Esta es la línea que cierra la ventana
+};
 
         botonDesactivarBloqueo.onclick = () => {
             modoBloqueoDias = false;
