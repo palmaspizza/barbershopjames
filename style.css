@@ -183,7 +183,7 @@ label {
   display: block;
   margin-top: 15px;
   font-weight: bold;
-  color: #00cc66; /* verde barbería */
+  color: green; /* verde barbería */
 }
 
 /* Inputs y selects */
@@ -286,7 +286,7 @@ button:hover {
 }
 
 .modal-content h3 {
-  color: #00cc66;
+  color: green;
 }
 
 .modal-content p {
@@ -305,7 +305,7 @@ button:hover {
 
 /* Botón de calendario */
 button[onclick*="abrirCalendario"] {
-  background-color: #00cc66;
+  background-color: green;
 }
 
 button[onclick*="abrirCalendario"]:hover {
@@ -513,7 +513,7 @@ img {
 .boton-cambiar {
   background-color: #FF6B6B !important; /* Rojo claro vibrante, sin tono rosado */
   color: #fff; /* Letras blancas para contraste fuerte */
-  border: 2px solid #00CC66; /* Verde brillante para el borde */
+  border: 2px solid green; /* Verde brillante para el borde */
   padding: 12px 22px;
   margin-top: 15px;
   border-radius: 10px;
@@ -556,4 +556,198 @@ img {
 
 .resaltado {
   animation: resaltarPulse 1s ease-in-out;
+}
+#cuadroCalendario {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 20px;
+}
+
+.dia {
+  padding: 10px;
+  text-align: center;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.dia-verde {
+  background-color: green;
+  color: white;
+}
+
+.dia-rojo {
+  background-color: #ff4d4d;
+  color: white;
+}
+
+.dia:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+/* 📅 Calendario visual */
+#cuadroCalendario {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 20px;
+}
+
+.diaCalendario {
+  padding: 10px;
+  text-align: center;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.diaLibre {
+  background-color: green;
+  color: white;
+}
+
+.diaOcupado {
+  background-color: #ff4d4d;
+  color: white;
+}
+
+.diaCalendario:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 🪟 Modal de horarios */
+.modalBarberia {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.contenidoModal {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  width: 300px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #000;
+  position: relative;
+}
+
+.cerrarModal {
+  position: absolute;
+  top: 10px; right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #333;
+}
+
+#tituloVentana {
+  margin-bottom: 10px;
+  font-size: 18px;
+  text-align: center;
+  color: #333;
+}
+
+/* ⏰ Horarios */
+.bloqueHora {
+  padding: 8px;
+  margin: 4px 0;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.horaLibre {
+  background-color: green;
+  color: white;
+}
+
+.horaOcupada {
+  background-color: #ff4d4d;
+  color: white;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.bloqueHora:hover:not(.horaOcupada) {
+  transform: scale(1.03);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
+}
+.botonMes {
+  padding: 6px 12px;
+  font-size: 18px;
+  font-weight: bold;
+  background-color: green;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.botonMes:hover {
+  background-color: #555;
+}
+.ventanaConfirmacion {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+.ventanaConfirmacion {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: 300px; /* Ajustar según el tamaño que prefieras */
+}
+
+.inputComentario {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.botonEnviar,
+.botonCerrar {
+  padding: 10px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.botonCerrar {
+  background-color: #f44336; /* Rojo */
+}
+
+.botonEnviar:hover,
+.botonCerrar:hover {
+  opacity: 0.8;
+}
+.diaBloqueado {
+  background-color: #e74c3c !important;
+  color: white;
+  cursor: default;
 }
