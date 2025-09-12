@@ -1,243 +1,636 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
- 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reservas Barbería</title>
-
-
-  <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservas Barbería</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
-  
-  <div class="container">
-   <div id="logo" style="
-  width: 300px;
-  height: 300px;
-  background-image: url('https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg');
-  background-size: cover;
-  background-position: center;
-  border-radius: 50%;
-  margin: auto;
-"></div><br>
-<div id="barraMes" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-<div id="barraMes" style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
-  <button id="mesAnterior" class="botonMes">←</button>
-  <h2 id="tituloMes" style="margin: 0;">Septiembre 2025</h2>
-  <button id="mesSiguiente" class="botonMes">→</button>
-</div>
 
+    <div class="container">
+        <div id="logo" style="
+            width: 300px;
+            height: 300px;
+            background-image: url('https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg');
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            margin: auto;
+        "></div>
+        <br>
+        <div id="barraMes" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
+                <button id="mesAnterior" class="botonMes">←</button>
+                <h2 id="tituloMes" style="margin: 0;">Septiembre 2025</h2>
+                <button id="mesSiguiente" class="botonMes">→</button>
+            </div>
+        </div>
+        <div id="cuadroCalendario"></div>
 
-</div>
-<div id="cuadroCalendario"></div>
+        <input type="month" hidden id="selectorMes"/>
 
-<input type="month" hidden id="selectorMes"/>
+        <button onclick="desactiwar();" hidden id="desactivarBloqueoDias">✅ Desactivar bloqueo</button>
+        <h1 style="text-shadow: #000 3px 3px 5px;">Hora</h1>
+        <div style="margin-bottom: 10px;"></div>
 
+        <div id="modal-acceso" class="ventana-secreta fantasma">
+            <div class="caja-misteriosa">
+                <h3>ACCESO</h3>
+                <input type="password" id="clave-input" maxlength="4" placeholder="Clave de 4 dígitos">
+                <br><br>
+                <button onclick="validarClave()">Ingresar</button>
+                <br><br>
+                <button onclick="cerrarModal('modal-acceso')">Cerrar</button>
+            </div>
+        </div>
 
-<button onclick="desactiwar();" hidden id="desactivarBloqueoDias">✅ Desactivar bloqueo</button>
-    <h1 style="text-shadow: #000 3px 3px 5px;">Hora</h1>
-    <div style="margin-bottom: 10px;">
+        <div id="modal-control" class="ventana-secreta fantasma">
+            <div class="caja-misteriosa">
+                <h3>Control Barbería</h3>
+                <button onclick="abrirBarberia()">Abrir Barbería</button>
+                <br><br>
+                <button onclick="mostrarModalMensaje()">Cerrar Barbería</button>
+                <br><br>
+                <button onclick="cerrarModal('modal-control');borrarTodasLasHorasEnPantalla()">🧹 borrar TODAS las reservas</button>
+                <br><br>
+                <button onclick="actiwar();document.getElementById('modal-control').classList.add('fantasma');" style="border: 2px solid white;" id="activarBloqueoDias">🔒 Activar bloqueo de días</button>
+                <br><br>
+                <button onclick="borrarHorasMesHastaHoy()">Borrar horas antiguas del MES</button>
+                <br><br>
+                <button style="background: #00cc66; color: black;" onclick="mostrarBotonesX();cerrarModal('modal-control');">ELIMINAR 1 RESERVA❌</button>
+                <br><br>
+                <button onclick="cerrarModal('modal-control')">Cerrar</button>
+            </div>
+        </div>
 
-</div>
+        <div id="modal-mensaje" class="ventana-secreta fantasma">
+            <div class="caja-misteriosa">
+                <h3>Deja un mensaje mientras tu local está cerrado</h3>
+                <input type="text" id="mensaje-cierre" placeholder="Escribe tu mensaje aquí">
+                <br><br>
+                <button onclick="guardarMensajeCierre()">Aceptar</button>
+            </div>
+        </div>
 
-<!-- Modal de Acceso -->
-<div id="modal-acceso"  class="ventana-secreta fantasma">
-  <div class="caja-misteriosa">
-    <h3>ACCESO</h3>
-    <input type="password" id="clave-input" maxlength="4" placeholder="Clave de 4 dígitos">
-    <br><br>
-    <button onclick="validarClave()">Ingresar</button>
-    <br><br>
-    <button onclick="cerrarModal('modal-acceso')">Cerrar</button>
-  </div>
-</div>
+        <div id="modal-cerrado" class="pantalla-negra fantasma">
+            <h1>CERRADO</h1>
+            <p id="mensaje-cerrado" style="margin-top: 20px; font-size: 24px;"></p>
+            <div id="logo-cerrado" style="
+                width: 200px;
+                height: 200px;
+                background-image: url('https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg');
+                background-size: cover;
+                background-position: center;
+                border-radius: 50%;
+                margin: auto;
+            "></div>
+        </div>
 
+        <input type="date" id="fecha" hidden class="" required>
+        
+        <center>
+            <input type="time" id="hora">
+            <div style="margin-bottom: 10px;"></div>
+        </center>
+        
+        <script>
+            function actiwar() {
+                document.getElementById("desactivarBloqueoDias").hidden = false;
+            }
 
-<!-- Modal de Control -->
-<div id="modal-control" class="ventana-secreta fantasma">
-  <div class="caja-misteriosa">
-    <h3>Control Barbería</h3>
-    <button onclick="abrirBarberia()">Abrir Barbería</button>
-    <br><br>
-    <button onclick="mostrarModalMensaje()">Cerrar Barbería</button>
-    <br><br>
-    <button onclick="cerrarModal('modal-control');borrarTodasLasHorasEnPantalla()">🧹 borrar TODAS las reservas</button>
-<br><br><button onclick="actiwar()" style="border: 2px solid white;" id="activarBloqueoDias">🔒 Activar bloqueo de días</button>
-     <br><br>
-    <button onclick="borrarHorasMesHastaHoy()">Borrar horas antiguas del MES</button>
-    <br><br>
-      <button style="background: #00cc66; color: black;" onclick="mostrarBotonesX();cerrarModal('modal-control');">ELIMINAR 1 RESERVA❌</button>
-    <br><br>
-    <button onclick="cerrarModal('modal-control')">Cerrar</button>
-  </div>
-</div>
+            function desactiwar() {
+                document.getElementById("desactivarBloqueoDias").hidden = true;
+            }
+        </script>
+        
+        <div id="ventanaHorarios" class="modalBarberia">
+            <div class="contenidoModal">
+                <span id="cerrarVentana" class="cerrarModal">&times;</span>
+                <h3 id="tituloVentana"></h3>
+                <div id="horariosDisponibles"></div>
+            </div>
+        </div>
 
-<!-- Modal para dejar mensaje -->
-<div id="modal-mensaje" class="ventana-secreta fantasma">
-  <div class="caja-misteriosa">
-    <h3>Deja un mensaje mientras tu local está cerrado</h3>
-    <input type="text" id="mensaje-cierre" placeholder="Escribe tu mensaje aquí">
-    <br><br>
-    <button onclick="guardarMensajeCierre()">Aceptar</button>
-  </div>
-</div>
-
-
-
-
-
-<!-- Modal CERRADO -->
-<div id="modal-cerrado" class="pantalla-negra fantasma">
-  <h1>CERRADO</h1>
-   <p id="mensaje-cerrado" style="margin-top: 20px; font-size: 24px;"></p>
-  
-   <div id="logo-cerrado" style="
-  width: 200px;
-  height: 200px;
-  background-image: url('https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg');
-  background-size: cover;
-  background-position: center;
-  border-radius: 50%;
-  margin: auto;
-"></div>
-</div>
-
-
-    <input type="date" id="fecha" hidden class="" required>
-
-    
-<center>
-  <input type="time"  id="hora">
-<div style="margin-bottom: 10px;">
-
-
-</div>
-
-<script>
-  
-function actiwar(){
-  document.getElementById("desactivarBloqueoDias").hidden = false;
-}
-
-function desactiwar(){
-  document.getElementById("desactivarBloqueoDias").hidden = true;
-}
-</script>
-</center>
-<!-- Modal de horarios -->
-<div id="ventanaHorarios" class="modalBarberia">
-  <div class="contenidoModal">
-    <span id="cerrarVentana" class="cerrarModal">&times;</span>
-    <h3 id="tituloVentana"></h3>
-    <div id="horariosDisponibles"></div>
-  </div>
-</div>
-
-
-  <h2 style="color: red !important; text-shadow: #000 1px 1px 2px;">Horas Reservadas</h2>
-    <input style="border: 1px solid red;" type="text" id="buscadorGlobal" placeholder="Buscar día..." />
-    <div id="reservas-lista"></div>
-  </div>
-
-<div id="modal-hora-personalizada" class="modal hidden">
-  <div class="modal-content">
-    <h3>Nombre</h3>
-   <input type="text" type="name" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
-  
-    <br><br>
- <button id="reservar-button" onclick="reservarHora()">Reservar</button>  </div>
-</div>
-
-
-  <!-- Modal Reservada -->
-  <div id="modal-reservada" class="modal hidden">
-    <div class="modal-content reservada">
-      <h3>HORA DISPONIBLE</h3>
+        <h2 style="color: red !important; text-shadow: #000 1px 1px 2px;">Horas Reservadas</h2>
+        <input style="border: 1px solid red;" type="text" id="buscadorGlobal" placeholder="Buscar día..." />
+        <div id="reservas-lista"></div>
     </div>
-  </div>
-<script>
-  function reservarHora() {
-  const fecha = fechaInput.value;
-  const hora = horaInput.value;
-  const nombre = document.getElementById("nombre").value.trim();
+    
+    <div id="modal-hora-personalizada" class="modal hidden">
+        <div class="modal-content">
+            <h3>Nombre</h3>
+            <input type="text" type="name" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
+            <br><br>
+            <button id="reservar-button" onclick="reservarHora()">Reservar</button>
+        </div>
+    </div>
 
-  if (!fecha || !hora || !nombre) {
-    alert("Completa todos los campos: nombre, fecha y hora");
-    return;
-  }
+    <div id="modal-reservada" class="modal hidden">
+        <div class="modal-content reservada">
+            <h3>HORA DISPONIBLE</h3>
+        </div>
+    </div>
 
-  const idBloque = `${fecha}-${hora}`;
+    <script>
+        // Inicializar Firebase
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "barbershop-4b936.firebaseapp.com",
+            databaseURL: "https://barbershop-4b936-default-rtdb.firebaseio.com",
+            projectId: "barbershop-4b936",
+            storageBucket: "barbershop-4b936.appspot.com",
+            messagingSenderId: "TU_SENDER_ID",
+            appId: "TU_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const reservasRef = db.ref("reservas");
 
-  reservasRef.once("value", snapshot => {
-    let ocupada = false;
-    snapshot.forEach(child => {
-      const r = child.val();
-      if (`${r.fecha}-${r.hora}` === idBloque) {
-        ocupada = true;
-      }
-    });
+        const fechaInput = document.getElementById("fecha");
+        const listaReservas = document.getElementById("reservas-lista");
+        const cuadroCalendario = document.getElementById("cuadroCalendario");
+        const ventanaHorarios = document.getElementById("ventanaHorarios");
+        const cerrarVentana = document.getElementById("cerrarVentana");
+        const tituloVentana = document.getElementById("tituloVentana");
+        const horariosDisponibles = document.getElementById("horariosDisponibles");
+        const selectorMesTexto = document.getElementById("selectorMesTexto");
+        const tituloMes = document.getElementById("tituloMes");
+        const botonAnterior = document.getElementById("mesAnterior");
+        const botonSiguiente = document.getElementById("mesSiguiente");
+        const botonActivarBloqueo = document.getElementById("activarBloqueoDias");
+        const botonDesactivarBloqueo = document.getElementById("desactivarBloqueoDias");
 
-    if (ocupada) {
-      document.getElementById("modal-ocupado").classList.remove("hidden");
-    } else {
-      reservasRef.push({ fecha, hora, nombre });
-      document.getElementById("modal-reservada").classList.remove("hidden");
+        let modoBloqueoDias = false;
+        let diasBloqueados = [];
+        let reservasPorDia = {};
+        let fechaActualCalendario = new Date();
 
-      // ✅ Enviar mensaje por WhatsApp
-      enviarMensajeWhatsApp(nombre, fecha, hora);
-    }
-  });
-}
+        const bloquesHorarios = [
+            "09:00", "10:00", "11:00", "12:00",
+            "14:00", "15:00", "16:00", "17:00"
+        ];
 
+        const mesesTexto = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ];
 
+        const estadoRef = firebase.database().ref("estadoBarberia");
+        const mensajeRef = firebase.database().ref("mensajeCierre");
+        const diasBloqueadosRef = firebase.database().ref("diasBloqueados");
 
-function enviarMensajeWhatsApp() {
-  const nombre = document.getElementById("nombre")?.value.trim();
-  const fecha = document.getElementById("fecha")?.value;
-  const hora = document.getElementById("hora")?.value;
+        // Escuchar reservas en tiempo real
+        reservasRef.on("value", snapshot => {
+            reservasPorDia = {};
+            snapshot.forEach(child => {
+                const { fecha, hora } = child.val();
+                if (!reservasPorDia[fecha]) reservasPorDia[fecha] = [];
+                reservasPorDia[fecha].push(hora);
+            });
+            actualizarBarraMes();
+        });
 
-  if (!nombre || !fecha || !hora) {
-    alert("Faltan datos: asegúrate de ingresar nombre, fecha y hora");
-    return;
-  }
+        // Escuchar días bloqueados en tiempo real
+        diasBloqueadosRef.on("value", snapshot => {
+            diasBloqueados = [];
+            snapshot.forEach(child => {
+                diasBloqueados.push(child.val().fecha);
+            });
+            actualizarBarraMes();
+        });
 
-  const numeroDestino = "56954527837"; // ← Cambia esto por el número real
-  const mensaje = `Hola, soy ${nombre}. Quiero reservar para el día ${fecha} a las ${hora}.`;
-  const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`;
+        function generarCuadroCalendario() {
+            const mesStr = `${fechaActualCalendario.getFullYear()}-${String(fechaActualCalendario.getMonth() + 1).padStart(2, "0")}`;
+            cuadroCalendario.innerHTML = "";
+            const [anio, mes] = mesStr.split("-");
+            const fechaInicio = new Date(anio, mes - 1, 1);
+            const primerDiaSemana = fechaInicio.getDay();
+            const totalDias = new Date(anio, mes, 0).getDate();
+            const offset = primerDiaSemana === 0 ? 6 : primerDiaSemana - 1;
 
-  window.open(url, "_blank");
-}
-function borrarTodasLasHorasEnPantalla() {
-  // Elimina TODAS las reservas de Firebase
-  reservasRef.remove()
-    .then(() => {
-      console.log("Todas las reservas han sido eliminadas de Firebase");
+            for (let i = 0; i < offset; i++) {
+                const vacio = document.createElement("div");
+                cuadroCalendario.appendChild(vacio);
+            }
 
-      // Limpia la pantalla local
-      const lista = document.getElementById("reservas-lista");
-      if (!lista) {
-        console.warn("No se encontró el contenedor de reservas");
-        return;
-      }
+            for (let dia = 1; dia <= totalDias; dia++) {
+                const fechaActual = `${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+                const celda = document.createElement("div");
+                celda.classList.add("diaCalendario");
+                celda.textContent = dia;
 
-      while (lista.firstChild) {
-        lista.removeChild(lista.firstChild);
-      }
+                const horasReservadas = reservasPorDia[fechaActual] || [];
+                const estaBloqueado = diasBloqueados.includes(fechaActual);
+                const estaOcupado = horasReservadas.length >= bloquesHorarios.length;
 
-      console.log("Todas las horas en pantalla han sido eliminadas");
-    })
-    .catch(error => {
-      console.error("Error al borrar las reservas:", error);
-    });
-}
+                if (estaBloqueado) {
+                    celda.classList.add("diaBloqueado");
+                    celda.title = "Día bloqueado por el administrador";
+                } else if (estaOcupado) {
+                    celda.classList.add("diaOcupado");
+                    celda.title = "Día con todas las horas reservadas";
+                } else {
+                    celda.classList.add("diaLibre");
+                    celda.title = "Día disponible";
+                }
 
+                celda.onclick = () => {
+                    if (modoBloqueoDias) {
+                        if (estaBloqueado) {
+                            diasBloqueadosRef.once("value", snapshot => {
+                                snapshot.forEach(child => {
+                                    if (child.val().fecha === fechaActual) {
+                                        child.ref.remove();
+                                        console.log("Día desbloqueado:", fechaActual);
+                                    }
+                                });
+                            });
+                        } else {
+                            diasBloqueadosRef.push({
+                                fecha: fechaActual
+                            });
+                            console.log("Día bloqueado:", fechaActual);
+                        }
+                    } else {
+                        if (!estaBloqueado) {
+                            fechaInput.value = fechaActual;
+                            abrirVentanaHorarios(fechaActual);
+                        }
+                    }
+                };
+                
+                if (!modoBloqueoDias && estaBloqueado) {
+                    celda.style.pointerEvents = "none";
+                }
 
+                cuadroCalendario.appendChild(celda);
+            }
+        }
 
+        function actualizarBarraMes() {
+            const mes = fechaActualCalendario.getMonth();
+            const año = fechaActualCalendario.getFullYear();
+            tituloMes.textContent = `${mesesTexto[mes]} ${año}`;
+            generarCuadroCalendario();
+        }
 
-</script>
-  <script src="script.js"></script>
+        botonAnterior.onclick = () => {
+            fechaActualCalendario.setMonth(fechaActualCalendario.getMonth() - 1);
+            actualizarBarraMes();
+        };
+
+        botonSiguiente.onclick = () => {
+            fechaActualCalendario.setMonth(fechaActualCalendario.getMonth() + 1);
+            actualizarBarraMes();
+        };
+
+        window.addEventListener("DOMContentLoaded", () => {
+            actualizarBarraMes();
+            // Ocultar el botón de desactivar bloqueo al iniciar la página
+            botonDesactivarBloqueo.style.display = 'none';
+        });
+
+        botonActivarBloqueo.onclick = () => {
+            modoBloqueoDias = true;
+            botonActivarBloqueo.style.display = 'none';
+            botonDesactivarBloqueo.style.display = 'block';
+            generarCuadroCalendario();
+            console.log("Modo bloqueo ACTIVADO");
+        };
+
+        botonDesactivarBloqueo.onclick = () => {
+            modoBloqueoDias = false;
+            botonActivarBloqueo.style.display = 'none';
+            botonDesactivarBloqueo.style.display = 'none';
+            generarCuadroCalendario();
+            console.log("Modo bloqueo DESACTIVADO");
+        };
+
+        fechaInput.addEventListener("change", () => {
+            const fechaElegida = new Date(fechaInput.value);
+            const opciones = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
+            const fechaFormateada = fechaElegida.toLocaleDateString('es-CL', opciones);
+            document.getElementById("boton").innerHTML = `📅 ${fechaFormateada}`;
+            document.getElementById("botonCambiar").classList.remove("oculto");
+        });
+
+        document.getElementById("buscadorGlobal").addEventListener("input", () => {
+            const filtro = document.getElementById("buscadorGlobal").value.trim();
+            const contenedor = document.getElementById("reservas-lista");
+            if (!contenedor) return;
+            contenedor.querySelectorAll(".resaltado").forEach(span => {
+                const parent = span.parentNode;
+                if (parent) {
+                    parent.replaceChild(document.createTextNode(span.textContent), span);
+                    parent.normalize();
+                }
+            });
+            if (filtro === "") return;
+            const elementos = contenedor.querySelectorAll("*");
+            let primeraCoincidencia = null;
+            elementos.forEach(el => {
+                el.childNodes.forEach(node => {
+                    if (node.nodeType === 3 && node.textContent.includes(filtro)) {
+                        const partes = node.textContent.split(filtro);
+                        const fragmento = document.createDocumentFragment();
+                        partes.forEach((parte, i) => {
+                            fragmento.appendChild(document.createTextNode(parte));
+                            if (i < partes.length - 1) {
+                                const span = document.createElement("span");
+                                span.className = "resaltado";
+                                span.textContent = filtro;
+                                fragmento.appendChild(span);
+                            }
+                        });
+                        el.replaceChild(fragmento, node);
+                        if (!primeraCoincidencia) primeraCoincidencia = el;
+                    }
+                });
+            });
+            if (primeraCoincidencia) {
+                setTimeout(() => {
+                    primeraCoincidencia.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center"
+                    });
+                }, 50);
+            }
+        });
+
+        setTimeout(() => {
+            const primeraCoincidencia = document.querySelector(".resaltado");
+            if (primeraCoincidencia) {
+                primeraCoincidencia.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+            }
+        }, 100);
+
+        let temporizadorPresion;
+        const logoCerrado = document.getElementById("logo-cerrado");
+        const logo = document.getElementById("logo");
+        
+        function iniciarPresionLenta(objeto) {
+            objeto.addEventListener("mousedown", () => {
+                temporizadorPresion = setTimeout(() => {
+                    document.getElementById("modal-acceso").classList.remove("fantasma");
+                }, 5000);
+            });
+            objeto.addEventListener("mouseup", () => clearTimeout(temporizadorPresion));
+            objeto.addEventListener("mouseleave", () => clearTimeout(temporizadorPresion));
+            objeto.addEventListener("touchstart", () => {
+                temporizadorPresion = setTimeout(() => {
+                    document.getElementById("modal-acceso").classList.remove("fantasma");
+                }, 5000);
+            });
+            objeto.addEventListener("touchend", () => clearTimeout(temporizadorPresion));
+        }
+        
+        if (logo) {
+            iniciarPresionLenta(logo);
+        }
+        if (logoCerrado) {
+            iniciarPresionLenta(logoCerrado);
+        }
+
+        reservasRef.on("child_removed", (snapshot) => {
+            const { fecha, hora } = snapshot.val();
+            const idBloque = `${fecha}-${hora}`;
+            console.log("Eliminando visualmente:", idBloque);
+            const div = document.getElementById(idBloque);
+            if (div) div.remove();
+        });
+
+        function reservarHora() {
+            const fecha = fechaInput.value;
+            const hora = document.getElementById("hora").value;
+            const nombre = document.getElementById("nombre").value.trim();
+
+            if (!fecha || !hora || !nombre) {
+                alert("Completa todos los campos: nombre, fecha y hora");
+                return;
+            }
+
+            const idBloque = `${fecha}-${hora}`;
+
+            reservasRef.once("value", snapshot => {
+                let ocupada = false;
+                snapshot.forEach(child => {
+                    const r = child.val();
+                    if (`${r.fecha}-${r.hora}` === idBloque) {
+                        ocupada = true;
+                    }
+                });
+                if (ocupada) {
+                    document.getElementById("modal-ocupado").classList.remove("hidden");
+                } else {
+                    reservasRef.push({
+                        fecha,
+                        hora,
+                        nombre
+                    });
+                    document.getElementById("modal-reservada").classList.remove("hidden");
+                    enviarMensajeWhatsApp(nombre, fecha, hora);
+                }
+            });
+        }
+
+        function cerrarModal(id) {
+            document.getElementById(id).classList.add("fantasma");
+        }
+
+        function validarClave() {
+            const claveInput = document.getElementById("clave-input");
+            const clave = claveInput.value;
+            if (clave === "1234") {
+                document.getElementById("modal-acceso").classList.add("fantasma");
+                document.getElementById("modal-control").classList.remove("fantasma");
+                claveInput.value = "";
+            } else {
+                alert("Clave incorrecta");
+            }
+        }
+
+        function cerrarBarberia() {
+            estadoRef.set("cerrado");
+            document.getElementById("modal-control").classList.add("fantasma");
+        }
+
+        function abrirBarberia() {
+            estadoRef.set("abierto");
+            document.getElementById("modal-control").classList.add("fantasma");
+        }
+
+        estadoRef.on("value", snapshot => {
+            const estado = snapshot.val();
+            console.log("Estado actualizado:", estado);
+            if (estado === "cerrado") {
+                document.getElementById("modal-cerrado").style.display = "flex";
+            } else {
+                document.getElementById("modal-cerrado").style.display = "none";
+            }
+        });
+
+        function activarPresionProlongada(elemento, accion, tiempo = 5000) {
+            elemento.addEventListener("mousedown", () => {
+                presionarTimer = setTimeout(accion, tiempo);
+            });
+            elemento.addEventListener("mouseup", () => clearTimeout(presionarTimer));
+            elemento.addEventListener("mouseleave", () => clearTimeout(presionarTimer));
+            elemento.addEventListener("touchstart", () => {
+                presionarTimer = setTimeout(accion, tiempo);
+            });
+            elemento.addEventListener("touchend", () => clearTimeout(presionarTimer));
+        }
+
+        const reservasRefMostrar = firebase.database().ref("reservas");
+        reservasRefMostrar.on("child_added", (snapshot) => {
+            const { fecha, hora, nombre } = snapshot.val();
+            const idBloque = `${fecha}-${hora}`;
+            if (document.getElementById(idBloque)) return;
+            const div = document.createElement("div");
+            div.className = "reserva-item";
+            div.id = idBloque;
+            const texto = document.createElement("span");
+            texto.textContent = `📅 ${fecha} ⏰ ${hora} - ${nombre}`;
+            const botonX = document.createElement("span");
+            botonX.textContent = " | ❌";
+            botonX.className = "boton-x";
+            botonX.title = "Eliminar esta hora";
+            botonX.onclick = () => {
+                snapshot.ref.remove();
+                ocultarBotonesX();
+            };
+            div.appendChild(texto);
+            div.appendChild(botonX);
+            listaReservas.appendChild(div);
+        });
+
+        function mostrarBotonesX() {
+            document.querySelectorAll(".boton-x").forEach(b => {
+                b.style.display = "inline";
+            });
+        }
+
+        function ocultarBotonesX() {
+            document.querySelectorAll(".boton-x").forEach(b => {
+                b.style.display = "none";
+            });
+        }
+
+        function mostrarModalMensaje() {
+            document.getElementById("modal-control").classList.add("fantasma");
+            document.getElementById("modal-mensaje").classList.remove("fantasma");
+        }
+
+        function guardarMensajeCierre() {
+            const mensaje = document.getElementById("mensaje-cierre").value;
+            mensajeRef.set(mensaje);
+            estadoRef.set("cerrado");
+            document.getElementById("modal-mensaje").classList.add("fantasma");
+        }
+
+        mensajeRef.on("value", snapshot => {
+            const mensaje = snapshot.val();
+            document.getElementById("mensaje-cerrado").textContent = mensaje || "";
+        });
+
+        function borrarTodasLasHorasEnPantalla() {
+            reservasRef.remove()
+                .then(() => {
+                    console.log("Todas las reservas han sido eliminadas de Firebase");
+                    const lista = document.getElementById("reservas-lista");
+                    if (!lista) {
+                        console.warn("No se encontró el contenedor de reservas");
+                        return;
+                    }
+                    while (lista.firstChild) {
+                        lista.removeChild(lista.firstChild);
+                    }
+                    console.log("Todas las horas en pantalla han sido eliminadas");
+                })
+                .catch(error => {
+                    console.error("Error al borrar las reservas:", error);
+                });
+        }
+
+        function borrarHorasMesHastaHoy() {
+            const hoy = new Date();
+            const diaActual = hoy.getDate();
+            const mesActual = hoy.getMonth() + 1;
+            const añoActual = hoy.getFullYear();
+
+            reservasRef.once("value", snapshot => {
+                snapshot.forEach(child => {
+                    const { fecha } = child.val();
+                    const [año, mes, dia] = fecha.split("-").map(Number);
+                    if (año === añoActual && mes === mesActual && dia < diaActual) {
+                        reservasRef.child(child.key).remove();
+                    }
+                });
+            });
+            document.getElementById("modal-control").classList.add("fantasma");
+        }
+
+        function miFuncion() {
+            document.getElementById("reservar-button").style.display = 'block';
+        }
+
+        function abrirVentanaHorarios(fecha) {
+            tituloVentana.textContent = `Horarios para ${fecha}`;
+            horariosDisponibles.innerHTML = "";
+            const horasReservadas = reservasPorDia[fecha] || [];
+            bloquesHorarios.forEach(hora => {
+                const bloque = document.createElement("div");
+                bloque.classList.add("bloqueHora");
+                if (horasReservadas.includes(hora)) {
+                    bloque.classList.add("horaOcupada");
+                    bloque.textContent = `⛔ ${hora}`;
+                } else {
+                    bloque.classList.add("horaLibre");
+                    bloque.textContent = `✅ ${hora}`;
+                    bloque.onclick = () => {
+                        document.getElementById("hora").value = hora;
+                        fechaInput.value = fecha;
+                        document.getElementById("modal-hora-personalizada").classList.remove("hidden");
+                        ventanaHorarios.style.display = "none";
+                    };
+                }
+                horariosDisponibles.appendChild(bloque);
+            });
+            ventanaHorarios.style.display = "block";
+        }
+
+        cerrarVentana.onclick = () => {
+            ventanaHorarios.style.display = "none";
+        };
+
+        window.onclick = (e) => {
+            if (e.target === ventanaHorarios) ventanaHorarios.style.display = "none";
+        };
+
+        function enviarMensajeWhatsApp() {
+            const nombre = document.getElementById("nombre")?.value.trim();
+            const fecha = fechaInput.value;
+            const hora = document.getElementById("hora").value;
+
+            if (!nombre || !fecha || !hora) {
+                alert("Faltan datos: asegúrate de ingresar nombre, fecha y hora");
+                return;
+            }
+            const numeroDestino = "56954527837";
+            const mensaje = `Hola, soy ${nombre}. Quiero reservar para el día ${fecha} a las ${hora}.`;
+            const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`;
+            window.open(url, "_blank");
+        }
+    </script>
 </body>
 </html>
