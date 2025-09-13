@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reservas Barbería</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styleone.css">
+   
     <link rel="icon" href="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" type="image/x-icon">
 <meta property="og:title" content="JAMES Barbershop">
 <meta property="og:description" content="Reservar Hora">
@@ -16,7 +17,7 @@
 </head>
 <body>
     
-    <!-- REMPLAZAR: JAMES Barbershop POR "EL NOMBRE DE LABARBER" -->
+    <!-- REMPLAZAR: "JAMES Barbershop" POR "EL NOMBRE DE LABARBER" -->
     
     
     <!-- ESCRIBIR: "CAMBIAR HORARIOS" PARA CAMBIAR LOS HORARIOS DE TODOS LOS DÍAS -->
@@ -25,7 +26,7 @@
 
 <!-- LOGO -->
 <!-- REMPLAZAR ESTE LINK POR EL LINK DEL LOGO: -->
-<!-- https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg -->
+<!-- "https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" -->
 <div class="container">
         <div id="logo" style="
             width: 200px;
@@ -45,7 +46,150 @@
             </div>
         </div>
         Selecciona un día
-        <div id="cuadroCalendario"></div>
+      <div class="dias-semana"></div>
+<div id="cuadroCalendario"></div>
+    <script>
+
+
+
+        // Función para generar los nombres de los días de la semana
+
+        function generarDiasSemana() {
+
+            const contenedorDias = document.querySelector(".dias-semana");
+
+            const dias = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
+
+
+
+            contenedorDias.innerHTML = ""; // Limpia el contenedor para evitar duplicados
+
+            dias.forEach(nombreDia => {
+
+                const diaElemento = document.createElement("div");
+
+                diaElemento.classList.add("dia-semana");
+
+                diaElemento.textContent = nombreDia;
+
+                contenedorDias.appendChild(diaElemento);
+
+            });
+
+        }
+
+
+
+        // Tu función principal para generar los días del mes
+
+        function generarCuadroCalendario() {
+
+            const mesStr = `${fechaActualCalendario.getFullYear()}-${String(fechaActualCalendario.getMonth() + 1).padStart(2, "0")}`;
+
+            cuadroCalendario.innerHTML = "";
+
+            const [anio, mes] = mesStr.split("-");
+
+            const fechaInicio = new Date(anio, mes - 1, 1);
+
+            const primerDiaSemana = fechaInicio.getDay();
+
+            const totalDias = new Date(anio, mes, 0).getDate();
+
+            const offset = primerDiaSemana === 0 ? 6 : primerDiaSemana - 1;
+
+
+
+            for (let i = 0; i < offset; i++) {
+
+                const vacio = document.createElement("div");
+
+                cuadroCalendario.appendChild(vacio);
+
+            }
+
+
+
+            for (let dia = 1; dia <= totalDias; dia++) {
+
+                const fechaActual = `${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+
+                const celda = document.createElement("div");
+
+                celda.classList.add("diaCalendario");
+
+                celda.textContent = dia;
+
+
+
+                const horasReservadas = reservasPorDia[fechaActual] || [];
+
+                const horarioDelDia = horariosPersonalizados[fechaActual] || horarioSemana;
+
+                const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0;
+
+                const estaOcupado = horasReservadas.length >= horarioDelDia.length;
+
+
+
+                if (estaBloqueado) {
+
+                    celda.classList.add("diaBloqueado");
+
+                    celda.title = "Día bloqueado por el administrador";
+
+                } else if (estaOcupado) {
+
+                    celda.classList.add("diaOcupado");
+
+                    celda.title = "Día con todas las horas reservadas";
+
+                } else {
+
+                    celda.classList.add("diaLibre");
+
+                    celda.title = "Día disponible";
+
+                }
+
+
+
+                celda.onclick = () => {
+
+                    // ... (tu lógica de clic, que no se modificó) ...
+
+                };
+
+                
+
+                if (!modoBloqueoDias && estaBloqueado) {
+
+                    celda.style.pointerEvents = "none";
+
+                }
+
+
+
+                cuadroCalendario.appendChild(celda);
+
+            }
+
+        }
+
+
+
+        // Aseguramos que el código se ejecuta una vez que la página ha cargado
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+
+            generarDiasSemana();
+
+            generarCuadroCalendario();
+
+        });
+
+    </script>
+
 
         <input type="month" hidden id="selectorMes"/>
 
@@ -191,9 +335,19 @@
             <h3>HORA DISPONIBLE</h3>
         </div>
     </div>
-
+<style>.dias-semana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px; 
+    font-weight: 700;
+    color: orange;
+      text-shadow: 3px 0px 30px #fff;
+    /* ... (otros estilos) ... */
+    
+}</style>
     <script>
         // Inicializar Firebase
+   // Inicializar Firebase
         const firebaseConfig = {
             apiKey: "TU_API_KEY",
             authDomain: "barbershop-4b936.firebaseapp.com",
@@ -203,6 +357,7 @@
             messagingSenderId: "TU_SENDER_ID",
             appId: "TU_APP_ID"
         };
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const reservasRef = db.ref("reservas");
