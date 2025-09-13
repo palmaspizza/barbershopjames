@@ -144,8 +144,10 @@
         
         <div id="modal-horarios" class="modalBarberia">
             <div class="contenidoModal">
-                <span id="cerrarVentana" class="cerrarModal">&times;</span>
-                <h3 id="tituloVentana"></h3>
+                <span id="cerrarVentana" class="cerrarModal">Cerrar</span>
+                <br>
+                <h3 id="tituloVentana" style="color: orangered; text-shadow: 1px 1px 1px #000;"></h3>
+                <h3 style="color: #000;">Selecciona la hora</h3>
                 <div id="horariosDisponibles"></div>
             </div>
         </div>
@@ -657,7 +659,7 @@
         }
 
         function abrirVentanaHorarios(fecha) {
-            tituloVentana.textContent = `Horarios para ${fecha}`;
+            tituloVentana.textContent = `HORAS DISPONIBLES ${fecha}`;
             horariosDisponibles.innerHTML = "";
             const horasReservadas = reservasPorDia[fecha] || [];
             const horarioDelDia = horariosPersonalizados[fecha] || horarioSemana;
