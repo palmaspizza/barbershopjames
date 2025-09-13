@@ -867,3 +867,20 @@ img {
   color: white;
   cursor: default;
 }
+/* Este selector y el de abajo deben tener los mismos valores de 'grid' */
+.dias-semana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px; 
+    font-weight: 700;
+    /* ... (otros estilos) ... */
+    
+}
+
+/* Este selector y el de arriba deben tener los mismos valores de 'grid' */
+#cuadroCalendario {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    /* ... (otros estilos) ... */
+}
