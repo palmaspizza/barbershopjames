@@ -347,43 +347,79 @@ button[onclick*="abrirCalendario"]:hover {
   font-weight: bold;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
+/* Abrir barbería */
+.caja-misteriosa button:nth-child(1) {
+  background-color: #e03131; /* naranjo claro */
+  color: #fff;
+}
 
 /* Abrir barbería */
 .caja-misteriosa button:nth-child(2) {
-  background-color: #ffa94d; /* naranjo claro */
-  color: #1e1e1e;
-}
-.caja-misteriosa button:nth-child(2):hover {
-  background-color: #ff922b;
+  background-color: #e03131; /* naranjo claro */
+  color: #fff;
 }
 
 /* Cerrar barbería */
 .caja-misteriosa button:nth-child(4) {
-  background-color: #b02a37; /* rojo oscuro */
+  background-color: #e03131; /* rojo oscuro */
   color: white;
 }
-.caja-misteriosa button:nth-child(4):hover {
-  background-color: #941f2c;
-}
+
 
 /* Gestionar horarios */
 .caja-misteriosa button:nth-child(6) {
-  background-color: #343a40; /* negro carbón */
+  background-color: #e03131; /* negro carbón */
   color: white;
 }
-.caja-misteriosa button:nth-child(6):hover {
-  background-color: #495057;
-}
+
 
 /* Borrar todas las reservas */
 .caja-misteriosa button:nth-child(8) {
   background-color: #e03131; /* rojo vibrante */
   color: white;
 }
-.caja-misteriosa button:nth-child(8):hover {
-  background-color: #c92a2a;
+
+/* Borrar horas antiguas */
+.caja-misteriosa button:nth-child(9) {
+  background-color: #e03131; /* gris claro */
+  color: #fff;
+}
+/* Borrar horas antiguas */
+.caja-misteriosa button:nth-child(10) {
+  background-color: #e03131; /* gris claro */
+  color: #fff;
 }
 
+
+/* Borrar horas antiguas */
+.caja-misteriosa button:nth-child(11) {
+  background-color: #e03131; /* gris claro */
+  color: #fff;
+}
+
+/* Borrar horas antiguas */
+.caja-misteriosa button:nth-child(12) {
+  background-color: #e03131; /* gris claro */
+  color: #fff;
+}
+
+
+/* Eliminar 1 reserva */
+.caja-misteriosa button:nth-child(14) {
+  background-color: #e03131; /* verde suave */
+  color: #fff;
+}
+
+/* Botón cerrar */
+.caja-misteriosa button:last-child {
+  background-color: #e03131; /* gris neutro */
+  color: #fff;
+}
+
+/* Efecto de presión */
+.caja-misteriosa button:active {
+  transform: scale(0.97);
+}
 /* Inhabilitar días */
 #activarBloqueoDias {
   background-color: #2f9e44; /* verde botella */
@@ -391,38 +427,6 @@ button[onclick*="abrirCalendario"]:hover {
 }
 #activarBloqueoDias:hover {
   background-color: #2b8a3e;
-}
-
-/* Borrar horas antiguas */
-.caja-misteriosa button:nth-child(12) {
-  background-color: #adb5bd; /* gris claro */
-  color: #1e1e1e;
-}
-.caja-misteriosa button:nth-child(12):hover {
-  background-color: #ced4da;
-}
-
-/* Eliminar 1 reserva */
-.caja-misteriosa button:nth-child(14) {
-  background-color: #51cf66; /* verde suave */
-  color: #1e1e1e;
-}
-.caja-misteriosa button:nth-child(14):hover {
-  background-color: #40c057;
-}
-
-/* Botón cerrar */
-.caja-misteriosa button:last-child {
-  background-color: #dee2e6; /* gris neutro */
-  color: #1e1e1e;
-}
-.caja-misteriosa button:last-child:hover {
-  background-color: #e9ecef;
-}
-
-/* Efecto de presión */
-.caja-misteriosa button:active {
-  transform: scale(0.97);
 }
 .cerrarModal{
   background-color: rgb(255, 73, 73);
@@ -615,14 +619,18 @@ img {
   box-shadow: 0 6px 18px rgba(255, 170, 0, 0.6);
 }
 .activo{
-  background-color: green;
+  background-color: green !important;
+  color: white;
+}
+.toggle-hora-btn{
+  background-color: #e03131;
   color: white;
 }
 .oculto {
   display: none;
 }
 .boton-cambiar {
-  background-color: #FF6B6B !important; /* Rojo claro vibrante, sin tono rosado */
+  background-color: #e03131 !important; /* Rojo claro vibrante, sin tono rosado */
   color: #fff; /* Letras blancas para contraste fuerte */
   border: 2px solid green; /* Verde brillante para el borde */
   padding: 12px 22px;
