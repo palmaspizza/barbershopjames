@@ -251,15 +251,15 @@
                 <p id="fecha-config-horarios"></p>
                 <br>
                 <div id="botones-horarios-predeterminados" style="display: flex; flex-direction: column; gap: 5px;">
-                    <button hidden id="boton-horario-semana">Horario de Semana</button>
-                    <button hidden id="boton-horario-sabado">Horario de Sábado</button>
+                    <button  id="boton-horario-semana" style="background-color: orange; border: 2px solid black;">Horario de Semana</button>
+                    <button  id="boton-horario-sabado" style="background-color: orangered; border: 2px solid black;">Horario de Sábado</button>
                     <button hidden id="boton-horario-cerrado">Día Cerrado</button>
                 </div>
                 <hr>
                 <div id="botones-toggle-horas" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
                 </div>
                 <br><br>
-                <button onclick="guardarHorarioPersonalizado()">Guardar Horario</button>
+                <button onclick="guardarHorarioPersonalizado()"style="background-color: green; border: 2px solid black;">Guardar Horario</button>
                 <button onclick="cerrarModal('modal-configuracion-horarios')">Cerrar</button>
             </div>
         </div>
@@ -1275,7 +1275,7 @@ img {
         let fechaSeleccionadaParaConfigurar = "";
 // CAMBIAR HORARIO
         const horarioSemana = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30"];
-        const horarioSabado = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30"];
+        const horarioSabado = ["09:00", "09:30"];
         const bloquesBase = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30"];
 
 
