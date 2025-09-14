@@ -1,13 +1,4 @@
-// --- Inicialización de Firebase (asegúrate de que tus credenciales estén aquí) ---
-const firebaseConfig = {
-    apiKey: "TU_API_KEY",
-    authDomain: "TU_AUTH_DOMAIN",
-    databaseURL: "TU_DATABASE_URL",
-    projectId: "TU_PROJECT_ID",
-    storageBucket: "TU_STORAGE_BUCKET",
-    messagingSenderId: "TU_MESSAGING_SENDER_ID",
-    appId: "TU_APP_ID"
-};
+
 
 // --- Asegúrate de que Firebase se haya inicializado solo una vez ---
 if (!firebase.apps.length) {
