@@ -235,3 +235,5 @@ estadoRef.on("value", snapshot => {
         document.getElementById("modal-cerrado").style.display = "none";
     }
 });
+
+
