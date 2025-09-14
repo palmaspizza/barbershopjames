@@ -344,6 +344,891 @@
       text-shadow: 3px 0px 30px #fff;
     /* ... (otros estilos) ... */
     
+}body {
+  background-color: #000;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+input {
+  text-transform: capitalize;
+}
+.container {
+  max-width: 90%;
+  margin: auto;
+  background-color: #111;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px #FF7300;
+  height: 100%;
+}
+
+h1, h2 {
+  text-align: center;
+  color: #F5A122 !important;
+  text-shadow: #000 1px 1px 2px;
+}
+
+#modal-acceso{
+  z-index: 2000;
+}
+
+button {
+  background-color: #FF7700;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  margin-top: 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+
+select, input[type="date"] {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background-color: #000;
+  color: #fff;
+  border: 2px solid #FF7300;
+  border-radius: 6px;
+}
+
+.oculto {
+  display: none;
+}
+
+.reserva-item {
+  background-color: #222;
+  border: 1px solid #FF7300;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 6px;
+  color: #fff;
+}
+
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background-color: #111;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 0 15px #FF7300;
+}
+
+.modal-content.ocupado {
+  background-color: red;
+  color: white;
+}
+
+.modal-content.reservada {
+  background-color: #111;
+  color: #FF7300;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Estilo para modales personalizados */
+.ventana-secreta {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* Contenido interno de los modales */
+.caja-misteriosa {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+}
+
+/* Ocultar elementos */
+.fantasma {
+  display: none;
+}
+
+/* Pantalla de barbería cerrada */
+.pantalla-negra {
+  background-color: black;
+  color: white;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#buscadorGlobal::placeholder{
+color: white;
+text-shadow: #000 1px 1px 2px;
+}
+
+/* Fondo general */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to bottom, #111, #222);
+  color: #fff;
+}
+label{
+
+  text-shadow: #000 1px 1px 2px;
+}
+/* Contenedor principal */
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+  background-color: #1a1a1a;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+/* Título principal */
+h1 {
+  text-align: center;
+  color: #ff4d4d; /* rojo barbería */
+  margin-bottom: 20px;
+}
+
+/* Subtítulos */
+h2 {
+  color: #ffa500; /* naranja claro */
+  border-bottom: 2px solid #ffa500;
+  padding-bottom: 5px;
+  margin-top: 30px;
+}
+
+/* Etiquetas */
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+  color: green; /* verde barbería */
+}
+
+/* Inputs y selects */
+input[type="text"],
+input[type="password"],
+input[type="date"],
+select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: none;
+  border-radius: 5px;
+  background-color: #333;
+  color: #fff;
+}
+
+/* Botones */
+button {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  margin-top: 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  text-shadow: #000 1px 1px 2px;
+}
+
+
+/* Reservas en pantalla */
+.reserva-item {
+  background-color: #2b2b2b;
+  padding: 10px;
+  margin: 5px 0;
+  border-left: 8px solid red;
+  border-radius: 5px;
+}
+
+/* Modales */
+.ventana-secreta {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(17, 17, 17, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.caja-misteriosa {
+  background-color: #222;
+  padding: 30px;
+  border-radius: 10px;
+  border: 2px solid #ff4d4d;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+}
+
+.fantasma {
+  display: none;
+}
+.boton-x{
+  display: none;
+}
+
+/* Pantalla cerrada */
+.pantalla-negra {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  color: #fff;
+  text-align: center;
+  padding-top: 100px;
+  z-index: 1000;
+}
+
+/* Modales de estado */
+.modal {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -30%);
+  background-color: #222;
+  border: 2px solid #ffa500;
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 1001;
+}
+
+.modal-content h3 {
+  color: green;
+}
+
+.modal-content p {
+  color: #fff;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Logo */
+#logo, #logo-cerrado {
+  border-radius: 10px;
+  box-shadow: 0 0 10px #ff7700;
+}
+
+/* Botón de calendario */
+button[onclick*="abrirCalendario"] {
+  background-color: green;
+}
+
+button[onclick*="abrirCalendario"]:hover {
+  background-color: #00994d;
+}
+
+#modal-control{
+  z-index: 3000;
+}
+.caja-misteriosa {
+  background-color: #1e1e1e; /* gris oscuro */
+  border-radius: 12px;
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 0 20px rgba(255, 165, 0, 0.3);
+  text-align: center;
+  font-family: 'Segoe UI', sans-serif;
+  color: #f0f0f0;
+}
+
+/* Título */
+.caja-misteriosa h3 {
+  margin-bottom: 20px;
+  font-size: 1.5em;
+  color: #ffa94d; /* naranjo claro */
+  border-bottom: 2px solid #ffa94d;
+  padding-bottom: 10px;
+}
+
+/* Botones generales */
+.caja-misteriosa button {
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 15px;
+  font-size: 1em;
+  border: 2px solid white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+/* Abrir barbería */
+.caja-misteriosa button:nth-child(1) {
+  background-color: #e03131; /* naranjo claro */
+  color: #fff;
+}
+
+/* Abrir barbería */
+.caja-misteriosa button:nth-child(2) {
+  background-color: #e03131; /* naranjo claro */
+  color: #fff;
+}
+
+/* Cerrar barbería */
+.caja-misteriosa button:nth-child(4) {
+  background-color: #e03131; /* rojo oscuro */
+  color: white;
+}
+
+
+/* Gestionar horarios */
+.caja-misteriosa button:nth-child(6) {
+  background-color: #e03131; /* negro carbón */
+  color: white;
+}
+
+
+/* Borrar todas las reservas */
+.caja-misteriosa button:nth-child(8) {
+  background-color: #e03131; /* rojo vibrante */
+  color: white;
+}
+
+/* Borrar horas antiguas */
+.caja-misteriosa button:nth-child(9) {
+  background-color: #e03131; /* gris claro */
+  color: #fff;
+}
+/* Borrar horas antiguas */
+.caja-misteriosa button:nth-child(10) {
+  background-color: #e03131; /* gris claro */
+  color: #fff;
+}
+
+
+/* Borrar horas antiguas */
+.caja-misteriosa button:nth-child(11) {
+  background-color: #e03131; /* gris claro */
+  color: #fff;
+}
+
+/* Borrar horas antiguas */
+.caja-misteriosa button:nth-child(12) {
+  background-color: #e03131; /* gris claro */
+  color: #fff;
+}
+
+
+/* Eliminar 1 reserva */
+.caja-misteriosa button:nth-child(14) {
+  background-color: #e03131; /* verde suave */
+  color: #fff;
+}
+
+/* Botón cerrar */
+.caja-misteriosa button:last-child {
+  background-color: #e03131; /* gris neutro */
+  color: #fff;
+}
+
+/* Efecto de presión */
+.caja-misteriosa button:active {
+  transform: scale(0.97);
+}
+/* Inhabilitar días */
+#activarBloqueoDias {
+  background-color: #2f9e44; /* verde botella */
+  color: white;
+}
+#activarBloqueoDias:hover {
+  background-color: #2b8a3e;
+}
+.cerrarModal{
+  background-color: rgb(255, 73, 73);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 120% !important;
+  padding: 5px;
+}
+#nombre{
+  background-color: #fff;
+  color: black;
+}
+#reservar-button {
+  display: none; /* se mostrará dinámicamente */
+  padding: 14px 28px;
+  font-size: 18px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #ffa500, #ff6f00);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(255, 165, 0, 0.3);
+  transition: all 0.3s ease;
+  animation: pulsoElegante 2s infinite;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.modalBarberia {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  overflow: hidden; /* evita scroll en el fondo */
+}
+
+.contenidoModal {
+  max-height: 80vh; /* límite de altura visible */
+  overflow-y: auto; /* activa scroll vertical si se necesita */
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 0 20px rgba(255, 165, 0, 0.3);
+}
+
+#reservar-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 25px rgba(255, 140, 0, 0.5);
+  background: linear-gradient(135deg, #ff6f00, #ffa500);
+}
+
+@keyframes pulsoElegante {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.4);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 20px rgba(255, 165, 0, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.4);
+  }
+}
+#namex {
+  font-size: 22px;
+  color: #ffa500;
+  margin-bottom: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: left;
+}
+
+#nombre {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 2px solid #ffa500;
+  border-radius: 8px;
+  background-color: #1a1a1a;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(255, 165, 0, 0.2);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#nombre::placeholder {
+  color: #ccc;
+  font-style: italic;
+}
+
+#nombre:focus {
+  outline: none;
+  border-color: #ff6f00;
+  box-shadow: 0 0 15px rgba(255, 111, 0, 0.4);
+}
+
+
+#reservar-button:hover {
+  transform: scale(1.05);
+}
+
+/* Animación constante */
+@keyframes pulsoElegante {
+  0% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+}
+
+@keyframes bordeFluido {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+
+
+img {
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+#hora {
+  border: 5px solid white;
+  border-radius: 8px;
+  background-color: black;
+  color: white;
+  padding: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  animation: moverSelect 2s infinite ease-in-out;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  transition: transform 0.3s ease;
+}
+
+/* Animación constante */
+@keyframes moverSelect {
+  0% {
+    transform: translateY(0px);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    transform: translateY(-3px);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+  }
+  100% {
+    transform: translateY(0px);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+}
+
+
+.oculto {
+  display: none;
+}
+
+.boton-cambiar {
+  background-color: #FFD700; /* Dorado brillante */
+  color: #000;
+  border: 2px solid #FF7700;
+  padding: 10px 18px;
+  margin-top: 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1em;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 215, 0, 0.5);
+  transition: all 0.3s ease;
+}
+.boton-cambiar:hover {
+  background-color: #FFAA00;
+  box-shadow: 0 6px 18px rgba(255, 170, 0, 0.6);
+}
+.activo{
+  background-color: green !important;
+  color: white;
+}
+.toggle-hora-btn{
+  background-color: #e03131;
+  color: white;
+}
+.oculto {
+  display: none;
+}
+.boton-cambiar {
+  background-color: #e03131 !important; /* Rojo claro vibrante, sin tono rosado */
+  color: #fff; /* Letras blancas para contraste fuerte */
+  border: 2px solid green; /* Verde brillante para el borde */
+  padding: 12px 22px;
+  margin-top: 15px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1.05em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  /* Box shadow verde intenso */
+  box-shadow:
+    0 0 0 3px rgba(0, 204, 102, 0.4),
+    0 8px 20px rgba(0, 204, 102, 0.6);
+
+  /* Sombra de texto para que las letras floten */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.boton-cambiar:hover {
+  background-color: #FF4D4D; /* Rojo más intenso al pasar el mouse */
+  transform: scale(1.06);
+  box-shadow:
+    0 0 0 4px rgba(0, 204, 102, 0.5),
+    0 10px 24px rgba(0, 204, 102, 0.7);
+}
+
+
+.resaltado {
+  background-color: #FF4D00;
+  color: #fff;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 4px;
+  box-shadow: 0 0 6px rgba(255, 77, 0, 0.5);
+}
+@keyframes resaltarPulse {
+  0% { box-shadow: 0 0 8px rgba(255, 77, 0, 0.5); }
+  50% { box-shadow: 0 0 16px rgba(255, 77, 0, 0.8); }
+  100% { box-shadow: 0 0 8px rgba(255, 77, 0, 0.5); }
+}
+
+.resaltado {
+  animation: resaltarPulse 1s ease-in-out;
+}
+#cuadroCalendario {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 20px;
+}
+
+.dia {
+  padding: 10px;
+  text-align: center;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.dia-verde {
+  background-color: green;
+  color: white;
+}
+
+.dia-rojo {
+  background-color: #ff4d4d;
+  color: white;
+}
+
+.dia:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+/* 📅 Calendario visual */
+#cuadroCalendario {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 20px;
+}
+
+.diaCalendario {
+  padding: 10px;
+  text-align: center;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.diaLibre {
+  background-color: green;
+  color: white;
+}
+
+.diaOcupado {
+  background-color: #ff4d4d;
+  color: white;
+}
+
+.diaCalendario:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 🪟 Modal de horarios */
+.modalBarberia {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.contenidoModal {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  width: 300px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #000;
+  position: relative;
+}
+
+.cerrarModal {
+  position: absolute;
+  top: 10px; right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+
+}
+
+#tituloVentana {
+  margin-bottom: 10px;
+  font-size: 18px;
+  text-align: center;
+  color: #333;
+}
+
+/* ⏰ Horarios */
+.bloqueHora {
+  padding: 8px;
+  margin: 4px 0;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.horaLibre {
+  background-color: green;
+  color: white;
+}
+
+.horaOcupada {
+  background-color: #ff0000;
+  color: white;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+
+.botonMes {
+  padding: 6px 12px;
+  font-size: 18px;
+  font-weight: bold;
+  background-color: green;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.botonMes:hover {
+  background-color: #555;
+}
+.ventanaConfirmacion {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+.ventanaConfirmacion {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: 300px; /* Ajustar según el tamaño que prefieras */
+}
+
+.inputComentario {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.botonEnviar,
+.botonCerrar {
+  padding: 10px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.botonCerrar {
+  background-color: #f44336; /* Rojo */
+}
+
+.botonEnviar:hover,
+.botonCerrar:hover {
+  opacity: 0.8;
+}
+.diaBloqueado {
+  background-color: #e74c3c !important;
+  color: white;
+  cursor: default;
+}
+/* Este selector y el de abajo deben tener los mismos valores de 'grid' */
+.dias-semana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px; 
+    font-weight: 700;
+    /* ... (otros estilos) ... */
+    
+}
+
+/* Este selector y el de arriba deben tener los mismos valores de 'grid' */
+#cuadroCalendario {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    /* ... (otros estilos) ... */
 }</style>
     <script>
         // Inicializar Firebase
