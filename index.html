@@ -219,7 +219,7 @@
                 <br><br>
                 <button onclick="cerrarModal('modal-control');borrarTodasLasHorasEnPantalla()">🧹 borrar TODAS las reservas</button>
                 <br><br>
-                <button onclick="actiwar();cerrarModal('modal-control');"  style="border: 2px solid white; color: #000; background: orange;" id="activarBloqueoDias">🔒 Marcar Días cerrados</button>
+                <button onclick="actiwar();cerrarModal('modal-control');"  style="border: 2px solid white; color: #000; background: orange; text-shadow: #000 3px 3px 5px;" id="activarBloqueoDias">🔒 Marcar Días cerrados</button>
                 <br><br>
                 <button onclick="borrarHorasMesHastaHoy()">Borrar horas antiguas del MES</button>
                 <br><br>
@@ -303,13 +303,42 @@
                 document.getElementById("desactivarBloqueoDias").hidden = true;
             }
         </script>
-        
+        <style>
+            /* Estilos para el título animado */
+.titulo-animado {
+    /* Estilos base que ya tienes o quieres */
+    color: orangered;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); /* Sombra más definida */
+    font-size: 1.8em; /* Un poco más grande para que la animación sea visible */
+    
+    /* Propiedades de la animación */
+    animation: brilloSuave 2s infinite alternate ease-in-out; /* Nombre, duración, repetición, dirección, timing */
+    display: inline-block; /* Importante para que transform funcione correctamente */
+    padding: 5px; /* Pequeño padding para no cortar la sombra/animación */
+}
+
+/* Definición de la animación */
+@keyframes brilloSuave {
+    0% {
+        transform: scale(1); /* Tamaño normal */
+        text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.7); /* Sombra inicial */
+    }
+    50% {
+        transform: scale(1.02); /* Ligeramente más grande */
+        text-shadow: 1px 1px 8px rgba(255, 140, 0, 0.9), 0 0 15px rgba(255, 165, 0, 0.5); /* Sombra con brillo naranja */
+    }
+    100% {
+        transform: scale(1); /* Vuelve al tamaño normal */
+        text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.7); /* Sombra inicial */
+    }
+}
+        </style>
         <div id="modal-horarios" class="modalBarberia">
-            <div class="contenidoModal">
+            <div style="background-color: #303030 !important;"  class="contenidoModal">
                 <span id="cerrarVentana" class="cerrarModal">Cerrar</span>
                 <br>
-                <h3 id="tituloVentana" style="color: orangered; text-shadow: 1px 1px 1px #000;"></h3>
-                <h3 style="color: #000;">Selecciona la hora</h3>
+                <h3 id="tituloVentana" class="titulo-animado" style="color: orangered; text-shadow: 1px 1px 1px #000;"></h3>
+                <h3 style="color: #fff      ;">Selecciona la hora</h3>
                 <div id="horariosDisponibles"></div>
             </div>
         </div>
@@ -319,15 +348,17 @@
         <div id="reservas-lista"></div>
     </div>
     
-    <div id="modal-hora-personalizada" class="modal hidden">
+<form action="">
+        <div id="modal-hora-personalizada" class="modal hidden">
         <div class="modal-content">
             <p>Se te redireccionará a WhatsApp</p>
 <b>            <h3 style="font-family: italic;" id="namex">Nombre</h3></b>
             <input type="text" type="name" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
             <br><br>
-            <button id="reservar-button" onclick="reservarHora();window.location.reload()">Reservar</button>
+            <button id="reservar-button" type="submit" onclick="reservarHora();window.location.reload()">Reservar</button>
         </div>
     </div>
+</form>
 <script>
   
 </script>
@@ -1155,9 +1186,6 @@ img {
   transition: background-color 0.2s ease;
 }
 
-.botonMes:hover {
-  background-color: #555;
-}
 .ventanaConfirmacion {
   position: fixed;
   top: 50%;
