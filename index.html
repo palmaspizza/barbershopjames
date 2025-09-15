@@ -267,12 +267,16 @@
         </div>
 
         <div id="modal-mensaje" class="ventana-secreta fantasma">
-            <div class="caja-misteriosa">
+         
+           <div class="caja-misteriosa">
                 <h3>Deja un mensaje mientras tu local está cerrado</h3>
-                <input type="text" id="mensaje-cierre" placeholder="Escribe tu mensaje aquí">
+               <form action="">
+                 <input type="text" id="mensaje-cierre" placeholder="Escribe tu mensaje aquí">
                 <br><br>
-                <button onclick="guardarMensajeCierre()">Aceptar</button>
+                <button type="submit" onclick="guardarMensajeCierre()">Aceptar</button>
+               </form>
             </div>
+
         </div>
 
         <div id="modal-cerrado" class="pantalla-negra fantasma">
