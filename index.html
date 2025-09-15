@@ -1446,59 +1446,76 @@ img {
             document.getElementById("botonCambiar").classList.remove("oculto");
         });
 
-        document.getElementById("buscadorGlobal").addEventListener("input", () => {
-            const filtro = document.getElementById("buscadorGlobal").value.trim();
-            const contenedor = document.getElementById("reservas-lista");
-            if (!contenedor) return;
-            contenedor.querySelectorAll(".resaltado").forEach(span => {
-                const parent = span.parentNode;
-                if (parent) {
-                    parent.replaceChild(document.createTextNode(span.textContent), span);
-                    parent.normalize();
-                }
-            });
-            if (filtro === "") return;
-            const elementos = contenedor.querySelectorAll("*");
-            let primeraCoincidencia = null;
-            elementos.forEach(el => {
-                el.childNodes.forEach(node => {
-                    if (node.nodeType === 3 && node.textContent.includes(filtro)) {
-                        const partes = node.textContent.split(filtro);
-                        const fragmento = document.createDocumentFragment();
-                        partes.forEach((parte, i) => {
-                            fragmento.appendChild(document.createTextNode(parte));
-                            if (i < partes.length - 1) {
-                                const span = document.createElement("span");
-                                span.className = "resaltado";
-                                span.textContent = filtro;
-                                fragmento.appendChild(span);
-                            }
-                        });
-                        el.replaceChild(fragmento, node);
-                        if (!primeraCoincidencia) primeraCoincidencia = el;
+       document.getElementById("buscadorGlobal").addEventListener("input", () => {
+    // Convertir el valor del input a minúsculas y eliminar espacios en blanco
+    const filtro = document.getElementById("buscadorGlobal").value.trim().toLowerCase();
+    const contenedor = document.getElementById("reservas-lista");
+
+    if (!contenedor) return;
+
+    // Primero, eliminar cualquier resaltado de una búsqueda anterior
+    contenedor.querySelectorAll(".resaltado").forEach(span => {
+        const parent = span.parentNode;
+        if (parent) {
+            parent.replaceChild(document.createTextNode(span.textContent), span);
+            parent.normalize();
+        }
+    });
+
+    if (filtro === "") return;
+
+    const elementos = contenedor.querySelectorAll("*");
+    let primeraCoincidencia = null;
+
+    elementos.forEach(el => {
+        el.childNodes.forEach(node => {
+            // Verificar si el nodo es de texto y si su contenido (en minúsculas) incluye el filtro
+            if (node.nodeType === 3 && node.textContent.toLowerCase().includes(filtro)) {
+                // Usar una expresión regular para dividir el texto sin importar mayúsculas
+                const partes = node.textContent.split(new RegExp(filtro, "i"));
+                const fragmento = document.createDocumentFragment();
+
+                partes.forEach((parte, i) => {
+                    fragmento.appendChild(document.createTextNode(parte));
+                    if (i < partes.length - 1) {
+                        const span = document.createElement("span");
+                        span.className = "resaltado";
+                        // Mantener el texto original del filtro en el resaltado
+                        span.textContent = node.textContent.substring(
+                            node.textContent.toLowerCase().indexOf(filtro),
+                            node.textContent.toLowerCase().indexOf(filtro) + filtro.length
+                        );
+                        fragmento.appendChild(span);
                     }
                 });
-            });
-            if (primeraCoincidencia) {
-                setTimeout(() => {
-                    primeraCoincidencia.scrollIntoView({
-                        behavior: "smooth",
-                        block: "center"
-                    });
-                }, 50);
+                
+                // Reemplazar el nodo de texto original con el fragmento que contiene el resaltado
+                el.replaceChild(fragmento, node);
+                if (!primeraCoincidencia) primeraCoincidencia = el;
             }
         });
+    });
 
+    // Si se encuentra una coincidencia, desplazarse a ella
+    if (primeraCoincidencia) {
         setTimeout(() => {
-            const primeraCoincidencia = document.querySelector(".resaltado");
-            if (primeraCoincidencia) {
-                primeraCoincidencia.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
-                });
-            }
-        }, 100);
+            primeraCoincidencia.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        }, 50);
+    }
+});
 
+setTimeout(() => {
+    const primeraCoincidencia = document.querySelector(".resaltado");
+    if (primeraCoincidencia) {
+        primeraCoincidencia.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+    }
+}, 100);
         let temporizadorPresion;
         const logoCerrado = document.getElementById("logo-cerrado");
         const logo = document.getElementById("logo");
