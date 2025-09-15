@@ -253,7 +253,14 @@ button {
 .boton-x{
   display: none;
 }
-
+/* Dentro de la etiqueta <style> */
+.diaPasado {
+    background-color: #f0f0f0; /* Un tono de gris claro */
+    color: #a0a0a0; /* El color del texto en un gris más oscuro */
+    cursor: not-allowed;
+    pointer-events: none; /* Esto evita que se pueda hacer clic en el día */
+    border-color: #dcdcdc !; /* Un borde más suave */
+}
 /* Pantalla cerrada */
 .pantalla-negra {
   position: fixed;
