@@ -828,7 +828,7 @@ document.addEventListener('DOMContentLoaded', function() {
     /* Estilos base que ya tienes o quieres */
     color: orangered;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); /* Sombra más definida */
-    font-size: 1.8em; /* Un poco más grande para que la animación sea visible */
+    font-size: 27px !important; /* Un poco más grande para que la animación sea visible */
     
     /* Propiedades de la animación */
     animation: brilloSuave 2s infinite alternate ease-in-out; /* Nombre, duración, repetición, dirección, timing */
@@ -844,7 +844,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     50% {
         transform: scale(1.02); /* Ligeramente más grande */
-        text-shadow: 1px 1px 8px rgba(255, 140, 0, 0.9), 0 0 15px rgba(255, 165, 0, 0.5); /* Sombra con brillo naranja */
+        text-shadow: 1px 1px 8px rgba(255, 140, 0, 0.9), 0 0 15px #000; /* Sombra con brillo naranja */
     }
     100% {
         transform: scale(1); /* Vuelve al tamaño normal */
@@ -876,12 +876,80 @@ document.addEventListener('DOMContentLoaded', function() {
         <input style="border: 1px solid red;" type="text" id="buscadorGlobal" placeholder="Buscar... por Año, Mes o Día" />
         <div id="reservas-lista"></div>
     </div>
-    
+    <style>
+
+/* Estilos generales del botón */
+#cambiar-hora-btn {
+    background-color: #ff8c00; /* Naranja vibrante */
+    color: white;
+    border: none;
+    padding: 18px 35px; /* Un poco más grande */
+    border-radius: 50px; /* Bordes redondeados */
+    font-size: 150%;
+    font-weight: bold;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* Espacio entre el ícono y el texto */
+
+    /* Sombra inicial blanca/naranja con animación de brillo constante */
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.7), 0 0 30px rgba(255, 140, 0, 0.5);
+    animation: brillo-constante 3s infinite alternate ease-in-out;
+
+    /* Transiciones suaves para interactividad */
+    transition: background-color 0.3s ease-in-out, transform 0.2s ease-out, box-shadow 0.3s ease-in-out;
+}
+
+/* Animación de brillo constante para la sombra */
+@keyframes brillo-constante {
+    0% {
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.7), 0 0 30px rgba(255, 140, 0, 0.5);
+    }
+    100% {
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.9), 0 0 40px rgba(255, 140, 0, 0.7);
+    }
+}
+
+/* Efecto al pasar el mouse */
+#cambiar-hora-btn:hover {
+    background-color: #e07b00; /* Naranja un poco más oscuro al pasar el mouse */
+    transform: translateY(-2px); /* Se levanta suavemente */
+}
+
+/* Animación al hacer clic (más pronunciada) */
+#cambiar-hora-btn:active {
+    transform: scale(0.95); /* Se encoge un poco al presionar */
+    background-color: #cc6f00; /* Naranja aún más oscuro */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(255, 140, 0, 0.3); /* Sombra más sutil al presionar */
+}
+
+/* Estilos para el icono */
+.icono-reloj {
+    font-size: 26px; /* Ícono un poco más grande */
+    /* Puedes añadir una animación al ícono si lo deseas */
+    animation: icono-latido 2s infinite ease-in-out;
+}
+
+/* Animación suave para el ícono (opcional) */
+@keyframes icono-latido {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+</style>
+    </style>
 <form action="">
         <div id="modal-hora-personalizada" class="modal hidden">
         <div class="modal-content">
-            <p>Se te redireccionará a WhatsApp</p>
-<b>            <h3 style="font-family: italic;" id="namex">Nombre</h3></b>
+ <button id="cambiar-hora-btn">
+    <span style="text-shadow: #000 1px 1px 3px;"  class="icono-reloj">⏱️</span> Cambiar Hora
+</button>
+            <br>
+            <p style="text-shadow: #000 1px 1px 3px;">Se te redireccionará a <span style="text-shadow: #000 1px 1px 3px;  color: green;">WhatsApp</span></p>
+<b>           
             <input type="text" type="name" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
             <br><br>
             <button id="reservar-button" type="submit" onclick="reservarHora();window.location.reload()">Reservar</button>
@@ -893,7 +961,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
     <div id="modal-reservada" class="modal hidden">
         <div class="modal-content reservada">
-            <h3>HORA DISPONIBLE</h3>
+            <h3 style="text-shadow: #000 1px 1px 3px;">HORA DISPONIBLE</h3>
         </div>
     </div>
 <style>.dias-semana {
@@ -908,9 +976,9 @@ document.addEventListener('DOMContentLoaded', function() {
 }body {
   background-color: #000;
   color: #fff;
-  font-family: 'Segoe UI', sans-serif;
   margin: 0;
   padding: 20px;
+  font-weight: bold;
 }
 input {
   text-transform: capitalize;
@@ -1672,12 +1740,7 @@ img {
 
 }
 
-#tituloVentana {
-  margin-bottom: 10px;
-  font-size: 18px;
-  text-align: center;
-  color: #333;
-}
+
 
 /* ⏰ Horarios */
 .bloqueHora {
