@@ -45,6 +45,7 @@
                 <button id="mesSiguiente" class="botonMes">→</button>
             </div>
         </div>
+        
         Selecciona un día
       <div class="dias-semana"></div>
 <div id="cuadroCalendario"></div>
@@ -187,13 +188,138 @@
             generarCuadroCalendario();
 
         });
-
+function mostrar(){
+    document.getElementById("botonescierraxdiv").hidden = false;
+}
     </script>
 
 
         <input type="month" hidden id="selectorMes"/>
 
-        <button onclick="desactiwar();" hidden id="desactivarBloqueoDias">✅ Desactivar bloqueo</button>
+
+<style>
+    /* Estilos del modal */
+.modal-personalizado {
+    display: none;
+    position: fixed;
+    z-index: 1000; /* Un valor alto para asegurar que esté encima de otros elementos */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+
+/* Contenido del modal */
+.modal-contenido-personalizado {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px; /* Limita el ancho en pantallas grandes */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    position: relative;
+    animation-name: animacionModal;
+    animation-duration: 0.4s;
+}
+
+/* Botón para cerrar el modal */
+.cerrar-modal-personalizado {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.cerrar-modal-personalizado:hover,
+.cerrar-modal-personalizado:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Animación para el modal */
+@keyframes animacionModal {
+    from {top: -300px; opacity: 0}
+    to {top: 0; opacity: 1}
+}
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById("modalContenedor");
+    const botonAbrir = document.getElementById("abrirVentana");
+    const botonCerrar = document.getElementsByClassName("cerrar-modal-personalizado")[0];
+
+    // Asegúrate de que los elementos existen antes de añadir los eventos
+    if (botonAbrir) {
+        botonAbrir.onclick = function() {
+            modal.style.display = "block";
+        }
+    }
+
+    if (botonCerrar) {
+        botonCerrar.onclick = function() {
+            modal.style.display = "none";
+        }
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+});
+</script>
+ 
+    <style>
+         #ventanaEmergenteCierreDias {
+            display: none; /* Oculta por defecto */
+            position: fixed; /* Se mantiene en su lugar */
+            z-index: 9999; /* Por encima de todo */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* Habilita el scroll si es necesario */
+            background-color: rgba(0, 0, 0, 0.6); /* Fondo oscuro con transparencia */
+        }
+
+        #contenidoEmergente {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        #contenidoEmergente h3 {
+            margin-top: 0;
+        }
+
+        #contenidoEmergente button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #btnCerrarVentana {
+            background-color: #bbb;
+            color: #333;
+        }
+    </style>
+    <button onclick="desactiwar();ocultarbotonesdecierre()" hidden id="desactivarBloqueoDias">✅ Desactivar bloqueo</button>
+       
         <h1 style="text-shadow: #000 3px 3px 5px;" hidden>Hora</h1>
         <div h style="margin-bottom: 10px;"></div>
 
@@ -208,7 +334,32 @@
                 <button onclick="cerrarModal('modal-acceso')">Cerrar</button>
             </div>
         </div>
+<script>
+    // La función que ya tienes para cerrar la modal principal
+function cerrarModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
 
+// Función para cambiar a la vista de cierre de días
+function abrirVistaCierre() {
+    document.getElementById("contenido-principal").hidden = true;
+    document.getElementById("contenido-cierre").hidden = false;
+}
+
+// Función para volver a la vista principal del control
+function mostrarVistaPrincipal() {
+    document.getElementById("contenido-principal").hidden = false;
+    document.getElementById("contenido-cierre").hidden = true;
+}
+
+// Vincula la función `abrirVistaCierre` al clic del botón
+document.addEventListener('DOMContentLoaded', function() {
+    const botonVistaCierre = document.getElementById("abrir-vista-cierre");
+    if (botonVistaCierre) {
+        botonVistaCierre.onclick = abrirVistaCierre;
+    }
+});
+</script>
         <div id="modal-control" class="ventana-secreta fantasma">
             <div class="caja-misteriosa">
                 <h3>Control Barbería</h3>
@@ -220,7 +371,367 @@
                 <br><br>
                 <button style="background-color: purple;" onclick="cerrarModal('modal-control');borrarTodasLasHorasEnPantalla()">🧹 borrar TODAS las reservas</button>
                 <br><br>
-                <button onclick="actiwar();cerrarModal('modal-control');"  style="border: 2px solid white; color: #000; background: orange; text-shadow: #000 3px 3px 5px;" id="activarBloqueoDias">🔒 Marcar Días cerrados</button>
+                <button onclick="actiwar();cerrarModal('modal-control');"  style="border: 2px solid white; color: #000; background: orange; text-shadow: #000 3px 3px 5px;" id="activarBloqueoDias">🔒 Marcar Días cerrados 1x1</button>
+                <button type="button" onclick="mostrarX();" style="border: 2px solid white; color: #000; background: lightslategrey; text-shadow: #000 3px 3px 5px;"  id="abrirVentanaVX"><span style="color: red;">CERRAR</span><span style="color: #fff;"> /</span>
+                <span style="color: green; text-shadow: #000 2px 2px 5px;">ABRIR</span> todos los...
+</button>
+<style>
+     /* --- Estilos únicos para el menú desplegable --- */
+
+        #menuOpcionesContainer {
+
+            position: relative;
+
+            z-index: 10;
+
+        }
+
+
+
+        .desplegable-menu {
+
+            position: absolute;
+
+            top: 0;
+
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            width: 90%;
+
+            max-width: 600px;
+
+            background-color: #fff;
+
+            padding: 20px;
+
+            border-radius: 8px;
+
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+            transition: top 0.5s ease-in-out, opacity 0.5s ease-in-out;
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 10px;
+
+        }
+
+
+
+        .mostrar-desplegable {
+
+            top: 100px; /* Posición final visible */
+
+            opacity: 1;
+
+            pointer-events: auto;
+
+        }
+
+
+
+        .desplegable-menu button {
+
+            padding: 10px;
+
+            border: 1px solid #ccc;
+
+            border-radius: 5px;
+
+            background-color: #f0f0f0;
+
+            cursor: pointer;
+
+        }
+</style>
+   <button id="ventanaEmergenteCierreDias">Gestionar cierre de días</button>
+<script>
+    function mostrarX(){
+        document.getElementById("contenidoEmergente").hidden = false;
+    }
+        function okultarX(){
+        document.getElementById("contenidoEmergente").hidden = true;
+    }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const botonesDiaSemana = document.querySelectorAll('.btn-dia-semana');
+
+    botonesDiaSemana.forEach(boton => {
+        boton.addEventListener('click', function() {
+            // El ícono se añade o se quita SOLO del botón actual.
+            this.classList.toggle('seleccionado');
+        });
+    });
+});
+</script>
+      <div style="background-color: grey; border: 2px solid white;" hidden id="contenidoEmergente">
+ <h3>Opciones de cierre por día</h3>
+ <button class="btn-dia-semana" data-dia="1" onclick="cerrarDiaDeLaSemana(1)">
+        Cerrar todos los Lunes <span class="icono">✔</span>
+    </button>
+ <button class="btn-dia-semana" data-dia="1" style="background-color: green;" onclick="habilitarDiaDeLaSemana(1)">
+        Habilitar todos los Lunes <span class="icono">✔</span>
+    </button>
+ <button class="btn-dia-semana" data-dia="2" onclick="cerrarDiaDeLaSemana(2)">
+        Cerrar todos los Martes <span class="icono">✔</span>
+    </button>
+ <button class="btn-dia-semana" data-dia="2" style="background-color: green;" onclick="habilitarDiaDeLaSemana(2)">
+        Habilitar todos los Martes <span class="icono">✔</span>
+    </button>
+ <button class="btn-dia-semana" data-dia="3" onclick="cerrarDiaDeLaSemana(3)">
+        Cerrar todos los Miércoles <span class="icono">✔</span>
+    </button>
+ <button class="btn-dia-semana" data-dia="3" style="background-color: green;" onclick="habilitarDiaDeLaSemana(3)">
+        Habilitar todos los Miércoles <span class="icono">✔</span>
+    </button>
+ <button class="btn-dia-semana" data-dia="4" onclick="cerrarDiaDeLaSemana(4)">
+        Cerrar todos los Jueves <span class="icono">✔</span>
+    </button>
+ <button class="btn-dia-semana" data-dia="4" style="background-color: green;" onclick="habilitarDiaDeLaSemana(4)">
+        Habilitar todos los Jueves <span class="icono">✔</span>
+    </button>
+ <button class="btn-dia-semana" data-dia="5" onclick="cerrarDiaDeLaSemana(5)">
+        Cerrar todos los Viernes <span class="icono">✔</span>
+    </button>
+ <button class="btn-dia-semana" data-dia="5" style="background-color: green;" onclick="habilitarDiaDeLaSemana(5)">
+        Habilitar todos los Viernes <span class="icono">✔</span>
+    </button>
+ <button class="btn-dia-semana" data-dia="6" onclick="cerrarDiaDeLaSemana(6)">
+        Cerrar todos los Sábados <span class="icono">✔</span>
+    </button>
+ <button class="btn-dia-semana" data-dia="6" style="background-color: green;" onclick="habilitarDiaDeLaSemana(6)">
+        Habilitar todos los Sábados <span class="icono">✔</span>
+    </button>
+ <button class="btn-dia-semana" data-dia="0" onclick="cerrarDiaDeLaSemana(0)">
+        Cerrar todos los Domingos <span class="icono">✔</span>
+    </button>
+ <button class="btn-dia-semana" data-dia="0" style="background-color: green;" onclick="habilitarDiaDeLaSemana(0)">
+        Habilitar todos los Domingos <span class="icono">✔</span>
+    </button>
+ <br>
+ <button onclick="okultarX();" style="background-color: lightgray; color: red;">Cerrar</button>
+</div>
+    <style>
+        /* Animación para el botón */
+@keyframes pop-in {
+    from { transform: scale(0.9); opacity: 0.8; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* Animación para el ícono */
+@keyframes fade-in-icon {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.btn-dia-semana {
+    /* Estilos base de tu botón */
+    position: relative;
+    overflow: hidden;
+    padding: 12px 15px;
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-dia-semana:active {
+    animation: pop-in 0.3s ease-in-out;
+}
+
+.icono {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%) scale(0);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.btn-dia-semana.seleccionado .icono {
+    animation: fade-in-icon 0.5s forwards;
+}
+
+.btn-dia-semana.seleccionado {
+    background-color: #55a8e0;
+    color: white;
+}
+    </style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const botonesDiaSemana = document.querySelectorAll('.btn-dia-semana');
+    const botonCerrar = document.getElementById('btn-cerrar-menu'); // Asumo que este es el ID de tu botón cerrar
+
+    botonesDiaSemana.forEach(boton => {
+        boton.addEventListener('click', function() {
+            // Elimina la clase "seleccionado" de todos los botones
+            botonesDiaSemana.forEach(btn => btn.classList.remove('seleccionado'));
+            
+            // Añade la clase "seleccionado" solo al botón clicado
+            this.classList.add('seleccionado');
+
+            // Desliza la pantalla hacia el botón de "Cerrar"
+            if (botonCerrar) {
+                botonCerrar.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+        });
+    });
+});
+        // Aislamiento del código del modal para evitar conflictos
+    (function() {
+        const ventanaEmergente = document.getElementById("ventanaEmergenteCierreDias");
+        const btnAbrirVentana = document.getElementById("abrirVentana");
+        const btnCerrarVentana = document.getElementById("btnCerrarVentana");
+
+        function abrirVentanaEmergente() {
+            if (ventanaEmergente) {
+                ventanaEmergente.style.display = "block";
+            }
+        }
+
+        function cerrarVentanaEmergente() {
+            if (ventanaEmergente) {
+                ventanaEmergente.style.display = "none";
+            }
+        }
+
+        if (btnAbrirVentana) {
+            btnAbrirVentana.onclick = abrirVentanaEmergente;
+        }
+        
+        if (btnCerrarVentana) {
+            btnCerrarVentana.onclick = cerrarVentanaEmergente;
+        }
+
+        window.onclick = function(event) {
+            if (event.target === ventanaEmergente) {
+                cerrarVentanaEmergente();
+            }
+        };
+
+        // Asignar el cierre a los botones de cierre de día
+        document.querySelectorAll(".btn-cierre").forEach(btn => {
+            btn.addEventListener("click", cerrarVentanaEmergente);
+        });
+    })();
+    
+    // Al cargar la página, llama a la función para generar el calendario
+    document.addEventListener('DOMContentLoaded', generarCuadroCalendario);
+</script>
+    <div id="cuadroCalendario"></div>
+
+    <script>
+        function generarCuadroCalendario() {
+            const mesStr = `${fechaActualCalendario.getFullYear()}-${String(fechaActualCalendario.getMonth() + 1).padStart(2, "0")}`;
+            const cuadroCalendario = document.getElementById("cuadroCalendario");
+            cuadroCalendario.innerHTML = "";
+            const [anio, mes] = mesStr.split("-");
+            const fechaInicio = new Date(anio, mes - 1, 1);
+            const primerDiaSemana = fechaInicio.getDay();
+            const totalDias = new Date(anio, mes, 0).getDate();
+            const offset = primerDiaSemana === 0 ? 6 : primerDiaSemana - 1;
+
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+
+            for (let i = 0; i < offset; i++) {
+                const vacio = document.createElement("div");
+                cuadroCalendario.appendChild(vacio);
+            }
+
+            for (let dia = 1; dia <= totalDias; dia++) {
+                const fechaActual = `${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+                const celda = document.createElement("div");
+                celda.classList.add("diaCalendario");
+                celda.textContent = dia;
+
+                const fechaCelda = new Date(anio, mes - 1, dia);
+                const diaSemana = fechaCelda.getDay();
+
+                const horasReservadas = reservasPorDia[fechaActual] || [];
+                const horarioDelDia = horariosPersonalizados[fechaActual] || horarioSemana;
+                const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0 || diasDeLaSemanaBloqueados.includes(diaSemana);
+                const estaOcupado = horasReservadas.length >= horarioDelDia.length;
+                const diaPasado = fechaCelda < hoy;
+
+                if (diaPasado) {
+                    celda.classList.add("diaPasado");
+                    celda.title = "Este día ya ha pasado";
+                } else if (estaBloqueado) {
+                    celda.classList.add("diaBloqueado");
+                    celda.title = "Día bloqueado por el administrador";
+                } else if (estaOcupado) {
+                    celda.classList.add("diaOcupado");
+                    celda.title = "Día con todas las horas reservadas";
+                } else {
+                    celda.classList.add("diaLibre");
+                    celda.title = "Día disponible";
+                }
+
+                if (diaPasado || (!modoBloqueoDias && estaBloqueado)) {
+                    celda.style.pointerEvents = "none";
+                }
+
+                celda.onclick = () => {
+                    if (diaPasado) return;
+
+                    if (modoGestionHorarios) {
+                        fechaSeleccionadaParaConfigurar = fechaActual;
+                        abrirVentanaConfiguracionHorarios();
+                    } else if (modoBloqueoDias) {
+                        // Lógica de bloqueo
+                    } else {
+                        if (!estaBloqueado) {
+                            fechaInput.value = fechaActual;
+                            abrirVentanaHorarios(fechaActual);
+                        }
+                    }
+                };
+                cuadroCalendario.appendChild(celda);
+            }
+        }
+
+ 
+        
+        function cerrarDiaDeLaSemana(dia) {
+            if (!diasDeLaSemanaBloqueados.includes(dia)) {
+                diasDeLaSemanaBloqueados.push(dia);
+            }
+            generarCuadroCalendario();
+        }
+
+        function habilitarDiaDeLaSemana(dia) {
+            const index = diasDeLaSemanaBloqueados.indexOf(dia);
+            if (index > -1) {
+                diasDeLaSemanaBloqueados.splice(index, 1);
+            }
+            generarCuadroCalendario();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            generarCuadroCalendario();
+
+            const botonMostrar = document.getElementById("mostrarBotonesCierre");
+            const botonOcultar = document.getElementById("ocultarBotonesCierre");
+            const contenedorBotones = document.getElementById("botonesCierreContainer");
+
+            function toggleMenu() {
+                contenedorBotones.classList.toggle("menu-visible");
+            }
+
+            if(botonMostrar) botonMostrar.addEventListener('click', toggleMenu);
+            if(botonOcultar) botonOcultar.addEventListener('click', toggleMenu);
+        });
+
+
+    </script>
                 <br><br>
                 <button style="background-color: rgb(65, 65, 65);" onclick="borrarHorasMesHastaHoy()">📜 Borrar reservas antiguas del MES</button>
                 <br><br>
@@ -303,10 +814,12 @@
         <script>
             function actiwar() {
                 document.getElementById("desactivarBloqueoDias").hidden = false;
+                document.getElementById("cerrartodoslos-button").hidden = false;
             }
 
             function desactiwar() {
                 document.getElementById("desactivarBloqueoDias").hidden = true;
+             document.getElementById("cerrartodoslos-button").hidden = true;
             }
         </script>
         <style>
@@ -348,6 +861,16 @@
                 <div id="horariosDisponibles"></div>
             </div>
         </div>
+<script>
+              function verbotonesdecierre(){
+                document.getElementById("botonescierraxdiv").style.display = 'block';
+            }
+
+              function ocultarbotonesdecierre(){
+                document.getElementById("botonescierraxdiv").style.display = 'none';
+            }
+
+</script>
 
         <h2 style="color: red !important; text-shadow: #000 1px 1px 2px;">⛔Horas Reservadas⛔</h2>
         <input style="border: 1px solid red;" type="text" id="buscadorGlobal" placeholder="Buscar... por Año, Mes o Día" />
@@ -1355,7 +1878,10 @@ img {
         function ingresarllave() {
             document.getElementById("clave-input").value = '';
         }
+    
 
+  
+    
      function generarCuadroCalendario() {
     const mesStr = `${fechaActualCalendario.getFullYear()}-${String(fechaActualCalendario.getMonth() + 1).padStart(2, "0")}`;
     cuadroCalendario.innerHTML = "";
@@ -1382,11 +1908,20 @@ img {
 
         const horasReservadas = reservasPorDia[fechaActual] || [];
         const horarioDelDia = horariosPersonalizados[fechaActual] || horarioSemana;
-        const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0;
+        // Dentro de la función generarCuadroCalendario()
+// ...
+
+const fechaCelda = new Date(anio, mes - 1, dia);
+const diaSemana = fechaCelda.getDay(); // Esto obtiene el día de la semana (0=Domingo, 1=Lunes, etc.)
+
+// Modifique la línea siguiente:
+const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0 || diasDeLaSemanaBloqueados.includes(diaSemana);
+
+// ...
         const estaOcupado = horasReservadas.length >= horarioDelDia.length;
 
         // **NUEVA LÓGICA:** Verificar si el día ya pasó
-        const fechaCelda = new Date(anio, mes - 1, dia);
+
         const diaPasado = fechaCelda < hoy;
 
         // Modificar las clases para el estado del día
@@ -1415,7 +1950,7 @@ img {
             
             if (modoGestionHorarios) {
                 fechaSeleccionadaParaConfigurar = fechaActual;
-                abrirModalConfiguracionHorarios();
+                abrirVentanaConfiguracionHorarios();
             } else if (modoBloqueoDias) {
                 if (estaBloqueado) {
                     diasBloqueadosRef.once("value", snapshot => {
@@ -1438,6 +1973,23 @@ img {
 
         cuadroCalendario.appendChild(celda);
     }
+}
+
+const diasDeLaSemanaBloqueados = [];
+
+function cerrarDiaDeLaSemana(dia) {
+    if (!diasDeLaSemanaBloqueados.includes(dia)) {
+        diasDeLaSemanaBloqueados.push(dia);
+    }
+    generarCuadroCalendario();
+}
+
+function habilitarDiaDeLaSemana(dia) {
+    const indice = diasDeLaSemanaBloqueados.indexOf(dia);
+    if (indice > -1) {
+        diasDeLaSemanaBloqueados.splice(indice, 1);
+    }
+    generarCuadroCalendario();
 }
         function actualizarBarraMes() {
             const mes = fechaActualCalendario.getMonth();
@@ -1845,7 +2397,7 @@ setTimeout(() => {
             alert("Ahora haz clic en un día para personalizar su horario.");
         }
 
-        function abrirModalConfiguracionHorarios() {
+        function abrirVentanaConfiguracionHorarios() {
             const diaSemana = new Date(fechaSeleccionadaParaConfigurar).getDay();
             const esSabado = diaSemana === 6;
 
