@@ -472,6 +472,52 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+function limpiarReservasMayoresAUnaño() {
+    const fechaLimite = new Date();
+    fechaLimite.setFullYear(fechaLimite.getFullYear() - 1);
+    const fechaLimiteTimestamp = fechaLimite.getTime();
+
+    // Obtener todas las reservas de la base de datos una sola vez
+    reservasRef.once('value')
+        .then(snapshot => {
+            const actualizaciones = {};
+            let hayReservasParaEliminar = false;
+
+            snapshot.forEach(childSnapshot => {
+                const reserva = childSnapshot.val();
+                const fechaReservaTimestamp = new Date(reserva.fecha).getTime();
+
+                // Si la reserva es más antigua que un año, la marcamos para eliminar
+                if (fechaReservaTimestamp < fechaLimiteTimestamp) {
+                    actualizaciones[childSnapshot.key] = null;
+                    hayReservasParaEliminar = true;
+                }
+            });
+
+            if (hayReservasParaEliminar) {
+                // Borrar las reservas antiguas usando una sola operación
+                return reservasRef.update(actualizaciones);
+            } else {
+                console.log("No se encontraron reservas con más de un año de antigüedad.");
+                return Promise.resolve();
+            }
+        })
+        .then(() => {
+            console.log("Reservas con más de un año de antigüedad eliminadas exitosamente.");
+        })
+        .catch(error => {
+            console.error("Error al eliminar las reservas antiguas: ", error);
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Llama a la función de limpieza de reservas al cargar la página
+    limpiarReservasMayoresAUnaño();
+
+    // Aquí iría el resto de tu código que se ejecuta al cargar la página,
+    // como la generación del calendario, etc.
+    generarCuadroCalendario();
+});
 </script>
       <div style="background-color: grey; border: 2px solid white;" hidden id="contenidoEmergente">
  <h3>Opciones de cierre por día</h3>
