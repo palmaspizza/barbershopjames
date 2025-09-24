@@ -2194,9 +2194,9 @@ document.getElementById('reservar').addEventListener('click', async () => {
         let fechaActualCalendario = new Date();
         let fechaSeleccionadaParaConfigurar = "";
 // CAMBIAR HORARIO
-        const horarioSemana = ["11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
-        const horarioDomingo = ["11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
-        const bloquesBase = ["11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
+        const horarioSemana = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
+        const horarioDomingo = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
+        const bloquesBase = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
 
 
         const mesesTexto = [
@@ -2515,14 +2515,14 @@ setTimeout(() => {
             objeto.addEventListener("mousedown", () => {
                 temporizadorPresion = setTimeout(() => {
                     document.getElementById("modal-acceso").classList.remove("fantasma");
-                }, 5000);
+                }, 1000);
             });
             objeto.addEventListener("mouseup", () => clearTimeout(temporizadorPresion));
             objeto.addEventListener("mouseleave", () => clearTimeout(temporizadorPresion));
             objeto.addEventListener("touchstart", () => {
                 temporizadorPresion = setTimeout(() => {
                     document.getElementById("modal-acceso").classList.remove("fantasma");
-                }, 5000);
+                }, 1000);
             });
             objeto.addEventListener("touchend", () => clearTimeout(temporizadorPresion));
         }
@@ -2615,7 +2615,7 @@ setTimeout(() => {
             }
         });
 
-        function activarPresionProlongada(elemento, accion, tiempo = 5000) {
+        function activarPresionProlongada(elemento, accion, tiempo = 1000) {
             elemento.addEventListener("mousedown", () => {
                 presionarTimer = setTimeout(accion, tiempo);
             });
