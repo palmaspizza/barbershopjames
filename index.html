@@ -2194,9 +2194,9 @@ document.getElementById('reservar').addEventListener('click', async () => {
         let fechaActualCalendario = new Date();
         let fechaSeleccionadaParaConfigurar = "";
 // CAMBIAR HORARIO
-        const horarioSemana = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30"];
-        const horarioDomingo = ["13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30"];
-        const bloquesBase = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30"];
+        const horarioSemana = ["11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
+        const horarioDomingo = ["11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
+        const bloquesBase = ["11:00", "11:30", "12:00", "12:30", "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
 
 
         const mesesTexto = [
@@ -2790,7 +2790,7 @@ const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fecha);
                 alert("Faltan datos: asegúrate de ingresar nombre, fecha y hora");
                 return;
             }
-            const numeroDestino = "56937463049";
+            const numeroDestino = "56954527837";
             const mensaje = `Hola, soy ${nombre}. Quiero reservar para el día ${fecha} a las ${hora}.`;
             const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`;
             window.open(url, "_blank");
