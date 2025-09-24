@@ -247,7 +247,7 @@ function mostrar(){
 .modal-personalizado {
     display: none;
     position: fixed;
-    z-index: 1000; /* Un valor alto para asegurar que esté encima de otros elementos */
+    z-index: 3331; /* Un valor alto para asegurar que esté encima de otros elementos */
     left: 0;
     top: 0;
     width: 100%;
@@ -1010,7 +1010,7 @@ firebase.auth().onAuthStateChanged((user) => {
   position: fixed !important; /* Fuerza la posición fija */
   bottom: 20px; /* 20px desde la parte inferior */
   left: 20px; /* 20px desde la parte izquierda */
-  z-index: 1000; /* Asegura que esté por encima de otros elementos */
+  z-index: 3331; /* Asegura que esté por encima de otros elementos */
 
   /* Esto es CLAVE para la animación de flujo */
   overflow: hidden;
@@ -1469,7 +1469,7 @@ button {
   color: #fff;
   text-align: center;
   padding-top: 100px;
-  z-index: 1000;
+  z-index: 3331;
 }
 
 /* Modales de estado */
@@ -2016,7 +2016,7 @@ img {
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  z-index: 3331;
 }
 .ventanaConfirmacion {
   position: fixed;
@@ -2027,7 +2027,7 @@ img {
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  z-index: 3331;
   width: 300px; /* Ajustar según el tamaño que prefieras */
 }
 
@@ -2515,14 +2515,14 @@ setTimeout(() => {
             objeto.addEventListener("mousedown", () => {
                 temporizadorPresion = setTimeout(() => {
                     document.getElementById("modal-acceso").classList.remove("fantasma");
-                }, 1000);
+                }, 3000);
             });
             objeto.addEventListener("mouseup", () => clearTimeout(temporizadorPresion));
             objeto.addEventListener("mouseleave", () => clearTimeout(temporizadorPresion));
             objeto.addEventListener("touchstart", () => {
                 temporizadorPresion = setTimeout(() => {
                     document.getElementById("modal-acceso").classList.remove("fantasma");
-                }, 1000);
+                }, 3000);
             });
             objeto.addEventListener("touchend", () => clearTimeout(temporizadorPresion));
         }
@@ -2586,7 +2586,7 @@ setTimeout(() => {
         function validarClave() {
             const claveInput = document.getElementById("clave-input");
             const clave = claveInput.value;
-            if (clave === "1234") {
+            if (clave === "3331") {
                 document.getElementById("modal-acceso").classList.add("fantasma");
                 document.getElementById("modal-control").classList.remove("fantasma");
                 claveInput.value = "";
