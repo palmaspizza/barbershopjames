@@ -409,9 +409,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <div id="modal-control" class="ventana-secreta fantasma">
             <div class="caja-misteriosa">
                 <h3>Control Barbería</h3>
-                <button style="background-color: green;" onclick="abrirBarberia()">🔓Abrir Barbería</button>
-                <br><br>
-                <button onclick="mostrarModalMensaje()">🚪Cerrar Barbería🚪</button>
                 <br><br>
                 <button style="background-color: blue;" onclick="activarModoHorarios();">⚙️ Gestionar Horarios por Día</button>
                 <br><br>
@@ -883,19 +880,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         </div>
 
-        <div id="modal-cerrado" class="pantalla-negra fantasma">
-            <h1>CERRADO</h1>
-            <p id="mensaje-cerrado" style="margin-top: 20px; font-size: 24px;"></p>
-            <div id="logo-cerrado" style="
-                width: 200px;
-                height: 200px;
-                background-image: url('https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg');
-                background-size: cover;
-                background-position: center;
-                border-radius: 50%;
-                margin: auto;
-            "></div>
-        </div>
 
         <input type="date" id="fecha" hidden class="" required>
         
@@ -2081,25 +2065,6 @@ img {
     /* ... (otros estilos) ... */
 }</style>
 <script>
-            importScripts('https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js');
-importScripts('https://www.gstatic.com/firebasejs/10.5.0/firebase-messaging.js');
-
-firebase.initializeApp({
-  apiKey: "AIzaSyC39rqs-jCRD9BBNkEO4XhtFElIoZh-qJs",
-  authDomain: "palmaxd.firebaseapp.com",
-  projectId: "palmaxd",
-  messagingSenderId: "527831930817",
-  appId: "1:527831930817:web:4fb627483cefee87d4c140"
-});
-
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage(payload => {
-  self.registration.showNotification(payload.notification.title, {
-    body: payload.notification.body,
-    icon: '/icon.png'
-  });
-});
 
 </script>
 <script src="app.js"></script>
@@ -2153,15 +2118,17 @@ document.getElementById('reservar').addEventListener('click', async () => {
 
   // Inicializar Firebase
 
-   const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "barbershop-4b936.firebaseapp.com",
-            databaseURL: "https://barbershop-4b936-default-rtdb.firebaseio.com",
-            projectId: "barbershop-4b936",
-            storageBucket: "barbershop-4b936.appspot.com",
-            messagingSenderId: "TU_SENDER_ID",
-            appId: "TU_APP_ID"
-        };
+const firebaseConfig = {
+  apiKey: "AIzaSyBB2cEWSULTY77JRXe50wQGtJX0t8I_UkU",
+  authDomain: "barbershop-4b936.firebaseapp.com",
+  databaseURL: "https://barbershop-4b936-default-rtdb.firebaseio.com",
+  projectId: "barbershop-4b936",
+  storageBucket: "barbershop-4b936.firebasestorage.app",
+  messagingSenderId: "388744871012",
+  appId: "1:388744871012:web:36b40ff5083e370cb83371",
+  measurementId: "G-YQQZW10DYE"
+};
+
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -2548,7 +2515,8 @@ setTimeout(() => {
         function reservarHora() {
             const fecha = fechaInput.value;
             const hora = document.getElementById("hora").value;
-            const nombre = document.getElementById("nombre").value.trim();
+            const 
+            nombre = document.getElementById("nombre").value.trim();
 
             if (!fecha || !hora || !nombre) {
                 alert("Completa todos los campos: nombre, fecha y hora");
