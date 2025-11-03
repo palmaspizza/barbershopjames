@@ -759,6 +759,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const btnAbrirVentana = document.getElementById("abrirVentana");
         const btnCerrarVentana = document.getElementById("btnCerrarVentana");
 
+
+        window.onload = () => {
+  cargarReservasOrdenadas();
+};
+
+
+
+
         function abrirVentanaEmergente() {
             if (ventanaEmergente) {
                 ventanaEmergente.style.display = "block";
@@ -1213,6 +1221,31 @@ document.addEventListener('DOMContentLoaded', function() {
  Listo
 </button>
 <script>
+      function cargarReservasOrdenadas() {
+  const ref = database.ref("reservas-lista");
+  ref.once("value", (snapshot) => {
+    const reservas = [];
+
+    snapshot.forEach((child) => {
+      const reserva = child.val();
+      reservas.push(reserva);
+    });
+
+    // Ordenar por fecha y hora
+    reservas.sort((a, b) => {
+      const fechaA = new Date(`${a.fecha}T${a.hora.padStart(2, '0')}:${a.minutos.padStart(2, '0')}`);
+      const fechaB = new Date(`${b.fecha}T${b.hora.padStart(2, '0')}:${b.minutos.padStart(2, '0')}`);
+      return fechaA - fechaB;
+    });
+
+    // Mostrar en la lista
+    const lista = document.getElementById("reservas-lista");
+    lista.innerHTML = ""; // limpiar antes de mostrar
+    reservas.forEach((reserva) => {
+      mostrarReservaEnLista(reserva);
+    });
+  });
+}
     function mostrarBotonBorrar() {
     // Obtiene el elemento del botón
     const boton = document.getElementById("boton-listo-borrar");
