@@ -103,13 +103,13 @@ function enviarMensajeWhatsApp() {
   const fecha = document.getElementById("fecha").value;
   const hora = document.getElementById("hora").value;
 
-  if (!nombre || !fecha || !hora || !barberoSeleccionado) {
+  if (!nombre || !fecha || !hora) {
     alert("Faltan datos para enviar el mensaje.");
     return;
   }
 
   const numeroDestino = "56954527837";
-  const mensaje = `Hola, soy ${nombre}. Quiero reservar para el día ${fecha} a las ${hora}. Mi barbero de preferencia es: ${barberoSeleccionado}`;
+  const mensaje = `Hola, soy ${nombre}. Quiero reservar para el día ${fecha} a las ${hora}.`;
   const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`;
   window.open(url, "_blank");
 }
@@ -1025,9 +1025,9 @@ document.addEventListener('DOMContentLoaded', function() {
                
                 <h3 id="tituloVentana" class="titulo-animado" style="color: orangered; text-shadow: 1px 1px 1px #000;"></h3>
               <br><br>
-               <h3 style="color: #fff;">Selecciona tu Barbero de Preferencia</h3><br>
+               <h3 style="color: #fff;">Barbero</h3><br>
                
-                <button onclick="scrollToAncla('seccion-james')"  class="barberbutton" type="button">JAMES</button> <button  onclick="scrollToAncla('seccion-james')" class="barberbutton" type="button">BRYAN</button> <button onclick="scrollToAncla('seccion-james')"  class="barberbutton" type="button">Jhon</button>
+                <button onclick="scrollToAncla('seccion-james')"  class="barberbutton" type="button">JAMES</button> <button hidden   onclick="scrollToAncla('seccion-james')" class="barberbutton" type="button">BRYAN</button> <button onclick="scrollToAncla('seccion-james')"  class="barberbutton" type="button" hidden >Jhon</button>
                <br><br><br>
                <div id="seccion-james">
                 
@@ -1366,10 +1366,10 @@ function mostrarReservas(fecha) {
       const barbero = barberoSnap.key;
       barberoSnap.forEach(child => {
         const r = child.val();
-        console.log("Reserva cargada:", r); // 👈 Verifica que tenga nombre
+        console.log("Reserva cargada:", r);
 
-        const nombre = r.nombre || "Barbero 👉";
-        const hora = r.hora || "Reservada. ¡Ignorar!";
+        const nombre = (r && r.nombre) ? r.nombre : "⛔-Reservado-⛔";
+        const hora = (r && r.hora) ? r.hora : "⛔-Reservado-⛔";
         const fechaReserva = r.fecha || fecha;
         const idBloque = `${fechaReserva}-${hora}`;
 
@@ -1380,7 +1380,7 @@ function mostrarReservas(fecha) {
         div.id = idBloque;
 
         const texto = document.createElement("span");
-        texto.textContent = `📅 ${fechaReserva} ⏰ ${hora} - Barbero 👉 (${barbero})`;
+        texto.textContent = `📅 ${fechaReserva} ⏰ ${hora} - Cliente 👉 (${nombre})`;
 
         const botonX = document.createElement("span");
 botonX.textContent = " | ❌";
@@ -1407,18 +1407,17 @@ botonX.onclick = () => {
 
 function reservarHora() {
     ocultarreservar();
-window.location.reload();
   try {
     const nombre = document.getElementById("nombre").value.trim();
     const fecha = document.getElementById("fecha").value.trim();
     const hora = document.getElementById("hora").value.trim();
 
-    if (!nombre || !fecha || !hora || !barberoSeleccionado) {
+    if (!nombre || !fecha || !hora) {
       alert("Por favor completa todos los campos.");
       return;
     }
 
-    const idBloque = `${fecha}-${hora} - ${nombre}`;
+    const claveFechaHora = `${fecha}-${hora}`;
     const reservasRef = firebase.database().ref(`reservas/${barberoSeleccionado}`);
 
    reservasRef.once("value", snapshot => {
@@ -1426,7 +1425,7 @@ window.location.reload();
 
   snapshot.forEach(child => {
     const r = child.val();
-    if (`${r.fecha}-${r.hora}` === idBloque) {
+    if (`${r.fecha}-${r.hora}` === claveFechaHora) {
       ocupada = true;
     }
   });
@@ -1436,7 +1435,9 @@ window.location.reload();
   } else {
     document.getElementById("modal-reservada").classList.remove("hidden");
 
-    reservasRef.push({ fecha, hora, nombre }).then(() => {
+    const nombreSeguro = nombre || "⛔-Reservado-⛔";
+    reservasRef.push({ fecha, hora, nombre: nombreSeguro }).then(() => {
+      firebase.database().ref('reservas/JAMES-lista').push({ nombre: nombreSeguro, fecha, hora, ts: Date.now() });
       cargarReservasPorBarbero(() => {
         mostrarReservas(fecha);
         abrirVentanaHorarios(fecha);
@@ -2865,9 +2866,9 @@ setTimeout(() => {
       const reservasRefMostrar = firebase.database().ref("reservas/JAMES");
 reservasRefMostrar.on("child_added", (snapshot) => {
   const r = snapshot.val();
-  const fecha = r.fecha;
-  const hora = r.hora;
-  const nombre = r.nombre;
+  const fecha = r && r.fecha ? r.fecha : "";
+  const hora = r && r.hora ? r.hora : "⛔-Reservado-⛔";
+  const nombre = r && r.nombre ? r.nombre : "⛔-Reservado-⛔";
   const barbero = barberoSeleccionado;
 
   const idBloque = `${fecha}-${hora}`;
@@ -2878,7 +2879,7 @@ reservasRefMostrar.on("child_added", (snapshot) => {
   div.id = idBloque;
 
   const texto = document.createElement("span");
-  texto.textContent = `📅 ${fecha} ⏰ ${hora} - Barbero 👉 (${barbero})`;
+  texto.textContent = `📅 ${fecha} ⏰ ${hora} - Cliente 👉 (${nombre})`;
 
   const botonX = document.createElement("span");
   botonX.textContent = " | ❌";
@@ -3008,19 +3009,6 @@ function mostrarBloquesHorario(fecha, horarioDelDia, horasReservadas) {
             bloque.onclick = () => {
                 document.getElementById("hora").value = hora;
                 fechaInput.value = fecha;
-
-                const nuevaReserva = {
-                    fecha: fecha,
-                    hora: hora,
-                    nombre: "Cliente" // ← reemplaza con el nombre real si lo tienes
-                };
-
-                // Guardar en la ruta correcta según el barbero
-                firebase.database().ref(`reservas/${barberoSeleccionado}`).push({
-  fecha,
-  hora,
-  nombre
-});
 
                 document.getElementById("modal-hora-personalizada").classList.remove("hidden");
                 ventanaHorarios.style.display = "none";
