@@ -2993,8 +2993,6 @@ reservasRefMostrar.on("child_added", (snapshot) => {
     });
 }
 
-
-
 function mostrarBloquesHorario(fecha, horarioDelDia, horasReservadas) {
     horarioDelDia.forEach(hora => {
         const bloque = document.createElement("div");
@@ -3015,13 +3013,16 @@ function mostrarBloquesHorario(fecha, horarioDelDia, horasReservadas) {
             };
         }
 
+        // Agregar el bloque
         horariosDisponibles.appendChild(bloque);
+
+        // Agregar dos saltos de línea después del bloque
+        horariosDisponibles.appendChild(document.createElement("br"));
+        horariosDisponibles.appendChild(document.createElement("br"));
     });
 
     ventanaHorarios.style.display = "block";
 }
-
-
 
 
         // NUEVA FUNCIONALIDAD: GESTIÓN DE HORARIOS PERSONALIZADOS
