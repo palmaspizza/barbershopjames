@@ -1120,69 +1120,118 @@ document.addEventListener('DOMContentLoaded', function() {
             margin: auto;
         "></div>    <h2>Servicios de nuestra BARBERÍA</h2>
         <h3>¿Como quieres tu corte?</h3>
-               <div id="servicios">
-  <!-- Botón Corte Clásico (preseleccionado) -->
-<button class="opcion-btn selected" data-precio="10000" data-nombre="CORTE CLÁSICO" data-grupo="corte">
-  <div class="img-space"><img style="border: 2px solid yellow; width: 100px; height: auto;" src="https://cortesdecabellohombre.com/wp-content/uploads/2017/09/Laterales-Bien-Recortados.jpg" alt=""></div>
- <br> <br><br><span>CORTE CLÁSICO - $10.000</span>
-</button>
-        <script>
-          function scroll40() {
-    // Altura visible de la ventana
-    const alturaVentana = window.innerHeight;
-    // Calcula el 40% de esa altura
-    const desplazamiento = alturaVentana * 0.4;
+<div id="servicios">
 
-    // Hace el scroll hacia abajo
-    window.scrollBy({
-      top: desplazamiento,
-      left: 0,
-      behavior: 'smooth' // animación suave
-    });
-  }
-</script><br><br> <br><br> <br><br> <br><br> <br><br>  
-<button onclick="scrollToAncla('seccion-barba');" class="opcion-btn" data-precio="12000" data-nombre="DEGRADADO" data-grupo="corte">
-  <div class="img-space"><video disabled type="video/mp4"style="border: 2px solid yellow; width: 120px; height: auto; " 
- src="degradado (online-video-cutter.com).mp4" loop autoplay muted controls></video></div>
- <br> <br><br> <span>DEGRADADO - $12.000</span>
-</button>
-<br><br> <br><br><br><br> <br><br> <br><br><br><br>  
-<div id="seccion-barba">
-  <button class="opcion-btn" onclick="scrollToAncla('seccion-cejas');" data-precio="6000" data-nombre="BARBA">
-    <div class="img-space"><video disabled type="video/mp4"style="border: 2px solid yellow; width: 120px; height: auto; " 
- src="20251211_203205 (online-video-cutter.com).mp4" loop autoplay muted controls></video></div>
-  <br> <br><br>  <span>BARBA - $6.000</span>
+  <!-- Corte Clásico -->
+  <button class="servicio opcion-btn selected" data-precio="10000" data-nombre="CORTE CLÁSICO" data-grupo="corte">
+    <span>CORTE CLÁSICO - $10.000</span>
+    <div class="media-space">
+      <img src="https://cortesdecabellohombre.com/wp-content/uploads/2017/09/Laterales-Bien-Recortados.jpg" alt="Corte clásico">
+    </div>
   </button>
-   <br> <br><br>  <br> 
-   <div id="seccion-cejas" >
-  <button onclick="scrollToAncla('seccion-cejas');" class="opcion-btn" data-precio="3000" data-nombre="CEJAS">
-    <div class="img-space"><video disabled type="video/mp4"style="border: 2px solid yellow; width: 120px; height: auto; " 
- src="20251212_184059 (online-video-cutter.com).mp4" loop autoplay muted controls></video> <br> <br><br> <br> <br><br> <br> <br><br></div>
-  <br> <br><br> <span>CEJAS - $3.000</span>
+
+  <!-- Degradado -->
+  <button onclick="scrollToAncla('seccion-barba');" class="servicio opcion-btn" data-precio="12000" data-nombre="DEGRADADO" data-grupo="corte">
+    <span>DEGRADADO - $12.000</span>
+    <div class="media-space">
+      <video src="degradado (online-video-cutter.com).mp4" loop autoplay muted controls></video>
+    </div>
   </button>
-   <br> <br><br> 
-   <div id="seccion-diseños">
-  <button onclick="scrollToAncla('seccion-diseños');" class="opcion-btn" data-precio="3000" data-nombre="DISEÑO">
-    <div class="img-space"><img   style="border: 2px solid yellow; width: 120px; height: auto;" src="https://i.pinimg.com/474x/3b/47/53/3b47534ac0302537348c1abbc3a9625a.jpg" alt=""></div>
-   <br> <br><br> <span>DISEÑOS  <br>-DESDE - $3.000</span>
+
+  <!-- Barba -->
+  <button id="seccion-barba" onclick="scrollToAncla('seccion-cejas');" class="servicio opcion-btn" data-precio="6000" data-nombre="BARBA">
+    <span>BARBA - $6.000</span>
+    <div class="media-space">
+      <video src="20251211_203205 (online-video-cutter.com).mp4" loop autoplay muted controls></video>
+    </div>
   </button>
-</div>   <br> <br><br>  
-<button class="opcion-btn" data-precio="10000" data-nombre="COLOR">
-  <div class="img-space">
-  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzcMxIKUNopDjltQNsxna4Bh2p3BX7mDMzpw&s" style="border: 2px solid yellow; width: 100px; height: auto;" alt="">
-  </div>
-  <br><br><br>
-  <span>COLOR - $10.000</span>
-</button>
+
+  <!-- Cejas -->
+  <button id="seccion-cejas" class="servicio opcion-btn" data-precio="3000" data-nombre="CEJAS">
+    <span>CEJAS - $3.000</span>
+    <div class="media-space">
+      <video src="20251212_184059 (online-video-cutter.com).mp4" loop autoplay muted controls></video>
+    </div>
+  </button>
+
+  <!-- Diseños -->
+  <button id="seccion-diseños" class="servicio opcion-btn" data-precio="3000" data-nombre="DISEÑO">
+    <span>DISEÑOS - DESDE $3.000</span>
+    <div class="media-space">
+      <img src="https://i.pinimg.com/474x/3b/47/53/3b47534ac0302537348c1abbc3a9625a.jpg" alt="Diseños">
+    </div>
+  </button>
+
+  <!-- Color -->
+  <button class="servicio opcion-btn" data-precio="10000" data-nombre="COLOR">
+    <span>COLOR - $10.000</span>
+    <div class="media-space">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzcMxIKUNopDjltQNsxna4Bh2p3BX7mDMzpw&s" alt="Color">
+    </div>
+  </button>
+
+</div>
+
 <textarea id="opciones" readonly rows="4" placeholder="Opciones seleccionadas"></textarea>
 <input type="text" id="eltotal" style="font-size: 250%;" readonly placeholder="Total">
 
 <style>
+  #servicios {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .servicio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #111;
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid gold;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    width: 220px;
+    cursor: pointer;
+  }
+
+  .opcion-btn {
+    background-color: black;
+    color: gold;
+    border: 2px solid gold;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    width: 100%;
+    transition: all 0.3s ease;
+  }
+
+  .opcion-btn.selected {
+    background-color: gold;
+    color: black;
+    font-weight: bold;
+  }
+
+  .media-space {
+    margin-top: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .media-space img,
+  .media-space video {
+    border: 2px solid yellow;
+    border-radius: 6px;
+    width: 100%;
+    height: auto;
+    max-width: 180px;
+  }
+
   #opciones {
     width: 100%;
     min-height: 80px;
     max-height: 220px;
-    overflow: hidden;
     resize: none;
     background-color: #1a1a1a;
     color: #FFD700;
@@ -1191,6 +1240,7 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 10px 12px;
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.25);
     font-weight: 600;
+    margin-top: 20px;
   }
 
   #eltotal {
@@ -1201,44 +1251,9 @@ document.addEventListener('DOMContentLoaded', function() {
     border-radius: 12px;
     padding: 8px 14px;
     box-shadow: 0 0 15px rgba(255, 165, 0, 0.25);
-    width: auto;
-  }
-  #servicios {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .opcion-btn {
-    background-color: black;
-    color: gold;
-    border: 2px solid gold;
-    border-radius: 8px;
-    padding: 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    min-width: 220px;
-    height: 150px;
-  }
-  .opcion-btn .img-space {
-    width: 40px;
-    height: 40px;
-    background: #222;
-    border: 1px solid gold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-  }
-  .opcion-btn.selected {
-    background-color: gold;
-    color: black;
-    font-weight: bold;
+    margin-top: 10px;
   }
 </style>
-
 <script>
   const botones = document.querySelectorAll(".opcion-btn");
   const inputOpciones = document.getElementById("opciones");
