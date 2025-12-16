@@ -1142,10 +1142,12 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 </script><br><br> <br><br> <br><br> <br><br> <br><br>  
 <button onclick="scrollToAncla('seccion-barba');" class="opcion-btn" data-precio="12000" data-nombre="DEGRADADO" data-grupo="corte">
-  <div class="img-space"><img style="border: 2px solid yellow; width: 100px; height: auto;" src="javierbxc.jpg" alt=""></div>
+  <div class="img-space"><video disabled type="video/mp4"style="border: 2px solid yellow; width: 120px; height: auto; " 
+ src="degradado (online-video-cutter.com).mp4" loop autoplay muted controls></video></div>
  <br> <br><br> <span>DEGRADADO - $12.000</span>
 </button>
-<br><br> <br><br><br><br> <br><br> <br><br><br><br>  <div id="seccion-barba">
+<br><br> <br><br><br><br> <br><br> <br><br><br><br>  
+<div id="seccion-barba">
   <button class="opcion-btn" onclick="scrollToAncla('seccion-cejas');" data-precio="6000" data-nombre="BARBA">
     <div class="img-space"><video disabled type="video/mp4"style="border: 2px solid yellow; width: 120px; height: auto; " 
  src="20251211_203205 (online-video-cutter.com).mp4" loop autoplay muted controls></video></div>
@@ -1165,7 +1167,7 @@ document.addEventListener('DOMContentLoaded', function() {
    <br> <br><br> <span>DISEÑOS  <br>-DESDE - $3.000</span>
   </button>
 </div>   <br> <br><br>  <br> <br><br> 
-<button class="opcion-btn" data-precio="10000" data-nombre="COLOR" data-grupo="corte">
+<button class="opcion-btn" data-precio="10000" data-nombre="COLOR">
   <div class="img-space">
     <video disabled type="video/mp4" 
       style="border: 2px solid yellow; width: 120px; height: auto;" 
@@ -1176,7 +1178,6 @@ document.addEventListener('DOMContentLoaded', function() {
   <br><br><br>
   <span>COLOR - $10.000</span>
 </button>
-<!-- Inputs ocultos/visibles -->
 <textarea id="opciones" readonly rows="4" placeholder="Opciones seleccionadas"></textarea>
 <input type="text" id="eltotal" style="font-size: 250%;" readonly placeholder="Total">
 
@@ -1250,7 +1251,7 @@ document.addEventListener('DOMContentLoaded', function() {
   let seleccionadas = [];
   let total = 0;
 
-  // Inicializar con Corte Clásico
+  // Inicializar
   document.addEventListener("DOMContentLoaded", () => {
     botones.forEach(btn => {
       if (btn.classList.contains("selected")) {
@@ -1265,7 +1266,7 @@ document.addEventListener('DOMContentLoaded', function() {
   btn.addEventListener("click", () => {
     const nombre = btn.dataset.nombre;
     const precio = parseInt(btn.dataset.precio);
-    const grupo = btn.dataset.grupo;
+    const grupo = btn.dataset.grupo; // Aquí se recoge el grupo
 
     if (btn.classList.contains("selected")) {
       // Deseleccionar
@@ -1273,7 +1274,7 @@ document.addEventListener('DOMContentLoaded', function() {
       seleccionadas = seleccionadas.filter(op => op !== nombre);
       total -= precio;
     } else {
-      // Si pertenece al grupo "corte", deseleccionar el otro
+      // Si pertenece al grupo "corte", deseleccionar el otro del mismo grupo
       if (grupo === "corte") {
         botones.forEach(b => {
           if (b.dataset.grupo === "corte" && b.classList.contains("selected")) {
@@ -1283,7 +1284,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         });
       }
-      // Seleccionar
+      // Seleccionar el botón actual
       btn.classList.add("selected");
       seleccionadas.push(nombre);
       total += precio;
