@@ -1119,7 +1119,7 @@ document.addEventListener('DOMContentLoaded', function() {
             border-radius: 50%;
             margin: auto;
         "></div>    <h2>Servicios de nuestra BARBERÍA</h2>
-        <h3>¿Como quieres tu corte?</h3>
+        <h3>SELECCIONA TU CORTE</h3>
 <div id="servicios">
 
   <!-- Corte Clásico -->
@@ -1130,16 +1130,18 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   </button>
 
+ <div id="servicios">
+
   <!-- Degradado -->
-  <button onclick="scrollToAncla('seccion-barba');" class="servicio opcion-btn" data-precio="12000" data-nombre="DEGRADADO" data-grupo="corte">
+  <button class="servicio opcion-btn" data-precio="12000" data-nombre="DEGRADADO" data-grupo="corte">
     <span>DEGRADADO - $12.000</span>
     <div class="media-space">
-      <video src="degradado (online-video-cutter.com).mp4" loop autoplay muted controls></video>
+<img src="degradado.jpg" alt="">
     </div>
   </button>
 
   <!-- Barba -->
-  <button id="seccion-barba" onclick="scrollToAncla('seccion-cejas');" class="servicio opcion-btn" data-precio="6000" data-nombre="BARBA">
+  <button id="seccion-barba" class="servicio opcion-btn" data-precio="6000" data-nombre="BARBA">
     <span>BARBA - $6.000</span>
     <div class="media-space">
       <video src="20251211_203205 (online-video-cutter.com).mp4" loop autoplay muted controls></video>
@@ -1162,14 +1164,14 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   </button>
 
-  <!-- Color -->
-  <button class="servicio opcion-btn" data-precio="10000" data-nombre="COLOR">
-    <span>COLOR - $10.000</span>
-    <div class="media-space">
-      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzcMxIKUNopDjltQNsxna4Bh2p3BX7mDMzpw&s" alt="Color">
-    </div>
-  </button>
-
+<!-- Color -->
+<button class="servicio opcion-btn" data-precio="10000" data-nombre="COLOR">
+  <span>COLOR - $60.000</span>
+  <div class="media-space">
+    <video src="20251212_181549 (online-video-cutter.com).mp4" 
+           loop autoplay muted controls></video>
+  </div>
+</button>
 </div>
 
 <textarea id="opciones" readonly rows="4" placeholder="Opciones seleccionadas"></textarea>
@@ -1193,6 +1195,7 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
     width: 220px;
     cursor: pointer;
+    position: relative; /* necesario para posicionar el ✅ */
   }
 
   .opcion-btn {
@@ -1212,6 +1215,15 @@ document.addEventListener('DOMContentLoaded', function() {
     font-weight: bold;
   }
 
+  /* ✅ grande cuando está seleccionado */
+  .opcion-btn.selected::after {
+    content: "✅";
+    font-size: 2.5rem;
+    position: absolute;
+    top: 5px;
+    right: 10px;
+  }
+
   .media-space {
     margin-top: 10px;
     width: 100%;
@@ -1226,6 +1238,11 @@ document.addEventListener('DOMContentLoaded', function() {
     width: 100%;
     height: auto;
     max-width: 180px;
+  }
+
+  /* 👇 Esto hace que el video no reciba clics */
+  .media-space video {
+    pointer-events: none;
   }
 
   #opciones {
@@ -1254,6 +1271,7 @@ document.addEventListener('DOMContentLoaded', function() {
     margin-top: 10px;
   }
 </style>
+
 <script>
   const botones = document.querySelectorAll(".opcion-btn");
   const inputOpciones = document.getElementById("opciones");
@@ -1262,63 +1280,40 @@ document.addEventListener('DOMContentLoaded', function() {
   let seleccionadas = [];
   let total = 0;
 
-  // Inicializar
-  document.addEventListener("DOMContentLoaded", () => {
-    botones.forEach(btn => {
-      if (btn.classList.contains("selected")) {
-        seleccionadas.push(btn.dataset.nombre);
-        total += parseInt(btn.dataset.precio);
-      }
-    });
-    actualizarInputs();
-  });
-
   botones.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const nombre = btn.dataset.nombre;
-    const precio = parseInt(btn.dataset.precio);
-    const grupo = btn.dataset.grupo; // Aquí se recoge el grupo
+    btn.addEventListener("click", () => {
+      const nombre = btn.dataset.nombre;
+      const precio = parseInt(btn.dataset.precio);
+      const grupo = btn.dataset.grupo;
 
-    if (btn.classList.contains("selected")) {
-      // Deseleccionar
-      btn.classList.remove("selected");
-      seleccionadas = seleccionadas.filter(op => op !== nombre);
-      total -= precio;
-    } else {
-      // Si pertenece al grupo "corte", deseleccionar el otro del mismo grupo
-      if (grupo === "corte") {
-        botones.forEach(b => {
-          if (b.dataset.grupo === "corte" && b.classList.contains("selected")) {
-            b.classList.remove("selected");
-            seleccionadas = seleccionadas.filter(op => op !== b.dataset.nombre);
-            total -= parseInt(b.dataset.precio);
-          }
-        });
+      if (btn.classList.contains("selected")) {
+        // Deseleccionar
+        btn.classList.remove("selected");
+        seleccionadas = seleccionadas.filter(op => op !== nombre);
+        total -= precio;
+      } else {
+        // Si pertenece al grupo "corte", deseleccionar el otro del mismo grupo
+        if (grupo === "corte") {
+          botones.forEach(b => {
+            if (b.dataset.grupo === "corte" && b.classList.contains("selected")) {
+              b.classList.remove("selected");
+              seleccionadas = seleccionadas.filter(op => op !== b.dataset.nombre);
+              total -= parseInt(b.dataset.precio);
+            }
+          });
+        }
+        // Seleccionar el botón actual
+        btn.classList.add("selected");
+        seleccionadas.push(nombre);
+        total += precio;
       }
-      // Seleccionar el botón actual
-      btn.classList.add("selected");
-      seleccionadas.push(nombre);
-      total += precio;
-    }
-    actualizarInputs();
+      actualizarInputs();
+    });
   });
-});
 
   function actualizarInputs() {
     inputOpciones.value = seleccionadas.join(" + ");
     inputTotal.value = "$" + total.toLocaleString("es-CL");
-    autosizeOpciones();
-    autosizeTotal();
-  }
-
-  function autosizeOpciones() {
-    inputOpciones.style.height = 'auto';
-    inputOpciones.style.height = inputOpciones.scrollHeight + 'px';
-  }
-
-  function autosizeTotal() {
-    const len = Math.max(6, inputTotal.value.length + 2);
-    inputTotal.style.width = len + 'ch';
   }
 </script>
                 <h3 hidden id="tituloVentana" class="titulo-animado" style="display: none; color: orangered; text-shadow: 1px 1px 1px #000;"></h3>
