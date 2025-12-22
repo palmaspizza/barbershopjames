@@ -21,8 +21,8 @@
     <!-- Ventana emergente -->
 <div id="ventana-dia" style="display:none;">
   <div class="contenedor-dia">
-    <h2>Selecciona el día de reserva a continuación</h2>
-    <button class="btn-dia" onclick="cerrarVentanaDia()">Elegir día</button>
+    <h2>Selecciona el día a continuación</h2>
+    <button class="btn-dia" onclick="cerrarVentanaDia()">Confirmar selección</button>
   </div>
 </div>
 
@@ -215,101 +215,7 @@ function enviarMensajeWhatsApp() {
   });
 }
 </script>
-<div id="alertaReservaModal" class="caja-fondo-modal">
-  <div class="caja-contenido-modal">
-    <h2 class="titulo-advertencia">⚠️ Advertencia</h2>
-    <p  style="color: #000;" class="mensaje-advertencia">
-      Para reservar la hora se debe abonar un <strong>35% del valor</strong> mediante transferencia.
-    </p>
-    
-    <button id="botonAceptarReserva" class="boton-aceptar" onclick="enviarMensajeWhatsApp();reservarHora();">ACEPTAR <br> <img style="width: 50px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/2044px-WhatsApp.svg.png" alt=""></button>
-    
-    <p class="texto-terminos">
-      Que el cliente acepta los términos para continuar la reserva
-    </p>
-  </div>
-</div>
 
-<style>
-  /* Fondo oscuro del modal: ocupa toda la pantalla */
-  .caja-fondo-modal {
-    display: none; /* oculto por defecto */
-    position: fixed;
-    z-index: 999999; /* muy alto para estar encima de todo */
-    left: 0;
-    top: 0;
-    width: 100vw;   /* ancho total de la ventana */
-    height: 100vh;  /* alto total de la ventana */
-    background-color: rgba(0,0,0,0.8); /* más oscuro para resaltar */
-  }
-
-  /* Caja central */
-  .caja-contenido-modal {
-    background-color: #fff;
-    margin: auto; /* centrado automático */
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); /* centra en pantalla */
-    padding: 20px;
-    border-radius: 12px;
-    width: 90%; /* más ancho para pantallas grandes */
-    max-width: 500px;
-    text-align: center;
-    box-shadow: 0 0 30px rgba(0,0,0,0.4);
-    animation: aparecer 0.3s ease-out;
-  }
-
-  @keyframes aparecer {
-    from { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
-    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  }
-
-  .titulo-advertencia {
-    color: #b22222;
-    margin-bottom: 15px;
-  }
-
-  .mensaje-advertencia {
-    font-size: 1.1em;
-    margin-bottom: 20px;
-  }
-
-  .boton-aceptar {
-    background-color: #ff6600;
-    color: #fff;
-    border: none;
-    padding: 12px 22px;
-    border-radius: 8px;
-    font-size: 1.1em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-
-  .boton-aceptar:hover {
-    background-color: #e65c00;
-  }
-
-  .texto-terminos {
-    font-size: 0.85em;
-    color: #555;
-    margin-top: 18px;
-    font-weight: bold;
-  }
-</style>
-
-<script>
-  // Función para abrir el modal
-  function abrirModalReserva() {
-    document.getElementById("alertaReservaModal").style.display = "block";
-  }
-
-  // Función para cerrar el modal al aceptar
-  document.getElementById("botonAceptarReserva").onclick = function() {
-    document.getElementById("alertaReservaModal").style.display = "none";
-    // Aquí puedes continuar con la lógica de reserva
-  };
-</script>
 <button  onclick="enviar()" hidden>Enviar notificación</button>
     <h3 style="font-size: 170%;" >Selecciona un día</h3>
       <div class="dias-semana"></div>
@@ -1237,22 +1143,7 @@ document.addEventListener('DOMContentLoaded', function() {
       box-shadow: 0 0 20px 5px blue, 0 0 20px 5px transparent;
     }
   }
-</style> <script>
-function scrollModalMitad() {
-  // Selecciona tu modal por su ID o clase
-  const labrmodal = document.getElementById("modal-horarios"); // cámbialo por el ID real de tu modal
-  
-  if (labrmodal) {
-    const mitad = labrmodal.scrollHeight * 0.5;
-    labrmodal.scrollTo({
-      top: mitad,
-      behavior: 'smooth'
-    });
-  }
-}
-</script>
-
-<h2>Servicios de nuestra BARBERÍA</h2>
+</style>   <h2>Servicios de nuestra BARBERÍA</h2>
 
 
 <!-- cosodetiempojames.html -->
@@ -1466,7 +1357,7 @@ function scrollModalMitad() {
     inputTotal.value = "$" + total.toLocaleString("es-CL");
   }
 </script>
-<!-- cambiar. SISTEMA DE TIEMPO /OPCIONAL() -->
+<!-- SISTEMA DE TIEMPO /OPCIONAL() -->
 
 
 
@@ -1478,8 +1369,7 @@ function scrollModalMitad() {
                 <button onclick="scrollToAncla('seccion-james')" disabled class="barberbutton" type="button">JAMES</button> <button hidden   onclick="scrollToAncla('seccion-james')" class="barberbutton" type="button">BRYAN</button> <button onclick="scrollToAncla('seccion-james')"  class="barberbutton" type="button" hidden >Jhon</button>
                <br><br><br>
                <div id="seccion-james">
-                <!-- Bloque de advertencia incrustable -->
-
+                
               
                <h3 style="color: #fff      ;">Selecciona la hora</h3><br>
                 <div id="horariosDisponibles"></div>
@@ -1802,10 +1692,47 @@ function ocultarBotonBorrar() {
             <br>
             <br>
             <p style="text-shadow: #000 1px 1px 3px;">Se te redireccionará a <span style="text-shadow: #000 1px 1px 3px;  color: green;">WhatsApp</span></p>
-<b>           
-            <input type="text" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
+<b>           <!-- Ventana de advertencia -->
+<div id="ventanaAdvertencia" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
+  <div style="background:#fff; width:380px; margin:100px auto; padding:25px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.3); text-align:center; font-family:Arial, sans-serif;">
+    <h2 style="color:#d9534f; margin-bottom:15px;">⚠️ Advertencia Importante</h2>
+    <p style="color:#333; font-size:15px; line-height:1.5; margin-bottom:20px;">
+      Para confirmar su reserva es necesario <strong>abonar el 35% del precio total</strong>.  
+      El pago debe realizarse mediante <strong>transferencia bancaria</strong>.
+    </p>
+    <div style="margin-top:20px;">
+      <button type="button" onclick="cerrarAdvertencia();location.reload();" style="background:#ccc; color:#333; border:none; padding:10px 18px; border-radius:6px; cursor:pointer; margin-right:10px;">
+        Cancelar
+      </button>
+      <button type="button" onclick="reservarbuttonmostrar(); cerrarAdvertencia();" style="background:#25D366; color:#fff; border:none; padding:10px 18px; border-radius:6px; cursor:pointer;">
+        <i class="fa fa-whatsapp"></i> ACEPTAR Y CONTINUAR
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+  function reservarbuttonmostrar(){
+    document.getElementById("reservar-button").style.display = 'block';
+  }
+</script>
+<!-- Font Awesome para el ícono de WhatsApp -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+  function abrirAdvertencia() {
+    document.getElementById("ventanaAdvertencia").style.display = "block";
+  }
+
+  function cerrarAdvertencia() {
+    document.getElementById("ventanaAdvertencia").style.display = "none";
+  }
+
+</script>
+
+
+            <input type="text" style="font-size: 170%;" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();abrirAdvertencia()">
             <br><br>
-            <button id="reservar-button" type="button" onclick="abrirModalReserva();">Reservar</button>
+            <button id="reservar-button" type="button" onclick="enviarMensajeWhatsApp();reservarHora();">Reservar</button>
      <script>
     
 function mostrarReservas(fecha) {
@@ -1912,7 +1839,10 @@ function reservarHora() {
         </div>
     </div>
 </form>
+<script>
+  document.getElementById("reservar-button").addEventListener("click", reservarHora);
 
+</script>
     <div id="modal-reservada" class="modal hidden">
         <div class="modal-content reservada">
             <h3 style="text-shadow: #000 1px 1px 3px;">HORA DISPONIBLE</h3>
@@ -3426,7 +3356,7 @@ reservasRefMostrar.on("child_added", (snapshot) => {
         }
 
         function miFuncion() {
-            document.getElementById("reservar-button").style.display = 'block';
+            
               document.getElementById("nombre").addEventListener("input", function () {
   this.value = this.value.replace(/\d/g, ""); // elimina todos los números
 });
