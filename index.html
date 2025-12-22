@@ -21,8 +21,8 @@
     <!-- Ventana emergente -->
 <div id="ventana-dia" style="display:none;">
   <div class="contenedor-dia">
-    <h2>Selecciona el día a continuación</h2>
-    <button class="btn-dia" onclick="cerrarVentanaDia()">Confirmar selección</button>
+    <h2>Selecciona el día de reserva a continuación</h2>
+    <button class="btn-dia" onclick="cerrarVentanaDia()">Elegir día</button>
   </div>
 </div>
 
@@ -215,7 +215,101 @@ function enviarMensajeWhatsApp() {
   });
 }
 </script>
+<div id="alertaReservaModal" class="caja-fondo-modal">
+  <div class="caja-contenido-modal">
+    <h2 class="titulo-advertencia">⚠️ Advertencia</h2>
+    <p  style="color: #000;" class="mensaje-advertencia">
+      Para reservar la hora se debe abonar un <strong>35% del valor</strong> mediante transferencia.
+    </p>
+    
+    <button id="botonAceptarReserva" class="boton-aceptar" onclick="enviarMensajeWhatsApp();reservarHora();">ACEPTAR <br> <img style="width: 50px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/2044px-WhatsApp.svg.png" alt=""></button>
+    
+    <p class="texto-terminos">
+      Que el cliente acepta los términos para continuar la reserva
+    </p>
+  </div>
+</div>
 
+<style>
+  /* Fondo oscuro del modal: ocupa toda la pantalla */
+  .caja-fondo-modal {
+    display: none; /* oculto por defecto */
+    position: fixed;
+    z-index: 999999; /* muy alto para estar encima de todo */
+    left: 0;
+    top: 0;
+    width: 100vw;   /* ancho total de la ventana */
+    height: 100vh;  /* alto total de la ventana */
+    background-color: rgba(0,0,0,0.8); /* más oscuro para resaltar */
+  }
+
+  /* Caja central */
+  .caja-contenido-modal {
+    background-color: #fff;
+    margin: auto; /* centrado automático */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* centra en pantalla */
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%; /* más ancho para pantallas grandes */
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0,0,0,0.4);
+    animation: aparecer 0.3s ease-out;
+  }
+
+  @keyframes aparecer {
+    from { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  }
+
+  .titulo-advertencia {
+    color: #b22222;
+    margin-bottom: 15px;
+  }
+
+  .mensaje-advertencia {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+  }
+
+  .boton-aceptar {
+    background-color: #ff6600;
+    color: #fff;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .boton-aceptar:hover {
+    background-color: #e65c00;
+  }
+
+  .texto-terminos {
+    font-size: 0.85em;
+    color: #555;
+    margin-top: 18px;
+    font-weight: bold;
+  }
+</style>
+
+<script>
+  // Función para abrir el modal
+  function abrirModalReserva() {
+    document.getElementById("alertaReservaModal").style.display = "block";
+  }
+
+  // Función para cerrar el modal al aceptar
+  document.getElementById("botonAceptarReserva").onclick = function() {
+    document.getElementById("alertaReservaModal").style.display = "none";
+    // Aquí puedes continuar con la lógica de reserva
+  };
+</script>
 <button  onclick="enviar()" hidden>Enviar notificación</button>
     <h3 style="font-size: 170%;" >Selecciona un día</h3>
       <div class="dias-semana"></div>
@@ -1106,7 +1200,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </style>
 
         <div id="modal-horarios" class="modalBarberia">
-            <div style="background-color: #303030 !important; margin-top: 10px;"  class="contenidoModal">
+            <div style="background-color: #303030 !important; margin-top: 10px; width: 80%;"  class="contenidoModal">
                 <span id="cerrarVentana" class="cerrarModal" onclick="document.getElementById('modal-horarios').style.display='none';">Cerrar</span>
             <div class="container">
        <div id="logo"></div>
@@ -1143,8 +1237,29 @@ document.addEventListener('DOMContentLoaded', function() {
       box-shadow: 0 0 20px 5px blue, 0 0 20px 5px transparent;
     }
   }
-</style>   <h2>Servicios de nuestra BARBERÍA</h2>
-        <h3>SELECCIONA TU CORTE</h3>
+</style> <script>
+function scrollModalMitad() {
+  // Selecciona tu modal por su ID o clase
+  const labrmodal = document.getElementById("modal-horarios"); // cámbialo por el ID real de tu modal
+  
+  if (labrmodal) {
+    const mitad = labrmodal.scrollHeight * 0.5;
+    labrmodal.scrollTo({
+      top: mitad,
+      behavior: 'smooth'
+    });
+  }
+}
+</script>
+
+<h2>Servicios de nuestra BARBERÍA</h2>
+
+
+<!-- cosodetiempojames.html -->
+<!-- 5779 -->
+
+<!-- SISTEMA DE TIEMPO /OPCIONAL() -->
+    <h3>SELECCIONA TU CORTE</h3>
 <div id="servicios">
 
   <!-- Corte Clásico -->
@@ -1351,6 +1466,10 @@ document.addEventListener('DOMContentLoaded', function() {
     inputTotal.value = "$" + total.toLocaleString("es-CL");
   }
 </script>
+<!-- cambiar. SISTEMA DE TIEMPO /OPCIONAL() -->
+
+
+
                 <h3 hidden id="tituloVentana" class="titulo-animado" style="display: none; color: orangered; text-shadow: 1px 1px 1px #000;"></h3>
               <br><br>
               
@@ -1359,7 +1478,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button onclick="scrollToAncla('seccion-james')" disabled class="barberbutton" type="button">JAMES</button> <button hidden   onclick="scrollToAncla('seccion-james')" class="barberbutton" type="button">BRYAN</button> <button onclick="scrollToAncla('seccion-james')"  class="barberbutton" type="button" hidden >Jhon</button>
                <br><br><br>
                <div id="seccion-james">
-                
+                <!-- Bloque de advertencia incrustable -->
+
               
                <h3 style="color: #fff      ;">Selecciona la hora</h3><br>
                 <div id="horariosDisponibles"></div>
@@ -1685,7 +1805,7 @@ function ocultarBotonBorrar() {
 <b>           
             <input type="text" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
             <br><br>
-            <button id="reservar-button" type="button" onclick="enviarMensajeWhatsApp();reservarHora();">Reservar</button>
+            <button id="reservar-button" type="button" onclick="abrirModalReserva();">Reservar</button>
      <script>
     
 function mostrarReservas(fecha) {
@@ -1792,10 +1912,7 @@ function reservarHora() {
         </div>
     </div>
 </form>
-<script>
-  document.getElementById("reservar-button").addEventListener("click", reservarHora);
 
-</script>
     <div id="modal-reservada" class="modal hidden">
         <div class="modal-content reservada">
             <h3 style="text-shadow: #000 1px 1px 3px;">HORA DISPONIBLE</h3>
