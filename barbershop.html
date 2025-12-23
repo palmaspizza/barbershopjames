@@ -1106,7 +1106,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </style>
 
         <div id="modal-horarios" class="modalBarberia">
-            <div style="background-color: #303030 !important; margin-top: 10px;"  class="contenidoModal">
+            <div style="background-color: #303030 !important; margin-top: 10px; width: 80%;"  class="contenidoModal">
                 <span id="cerrarVentana" class="cerrarModal" onclick="document.getElementById('modal-horarios').style.display='none';">Cerrar</span>
             <div class="container">
        <div id="logo"></div>
@@ -1144,7 +1144,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 </style>   <h2>Servicios de nuestra BARBERÍA</h2>
-        <h3>SELECCIONA TU CORTE</h3>
+
+
+<!-- cosodetiempojames.html -->
+<!-- 5779 -->
+
+<!-- SISTEMA DE TIEMPO /OPCIONAL() -->
+    <h3>SELECCIONA TU CORTE</h3>
 <div id="servicios">
 
   <!-- Corte Clásico -->
@@ -1161,7 +1167,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <button class="servicio opcion-btn" data-precio="12000" data-nombre="DEGRADADO" data-grupo="corte">
     <span>DEGRADADO - $12.000</span>
     <div class="media-space">
-<img src="degradeimg.JPG" alt="">
+<img src="https://i.ibb.co/F4xZqL5G/degradadobarbershopjames.jpg" alt="">
     </div>
   </button>
 
@@ -1185,20 +1191,40 @@ document.addEventListener('DOMContentLoaded', function() {
   <button id="seccion-diseños" class="servicio opcion-btn" data-precio="3000" data-nombre="DISEÑO">
     <span>DISEÑOS - DESDE $3.000</span>
     <div class="media-space">
-      <img src="https://i.pinimg.com/474x/3b/47/53/3b47534ac0302537348c1abbc3a9625a.jpg" alt="Diseños">
+      <img src="https://i.ibb.co/FkFdJMt7/dise-obarbershopjames.jpg" alt="Diseños">
     </div>
   </button>
 
-<!-- Color -->
+  
+  <!-- Color -->
 <button class="servicio opcion-btn" data-precio="60000" data-nombre="COLOR">
   <span>COLOR - $60.000</span>
-  <div class="media-space">
-    <video src="20251212_181549 (online-video-cutter.com).mp4" 
-           loop autoplay muted controls></video>
+  <div class="media-space" style="width:200px; height:200px; overflow:hidden;">
+    <!-- Aquí se irá alternando el contenido -->
+    <div id="mediaColor"></div>
   </div>
 </button>
-</div>
 
+<script>
+  const mediaColor = document.getElementById("mediaColor");
+
+  // Lista de imágenes
+  const contenidos = [
+    `<img src="https://i.ibb.co/Cs1bwVzt/platinadocristofer2.jpg" style="width:100%; height:100%; object-fit:cover;" />`,
+    `<img src="https://i.ibb.co/4cX3NVX/platinadocristofer.jpg" style="width:100%; height:100%; object-fit:cover;" />`
+  ];
+
+  let indice = 0;
+
+  function alternarContenido() {
+    mediaColor.innerHTML = contenidos[indice];
+    indice = (indice + 1) % contenidos.length;
+  }
+
+  // Iniciar alternancia
+  alternarContenido(); // primer contenido
+  setInterval(alternarContenido, 1000); // cada 1 segundo
+</script>
 <textarea id="opciones" readonly rows="4" placeholder="Opciones seleccionadas"></textarea>
 <input type="text" id="eltotal" style="font-size: 250%;" readonly placeholder="Total">
 
@@ -1351,6 +1377,10 @@ document.addEventListener('DOMContentLoaded', function() {
     inputTotal.value = "$" + total.toLocaleString("es-CL");
   }
 </script>
+<!-- SISTEMA DE TIEMPO /OPCIONAL() -->
+
+
+
                 <h3 hidden id="tituloVentana" class="titulo-animado" style="display: none; color: orangered; text-shadow: 1px 1px 1px #000;"></h3>
               <br><br>
               
@@ -1682,8 +1712,45 @@ function ocultarBotonBorrar() {
             <br>
             <br>
             <p style="text-shadow: #000 1px 1px 3px;">Se te redireccionará a <span style="text-shadow: #000 1px 1px 3px;  color: green;">WhatsApp</span></p>
-<b>           
-            <input type="text" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
+<b>           <!-- Ventana de advertencia -->
+<div id="ventanaAdvertencia" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
+  <div style="background:#fff; width: 100%; height: 100%; padding:25px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.3); text-align:center; font-family:Arial, sans-serif;">
+    <h2 style="color:#d9534f; margin-bottom:15px;">⚠️ Advertencia Importante</h2>
+    <p style="color:#333; font-size:15px; line-height:1.5; margin-bottom:20px;">
+      Para confirmar su reserva es necesario <strong>abonar el 35% del precio total</strong>.  
+      El pago debe realizarse mediante <strong>transferencia bancaria</strong>.
+    </p>
+    <div style="margin-top:20px;">
+      <button type="button" onclick="cerrarAdvertencia();location.reload();" style="background:#ccc; color:#333; border:none; padding:10px 18px; border-radius:6px; cursor:pointer; margin-right:10px;">
+        Cancelar
+      </button>
+      <button type="button" onclick="reservarbuttonmostrar(); cerrarAdvertencia(); enviarMensajeWhatsApp();reservarHora();" style="background:#25D366; color:#fff; border:none; padding:10px 18px; border-radius:6px; cursor:pointer;">
+        <i class="fa fa-whatsapp"></i> ACEPTAR Y CONTINUAR
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+  function reservarbuttonmostrar(){
+    document.getElementById("reservar-button").style.display = 'block';
+  }
+</script>
+<!-- Font Awesome para el ícono de WhatsApp -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+  function abrirAdvertencia() {
+    document.getElementById("ventanaAdvertencia").style.display = "block";
+  }
+
+  function cerrarAdvertencia() {
+    document.getElementById("ventanaAdvertencia").style.display = "none";
+  }
+
+</script>
+
+
+            <input type="text" style="font-size: 170%;" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();abrirAdvertencia()">
             <br><br>
             <button id="reservar-button" type="button" onclick="enviarMensajeWhatsApp();reservarHora();">Reservar</button>
      <script>
@@ -3309,7 +3376,7 @@ reservasRefMostrar.on("child_added", (snapshot) => {
         }
 
         function miFuncion() {
-            document.getElementById("reservar-button").style.display = 'block';
+            
               document.getElementById("nombre").addEventListener("input", function () {
   this.value = this.value.replace(/\d/g, ""); // elimina todos los números
 });
