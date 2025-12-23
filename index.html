@@ -1208,24 +1208,22 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
   const mediaColor = document.getElementById("mediaColor");
 
-  // Contenidos: foto de Cristofer y video
+  // Lista de imágenes
   const contenidos = [
-    `<img src="https://i.ibb.co/4cX3NVX/platinadocristofer.jpg" style="width:100%; height:100%; object-fit:cover;" />`,
-    `<video src="20251212_181549 (online-video-cutter.com).mp4" autoplay muted loop style="width:100%; height:100%; object-fit:cover;"></video>`
+    `<img src="https://i.ibb.co/Cs1bwVzt/platinadocristofer2.jpg" style="width:100%; height:100%; object-fit:cover;" />`,
+    `<img src="https://i.ibb.co/4cX3NVX/platinadocristofer.jpg" style="width:100%; height:100%; object-fit:cover;" />`
   ];
 
   let indice = 0;
 
   function alternarContenido() {
     mediaColor.innerHTML = contenidos[indice];
-    // alterna entre foto y video
     indice = (indice + 1) % contenidos.length;
-    // si es foto → 3 segundos, si es video → 3 segundos
-    setTimeout(alternarContenido, 3000);
   }
 
-  // iniciar con la foto
-  alternarContenido();
+  // Iniciar alternancia
+  alternarContenido(); // primer contenido
+  setInterval(alternarContenido, 1000); // cada 1 segundo
 </script>
 <textarea id="opciones" readonly rows="4" placeholder="Opciones seleccionadas"></textarea>
 <input type="text" id="eltotal" style="font-size: 250%;" readonly placeholder="Total">
