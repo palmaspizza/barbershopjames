@@ -1194,16 +1194,40 @@ document.addEventListener('DOMContentLoaded', function() {
       <img src="https://i.ibb.co/FkFdJMt7/dise-obarbershopjames.jpg" alt="Diseños">
     </div>
   </button>
-
 <!-- Color -->
 <button class="servicio opcion-btn" data-precio="60000" data-nombre="COLOR">
   <span>COLOR - $60.000</span>
-  <div class="media-space">
-    <video src="20251212_181549 (online-video-cutter.com).mp4" 
-           loop autoplay muted controls></video>
+  <div class="media-space" style="width:200px; height:200px; overflow:hidden;">
+    <!-- Aquí se irá alternando el contenido -->
+    <div id="mediaColor"></div>
   </div>
 </button>
-</div>
+
+<script>
+  const mediaColor = document.getElementById("mediaColor");
+
+  // Lista de contenidos (video + imágenes)
+  const contenidos = [
+    `<video src="20251212_181549 (online-video-cutter.com).mp4" autoplay muted style="width:100%; height:100%; object-fit:cover;"></video>`,
+    `<img src="https://i.ibb.co/4cX3NVX/platinadocristofer.jpg" style="width:100%; height:100%; object-fit:cover;" />`,
+    `<img src="https://i.ibb.co/cS3BGMZQ/platinadobrayan.jpg" style="width:100%; height:100%; object-fit:cover;" />`
+  ];
+
+  let indice = 0;
+
+  // Mostrar el video primero
+  mediaColor.innerHTML = contenidos[indice];
+
+  // Después de 2 segundos, empezar a alternar imágenes cada 1 segundo
+  setTimeout(() => {
+    indice = 1; // saltamos a la primera imagen
+    mediaColor.innerHTML = contenidos[indice];
+    setInterval(() => {
+      indice = (indice + 1) % contenidos.length;
+      mediaColor.innerHTML = contenidos[indice];
+    }, 1000); // cada 1 segundo
+  }, 2000); // esperar 2 segundos para el video
+</script>
 
 <textarea id="opciones" readonly rows="4" placeholder="Opciones seleccionadas"></textarea>
 <input type="text" id="eltotal" style="font-size: 250%;" readonly placeholder="Total">
@@ -1694,7 +1718,7 @@ function ocultarBotonBorrar() {
             <p style="text-shadow: #000 1px 1px 3px;">Se te redireccionará a <span style="text-shadow: #000 1px 1px 3px;  color: green;">WhatsApp</span></p>
 <b>           <!-- Ventana de advertencia -->
 <div id="ventanaAdvertencia" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
-  <div style="background:#fff; width:380px; margin:100px auto; padding:25px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.3); text-align:center; font-family:Arial, sans-serif;">
+  <div style="background:#fff; width: 100%; height: 100%; padding:25px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.3); text-align:center; font-family:Arial, sans-serif;">
     <h2 style="color:#d9534f; margin-bottom:15px;">⚠️ Advertencia Importante</h2>
     <p style="color:#333; font-size:15px; line-height:1.5; margin-bottom:20px;">
       Para confirmar su reserva es necesario <strong>abonar el 35% del precio total</strong>.  
