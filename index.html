@@ -1194,7 +1194,9 @@ document.addEventListener('DOMContentLoaded', function() {
       <img src="https://i.ibb.co/FkFdJMt7/dise-obarbershopjames.jpg" alt="Diseños">
     </div>
   </button>
-<!-- Color -->
+
+  
+  <!-- Color -->
 <button class="servicio opcion-btn" data-precio="60000" data-nombre="COLOR">
   <span>COLOR - $60.000</span>
   <div class="media-space" style="width:200px; height:200px; overflow:hidden;">
@@ -1206,10 +1208,9 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
   const mediaColor = document.getElementById("mediaColor");
 
-  // Lista de contenidos (video + imágenes)
+  // Lista de contenidos: solo video y foto de Brayan
   const contenidos = [
     `<video src="20251212_181549 (online-video-cutter.com).mp4" autoplay muted style="width:100%; height:100%; object-fit:cover;"></video>`,
-    `<img src="https://i.ibb.co/4cX3NVX/platinadocristofer.jpg" style="width:100%; height:100%; object-fit:cover;" />`,
     `<img src="https://i.ibb.co/cS3BGMZQ/platinadobrayan.jpg" style="width:100%; height:100%; object-fit:cover;" />`
   ];
 
@@ -1218,17 +1219,16 @@ document.addEventListener('DOMContentLoaded', function() {
   // Mostrar el video primero
   mediaColor.innerHTML = contenidos[indice];
 
-  // Después de 2 segundos, empezar a alternar imágenes cada 1 segundo
+  // Después de 2 segundos, empezar a alternar entre video e imagen cada 1 segundo
   setTimeout(() => {
-    indice = 1; // saltamos a la primera imagen
+    indice = 1; // saltamos a la foto de Brayan
     mediaColor.innerHTML = contenidos[indice];
     setInterval(() => {
       indice = (indice + 1) % contenidos.length;
       mediaColor.innerHTML = contenidos[indice];
-    }, 1000); // cada 1 segundo
-  }, 2000); // esperar 2 segundos para el video
+    }, 1000); // alterna cada 1 segundo
+  }, 2300); // esperar 2 segundos para el video inicial
 </script>
-
 <textarea id="opciones" readonly rows="4" placeholder="Opciones seleccionadas"></textarea>
 <input type="text" id="eltotal" style="font-size: 250%;" readonly placeholder="Total">
 
