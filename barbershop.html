@@ -22,8 +22,8 @@
     <!-- Ventana emergente -->
 <div id="ventana-dia" style="display:none;">
   <div class="contenedor-dia">
-    <h2>Selecciona el día a continuación</h2>
-    <button class="btn-dia" onclick="cerrarVentanaDia()">Confirmar selección</button>
+    <h2>Selecciona el día de la reserva a continuación</h2>
+    <button class="btn-dia" onclick="cerrarVentanaDia()">ELEGIR DÍA</button>
   </div>
 </div>
 
@@ -1225,7 +1225,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <!-- Corte Clásico -->
   <button class="servicio opcion-btn selected botonesdeseleccionVDD" data-precio="10000" data-nombre="CORTE CLÁSICO" data-grupo="corte" data-tiempo="20">
-    <span>Corte clásico - $10.000 (20min)</span>
+    <span>Corte clásico - $10.000 (20min)</span><br><br>
     <div class="media-space ">
       <img src="https://cortesdecabellohombre.com/wp-content/uploads/2017/09/Laterales-Bien-Recortados.jpg" alt="Corte clásico">
     </div>
@@ -1235,7 +1235,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <!-- Degradado -->
   <button class="servicio opcion-btn" data-precio="12000" data-nombre="DEGRADADO" data-grupo="corte" data-tiempo="30">
-    <span>Degradado - $12.000 (30min)</span>
+    <span>Degradado - $12.000 (30min)</span><br><br>
     <div class="media-space botonesdeseleccionVDD">
 <img src="https://i.ibb.co/F4xZqL5G/degradadobarbershopjames.jpg" alt="">
     </div>
@@ -1243,7 +1243,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <!-- Barba -->
   <button id="seccion-barba" class="servicio opcion-btn" data-precio="6000" data-nombre="BARBA" data-tiempo="10">
-    <span>Barba - $6.000 (10min)</span>
+    <span>Barba - $6.000 (10min)</span><br><br>
     <div class="media-space botonesdeseleccionVDD">
       <video src="20251211_203205 (online-video-cutter.com).mp4" loop autoplay muted controls></video>
     </div>
@@ -1251,23 +1251,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
   <!-- Cejas -->
   <button id="seccion-cejas" class="servicio opcion-btn" data-precio="3000" data-nombre="CEJAS" data-tiempo="5">
-    <span>Cejas - $3.000 (5min)</span>
+    <span>Cejas - $3.000 (5min)</span><br><br>
     <div class="media-space botonesdeseleccionVDD">
       <video src="20251212_184059 (online-video-cutter.com).mp4" loop autoplay muted controls></video>
     </div>
   </button>
 
   <!-- Color Global -->
-<button class="servicio opcion-btn" data-precio="70000" data-nombre="COLOR GLOBAL" data-tiempo="60">
-  <span>Color Global - $70.000 (1h)</span>
+<button class="servicio opcion-btn" data-precio="70000" data-nombre="COLOR GLOBAL" data-tiempo="180">
+  <span>Color Global - $70.000 (3horas)</span><br><br>
   <div class="media-space botonesdeseleccionVDD" style="width:200px; height:200px; overflow:hidden;">
     <!-- Aquí se irá alternando el contenido -->
     <div id="mediaColor"></div>
   </div>
 </button>
   <!-- Visos -->
-  <button class="servicio opcion-btn" data-precio="50000" data-nombre="VISOS" data-tiempo="60">
-    <span>Visos - $50.000 (1h)</span>
+  <button class="servicio opcion-btn" data-precio="50000" data-nombre="VISOS" data-tiempo="150">
+    <span>Visos - $50.000 (2horas 30min)</span><br><br>
     <div class="media-space botonesdeseleccionVDD">
       <img src="https://i.ibb.co/4cX3NVX/platinadocristofer.jpg" style="width:100%; height:100%; object-fit:cover;" alt="Visos" />
     </div>
@@ -1392,12 +1392,12 @@ document.addEventListener('DOMContentLoaded', function() {
     content: "✅";
     font-size: 2.5rem;
     position: absolute;
-    top: 5px;
+    top: 35px;
     right: 10px;
   }
 
   .media-space {
-    margin-top: 10px;
+    margin-top: 20px;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -1443,6 +1443,8 @@ document.addEventListener('DOMContentLoaded', function() {
     margin-top: 10px;
   }
 </style>
+
+
 
 <script>
   const botones = document.querySelectorAll(".opcion-btn");
@@ -1865,13 +1867,13 @@ function ocultarBotonBorrar() {
     <h2 style="color:#d9534f; margin-bottom:15px;">⚠️ Advertencia Importante</h2>
     <p style="color:#333; font-size:15px; line-height:1.5; margin-bottom:20px;">
       Para confirmar su reserva es necesario <strong>abonar el 35% del precio total</strong>.  
-      El pago debe realizarse mediante <strong>transferencia bancaria</strong>.
+      El pago debe realizarse mediante <strong>transferencia bancaria A TRAVÉS DE WHATSAPP</strong>.
     </p>
     <div style="margin-top:20px;">
       <button type="button" onclick="cerrarAdvertencia();location.reload();" style="background:#ccc; color:#333; border:none; padding:10px 18px; border-radius:6px; cursor:pointer; margin-right:10px;">
         Cancelar
       </button>
-      <button type="button" onclick="reservarbuttonmostrar(); cerrarAdvertencia(); enviarMensajeWhatsApp();reservarHora();" style="background:#25D366; color:#fff; border:none; padding:10px 18px; border-radius:6px; cursor:pointer;">
+      <button type="button" onclick="reservarbuttonmostrar(); cerrarAdvertencia();" style="background:#25D366; color:#fff; border:none; padding:10px 18px; border-radius:6px; cursor:pointer;">
         <i class="fa fa-whatsapp"></i> ACEPTAR Y CONTINUAR
       </button>
     </div>
@@ -1897,9 +1899,9 @@ function ocultarBotonBorrar() {
 </script>
 
 
-            <input type="text" style="font-size: 170%;" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();abrirAdvertencia()">
+            <input type="text" style="font-size: 170%;" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
             <br><br>
-            <button id="reservar-button" type="button" onclick="enviarMensajeWhatsApp();reservarHora();">Reservar</button>
+            <button id="reservar-button" type="button" onclick="enviarMensajeWhatsApp();reservarHora();;">Reservar</button>
      <script>
     
 function mostrarReservas(fecha) {
@@ -2069,7 +2071,9 @@ h1, h2 {
   color: #F5A122 !important;
   text-shadow: #000 1px 1px 2px;
 }
-
+span{
+  font-size: 160%;
+}
 #modal-acceso{
   z-index: 2000;
 }
@@ -3233,8 +3237,10 @@ function habilitarDiaDeLaSemana(dia) {
 
         window.addEventListener("DOMContentLoaded", () => {
             actualizarBarraMes();
+            abrirAdvertencia();
             cargarReservasPorBarbero(generarCuadroCalendario);
             botonDesactivarBloqueo.style.display = 'none';
+
             
         });
 
@@ -3525,9 +3531,10 @@ reservasRefMostrar.on("child_added", (snapshot) => {
         }
 
         function miFuncion() {
-            
+            document.getElementById("reservar-button").style.display = 'block';
               document.getElementById("nombre").addEventListener("input", function () {
   this.value = this.value.replace(/\d/g, ""); // elimina todos los números
+  
 });
         }
 
