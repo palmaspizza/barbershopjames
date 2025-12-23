@@ -1208,26 +1208,24 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
   const mediaColor = document.getElementById("mediaColor");
 
-  // Lista de contenidos: solo video y foto de Brayan
+  // Contenidos: foto de Cristofer y video
   const contenidos = [
-    `<video src="20251212_181549 (online-video-cutter.com).mp4" autoplay muted style="width:100%; height:100%; object-fit:cover;"></video>`,
-    `<img src="https://i.ibb.co/cS3BGMZQ/platinadobrayan.jpg" style="width:100%; height:100%; object-fit:cover;" />`
+    `<img src="https://i.ibb.co/4cX3NVX/platinadocristofer.jpg" style="width:100%; height:100%; object-fit:cover;" />`,
+    `<video src="20251212_181549 (online-video-cutter.com).mp4" autoplay muted loop style="width:100%; height:100%; object-fit:cover;"></video>`
   ];
 
   let indice = 0;
 
-  // Mostrar el video primero
-  mediaColor.innerHTML = contenidos[indice];
-
-  // Después de 2 segundos, empezar a alternar entre video e imagen cada 1 segundo
-  setTimeout(() => {
-    indice = 1; // saltamos a la foto de Brayan
+  function alternarContenido() {
     mediaColor.innerHTML = contenidos[indice];
-    setInterval(() => {
-      indice = (indice + 1) % contenidos.length;
-      mediaColor.innerHTML = contenidos[indice];
-    }, 1000); // alterna cada 1 segundo
-  }, 2300); // esperar 2 segundos para el video inicial
+    // alterna entre foto y video
+    indice = (indice + 1) % contenidos.length;
+    // si es foto → 3 segundos, si es video → 3 segundos
+    setTimeout(alternarContenido, 3000);
+  }
+
+  // iniciar con la foto
+  alternarContenido();
 </script>
 <textarea id="opciones" readonly rows="4" placeholder="Opciones seleccionadas"></textarea>
 <input type="text" id="eltotal" style="font-size: 250%;" readonly placeholder="Total">
