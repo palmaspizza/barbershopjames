@@ -218,16 +218,66 @@ function enviarMensajeWhatsApp() {
 </script>
 
 <button  onclick="enviar()" hidden>Enviar notificación</button>
-    <h3 style="font-size: 170%;" >Selecciona un día</h3>
-    <button class="btn-whatsapp">
-  <img src="" style="width: 50px;" alt="" > Consultar a WhatsApp
+   
+ 
+ <!-- Botón WhatsApp -->
+<button class="btn-chatMagic">
+  <i class="fab fa-whatsapp" style="font-size:24px;margin-right:10px;" src="https://wa.me/56937191288" ></i> Consultar a WhatsApp
 </button>
 
-<!-- Font Awesome para el ícono -->
+<!-- Texto principal -->
+<p style="margin:0;
+           font-family: 'Poppins','Segoe UI',Tahoma,Arial,sans-serif;
+           font-weight: 900;
+           letter-spacing: 0.5px;
+           background: linear-gradient(90deg, #00d1b2 0%, #ff2fb3 100%);
+           -webkit-background-clip: text;
+           background-clip: text;
+           color: transparent;">
+  Manicure y Pedicure SPA
+</p>
+
+<!-- Imagen principal con botón encima -->
+<div class="contenedorMagic">
+  <button class="btn-fotosMagic" onclick="document.getElementById('ventanaGaleriaMagic').style.display='block'">
+    Ver Más Fotos
+  </button>
+  <img src="https://i.ibb.co/VYjQ5Yd0/u-ascayllen.png" alt="WhatsApp Icon" class="imagenPrincipalMagic">
+  <img src="tu-logo.png" alt="Logo" class="logoMagic"> <!-- aquí pondrás tu logo -->
+</div>
+
+<!-- Modal Galería -->
+<div id="ventanaGaleriaMagic" class="cajaModalMagic">
+  <div class="contenidoModalMagic">
+    <span class="cerrarMagic" onclick="document.getElementById('ventanaGaleriaMagic').style.display='none'">&times;</span>
+    <h2>✨ Más Información ✨</h2>
+    <div class="galeriaMagic">
+      <img src="https://i.ibb.co/bgfmRHfT/u-as5.png" alt="Foto 1">
+      <img src="https://i.ibb.co/LzWtyMZ4/u-as-2.png" alt="Foto 2">
+      <img src="https://i.ibb.co/354vmWXj/u-as-3.png" alt="Foto 3">
+      <img src="https://i.ibb.co/kVKQmcL4/u-as-7.png" alt="Foto 4">
+      <img src="https://i.ibb.co/bgfmRHfT/u-as5.png" alt="Foto 5">
+      <img src="https://i.ibb.co/LXMvfggM/u-as-4.png" alt="Foto 6">
+      <img src="https://i.ibb.co/354vmWXj/u-as-3.png" alt="Foto 7">
+    </div>
+    <!-- Botones al final -->
+    <div class="accionesGaleria">
+      <button class="btn-cerrarMagic" onclick="document.getElementById('ventanaGaleriaMagic').style.display='none'">
+        CERRAR GALERÍA
+      </button>
+      <button class="btn-chatMagic">
+        <i class="fab fa-whatsapp" src="https://wa.me/56937191288" style="font-size:24px;margin-right:10px;"></i> Consultar a WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<br><br><br><br><br>
+
 <style>
-  .btn-whatsapp {
+  /* Botón WhatsApp */
+  .btn-chatMagic {
     background: #20c997; /* verde agua */
     color: #fff;
     font-size: 18px;
@@ -238,28 +288,113 @@ function enviarMensajeWhatsApp() {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 0 12px rgba(32, 201, 151, 0.8);
+    margin-top: 10px;
   }
-
-  .btn-whatsapp:hover {
+  .btn-chatMagic:hover {
     background: #17a589;
     box-shadow: 0 0 25px rgba(32, 201, 151, 1);
     transform: scale(1.07);
   }
 
-  .btn-whatsapp i {
-    margin-right: 10px;
+  /* Botón Fotos encima de la imagen */
+  .btn-fotosMagic {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ff2fb3; /* fucsia */
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px #00d1b2; /* verde agua */
+    transition: transform 0.2s;
   }
-</style>
-<div class="img-container">
-  <!-- Imagen principal (WhatsApp) -->
-  <img src="" alt="WhatsApp Icon" class="main-img">
-  
-  <!-- Logo en la esquina superior izquierda -->
-  <img src="tu-logo.png" alt="Logo" class="logo-img"> <!-- aquí pondrás tu logo -->
-</div>
+  .btn-fotosMagic:hover {
+    transform: translateX(-50%) scale(1.05);
+  }
 
-<style>
-  .img-container {
+  /* Modal */
+  .cajaModalMagic {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.6);
+  }
+  .contenidoModalMagic {
+    background: #fff;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 12px;
+    width: 80%;
+    max-width: 900px;
+    box-shadow: 0 0 20px #ff2fb3;
+    animation: fadeInMagic 0.4s ease;
+    max-height: 80vh; /* límite de altura */
+    overflow-y: auto; /* scroll interno */
+  }
+  @keyframes fadeInMagic {
+    from {opacity:0; transform:scale(0.9);}
+    to {opacity:1; transform:scale(1);}
+  }
+  .contenidoModalMagic h2 {
+    margin-top: 0;
+    font-size: 24px;
+    color: #00d1b2; /* verde agua */
+    text-shadow: 1px 1px #ff2fb3;
+  }
+  .cerrarMagic {
+    float: right;
+    font-size: 28px;
+    cursor: pointer;
+    color: #ff2fb3;
+  }
+
+  /* Galería con scroll */
+  .galeriaMagic {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .galeriaMagic img {
+    width: 100%;
+    border: 4px solid #00d1b2; /* marco turquesa */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px #ff2fb3; /* sombra fucsia */
+    transition: transform 0.3s;
+  }
+  .galeriaMagic img:hover {
+    transform: scale(1.05);
+  }
+
+  /* Botones al final de la galería */
+  .accionesGaleria {
+    margin-top: 20px;
+    text-align: center;
+  }
+  .btn-cerrarMagic {
+    background-color: #ff2fb3; /* fucsia */
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 14px 28px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 0 12px #00d1b2;
+    margin-bottom: 12px;
+  }
+  .btn-cerrarMagic:hover {
+    transform: scale(1.05);
+  }
+
+  /* Imagen contenedor */
+  .contenedorMagic {
     position: relative;
     display: inline-block;
     border: 5px solid #20c997; /* borde verde agua */
@@ -268,17 +403,15 @@ function enviarMensajeWhatsApp() {
     background: #f9f9f9;
     box-shadow: 0 0 20px rgba(32, 201, 151, 0.7);
   }
-
-  .main-img {
-    width: 220px; /* más grande */
+  .imagenPrincipalMagic {
+    width: 220px;
     height: auto;
     display: block;
   }
-
-  .logo-img {
+  .logoMagic {
     position: absolute;
-    top: 8px;
-    left: 8px;
+    bottom: 12px;
+    right: 8px;
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -286,7 +419,7 @@ function enviarMensajeWhatsApp() {
     background: #fff;
     box-shadow: 0 0 12px rgba(32, 201, 151, 0.9);
   }
-</style><br>
+</style><br> <h3 style="font-size: 170%;" >Selecciona un día</h3>
       <div class="dias-semana"></div>
 <div id="cuadroCalendario"></div>
     <script>
