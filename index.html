@@ -222,7 +222,7 @@ function enviarMensajeWhatsApp() {
  
  <!-- Botón WhatsApp -->
 <button class="btn-chatMagic">
-  <i class="fab fa-whatsapp" style="font-size:24px;margin-right:10px;" href="https://wa.me/56937191288" ></i> Consultar a WhatsApp
+  <i class="fab fa-whatsapp" style="font-size:24px;margin-right:10px;" onclick="abrirWhatsAppCayllen();" ></i> Consultar a WhatsApp
 </button>
 
 <!-- Texto principal -->
@@ -271,7 +271,25 @@ function enviarMensajeWhatsApp() {
     </div>
   </div>
 </div>
+<script>
+function abrirWhatsAppCayllen() {
+  // Número en formato internacional sin signos (+56 es Chile)
+  var numero = "56937191288";
+  // Texto amigable para el mensaje
+  var mensaje = "¡Hola! Me gustaría recibir información sobre los servicios de uñas 💅✨";
+  
+  // Construir el enlace de WhatsApp
+  var url = "https://wa.me/" + numero + "?text=" + encodeURIComponent(mensaje);
+  
+  // Abrir en nueva pestaña
+  window.open(url, "_blank");
+}
+</script>
 
+<!-- Ejemplo de botón que llama a la función -->
+<button onclick="abrirWhatsAppCayllen();" style="background:#25D366;color:#fff;padding:12px 20px;border:none;border-radius:8px;cursor:pointer;font-size:16px;">
+  Consultar por WhatsApp
+</button>
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
