@@ -161,7 +161,7 @@ function enviarMensajeWhatsApp() {
   const hora = document.getElementById("hora").value;
   const eltotal1 = document.getElementById("eltotal").value;
   const opcionesinputx = document.getElementById("opciones").value; // Obtener opciones del input
-  const calcular35 = document.getElementById("descuento").value;
+
   if (!nombre || !fecha || !hora) {
     alert("Faltan datos para enviar el mensaje.");
     return;
@@ -169,7 +169,7 @@ function enviarMensajeWhatsApp() {
 
   const numeroDestino = "56954527837";
   const mensaje = `Hola, soy ${nombre}. Quiero reservar un *${opcionesinputx}* para el día ${fecha} a las ${hora}.`;
-  const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}%0A%0A*TOTAL:${eltotal1}+-+_Abonar:${calcular35}_*`;
+  const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}%0A%0A*TOTAL:${eltotal1}*`;
   window.open(url, "_blank");
 }
 
@@ -210,25 +210,6 @@ function enviarMensajeWhatsApp() {
 }
 </script>
 
-<!-- Input donde se mostrará el 35% -->
-<input type="text" hidden id="descuento" placeholder="35% del total">
-
-<script>
-function calcular35() {
-  // Obtiene el valor del input eltotal
-  const totalInput = document.getElementById("eltotal");
-  const descuentoInput = document.getElementById("descuento");
-
-  // Convierte a número
-  const total = parseFloat(totalInput.value) || 0;
-
-  // Calcula el 35%
-  const resultado = total * 0.35;
-
-  // Escribe el resultado en el otro input
-  descuentoInput.value = resultado.toFixed(2); // dos decimales
-}
-</script>
 <button  onclick="enviar()" hidden>Enviar notificación</button>
    
  
@@ -2081,7 +2062,7 @@ function ocultarBotonBorrar() {
 
             <input type="text" style="font-size: 170%;" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
             <br><br>
-            <button id="reservar-button" type="button" onclick="calcular35();enviarMensajeWhatsApp();reservarHora();;">Reservar</button>
+            <button id="reservar-button" type="button" onclick="enviarMensajeWhatsApp();reservarHora();;">Reservar</button>
      <script>
     
 function mostrarReservas(fecha) {
