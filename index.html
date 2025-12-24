@@ -105,14 +105,7 @@
             margin: auto;
         "></div>
         <br>
-        <div id="barraMes" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
-              
-                <button id="mesAnterior" class="botonMes">←</button>
-                <h2 id="tituloMes" style="margin: 0; color: orange !important;">Septiembre 2025</h2>
-                <button id="mesSiguiente" class="botonMes">→</button>
-            </div>
-        </div>
+      
         <button id="solicitar" hidden>Solicitar notificaciones</button>
 <script>
 
@@ -434,7 +427,18 @@ function abrirWhatsAppCayllen() {
     background: #fff;
     box-shadow: 0 0 12px rgba(32, 201, 151, 0.9);
   }
-</style><br> <h3 style="font-size: 170%;" >Selecciona un día</h3>
+</style><br> 
+ <h3 style="font-size: 170%;" >Selecciona un día</h3>
+   <div id="barraMes" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
+              
+                <button id="mesAnterior" class="botonMes">←</button>
+                <h2 id="tituloMes" style="margin: 0; color: orange !important;">Septiembre 2025</h2>
+                <button id="mesSiguiente" class="botonMes">→</button>
+            </div>
+        </div>
+
+        
       <div class="dias-semana"></div>
 <div id="cuadroCalendario"></div>
     <script>
