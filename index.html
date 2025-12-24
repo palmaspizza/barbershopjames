@@ -13,6 +13,7 @@
 <meta property="og:type" content="website">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="duracion-reserva.js"></script>
 
 
 
@@ -21,8 +22,8 @@
     <!-- Ventana emergente -->
 <div id="ventana-dia" style="display:none;">
   <div class="contenedor-dia">
-    <h2>Selecciona el día a continuación</h2>
-    <button class="btn-dia" onclick="cerrarVentanaDia()">Confirmar selección</button>
+    <h2>Selecciona el día de la reserva a continuación</h2>
+    <button class="btn-dia" onclick="cerrarVentanaDia()">ELEGIR DÍA</button>
   </div>
 </div>
 
@@ -218,6 +219,74 @@ function enviarMensajeWhatsApp() {
 
 <button  onclick="enviar()" hidden>Enviar notificación</button>
     <h3 style="font-size: 170%;" >Selecciona un día</h3>
+    <button class="btn-whatsapp">
+  <img src="" style="width: 50px;" alt="" > Consultar a WhatsApp
+</button>
+
+<!-- Font Awesome para el ícono -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<br><br><br><br><br>
+<style>
+  .btn-whatsapp {
+    background: #20c997; /* verde agua */
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 12px rgba(32, 201, 151, 0.8);
+  }
+
+  .btn-whatsapp:hover {
+    background: #17a589;
+    box-shadow: 0 0 25px rgba(32, 201, 151, 1);
+    transform: scale(1.07);
+  }
+
+  .btn-whatsapp i {
+    margin-right: 10px;
+  }
+</style>
+<div class="img-container">
+  <!-- Imagen principal (WhatsApp) -->
+  <img src="" alt="WhatsApp Icon" class="main-img">
+  
+  <!-- Logo en la esquina superior izquierda -->
+  <img src="tu-logo.png" alt="Logo" class="logo-img"> <!-- aquí pondrás tu logo -->
+</div>
+
+<style>
+  .img-container {
+    position: relative;
+    display: inline-block;
+    border: 5px solid #20c997; /* borde verde agua */
+    border-radius: 15px;
+    padding: 12px;
+    background: #f9f9f9;
+    box-shadow: 0 0 20px rgba(32, 201, 151, 0.7);
+  }
+
+  .main-img {
+    width: 220px; /* más grande */
+    height: auto;
+    display: block;
+  }
+
+  .logo-img {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px solid #20c997;
+    background: #fff;
+    box-shadow: 0 0 12px rgba(32, 201, 151, 0.9);
+  }
+</style><br>
       <div class="dias-semana"></div>
 <div id="cuadroCalendario"></div>
     <script>
@@ -1039,6 +1108,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <center>
             <input hidden type="time" id="hora">
+            <input hidden type="number" id="tiempoTotal" value="60">
             <div style="margin-bottom: 10px;"></div>
         </center>
         
@@ -1149,14 +1219,14 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- cosodetiempojames.html -->
 <!-- 5779 -->
 
-<!-- SISTEMA DE TIEMPO /OPCIONAL() -->
+<!-- SISTEMA DE TIEMPO -->
     <h3>SELECCIONA TU CORTE</h3>
 <div id="servicios">
 
   <!-- Corte Clásico -->
-  <button class="servicio opcion-btn selected" data-precio="10000" data-nombre="CORTE CLÁSICO" data-grupo="corte">
-    <span>CORTE CLÁSICO - $10.000</span>
-    <div class="media-space">
+  <button class="servicio opcion-btn selected botonesdeseleccionVDD" data-precio="10000" data-nombre="CORTE CLÁSICO" data-grupo="corte" data-tiempo="20">
+    <span>Corte clásico - $10.000 (20min)</span><br><br>
+    <div class="media-space ">
       <img src="https://cortesdecabellohombre.com/wp-content/uploads/2017/09/Laterales-Bien-Recortados.jpg" alt="Corte clásico">
     </div>
   </button>
@@ -1164,46 +1234,44 @@ document.addEventListener('DOMContentLoaded', function() {
  <div id="servicios">
 
   <!-- Degradado -->
-  <button class="servicio opcion-btn" data-precio="12000" data-nombre="DEGRADADO" data-grupo="corte">
-    <span>DEGRADADO - $12.000</span>
-    <div class="media-space">
+  <button class="servicio opcion-btn" data-precio="12000" data-nombre="DEGRADADO" data-grupo="corte" data-tiempo="30">
+    <span>Degradado - $12.000 (30min)</span><br><br>
+    <div class="media-space botonesdeseleccionVDD">
 <img src="https://i.ibb.co/F4xZqL5G/degradadobarbershopjames.jpg" alt="">
     </div>
   </button>
 
   <!-- Barba -->
-  <button id="seccion-barba" class="servicio opcion-btn" data-precio="6000" data-nombre="BARBA">
-    <span>BARBA - $6.000</span>
-    <div class="media-space">
+  <button id="seccion-barba" class="servicio opcion-btn" data-precio="6000" data-nombre="BARBA" data-tiempo="10">
+    <span>Barba - $6.000 (10min)</span><br><br>
+    <div class="media-space botonesdeseleccionVDD">
       <video src="20251211_203205 (online-video-cutter.com).mp4" loop autoplay muted controls></video>
     </div>
   </button>
 
   <!-- Cejas -->
-  <button id="seccion-cejas" class="servicio opcion-btn" data-precio="3000" data-nombre="CEJAS">
-    <span>CEJAS - $3.000</span>
-    <div class="media-space">
+  <button id="seccion-cejas" class="servicio opcion-btn" data-precio="3000" data-nombre="CEJAS" data-tiempo="5">
+    <span>Cejas - $3.000 (5min)</span><br><br>
+    <div class="media-space botonesdeseleccionVDD">
       <video src="20251212_184059 (online-video-cutter.com).mp4" loop autoplay muted controls></video>
     </div>
   </button>
 
-  <!-- Diseños -->
-  <button id="seccion-diseños" class="servicio opcion-btn" data-precio="3000" data-nombre="DISEÑO">
-    <span>DISEÑOS - DESDE $3.000</span>
-    <div class="media-space">
-      <img src="https://i.ibb.co/FkFdJMt7/dise-obarbershopjames.jpg" alt="Diseños">
-    </div>
-  </button>
-
-  
-  <!-- Color -->
-<button class="servicio opcion-btn" data-precio="60000" data-nombre="COLOR">
-  <span>COLOR - $60.000</span>
-  <div class="media-space" style="width:200px; height:200px; overflow:hidden;">
+  <!-- Color Global -->
+<button class="servicio opcion-btn" data-precio="70000" data-nombre="COLOR GLOBAL" data-tiempo="180">
+  <span>Color Global - $70.000 (3horas)</span><br><br>
+  <div class="media-space botonesdeseleccionVDD" style="width:200px; height:200px; overflow:hidden;">
     <!-- Aquí se irá alternando el contenido -->
     <div id="mediaColor"></div>
   </div>
 </button>
+  <!-- Visos -->
+  <button class="servicio opcion-btn" data-precio="50000" data-nombre="VISOS" data-tiempo="150">
+    <span>Visos - $50.000 (2horas 30min)</span><br><br>
+    <div class="media-space botonesdeseleccionVDD">
+      <img src="https://i.ibb.co/4cX3NVX/platinadocristofer.jpg" style="width:100%; height:100%; object-fit:cover;" alt="Visos" />
+    </div>
+  </button>
 
 <script>
   const mediaColor = document.getElementById("mediaColor");
@@ -1227,7 +1295,60 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <textarea id="opciones" readonly rows="4" placeholder="Opciones seleccionadas"></textarea>
 <input type="text" id="eltotal" style="font-size: 250%;" readonly placeholder="Total">
+<h3 style="font-size:170%; margin-top:20px; color:#fff;">El corte tardará:</h3><h2>(Aproximadamente)</h2>
+<input id="tiempo" placeholder="Tiempo total" readonly>
 
+<style>
+  #tiempo {
+    background: #111; /* fondo oscuro para resaltar el neón */
+    color: #ff9d00;   /* texto naranja */
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 15px;
+    border: 2px solid #ff9d00;
+    border-radius: 8px;
+    text-align: center;
+    outline: none;
+
+    /* efecto neón */
+    box-shadow: 0 0 5px #ff9d00,
+                0 0 10px #ff9d00,
+                0 0 20px #ff9d00,
+                0 0 40px #ff6600;
+    transition: all 0.3s ease-in-out;
+  }
+
+  /* efecto al pasar el mouse */
+  #tiempo:hover {
+    box-shadow: 0 0 10px #ff9d00,
+                0 0 20px #ff9d00,
+                0 0 40px #ff6600,
+                0 0 80px #ff6600;
+    transform: scale(1.05);
+  }
+
+
+@keyframes brilloSuave {
+  from {
+    text-shadow: 0 0 10px #ff9d00,
+                 0 0 20px #ff9d00,
+                 0 0 40px #ff6600,
+                 0 0 60px #ff6600;
+    transform: scale(1);
+  }
+  to {
+    text-shadow: 0 0 20px #ff9d00,
+                 0 0 40px #ff9d00,
+                 0 0 80px #ff6600,
+                 0 0 120px #ff4500;
+    transform: scale(3); /* zoom más notorio */
+  }
+}
+
+.botonesdeseleccion {
+  animation: brilloSuave 2s infinite alternate;
+}
+</style>
 <style>
   #servicios {
     display: flex;
@@ -1271,12 +1392,12 @@ document.addEventListener('DOMContentLoaded', function() {
     content: "✅";
     font-size: 2.5rem;
     position: absolute;
-    top: 5px;
+    top: 35px;
     right: 10px;
   }
 
   .media-space {
-    margin-top: 10px;
+    margin-top: 20px;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -1323,20 +1444,27 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 </style>
 
+
+
 <script>
   const botones = document.querySelectorAll(".opcion-btn");
   const inputOpciones = document.getElementById("opciones");
   const inputTotal = document.getElementById("eltotal");
+  const inputTiempo = document.getElementById("tiempo");
+  const inputTiempoTotalHidden = document.getElementById("tiempoTotal");
 
   let seleccionadas = [];
   let total = 0;
+  let totalMin = 0;
 
   botones.forEach(btn => {
     if (btn.classList.contains("selected")) {
       const nombre = btn.dataset.nombre;
       const precio = parseInt(btn.dataset.precio);
-      seleccionadas.push(nombre);
+      const tiempo = parseInt(btn.dataset.tiempo || "0");
+      seleccionadas.push({nombre, precio, tiempo});
       total += precio;
+      totalMin += tiempo;
     }
   });
   actualizarInputs();
@@ -1345,36 +1473,57 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.addEventListener("click", () => {
       const nombre = btn.dataset.nombre;
       const precio = parseInt(btn.dataset.precio);
+      const tiempo = parseInt(btn.dataset.tiempo || "0");
       const grupo = btn.dataset.grupo;
 
       if (btn.classList.contains("selected")) {
         // Deseleccionar
         btn.classList.remove("selected");
-        seleccionadas = seleccionadas.filter(op => op !== nombre);
+        const prev = seleccionadas.find(op => op.nombre === nombre);
+        seleccionadas = seleccionadas.filter(op => op.nombre !== nombre);
         total -= precio;
+        totalMin -= prev ? prev.tiempo : 0;
       } else {
         // Si pertenece al grupo "corte", deseleccionar el otro del mismo grupo
         if (grupo === "corte") {
           botones.forEach(b => {
             if (b.dataset.grupo === "corte" && b.classList.contains("selected")) {
               b.classList.remove("selected");
-              seleccionadas = seleccionadas.filter(op => op !== b.dataset.nombre);
+              const prev = seleccionadas.find(op => op.nombre === b.dataset.nombre);
+              seleccionadas = seleccionadas.filter(op => op.nombre !== b.dataset.nombre);
               total -= parseInt(b.dataset.precio);
+              totalMin -= prev ? prev.tiempo : 0;
             }
           });
         }
         // Seleccionar el botón actual
         btn.classList.add("selected");
-        seleccionadas.push(nombre);
+        seleccionadas.push({nombre, precio, tiempo});
         total += precio;
+        totalMin += tiempo;
       }
       actualizarInputs();
     });
   });
 
   function actualizarInputs() {
-    inputOpciones.value = seleccionadas.join(" + ");
+    inputOpciones.value = seleccionadas.map(s => s.nombre).join(" + ");
     inputTotal.value = "$" + total.toLocaleString("es-CL");
+    inputTiempo.value = formatoTiempo(totalMin);
+    if (inputTiempoTotalHidden) inputTiempoTotalHidden.value = totalMin;
+  }
+  function formatoTiempo(minutos) {
+    if (minutos >= 60) {
+      const horas = Math.floor(minutos / 60);
+      const resto = minutos % 60;
+      if (resto === 0) {
+        return horas + (horas === 1 ? " hora" : " horas");
+      } else {
+        return horas + (horas === 1 ? " hora " : " horas ") + resto + " minutos";
+      }
+    } else {
+      return minutos + " minutos";
+    }
   }
 </script>
 <!-- SISTEMA DE TIEMPO /OPCIONAL() -->
@@ -1718,13 +1867,13 @@ function ocultarBotonBorrar() {
     <h2 style="color:#d9534f; margin-bottom:15px;">⚠️ Advertencia Importante</h2>
     <p style="color:#333; font-size:15px; line-height:1.5; margin-bottom:20px;">
       Para confirmar su reserva es necesario <strong>abonar el 35% del precio total</strong>.  
-      El pago debe realizarse mediante <strong>transferencia bancaria</strong>.
+      El pago debe realizarse mediante <strong>transferencia bancaria A TRAVÉS DE WHATSAPP</strong>.
     </p>
     <div style="margin-top:20px;">
       <button type="button" onclick="cerrarAdvertencia();location.reload();" style="background:#ccc; color:#333; border:none; padding:10px 18px; border-radius:6px; cursor:pointer; margin-right:10px;">
         Cancelar
       </button>
-      <button type="button" onclick="reservarbuttonmostrar(); cerrarAdvertencia(); enviarMensajeWhatsApp();reservarHora();" style="background:#25D366; color:#fff; border:none; padding:10px 18px; border-radius:6px; cursor:pointer;">
+      <button type="button" onclick="reservarbuttonmostrar(); cerrarAdvertencia();" style="background:#25D366; color:#fff; border:none; padding:10px 18px; border-radius:6px; cursor:pointer;">
         <i class="fa fa-whatsapp"></i> ACEPTAR Y CONTINUAR
       </button>
     </div>
@@ -1750,9 +1899,9 @@ function ocultarBotonBorrar() {
 </script>
 
 
-            <input type="text" style="font-size: 170%;" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();abrirAdvertencia()">
+            <input type="text" style="font-size: 170%;" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
             <br><br>
-            <button id="reservar-button" type="button" onclick="enviarMensajeWhatsApp();reservarHora();">Reservar</button>
+            <button id="reservar-button" type="button" onclick="enviarMensajeWhatsApp();reservarHora();;">Reservar</button>
      <script>
     
 function mostrarReservas(fecha) {
@@ -1810,6 +1959,7 @@ function reservarHora() {
     const fecha = document.getElementById("fecha").value.trim();
     const hora = document.getElementById("hora").value.trim();
    const total = document.getElementById("eltotal").value.trim();
+   const tiempoMin = parseInt(document.getElementById("tiempoTotal")?.value || "60", 10);
 
     if (!nombre || !fecha || !hora) {
       alert("Por favor completa todos los campos.");
@@ -1835,8 +1985,9 @@ function reservarHora() {
     document.getElementById("modal-reservada").classList.remove("hidden");
 
     const nombreSeguro = nombre || "⛔-Reservado-⛔";
-    reservasRef.push({ fecha, hora, nombre: nombreSeguro }).then(() => {
+    reservarConDuracion(reservasRef, fecha, hora, nombreSeguro, tiempoMin, function() {
       firebase.database().ref('reservas/JAMES-lista').push({ nombre: nombreSeguro, fecha, hora, ts: Date.now() });
+      marcarSlotsPorDuracion(hora, tiempoMin);
       cargarReservasPorBarbero(() => {
         mostrarReservas(fecha);
         abrirVentanaHorarios(fecha);
@@ -1920,7 +2071,9 @@ h1, h2 {
   color: #F5A122 !important;
   text-shadow: #000 1px 1px 2px;
 }
-
+span{
+  font-size: 160%;
+}
 #modal-acceso{
   z-index: 2000;
 }
@@ -3084,8 +3237,10 @@ function habilitarDiaDeLaSemana(dia) {
 
         window.addEventListener("DOMContentLoaded", () => {
             actualizarBarraMes();
+            abrirAdvertencia();
             cargarReservasPorBarbero(generarCuadroCalendario);
             botonDesactivarBloqueo.style.display = 'none';
+
             
         });
 
@@ -3376,9 +3531,10 @@ reservasRefMostrar.on("child_added", (snapshot) => {
         }
 
         function miFuncion() {
-            
+            document.getElementById("reservar-button").style.display = 'block';
               document.getElementById("nombre").addEventListener("input", function () {
   this.value = this.value.replace(/\d/g, ""); // elimina todos los números
+  
 });
         }
 
