@@ -1134,14 +1134,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     celda.classList.add("diaBloqueado");
                     celda.title = "Día bloqueado por el administrador";
                 } else if (estaOcupado) {
-                    celda.classList.add("diaOcupado");
+                    celda.classList.add("diaBloqueado");
                     celda.title = "Día con todas las horas reservadas";
                 } else {
                     celda.classList.add("diaLibre");
                     celda.title = "Día disponible";
                 }
 
-                if (diaPasado || (!modoBloqueoDias && estaBloqueado)) {
+                if (diaPasado || (!modoBloqueoDias && (estaBloqueado || estaOcupado))) {
                     celda.style.pointerEvents = "none";
                 }
 
@@ -1376,55 +1376,64 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="servicios">
 
   <!-- Corte Clásico -->
-  <button class="servicio opcion-btn selected botonesdeseleccionVDD" data-precio="10000" data-nombre="CORTE CLÁSICO" data-grupo="corte" data-tiempo="20">
-    <span>Corte clásico - $10.000 (20min)</span><br><br>
-    <div class="media-space ">
-      <img src="https://cortesdecabellohombre.com/wp-content/uploads/2017/09/Laterales-Bien-Recortados.jpg" alt="Corte clásico">
+  <button class="servicio opcion-btn  botonesdeseleccionVDD" data-precio="10000" data-nombre="CORTE CLÁSICO" data-grupo="corte" data-tiempo="20">
+  <h3 style="color: yellow;  text-shadow: #000 0px 0px 0px;">(SELECCIONAR)</h3> 
+    <div onclick="scrollToSection('DEGRADADO')" class="media-space ">
+  <img src="https://cortesdecabellohombre.com/wp-content/uploads/2017/09/Laterales-Bien-Recortados.jpg" alt="Corte clásico">
     </div>
   </button>
 
  <div id="servicios">
 
   <!-- Degradado -->
+   <section id="DEGRADADO">
+
+
   <button class="servicio opcion-btn" data-precio="12000" data-nombre="DEGRADADO" data-grupo="corte" data-tiempo="30">
     <span>Degradado - $12.000 (30min)</span><br><br>
-    <div class="media-space botonesdeseleccionVDD">
+   <h3 style="color: yellow;  text-shadow: #000 0px 0px 0px;">(SELECCIONAR)</h3> <div onclick="scrollToSection('BARBA')" class="media-space botonesdeseleccionVDD">
 <img src="https://i.ibb.co/F4xZqL5G/degradadobarbershopjames.jpg" alt="">
     </div>
   </button>
-
+   </section>
   <!-- Barba -->
+      <section id="BARBA">
   <button id="seccion-barba" class="servicio opcion-btn" data-precio="6000" data-nombre="BARBA" data-tiempo="10">
     <span>Barba - $6.000 (10min)</span><br><br>
-    <div class="media-space botonesdeseleccionVDD">
+   <h3 style="color: yellow;  text-shadow: #000 0px 0px 0px;">(SELECCIONAR)</h3> <div onclick="scrollToSection('CEJAS')" class="media-space botonesdeseleccionVDD">
       <video src="20251211_203205 (online-video-cutter.com).mp4" loop autoplay muted controls></video>
     </div>
   </button>
-
+   </section>
+  </section>
   <!-- Cejas -->
+      <section id="CEJAS">
   <button id="seccion-cejas" class="servicio opcion-btn" data-precio="3000" data-nombre="CEJAS" data-tiempo="5">
     <span>Cejas - $3.000 (5min)</span><br><br>
-    <div class="media-space botonesdeseleccionVDD">
+  <h3 style="color: yellow;  text-shadow: #000 0px 0px 0px;">(SELECCIONAR)</h3>  <div onclick="scrollToSection('COLORGLOBAL')" class="media-space botonesdeseleccionVDD">
       <video src="20251212_184059 (online-video-cutter.com).mp4" loop autoplay muted controls></video>
     </div>
   </button>
-
-  <!-- Color Global -->
-<button class="servicio opcion-btn" data-precio="70000" data-nombre="COLOR GLOBAL" data-tiempo="180">
+   </section>
+  </section><!-- Color Global -->
+   <section id="COLORGLOBAL">
+    <button class="servicio opcion-btn" data-precio="70000" data-nombre="COLOR GLOBAL" data-tiempo="180">
   <span>Color Global - $70.000 (3horas)</span><br><br>
-  <div class="media-space botonesdeseleccionVDD" style="width:200px; height:200px; overflow:hidden;">
+ <h3 style="color: yellow;  text-shadow: #000 0px 0px 0px;">(SELECCIONAR)</h3> <div onclick="scrollToSection('VISOS')" class="media-space botonesdeseleccionVDD" style="width:200px; height:200px; overflow:hidden;">
     <!-- Aquí se irá alternando el contenido -->
     <div id="mediaColor"></div>
   </div>
 </button>
-  <!-- Visos -->
-  <button class="servicio opcion-btn" data-precio="50000" data-nombre="VISOS" data-tiempo="150">
+     </section>
+     <!-- Visos -->
+     <section id="VISOS">
+      <button class="servicio opcion-btn" data-precio="50000" data-nombre="VISOS" data-tiempo="150">
     <span>Visos - $50.000 (2horas 30min)</span><br><br>
-    <div class="media-space botonesdeseleccionVDD">
+ <h3 style="color: yellow;  text-shadow: #000 0px 0px 0px;">(SELECCIONAR)</h3>   <div class="media-space botonesdeseleccionVDD">
       <img src="https://i.ibb.co/4cX3NVX/platinadocristofer.jpg" style="width:100%; height:100%; object-fit:cover;" alt="Visos" />
     </div>
   </button>
-
+</section>
 <script>
   const mediaColor = document.getElementById("mediaColor");
 
@@ -3311,7 +3320,7 @@ const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.leng
             celda.classList.add("diaBloqueado");
             celda.title = "Día bloqueado por el administrador";
         } else if (estaOcupado) {
-            celda.classList.add("diaOcupado");
+            celda.classList.add("diaBloqueado");
             celda.title = "Día con todas las horas reservadas";
         } else {
             celda.classList.add("diaLibre");
@@ -3319,7 +3328,7 @@ const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.leng
         }
         
         // **NUEVA LÓGICA:** Deshabilitar el clic si el día ya pasó
-        if (diaPasado || (!modoBloqueoDias && estaBloqueado)) {
+        if (diaPasado || (!modoBloqueoDias && (estaBloqueado || estaOcupado))) {
             celda.style.pointerEvents = "none";
         }
 
@@ -3824,7 +3833,17 @@ abrirVentanaDia();
                     });
             }
         }
-        
+                function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({
+                behavior: 'smooth'
+            });
+            
+            // Actualizar botón activo
+            document.querySelectorAll('#categorias button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
     </script>
     <style>/* Dentro de la etiqueta <style> */
 .diaCalendario.diaPasado {
