@@ -447,11 +447,11 @@ function abrirWhatsAppCayllen() {
   <p style="color:#ff6666; text-shadow: 1px 1px 3px rgba(0,0,0,0.4);">
     (Este paso es indispensable para garantizar su asistencia y asegurar la reserva.)
   </p>
-  <button type="button" onclick="cerrarAdvertencia();location.reload();" style="background:#ccc; color:#333; border:none; padding:10px 18px; border-radius:6px; cursor:pointer; margin-right:10px;">
+  <button type="button" onclick="cerrarAdvertencia();location.reload();" style="background:#ccc; color:red; border: 1px solid #ff0000; padding:10px 18px; border-radius:6px; cursor:pointer; margin-right:10px;">
     Cancelar
   </button>
   <button type="button" onclick="cerrarAdvertencia();" style="background:#25D366; color:#fff; border:none; padding:10px 18px; border-radius:6px; cursor:pointer;">
-    <i class="fa fa-whatsapp"></i> ACEPTAR Y CONTINUAR
+    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/WhatsApp_icon.png" style="width: 40px; position: relative;" > ACEPTAR Y CONTINUAR
   </button>
 </div>
 </div>
@@ -1446,33 +1446,53 @@ document.addEventListener('DOMContentLoaded', function() {
     <div id="mediaColor"></div>
   </div>
 </button>
-  <!-- Visos -->
-  <button class="servicio opcion-btn" data-precio="50000" data-nombre="VISOS" data-tiempo="150">
-    <span>Visos - $50.000 (2horas 30min)</span><br><br>
-   <span style="color: yellow; text-shadow: none;">(SELECCIONAR)</span>   <div class="media-space botonesdeseleccionVDD">
-      <img src="https://i.ibb.co/4cX3NVX/platinadocristofer.jpg" style="width:100%; height:100%; object-fit:cover;" alt="Visos" />
-    </div>
-  </button>
+<!-- Visos -->
+<button class="servicio opcion-btn" data-precio="50000" data-nombre="VISOS" data-tiempo="150">
+  <span>Visos - $50.000 (2horas 30min)</span><br><br>
+  <span style="color: yellow; text-shadow: none;">(SELECCIONAR)</span>
+  <div class="media-space botonesdeseleccionVDD" style="width:200px; height:200px; overflow:hidden;">
+    <div id="mediaVisos"></div>
+  </div>
+</button>
 
 <script>
-  const mediaColor = document.getElementById("mediaColor");
+  const mediaVisos = document.getElementById("mediaVisos");
 
-  // Lista de imágenes
-  const contenidos = [
-    `<img src="https://i.ibb.co/Cs1bwVzt/platinadocristofer2.jpg" style="width:100%; height:100%; object-fit:cover;" />`,
-    `<img src="https://i.ibb.co/4cX3NVX/platinadocristofer.jpg" style="width:100%; height:100%; object-fit:cover;" />`
+  // Lista de contenidos: imágenes + video
+  const contenidosVisos = [
+    `<img src="https://i.ibb.co/XkCtQQHv/eb48a676-8a0a-482f-b09f-9019b5e79420.jpg" style="width:100%; height:100%; object-fit:cover;" />`,
+    `<img src="https://i.ibb.co/MynbTDBx/b36b7e32-72fb-4e06-92ff-cc3147dbe0ca.jpg" style="width:100%; height:100%; object-fit:cover;" />`,
+    `<video src="videovisosjames1.mp4" style="width:100%; height:100%; object-fit:cover;" autoplay muted loop controls></video>`
   ];
 
-  let indice = 0;
+  let indiceVisos = 0;
 
-  function alternarContenido() {
-    mediaColor.innerHTML = contenidos[indice];
-    indice = (indice + 1) % contenidos.length;
+  function alternarVisos() {
+    mediaVisos.innerHTML = contenidosVisos[indiceVisos];
+    indiceVisos = (indiceVisos + 1) % contenidosVisos.length;
   }
 
-  // Iniciar alternancia
-  alternarContenido(); // primer contenido
-  setInterval(alternarContenido, 1000); // cada 1 segundo
+  // Duraciones:
+  // Supongamos que el video dura 6 segundos.
+  // Entonces las imágenes deben repartirse esos 6 segundos (3s cada una).
+  const duracionVideo = 6000; // 6 segundos
+  const duracionImagen = duracionVideo / (contenidosVisos.length - 1); // tiempo repartido entre imágenes
+
+  function iniciarAlternancia() {
+    alternarVisos(); // primer contenido
+    setInterval(() => {
+      if (indiceVisos === contenidosVisos.length - 1) {
+        // Si toca el video, dura completo
+        alternarVisos();
+        setTimeout(iniciarAlternancia, duracionVideo);
+      } else {
+        // Si toca imagen, dura proporcional
+        alternarVisos();
+      }
+    }, duracionImagen);
+  }
+
+  iniciarAlternancia();
 </script>
 <textarea id="opciones" readonly rows="4" placeholder="Opciones seleccionadas"></textarea>
 <input type="text" id="eltotal" style="font-size: 250%;" readonly placeholder="Total">
