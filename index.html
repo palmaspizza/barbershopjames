@@ -169,8 +169,8 @@ function enviarMensajeWhatsApp() {
   }
 
   const numeroDestino = "56954527837";
-  const mensaje = `Hola, soy ${nombre}. Quiero reservar un *${opcionesinputx}* para el día ${fecha} a las ${hora}.`;
-  const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}%0A%0A*TOTAL:${eltotal1}*%0A*ABONO 35%:${abono35}*`;
+  const mensaje = `Hola, soy ${nombre}. Quiero agendar hora para el día ${fecha} a las ${hora}.`;
+  const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`;
   window.open(url, "_blank");
 }
 
@@ -428,33 +428,7 @@ function abrirWhatsAppCayllen() {
   
   }
 </style><br> 
-<div id="ventanaAdvertencia" style="display: block; position:fixed; top:0; right: 17px; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
-  <div style="background:#fff; width: 100%; height: 100%; padding:25px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.3); text-align:center; font-family:Arial, sans-serif;">
-    <div id="logo" style="
-            width: 100px;
-            height: 100px;
-            background-image: url('https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg');
-            background-size: cover;
-            background-position: center;
-            border-radius: 50%;
-            margin: auto;
-        "></div><h2 style="color:#d9534f; margin-bottom:15px;">⚠️ Advertencia Importante</h2>
-<p style="color:#333; font-size:15px; line-height:1.5; margin-bottom:20px;">
-  Para confirmar su reserva es necesario <strong>abonar el 35% del valor total</strong>.  
-  El pago debe realizarse mediante <strong>transferencia bancaria coordinada a través de WhatsApp</strong>.
-</p>
-<div style="margin-top:20px;">
-  <p style="color:#ff6666; text-shadow: 1px 1px 3px rgba(0,0,0,0.4);">
-    (Este paso es indispensable para garantizar su asistencia y asegurar la reserva.)
-  </p>
-  <button type="button" onclick="cerrarAdvertencia();location.reload();" style="background:#ccc; color:red; border: 1px solid #ff0000; padding:10px 18px; border-radius:6px; cursor:pointer; margin-right:10px;">
-    Cancelar
-  </button>
-  <button type="button" onclick="cerrarAdvertencia();" style="background:#25D366; color:#fff; border:none; padding:10px 18px; border-radius:6px; cursor:pointer;">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/WhatsApp_icon.png" style="width: 40px; position: relative;" > ACEPTAR Y CONTINUAR
-  </button>
-</div>
-</div>
+
 </div> <h3 style="font-size: 170%;" >Selecciona un día</h3>
    <div id="barraMes" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
@@ -1399,61 +1373,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- cosodetiempojames.html -->
 <!-- 5779 -->
 
-<!-- SISTEMA DE TIEMPO -->
-    <h3>SELECCIONA TU CORTE</h3>
-<div id="servicios">
-
-  <!-- Corte Clásico -->
-  <button class="servicio opcion-btn selected botonesdeseleccionVDD" data-precio="10000" data-nombre="CORTE CLÁSICO" data-grupo="corte" data-tiempo="20">
-    <span>Corte clásico - $10.000 (20min)</span><br><br>
-    <span style="color: yellow; text-shadow: none;">(SELECCIONAR)</span>  <div class="media-space ">
-      <img src="https://cortesdecabellohombre.com/wp-content/uploads/2017/09/Laterales-Bien-Recortados.jpg" alt="Corte clásico">
-    </div>
-  </button>
-
- <div id="servicios">
-
-  <!-- Degradado -->
- 
-  <button class="servicio opcion-btn" data-precio="12000" data-nombre="DEGRADADO" data-grupo="corte" data-tiempo="30">
-    <span>Degradado - $12.000 (30min)</span><br><br>
-    <span style="color: yellow; text-shadow: none;">(SELECCIONAR)</span>  <div class="media-space botonesdeseleccionVDD">
-<img src="https://i.ibb.co/F4xZqL5G/degradadobarbershopjames.jpg" alt="">
-    </div>
-  </button>
-
-  <!-- Barba -->
-  <button id="seccion-barba" class="servicio opcion-btn" data-precio="6000" data-nombre="BARBA" data-tiempo="10">
-    <span>Barba - $6.000 (10min)</span><br><br>
-    <span style="color: yellow; text-shadow: none;">(SELECCIONAR)</span>  <div class="media-space botonesdeseleccionVDD">
-      <video src="20251211_203205 (online-video-cutter.com).mp4" loop autoplay muted controls></video>
-    </div>
-  </button>
-
-  <!-- Cejas -->
-  <button id="seccion-cejas" class="servicio opcion-btn" data-precio="3000" data-nombre="CEJAS" data-tiempo="5">
-    <span>Cejas - $3.000 (5min)</span><br><br>
-    <span style="color: yellow; text-shadow: none;">(SELECCIONAR)</span>  <div class="media-space botonesdeseleccionVDD">
-      <video src="20251212_184059 (online-video-cutter.com).mp4" loop autoplay muted controls></video>
-    </div>
-  </button>
-
-  <!-- Color Global -->
-<button class="servicio opcion-btn" data-precio="70000" data-nombre="COLOR GLOBAL" data-tiempo="180">
-  <span>Color Global - $70.000 (3horas)</span><br><br>
-   <span style="color: yellow; text-shadow: none;">(SELECCIONAR)</span> <div class="media-space botonesdeseleccionVDD" style="width:200px; height:200px; overflow:hidden;">
-    <!-- Aquí se irá alternando el contenido -->
-    <div id="mediaColor"></div>
-  </div>
-</button>
-<!-- Visos -->
-<button class="servicio opcion-btn" data-precio="50000" data-nombre="VISOS" data-tiempo="150">
-  <span>Visos - $50.000 (2horas 30min)</span><br><br>
-  <span style="color: yellow; text-shadow: none;">(SELECCIONAR)</span>
-  <div class="media-space botonesdeseleccionVDD" style="width:200px; height:200px; overflow:hidden;">
-    <div id="mediaVisos"></div>
-  </div>
-</button>
 
 <script>
   const mediaVisos = document.getElementById("mediaVisos");
@@ -1494,10 +1413,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   iniciarAlternancia();
 </script>
-<textarea id="opciones" readonly rows="4" placeholder="Opciones seleccionadas"></textarea>
-<input type="text" id="eltotal" style="font-size: 250%;" readonly placeholder="Total">
-<h3 style="font-size:170%; margin-top:20px; color:#fff;">El corte tardará:</h3><h2>(Aproximadamente)</h2>
-<input id="tiempo" placeholder="Tiempo total" readonly>
 
 <style>
   #tiempo {
@@ -1743,7 +1658,7 @@ document.addEventListener('DOMContentLoaded', function() {
                <div id="seccion-james">
                 
               
-               <h3 style="color: #fff      ;">Selecciona la hora</h3><br>
+               <h3 style="color: #fff      ;">Selecciona una hora Disponible</h3><br>
                 <div id="horariosDisponibles"></div>
             </div>
              </div>
