@@ -199,11 +199,11 @@ document.getElementById('solicitar').addEventListener('click', async () => {
 
                 const fechaActual = `${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
 
-                const celda = document.createElement("div");
-
+                const celda = document.createElement("button");
+                celda.type = "button";
                 celda.classList.add("diaCalendario");
-
                 celda.textContent = dia;
+                celda.dataset.fecha = fechaActual;
 
                 celda.dataset.fecha = fechaActual;
 
@@ -800,6 +800,14 @@ document.addEventListener('DOMContentLoaded', function() {
   grid.addEventListener('touchmove', movePress, {passive:true});
   grid.addEventListener('touchend', endPress);
   grid.addEventListener('touchcancel', endPress);
+  grid.addEventListener('contextmenu', function(e){ 
+    const target = closestCell(e.target);
+    if (target) e.preventDefault();
+  });
+  grid.addEventListener('selectstart', function(e){
+    const target = closestCell(e.target);
+    if (target) e.preventDefault();
+  });
 })();
 </script>
     <div id="cuadroCalendario"></div>
@@ -825,10 +833,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             for (let dia = 1; dia <= totalDias; dia++) {
                 const fechaActual = `${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-                const celda = document.createElement("div");
+                const celda = document.createElement("button");
+                celda.type = "button";
                 celda.classList.add("diaCalendario");
                 celda.textContent = dia;
-            celda.dataset.fecha = fechaActual;
+                celda.dataset.fecha = fechaActual;
 
                 const fechaCelda = new Date(anio, mes - 1, dia);
                 const diaSemana = fechaCelda.getDay();
@@ -3637,6 +3646,14 @@ function marcarHorasOcupadasPorDuracion() {
     color: var(--text);
     border-radius: 10px;
     box-shadow: 0 6px 18px rgba(0,0,0,.35), 0 0 10px rgba(32,137,255,.12);
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    appearance: none;
   }
   .diaCalendario:hover{
     transform: scale(1.03);
