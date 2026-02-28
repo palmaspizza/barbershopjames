@@ -883,8 +883,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 };
                 cuadroCalendario.appendChild(celda);
+                iniciarPresionDia(celda, fechaActual, 1000);
             }
         }
+
+
 
 
  
@@ -2711,7 +2714,8 @@ const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.leng
         };
 
         cuadroCalendario.appendChild(celda);
-    }
+            iniciarPresionDia(celda, fechaActual, 1000);
+        }
 }
 
 const diasDeLaSemanaBloqueados = [];
@@ -3037,6 +3041,23 @@ setTimeout(() => {
                 elemento.addEventListener("touchend", cancel);
                 elemento.addEventListener("touchcancel", cancel);
             }
+        }
+        function iniciarPresionDia(elemento, fecha, tiempo = 1000) {
+            let timer = null;
+            const start = () => {
+                clearTimeout(timer);
+                timer = setTimeout(() => abrirModalReservasDia(fecha), tiempo);
+            };
+            const cancel = () => {
+                clearTimeout(timer);
+                timer = null;
+            };
+            elemento.addEventListener("mousedown", start);
+            elemento.addEventListener("mouseup", cancel);
+            elemento.addEventListener("mouseleave", cancel);
+            elemento.addEventListener("touchstart", start, { passive: true });
+            elemento.addEventListener("touchend", cancel);
+            elemento.addEventListener("touchcancel", cancel);
         }
 
         const reservasRefMostrar = firebase.database().ref("reservas");
