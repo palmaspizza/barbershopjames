@@ -3738,6 +3738,64 @@ function marcarHorasOcupadasPorDuracion() {
   }
   .horaLibre{ background: linear-gradient(180deg,#255437,#1c3b28); }
   .horaOcupada{ background: linear-gradient(180deg,#5a1f1f,#2a1414); }
+  /* --- Responsive enhancements --- */
+  #logo{
+    width: clamp(120px, 32vw, 200px);
+    height: clamp(120px, 32vw, 200px);
+  }
+  body{
+    font-size: clamp(14px, 2.6vw, 18px);
+  }
+  .container{
+    width: min(96vw, 720px);
+    padding: clamp(16px, 4vw, 28px);
+    margin: 0 auto;
+  }
+  #cuadroCalendario{
+    gap: clamp(4px, 1.2vw, 8px);
+  }
+  .diaCalendario{
+    font-size: clamp(12px, 2.8vw, 18px);
+    min-height: clamp(36px, 8vw, 56px);
+    padding: clamp(6px, 1.8vw, 10px);
+  }
+  .modalBarberia .contenidoModal{
+    width: min(94vw, 600px);
+    max-height: 80vh;
+  }
+  #servicios{
+    grid-template-columns: 1fr;
+  }
+  @media (min-width:700px){
+    #servicios{ grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width:480px){
+    #barraMes > div{
+      flex-direction: column;
+      gap: 8px;
+    }
+    .dias-semana{
+      gap: clamp(4px, 1.2vw, 6px);
+    }
+    .resumen-reserva{
+      gap: 8px;
+    }
+    .servicios-bloque{
+      padding: clamp(10px, 3vw, 12px);
+    }
+    .bloqueHora{
+      padding: clamp(6px, 2vw, 8px);
+      font-size: clamp(12px, 2.6vw, 16px);
+    }
+  }
+  @media (max-width:360px){
+    .diaCalendario{
+      font-size: 12px;
+    }
+    button{
+      padding: 10px 12px;
+    }
+  }
 </style>
 </body>
 </html>
