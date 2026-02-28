@@ -5,85 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reservas Barbería</title>
     <link rel="stylesheet" href="styleone.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
    
-    <link rel="icon" href="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" type="image/x-icon">
-<meta property="og:title" content="Barbería James">
+    <link rel="icon" href="IMG-LOGO" type="image/x-icon">
+<meta property="og:title" content="Jeison Barber Style">
 <meta property="og:description" content="Reservar Hora">
-<meta property="og:image" content="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg">
+<meta property="og:image" content="IMG-LOGO">
 <meta property="og:type" content="website">
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script src="duracion-reserva.js"></script>
 
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<!-- Firebase App (core) -->
+<script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
 
+<!-- Firebase Messaging -->
+<script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-messaging.js"></script>
 
 </head>
 <body>
-    <!-- Ventana emergente -->
-<div id="ventana-dia" style="display:none;">
-  <div class="contenedor-dia">
-    <h2>Selecciona el día de la reserva a continuación</h2>
-    <button class="btn-dia" onclick="cerrarVentanaDia()">ELEGIR DÍA</button>
-  </div>
-</div>
-
-<style>
-  #ventana-dia {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.7); /* fondo oscuro translúcido */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  }
-  .contenedor-dia {
-    background-color: #111; /* negro profundo */
-    color: gold;
-    padding: 30px;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 0 15px gold;
-    max-width: 400px;
-    width: 90%;
-  }
-  .contenedor-dia h2 {
-    margin-bottom: 20px;
-    color: #fff; /* título en blanco */
-    font-family: Arial, sans-serif;
-  }
-  .btn-dia {
-    background-color: gold;
-    color: #111;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    font-size: 160%;
-  }
-  .btn-dia:hover {
-    background-color: #fff;
-    color: gold;
-    border: 2px solid gold;
-  }
-</style>
-
-<script>
-  function cerrarVentanaDia() {
-    document.getElementById("ventana-dia").style.display = "none";
-  }
-
-  // Para mostrar la ventana (ejemplo)
-  function abrirVentanaDia() {
-    document.getElementById("ventana-dia").style.display = "flex";
-  }
-</script>
-    <!-- REMPLAZAR: "Barbería James" POR "EL NOMBRE DE LABARBER" -->
+    
+    <!-- REMPLAZAR: "Jeison Barber Style" POR "EL NOMBRE DE LABARBER" -->
     
     
     <!-- ESCRIBIR: "CAMBIAR HORARIOS" PARA CAMBIAR LOS HORARIOS DE TODOS LOS DÍAS -->
@@ -92,10 +35,10 @@
 
 <!-- LOGO -->
 <!-- REMPLAZAR ESTE LINK POR EL LINK DEL LOGO: -->
-<!-- "https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" -->
+<!-- "IMG-LOGO" -->
 
 <div class="container">
-        <div id="logo" style="
+     <div id="logo" style="
             width: 200px;
             height: 200px;
             background-image: url('https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg');
@@ -104,78 +47,53 @@
             border-radius: 50%;
             margin: auto;
         "></div>
+
+<style>
+  #logo {
+    width: 200px;
+    height: 200px;
+    background-image: url('IMG-LOGO');
+    background-size: cover;
+    background-position: center;
+    border-radius: 50%;
+    margin: auto;
+    border: 3px solid rgba(228,166,79,0.9);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 18px rgba(255,122,26,0.25);
+    position: relative;
+  }
+  #logo::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, rgba(255,59,63,0.28), rgba(255,255,255,0.14), rgba(32,137,255,0.28), rgba(255,255,255,0.14));
+    animation: ringSpin 12s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes ringSpin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
         <br>
-      
+        <div id="barraMes" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
+              
+                <button id="mesAnterior" class="botonMes">←</button>
+                <h2 id="tituloMes" style="margin: 0; color: orange !important;">Septiembre 2025</h2>
+                <button id="mesSiguiente" class="botonMes">→</button>
+                <button id="hoyBtn" class="botonMes">Hoy</button>
+            </div>
+        </div>
+        <div id="modal-reservas-dia" class="ventana-secreta fantasma">
+            <div class="caja-misteriosa" style="max-width:600px;">
+                <h3 id="titulo-reservas-dia">Reservas</h3>
+                <div id="lista-reservas-dia" style="text-align:left;"></div>
+                <button onclick="document.getElementById('modal-reservas-dia').classList.add('fantasma')">Cerrar</button>
+            </div>
+        </div>
         <button id="solicitar" hidden>Solicitar notificaciones</button>
 <script>
-
-// Inicializar Firebase
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBB2cEWSULTY77JRXe50wQGtJX0t8I_UkU",
-  authDomain: "barbershop-4b936.firebaseapp.com",
-  databaseURL: "https://barbershop-4b936-default-rtdb.firebaseio.com",
-  projectId: "barbershop-4b936",
-  storageBucket: "barbershop-4b936.firebasestorage.app",
-  messagingSenderId: "388744871012",
-  appId: "1:388744871012:web:36b40ff5083e370cb83371",
-  measurementId: "G-YQQZW10DYE"
-};
-
-
-// Asegúrate de que este UID es el de tu cuenta de administrador
-const UID_ADMINISTRADOR = "TU_UID_DE_ADMINISTRADOR"; 
-
-
-
-
-    function migrarReservasAntiguas() {
-  reservasRef.once("value", snapshot => {
-    snapshot.forEach(child => {
-      const key = child.key;
-      const value = child.val();
-
-      // Detecta si es una reserva antigua (sin barbero)
-      if (!["JAMES", "BRYAN", "Jhon"].includes(key)) {
-        const fecha = key;
-        const horas = value;
-
-        // Migrar a JAMES por defecto
-        db.ref(`reservas/JAMES/${fecha}`).set(horas);
-        db.ref(`reservas/${fecha}`).remove();
-        console.log(`Migrada reserva antigua del ${fecha} a JAMES`);
-      }
-    });
-  });
-}
-
-
-
-
-
-
-
-function enviarMensajeWhatsApp() {
-  const nombre = document.getElementById("nombre").value.trim();
-  const fecha = document.getElementById("fecha").value;
-  const hora = document.getElementById("hora").value;
-  const eltotal1 = document.getElementById("eltotal").value;
-  const abono35 = document.getElementById("abono35").value;
-  const opcionesinputx = document.getElementById("opciones").value; // Obtener opciones del input
-
-  if (!nombre || !fecha || !hora) {
-    alert("Faltan datos para enviar el mensaje.");
-    return;
-  }
-
-  const numeroDestino = "56954527837";
-  const mensaje = `Hola, soy ${nombre}. Quiero agendar hora para el día ${fecha} a las ${hora}.`;
-  const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`;
-  window.open(url, "_blank");
-}
-
-
-
   async function enviar() {
     try {
       const response = await window.fetch('http://localhost:3000/enviar-notificaciones', {
@@ -190,256 +108,11 @@ function enviarMensajeWhatsApp() {
       console.error('Error al enviar la notificación:', error);
     }
   }
-
-
-  function revertirReservasAJAMES() {
-  const jamesRef = db.ref("reservas/JAMES");
-
-  jamesRef.once("value", snapshot => {
-    snapshot.forEach(reservaSnap => {
-      const reserva = reservaSnap.val();
-
-      // Guardar en la raíz de reservas/
-      db.ref("reservas").push(reserva);
-
-      // Eliminar la original (opcional, solo si estás seguro)
-      // reservaSnap.ref.remove();
-    });
-
-    console.log("Reservas migradas de JAMES a raíz de reservas/");
-  });
-}
 </script>
 
-<button  onclick="enviar()" hidden>Enviar notificación</button>
-   
- 
- <!-- Botón WhatsApp -->
-<button class="btn-chatMagic" onclick="abrirWhatsAppCayllen();">
-  <i class="fab fa-whatsapp" style=" font-size:24px;margin-right:10px;"  ></i> Consultar a WhatsApp
-</button>
+<button onclick="enviar()" hidden>Enviar notificación</button>
 
-<!-- Texto principal -->
-<p style="margin:0;
-           font-family: 'Poppins','Segoe UI',Tahoma,Arial,sans-serif;
-           font-weight: 900;
-           letter-spacing: 0.5px;
-           background: linear-gradient(90deg, #00d1b2 0%, #ff2fb3 100%);
-           -webkit-background-clip: text;
-           background-clip: text;
-           color: transparent;">
-  Manicure y Pedicure SPA
-</p>
-
-<!-- Imagen principal con botón encima -->
-<div class="contenedorMagic">
-  <button class="btn-fotosMagic" onclick="document.getElementById('ventanaGaleriaMagic').style.display='block'">
-    Ver Más Fotos
-  </button>
-  <img src="https://i.ibb.co/VYjQ5Yd0/u-ascayllen.png" alt="WhatsApp Icon" class="imagenPrincipalMagic">
-  <img src="https://i.ibb.co/pvCMFxvY/cayllenlogooriginal.png" alt="Logo" class="logoMagic"> <!-- aquí pondrás tu logo -->
-</div>
-
-<!-- Modal Galería -->
-<div id="ventanaGaleriaMagic" class="cajaModalMagic">
-  <div class="contenidoModalMagic">
-    <span class="cerrarMagic" onclick="document.getElementById('ventanaGaleriaMagic').style.display='none'">&times;</span>
-    <h2>✨ Más Información ✨</h2>
-    <div class="galeriaMagic">
-      <img src="https://i.ibb.co/bgfmRHfT/u-as5.png" alt="Foto 1">
-      <img src="https://i.ibb.co/LzWtyMZ4/u-as-2.png" alt="Foto 2">
-      <img src="https://i.ibb.co/354vmWXj/u-as-3.png" alt="Foto 3">
-      <img src="https://i.ibb.co/kVKQmcL4/u-as-7.png" alt="Foto 4">
-      <img src="https://i.ibb.co/bgfmRHfT/u-as5.png" alt="Foto 5">
-      <img src="https://i.ibb.co/LXMvfggM/u-as-4.png" alt="Foto 6">
-      <img src="https://i.ibb.co/354vmWXj/u-as-3.png" alt="Foto 7">
-    </div>
-    <!-- Botones al final -->
-    <div class="accionesGaleria">
-      <button class="btn-cerrarMagic" onclick="document.getElementById('ventanaGaleriaMagic').style.display='none'">
-        CERRAR GALERÍA
-      </button>
-      <button onclick="abrirWhatsAppCayllen();" class="btn-chatMagic">
-        <i class="fab fa-whatsapp" href="https://wa.me/56937191288" style="font-size:24px;margin-right:10px;" ></i> Consultar a WhatsApp
-      </button>
-    </div>
-  </div>
-</div>
-<script>
-function abrirWhatsAppCayllen() {
-  // Número en formato internacional sin signos (+56 es Chile)
-  var numero = "56937191288";
-  // Texto amigable para el mensaje
-  var mensaje = "¡Hola! Me gustaría recibir información sobre los servicios de uñas 💅✨";
-  
-  // Construir el enlace de WhatsApp
-  var url = "https://wa.me/" + numero + "?text=" + encodeURIComponent(mensaje);
-  
-  // Abrir en nueva pestaña
-  window.open(url, "_blank");
-}
-</script>
-
-
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-<style>
-  /* Botón WhatsApp */
-  .btn-chatMagic {
-    background: grey; /* verde agua */
-    color: #fff;
-    font-size: 18px;
-    font-weight: bold;
-    padding: 14px 24px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 0 12px rgba(32, 201, 151, 0.8);
-    margin-top: 10px;
-  }
-  .btn-chatMagic:hover {
-    background: #17a589;
-    box-shadow: 0 0 25px rgba(32, 201, 151, 1);
-    transform: scale(1.07);
-  }
-
-  /* Botón Fotos encima de la imagen */
-  .btn-fotosMagic {
-    position: absolute;
-    bottom: 20px;
-    left: 40%;
-    transform: translateX(-50%);
-    background-color: #ff2fb3; /* fucsia */
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    box-shadow: 0 4px 10px #00d1b2; /* verde agua */
-    transition: transform 0.2s;
-  }
-  .btn-fotosMagic:hover {
-    transform: translateX(-50%) scale(1.05);
-  }
-
-  /* Modal */
-  .cajaModalMagic {
-    display: none;
-    position: fixed;
-    z-index: 100;
-    left: 0; top: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.6);
-  }
-  .contenidoModalMagic {
-    background: #fff;
-    margin: 5% auto;
-    padding: 20px;
-    border-radius: 12px;
-    width: 80%;
-    max-width: 900px;
-    box-shadow: 0 0 20px #ff2fb3;
-    animation: fadeInMagic 0.4s ease;
-    max-height: 80vh; /* límite de altura */
-    overflow-y: auto; /* scroll interno */
-  }
-  @keyframes fadeInMagic {
-    from {opacity:0; transform:scale(0.9);}
-    to {opacity:1; transform:scale(1);}
-  }
-  .contenidoModalMagic h2 {
-    margin-top: 0;
-    font-size: 24px;
-    color: #00d1b2; /* verde agua */
-    text-shadow: 1px 1px #ff2fb3;
-  }
-  .cerrarMagic {
-    float: right;
-    font-size: 28px;
-    cursor: pointer;
-    color: #ff2fb3;
-  }
-
-  /* Galería con scroll */
-  .galeriaMagic {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-    gap: 16px;
-    margin-top: 20px;
-  }
-  .galeriaMagic img {
-    width: 100%;
-    border: 4px solid #00d1b2; /* marco turquesa */
-    border-radius: 8px;
-    box-shadow: 0 4px 12px #ff2fb3; /* sombra fucsia */
-    transition: transform 0.3s;
-  }
-  .galeriaMagic img:hover {
-    transform: scale(1.05);
-  }
-
-  /* Botones al final de la galería */
-  .accionesGaleria {
-    margin-top: 20px;
-    text-align: center;
-  }
-  .btn-cerrarMagic {
-    background-color: #ff2fb3; /* fucsia */
-    color: #fff;
-    font-size: 20px;
-    font-weight: bold;
-    padding: 14px 28px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    box-shadow: 0 0 12px #00d1b2;
-    margin-bottom: 12px;
-  }
-  .btn-cerrarMagic:hover {
-    transform: scale(1.05);
-  }
-
-  /* Imagen contenedor */
-  .contenedorMagic {
-    position: relative;
-    display: inline-block;
-    border: 5px solid grey; /* borde verde agua */
-    border-radius: 15px;
-    padding: 12px;
-    background: #f9f9f9;
-    box-shadow: 0 0 20px rgba(32, 201, 151, 0.7);
-  }
-  .imagenPrincipalMagic {
-    width: 220px;
-    height: auto;
-    display: block;
-  }
-  .logoMagic {
-    transform: rotate(270) !important;
-    position: absolute;
-    bottom: 12px;
-    right: 8px;
-    width: auto;
-    height: 70px;
-    background: #00000000;
-  
-  }
-</style><br> 
-
-</div> <h3 style="font-size: 170%;" >Selecciona un día</h3>
-   <div id="barraMes" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
-              
-                <button id="mesAnterior" class="botonMes">←</button>
-                <h2 id="tituloMes" style="margin: 0; color: orange !important;">Septiembre 2025</h2>
-                <button id="mesSiguiente" class="botonMes">→</button>
-            </div>
-        </div>
-
-        
+ <h3 style="font-size: 170%;" >Selecciona un día</h3>
       <div class="dias-semana"></div>
 <div id="cuadroCalendario"></div>
     <script>
@@ -495,7 +168,7 @@ document.getElementById('solicitar').addEventListener('click', async () => {
         // Tu función principal para generar los días del mes
 
         function generarCuadroCalendario() {
-            const reservasPorBarbero = {}; 
+
             const mesStr = `${fechaActualCalendario.getFullYear()}-${String(fechaActualCalendario.getMonth() + 1).padStart(2, "0")}`;
 
             cuadroCalendario.innerHTML = "";
@@ -526,16 +199,16 @@ document.getElementById('solicitar').addEventListener('click', async () => {
 
                 const fechaActual = `${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
 
-                const celda = document.createElement("div");
-
+                const celda = document.createElement("button");
+                celda.type = "button";
                 celda.classList.add("diaCalendario");
-
                 celda.textContent = dia;
+                celda.dataset.fecha = fechaActual;
+
+                celda.dataset.fecha = fechaActual;
 
 
-
-           const horasReservadas = reservasPorBarbero[barberoSeleccionado]?.[fecha] || [];
-
+                const horasReservadas = reservasPorDia[fechaActual] || [];
 
 
                 const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0;
@@ -546,7 +219,8 @@ document.getElementById('solicitar').addEventListener('click', async () => {
 
                 if (estaBloqueado) {
 
-                   
+                    celda.classList.add("diaBloqueado");
+
                     celda.title = "Día bloqueado por el administrador";
 
                 } else if (estaOcupado) {
@@ -566,6 +240,7 @@ document.getElementById('solicitar').addEventListener('click', async () => {
 
 
                 celda.onclick = () => {
+                    if (celda.dataset.longpress === "1") { celda.dataset.longpress=""; return; }
 
                     // ... (tu lógica de clic, que no se modificó) ...
 
@@ -573,15 +248,12 @@ document.getElementById('solicitar').addEventListener('click', async () => {
 
                 
 
-                if (!modoBloqueoDias && estaBloqueado) {
-
-                    celda.style.pointerEvents = "none";
-
-                }
+                
 
 
 
                 cuadroCalendario.appendChild(celda);
+                activarPresionProlongada(celda, () => abrirModalReservasDia(fechaActual), 1000);
 
             }
 
@@ -660,8 +332,6 @@ function mostrar(){
 </style>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-          const hoy = new Date().toISOString().split("T")[0];
-  mostrarReservas(hoy);
     const modal = document.getElementById("modalContenedor");
     const botonAbrir = document.getElementById("abrirVentana");
     const botonCerrar = document.getElementsByClassName("cerrar-modal-personalizado")[0];
@@ -686,9 +356,7 @@ function mostrar(){
     }
 });
 </script>
-         <h2 style="color: red !important; text-shadow: #000 1px 1px 2px;">⛔Horas Reservadas⛔</h2>
-        <input style="border: 1px solid red;" type="text" id="buscadorGlobal" placeholder="Buscar... por Año, Mes o Día" />
-            <div id="listaReservas"></div>
+ 
     <style>
          #ventanaEmergenteCierreDias {
             display: none; /* Oculta por defecto */
@@ -779,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="caja-misteriosa">
                 <h3>Control Barbería</h3>
                 <br><br>
-                <button hidden style="background-color: blue;" onclick="activarModoHorarios();">⚙️ Gestionar Horarios por Día</button>
+                <button style="background-color: blue;" onclick="activarModoHorarios();">⚙️ Gestionar Horarios por Día</button>
                 <br><br>
                 <button style="background-color: purple;" onclick="cerrarModal('modal-control');borrarTodasLasHorasEnPantalla()">🧹 borrar TODAS las reservas</button>
                 <br><br>
@@ -1048,14 +716,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const btnAbrirVentana = document.getElementById("abrirVentana");
         const btnCerrarVentana = document.getElementById("btnCerrarVentana");
 
-
-        window.onload = () => {
-  cargarReservasOrdenadas();
-};
-
-
-
-
         function abrirVentanaEmergente() {
             if (ventanaEmergente) {
                 ventanaEmergente.style.display = "block";
@@ -1091,10 +751,68 @@ document.addEventListener('DOMContentLoaded', function() {
     // Al cargar la página, llama a la función para generar el calendario
     document.addEventListener('DOMContentLoaded', generarCuadroCalendario);
 </script>
+<script>
+(function(){
+  const grid = document.getElementById('cuadroCalendario');
+  if (!grid) return;
+  let timer = null;
+  let startX = 0, startY = 0;
+  const threshold = 12;
+  let cell = null;
+  function closestCell(target){
+    while (target && target.nodeType === 1){
+      if (target.classList && target.classList.contains('diaCalendario')) return target;
+      target = target.parentElement;
+    }
+    return null;
+  }
+  function startPress(e){
+    const t = e.touches && e.touches[0] ? e.touches[0] : e;
+    cell = closestCell(e.target);
+    if (!cell) return;
+    startX = t.clientX; startY = t.clientY;
+    clearTimeout(timer);
+    timer = setTimeout(()=>{
+      const fecha = cell.dataset.fecha;
+      if (fecha) abrirModalReservasDia(fecha);
+    }, 1000);
+  }
+  function movePress(e){
+    if (!timer) return;
+    const t = e.touches && e.touches[0] ? e.touches[0] : e;
+    if (!t) return;
+    const dx = Math.abs(t.clientX - startX);
+    const dy = Math.abs(t.clientY - startY);
+    if (dx > threshold || dy > threshold){
+      clearTimeout(timer);
+      timer = null;
+    }
+  }
+  function endPress(){
+    clearTimeout(timer);
+    timer = null;
+  }
+  grid.addEventListener('mousedown', startPress);
+  grid.addEventListener('mousemove', movePress);
+  grid.addEventListener('mouseup', endPress);
+  grid.addEventListener('mouseleave', endPress);
+  grid.addEventListener('touchstart', startPress, {passive:true});
+  grid.addEventListener('touchmove', movePress, {passive:true});
+  grid.addEventListener('touchend', endPress);
+  grid.addEventListener('touchcancel', endPress);
+  grid.addEventListener('contextmenu', function(e){ 
+    const target = closestCell(e.target);
+    if (target) e.preventDefault();
+  });
+  grid.addEventListener('selectstart', function(e){
+    const target = closestCell(e.target);
+    if (target) e.preventDefault();
+  });
+})();
+</script>
     <div id="cuadroCalendario"></div>
 
     <script>
-
         function generarCuadroCalendario() {
             const mesStr = `${fechaActualCalendario.getFullYear()}-${String(fechaActualCalendario.getMonth() + 1).padStart(2, "0")}`;
             const cuadroCalendario = document.getElementById("cuadroCalendario");
@@ -1115,14 +833,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             for (let dia = 1; dia <= totalDias; dia++) {
                 const fechaActual = `${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-                const celda = document.createElement("div");
+                const celda = document.createElement("button");
+                celda.type = "button";
                 celda.classList.add("diaCalendario");
                 celda.textContent = dia;
+                celda.dataset.fecha = fechaActual;
 
                 const fechaCelda = new Date(anio, mes - 1, dia);
                 const diaSemana = fechaCelda.getDay();
 
-                const horasReservadas = reservasPorBarbero[barberoSeleccionado]?.[fechaActual] || [];
+                const horasReservadas = reservasPorDia[fechaActual] || [];
                 
                 const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0 || diasDeLaSemanaBloqueados.includes(diaSemana);
                 const estaOcupado = horasReservadas.length >= horarioDelDia.length;
@@ -1135,18 +855,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     celda.classList.add("diaBloqueado");
                     celda.title = "Día bloqueado por el administrador";
                 } else if (estaOcupado) {
-                    celda.classList.add("diaBloqueado");
+                    celda.classList.add("diaOcupado");
                     celda.title = "Día con todas las horas reservadas";
                 } else {
                     celda.classList.add("diaLibre");
                     celda.title = "Día disponible";
                 }
 
-                if (diaPasado || (!modoBloqueoDias && (estaBloqueado || estaOcupado))) {
+                if (diaPasado) {
                     celda.style.pointerEvents = "none";
                 }
 
                 celda.onclick = () => {
+                    if (celda.dataset.longpress === "1") { celda.dataset.longpress=""; return; }
                     if (diaPasado) return;
 
                     if (modoGestionHorarios) {
@@ -1162,8 +883,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 };
                 cuadroCalendario.appendChild(celda);
+                iniciarPresionDia(celda, fechaActual, 1000);
             }
         }
+
+
+
 
  
         
@@ -1259,10 +984,9 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
 
 
+      
         <center>
             <input hidden type="time" id="hora">
-            <input hidden type="number" id="tiempoTotal" value="60">
-            <input hidden type="text" id="abono35">
             <div style="margin-bottom: 10px;"></div>
         </center>
         
@@ -1281,355 +1005,193 @@ document.addEventListener('DOMContentLoaded', function() {
             /* Estilos para el título animado */
 .titulo-animado {
     /* Estilos base que ya tienes o quieres */
-    color: gold !important;
+    color: orangered;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); /* Sombra más definida */
     font-size: 27px !important; /* Un poco más grande para que la animación sea visible */
     
     /* Propiedades de la animación */
-    animation: brilloSuave 2s infinite alternate ease-in-out; /* Nombre, duración, repetición, dirección, timing */
+    animation: brilloSuave 1s infinite alternate ease-in-out; /* Nombre, duración, repetición, dirección, timing */
     display: inline-block; /* Importante para que transform funcione correctamente */
     padding: 5px; /* Pequeño padding para no cortar la sombra/animación */
 }
 
 /* Definición de la animación */
 @keyframes brilloSuave {
+
     0% {
-        transform: scale(1); /* Tamaño normal */
-        text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.7); /* Sombra inicial */
-    }
-    50% {
         transform: scale(1.02); /* Ligeramente más grande */
-        text-shadow: 1px 1px 8px rgba(255, 140, 0, 0.9), 0 0 15px #000; /* Sombra con brillo naranja */
-    }
-    100% {
+        text-shadow: 1px 1px 8px blue, 0 0 15px #000; /* Sombra con brillo naranja */
+    color: #fff;}
+   
+        100% {
         transform: scale(1); /* Vuelve al tamaño normal */
-        text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.7); /* Sombra inicial */
-    }
-}
-.opcion-btn {
-  background-color: black;
-  color: gold;
-  border: 2px solid gold;
-  border-radius: 8px;
-  padding: 10px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column; /* Imagen arriba del texto */
-  align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-  min-width: 220px;
-  text-align: center;
-}
-.opcion-btn .img-space {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 5px;
+        text-shadow: 1px 1px 8px red, 0 0 15px #000; /* Sombra con brillo naranja */
+    color: #fff; }
 }
         </style>
-
         <div id="modal-horarios" class="modalBarberia">
             <div style="background-color: #303030 !important; margin-top: 10px; width: 80%;"  class="contenidoModal">
-                <span id="cerrarVentana" class="cerrarModal" onclick="document.getElementById('modal-horarios').style.display='none';">Cerrar</span>
-            <div class="container">
-       <div id="logo"></div>
-
-<style>
-  #logo {
-    width: 200px;
-    height: 200px;
-    background-image: url('https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg');
-    background-size: cover;
-    
-    background-position: center;
-    border-radius: 50%;
-    margin: auto;
-    border: 4px solid white;
-    box-shadow: 0 0 20px 5px blue, 0 0 20px 5px red;
-    animation: laserGlow 2s linear infinite;
-  }
-
-  @keyframes laserGlow {
-    0% {
-      box-shadow: 0 0 20px 5px blue, 0 0 20px 5px transparent;
-    }
-    25% {
-      box-shadow: 0 0 20px 5px red, 0 0 20px 5px transparent;
-    }
-    50% {
-      box-shadow: 0 0 20px 5px blue, 0 0 20px 5px transparent;
-    }
-    75% {
-      box-shadow: 0 0 20px 5px red, 0 0 20px 5px transparent;
-    }
-    100% {
-      box-shadow: 0 0 20px 5px blue, 0 0 20px 5px transparent;
-    }
-  }
-</style>   <h2>Servicios de nuestra BARBERÍA</h2>
-
-
-<!-- cosodetiempojames.html -->
-<!-- 5779 -->
-
-
-<script>
-  const mediaVisos = document.getElementById("mediaVisos");
-
-  // Lista de contenidos: imágenes + video
-  const contenidosVisos = [
-    `<img src="https://i.ibb.co/XkCtQQHv/eb48a676-8a0a-482f-b09f-9019b5e79420.jpg" style="width:100%; height:100%; object-fit:cover;" />`,
-    `<img src="https://i.ibb.co/MynbTDBx/b36b7e32-72fb-4e06-92ff-cc3147dbe0ca.jpg" style="width:100%; height:100%; object-fit:cover;" />`,
-    `<video src="videovisosjames1.mp4" style="width:100%; height:100%; object-fit:cover;" autoplay muted loop controls></video>`
-  ];
-
-  let indiceVisos = 0;
-
-  function alternarVisos() {
-    mediaVisos.innerHTML = contenidosVisos[indiceVisos];
-    indiceVisos = (indiceVisos + 1) % contenidosVisos.length;
-  }
-
-  // Duraciones:
-  // Supongamos que el video dura 6 segundos.
-  // Entonces las imágenes deben repartirse esos 6 segundos (3s cada una).
-  const duracionVideo = 6000; // 6 segundos
-  const duracionImagen = duracionVideo / (contenidosVisos.length - 1); // tiempo repartido entre imágenes
-
-  function iniciarAlternancia() {
-    alternarVisos(); // primer contenido
-    setInterval(() => {
-      if (indiceVisos === contenidosVisos.length - 1) {
-        // Si toca el video, dura completo
-        alternarVisos();
-        setTimeout(iniciarAlternancia, duracionVideo);
-      } else {
-        // Si toca imagen, dura proporcional
-        alternarVisos();
-      }
-    }, duracionImagen);
-  }
-
-  iniciarAlternancia();
-</script>
-
-<style>
-  #tiempo {
-    background: #111; /* fondo oscuro para resaltar el neón */
-    color: #ff9d00;   /* texto naranja */
-    font-size: 16px;
-    font-weight: bold;
-    padding: 10px 15px;
-    border: 2px solid #ff9d00;
-    border-radius: 8px;
-    text-align: center;
-    outline: none;
-
-    /* efecto neón */
-    box-shadow: 0 0 5px #ff9d00,
-                0 0 10px #ff9d00,
-                0 0 20px #ff9d00,
-                0 0 40px #ff6600;
-    transition: all 0.3s ease-in-out;
-  }
-
-  /* efecto al pasar el mouse */
-  #tiempo:hover {
-    box-shadow: 0 0 10px #ff9d00,
-                0 0 20px #ff9d00,
-                0 0 40px #ff6600,
-                0 0 80px #ff6600;
-    transform: scale(1.05);
-  }
-
-
-@keyframes brilloSuave {
-  from {
-    text-shadow: 0 0 10px #ff9d00,
-                 0 0 20px #ff9d00,
-                 0 0 40px #ff6600,
-                 0 0 60px #ff6600;
-    transform: scale(1);
-  }
-  to {
-    text-shadow: 0 0 20px #ff9d00,
-                 0 0 40px #ff9d00,
-                 0 0 80px #ff6600,
-                 0 0 120px #ff4500;
-    transform: scale(3); /* zoom más notorio */
-  }
-}
-
-.botonesdeseleccion {
-  animation: brilloSuave 2s infinite alternate;
-}
-</style>
-<style>
-  #servicios {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
-
-  .servicio {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: #111;
-    padding: 15px;
-    border-radius: 10px;
-    border: 2px solid gold;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
-    width: 220px;
-    cursor: pointer;
-    position: relative; /* necesario para posicionar el ✅ */
-  }
-
-  .opcion-btn {
-    background-color: black;
-    color: gold;
-    border: 2px solid gold;
-    border-radius: 8px;
-    padding: 10px;
-    text-align: center;
-    width: 100%;
-    transition: all 0.3s ease;
-  }
-
-  .opcion-btn.selected {
-    background-color: gold;
-    color: black;
-    font-weight: bold;
-  }
-
-  /* ✅ grande cuando está seleccionado */
-  .opcion-btn.selected::after {
-    content: "✅";
-    font-size: 2.5rem;
-    position: absolute;
-    top: 35px;
-    right: 10px;
-  }
-
-  .media-space {
-    margin-top: 20px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-
-  .media-space img,
-  .media-space video {
-    border: 2px solid yellow;
-    border-radius: 6px;
-    width: 100%;
-    height: auto;
-    max-width: 180px;
-  }
-
-  /* 👇 Esto hace que el video no reciba clics */
-  .media-space video {
-    pointer-events: none;
-  }
-
-  #opciones {
-    width: 100%;
-    min-height: 80px;
-    max-height: 220px;
-    resize: none;
-    background-color: #1a1a1a;
-    color: #FFD700;
-    border: 2px solid #FFD700;
-    border-radius: 10px;
-    padding: 10px 12px;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.25);
-    font-weight: 600;
-    margin-top: 20px;
-  }
-
-  #eltotal {
+                <span id="cerrarVentana" class="cerrarModal">Cerrar</span>
+                <br>
+                <h3 id="tituloVentana" class="titulo-animado" style="color: red; text-shadow: 1px 1px 1px #000;"></h3>
+              <style>
+  .servicio-btn {
     display: inline-block;
-    background-color: #111;
-    color: #FFA500;
-    border: 2px solid #FFA500;
+    margin: 6px;
+    padding: 12px 16px;
+    border: 1px solid rgba(228,166,79,0.5);
     border-radius: 12px;
-    padding: 8px 14px;
-    box-shadow: 0 0 15px rgba(255, 165, 0, 0.25);
+    background: linear-gradient(180deg,#26272c,#16171b);
+    color: #f1f1f1;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35), 0 0 10px rgba(32,137,255,0.12);
+    transition: transform 0.15s ease, box-shadow 0.25s ease, background 0.25s ease, filter .2s ease;
+  }
+  .servicio-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.6), 0 0 14px rgba(255,122,26,0.25);
+    filter: saturate(1.1);
+  }
+  .servicio-btn.selected {
+    background: linear-gradient(180deg,#ffb867,#ff7a1a);
+    color: #141414;
+  }
+  .servicio-btn.selected::after {
+    content: "";
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, #33d17a 0, #33d17a 40%, transparent 41%);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.7) inset;
+  }
+  #eltotal, #opciones {
+    display: block;
     margin-top: 10px;
+    padding: 10px;
+    width: 100%;
+    max-width: 300px;
+    border: 1px solid rgba(228,166,79,0.5);
+    border-radius: 10px;
+    font-weight: 600;
+    background: #121317;
+    color: #f1f1f1;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.35), 0 0 10px rgba(255,122,26,0.2);
   }
 </style>
 
+<style>
+  body {
+    font-family: Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
 
+  }
+  h1 {
+    font-family: 'Georgia', serif;
+    font-size: 2.5em;
+    color: #333;
+    margin-bottom: 30px;
+  }
+
+  .btn {
+    background: linear-gradient(45deg, #ff7f50, #ff4500);
+    border: none;
+    color: white;
+    padding: 15px 40px;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-radius: 8px;
+    margin: 10px;
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    overflow: hidden;
+  }
+
+  .btn:before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background: linear-gradient(90deg, #ff7f50, #ff4500, #ffa500);
+    background-size: 200% 200%;
+    animation: borderAnim 3s linear infinite;
+    z-index: -1;
+  }
+
+  @keyframes borderAnim {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    background: linear-gradient(45deg, #ff4500, #ff7f50);
+  }
+
+  .btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .btn:disabled:before {
+    display: none;
+  }
+</style>
+
+<h1>Barbero</h1>
+<button class="btn">Pierce</button>
+<button class="btn" disabled>James</button>
+<!-- SISTEMA DE SELECCIÓN DE CORTE + SELECCIÓN DE TIEMPO  -->
+<div><h2 id="serviciosTitulo">Selecciona tus servicios</h2>
+<div id="servicios">
+  <div class="servicios-bloque">
+    <h4>Cortes</h4>
+    <p class="nota">Elige uno</p>
+    <button class="servicio-btn exclusivo" data-nombre="Corte Clásico" data-precio="10000" data-tiempo="20">Corte clásico · $10.000 · 20min</button>
+    <button class="servicio-btn exclusivo" data-nombre="Corte Degradado" data-precio="12000" data-tiempo="30">Degradado · $12.000 · 30min</button>
+  </div>
+  <div class="servicios-bloque">
+    <h4>Extras</h4>
+    <p class="nota">Opcional</p>
+    <button class="servicio-btn" data-nombre="Barba" data-precio="6000" data-tiempo="10">Barba · $6.000 · 10min</button>
+    <button class="servicio-btn" data-nombre="Cejas" data-precio="3000" data-tiempo="5">Cejas · $3.000 · 5min</button>
+  </div>
+  <div class="servicios-bloque">
+    <h4>Color (Opcional)</h4>
+    <p class="nota">Elige uno</p>
+    <button class="servicio-btn color" data-nombre="Color Global" data-precio="70000" data-tiempo="60">Color Global · $70.000 · 60min</button>
+    <button class="servicio-btn color" data-nombre="Visos" data-precio="50000" data-tiempo="60">Risos/Ondulaciones · $50.000 · 60min</button>
+  </div>
+</div>
+<div class="resumen-reserva">
+  <label>Total</label>
+  <input id="eltotal" placeholder="Total" readonly>
+  <label>Servicios seleccionados</label>
+  <input id="opciones" placeholder="Opciones" readonly>
+  <label>Tiempo total aproximado</label>
+  <input id="tiempo" placeholder="Tiempo total" readonly>
+  <input id="tiempoTotal" type="hidden">
+</div>
 
 <script>
-  const botones = document.querySelectorAll(".opcion-btn");
-  const inputOpciones = document.getElementById("opciones");
-  const inputTotal = document.getElementById("eltotal");
-  const inputTiempo = document.getElementById("tiempo");
-  const inputTiempoTotalHidden = document.getElementById("tiempoTotal");
-  const inputAbono35Hidden = document.getElementById("abono35");
+  const botones = document.querySelectorAll(".servicio-btn");
+  const totalInput = document.getElementById("eltotal");
+  const opcionesInput = document.getElementById("opciones");
+  const tiempoInput = document.getElementById("tiempo");
 
-  let seleccionadas = [];
-  let total = 0;
-  let totalMin = 0;
+  let seleccionados = [];
 
-  botones.forEach(btn => {
-    if (btn.classList.contains("selected")) {
-      const nombre = btn.dataset.nombre;
-      const precio = parseInt(btn.dataset.precio);
-      const tiempo = parseInt(btn.dataset.tiempo || "0");
-      seleccionadas.push({nombre, precio, tiempo});
-      total += precio;
-      totalMin += tiempo;
-    }
-  });
-  actualizarInputs();
-
-  botones.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const nombre = btn.dataset.nombre;
-      const precio = parseInt(btn.dataset.precio);
-      const tiempo = parseInt(btn.dataset.tiempo || "0");
-      const grupo = btn.dataset.grupo;
-
-      if (btn.classList.contains("selected")) {
-        // Deseleccionar
-        btn.classList.remove("selected");
-        const prev = seleccionadas.find(op => op.nombre === nombre);
-        seleccionadas = seleccionadas.filter(op => op.nombre !== nombre);
-        total -= precio;
-        totalMin -= prev ? prev.tiempo : 0;
-      } else {
-        // Si pertenece al grupo "corte", deseleccionar el otro del mismo grupo
-        if (grupo === "corte") {
-          botones.forEach(b => {
-            if (b.dataset.grupo === "corte" && b.classList.contains("selected")) {
-              b.classList.remove("selected");
-              const prev = seleccionadas.find(op => op.nombre === b.dataset.nombre);
-              seleccionadas = seleccionadas.filter(op => op.nombre !== b.dataset.nombre);
-              total -= parseInt(b.dataset.precio);
-              totalMin -= prev ? prev.tiempo : 0;
-            }
-          });
-        }
-        // Seleccionar el botón actual
-        btn.classList.add("selected");
-        seleccionadas.push({nombre, precio, tiempo});
-        total += precio;
-        totalMin += tiempo;
-      }
-      actualizarInputs();
-    });
-  });
-
-  function actualizarInputs() {
-    inputOpciones.value = seleccionadas.map(s => s.nombre).join(" + ");
-    inputTotal.value = "$" + total.toLocaleString("es-CL");
-    inputTiempo.value = formatoTiempo(totalMin);
-    if (inputTiempoTotalHidden) inputTiempoTotalHidden.value = totalMin;
-    if (inputAbono35Hidden) inputAbono35Hidden.value = "$" + Math.round(total * 0.35).toLocaleString("es-CL");
-  }
   function formatoTiempo(minutos) {
     if (minutos >= 60) {
       const horas = Math.floor(minutos / 60);
@@ -1643,105 +1205,105 @@ document.addEventListener('DOMContentLoaded', function() {
       return minutos + " minutos";
     }
   }
-</script>
-<!-- SISTEMA DE TIEMPO /OPCIONAL() -->
 
+  botones.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const nombre = btn.dataset.nombre;
+      const precio = parseInt(btn.dataset.precio);
+      const tiempo = parseInt(btn.dataset.tiempo);
 
+      // Exclusivos (Corte clásico vs Degradado)
+      if (btn.classList.contains("exclusivo")) {
+        document.querySelectorAll(".exclusivo").forEach(b => {
+          if (b !== btn) {
+            b.classList.remove("selected");
+            seleccionados = seleccionados.filter(s => s.nombre !== b.dataset.nombre);
+          }
+        });
+      }
 
-                <h3 hidden id="tituloVentana" class="titulo-animado" style="display: none; color: orangered; text-shadow: 1px 1px 1px #000;"></h3>
-              <br><br>
-              
-               <h3 style="color: #fff;">Barbero</h3><br>
-               
-                <button onclick="scrollToAncla('seccion-james')" disabled class="barberbutton" type="button">JAMES</button> <button hidden   onclick="scrollToAncla('seccion-james')" class="barberbutton" type="button">BRYAN</button> <button onclick="scrollToAncla('seccion-james')"  class="barberbutton" type="button" hidden >Jhon</button>
-               <br><br><br>
-               <div id="seccion-james">
-                
-              
-               <h3 style="color: #fff      ;">Selecciona una hora Disponible</h3><br>
-                <div id="horariosDisponibles"></div>
-            </div>
-             </div>
-        </div>
+      // Exclusivos de color (Color Global vs Visos)
+      if (btn.classList.contains("color")) {
+        document.querySelectorAll(".color").forEach(b => {
+          if (b !== btn) {
+            b.classList.remove("selected");
+            seleccionados = seleccionados.filter(s => s.nombre !== b.dataset.nombre);
+          }
+        });
+      }
 
-<script>
-  const botonesBarberos = document.querySelectorAll(".barberbutton");
+      if (btn.classList.contains("selected")) {
+        // desmarcar
+        btn.classList.remove("selected");
+        seleccionados = seleccionados.filter(s => s.nombre !== nombre);
+      } else {
+        // marcar
+        btn.classList.add("selected");
+        seleccionados.push({nombre, precio, tiempo});
+      }
 
-  botonesBarberos.forEach(boton => {
-    boton.addEventListener("click", () => {
-      botonesBarberos.forEach(b => b.classList.remove("activo"));
-      boton.classList.add("activo");
+      // actualizar total y opciones
+      const total = seleccionados.reduce((acc, s) => acc + s.precio, 0);
+      const tiempoTotal = seleccionados.reduce((acc, s) => acc + s.tiempo, 0);
+
+      totalInput.value = "$" + total.toLocaleString("es-CL");
+      opcionesInput.value = seleccionados.map(s => s.nombre).join(" + ");
+      tiempoInput.value = formatoTiempo(tiempoTotal);
+      const tiempoTotalHidden = document.getElementById("tiempoTotal");
+      if (tiempoTotalHidden) tiempoTotalHidden.value = tiempoTotal;
     });
   });
+
+
+     function enviarMensajeWhatsApp() {
+            const nombre = document.getElementById("nombre")?.value.trim();
+            const fecha = fechaInput.value;
+            const hora = document.getElementById("hora").value;
+            if (!nombre || !fecha || !hora) {
+                alert("Faltan datos: asegúrate de ingresar nombre, fecha y hora");
+                return;
+            }
+            const numeroDestino = "56954527837";
+            const opciones = (opcionesInput?.value || "").trim();
+            const tiempo = (tiempoInput?.value || "").trim();
+            const total = (totalInput?.value || "").trim();
+            const mensaje = `Hola, soy ${nombre}. Quiero reservar un ${opciones} para el día ${fecha} a las ${hora}.\nTiempo (Aprox): ${tiempo}\nTotal: ${total}`;
+            const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`;
+            window.open(url, "_blank");
+        }
+
 </script>
 
 <style>
-    .barberbutton {
-  background-color: #000;
-  color: #FFD700;
-  border: 2px solid #FFD700;
-  padding: 10px 20px;
-  font-family: 'Cinzel', serif; /* Fuente elegante, puedes cambiarla */
-  font-size: 18px;
-  letter-spacing: 1px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
-  animation: pulseGlow 2s infinite;
-}
-
-.barberbutton:hover {
-  background-color: #111;
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.9);
-  transform: scale(1.05);
-}
-
-@keyframes pulseGlow {
-  0% {
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+  #tiempo {
+    width: 250px;
+    padding: 10px;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-align: center;
+    border: 2px solid #ff6600;
+    border-radius: 8px;
+    background-color: #fff7f0;
+    color: #333;
+    margin-top: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   }
-  50% {
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
-  }
-  100% {
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
-  }
-}
-.barberbutton {
-  background-color: #000;
-  color: #FFD700;
-  border: 2px solid #FFD700;
-  padding: 10px 20px;
-  font-family: 'Cinzel', serif;
-  font-size: 18px;
-  border-radius: 8px;
-  margin: 5px;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  animation: pulseGlow 2s infinite;
-}
-
-.barberbutton:hover {
-  background-color: #111;
-  transform: scale(1.05);
-}
-
-/* Estilo para el botón activo */
-.barberbutton.activo {
-  background-color: #FFD700;
-  color: #fff;
-  border: 2px solid #000;
-  box-shadow: 0 0 15px rgba(255, 215, 0, 1);
-  animation: none;
-}
-
-</style>
+</style> </div>
 
 
+
+
+
+
+
+
+
+
+
+<h3 style="color: #fff      ;">Selecciona la hora</h3>
+                <div id="horariosDisponibles"></div>
+            </div>
+        </div>
 <script>
               function verbotonesdecierre(){
                 document.getElementById("botonescierraxdiv").style.display = 'block';
@@ -1752,6 +1314,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
 
+// Asegúrate de que este UID es el de tu cuenta de administrador
+const UID_ADMINISTRADOR = "TU_UID_DE_ADMINISTRADOR"; 
+
+// Usa el evento 'onAuthStateChanged' para saber si el usuario está logueado
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        // Si el usuario está logueado, verifica su UID
+        if (user.uid === UID_ADMINISTRADOR) {
+            // Si es el administrador, muestra el botón
+            const botonBorrar = document.getElementById("boton-listo-borrar");
+            if (botonBorrar) {
+                botonBorrar.style.display = "block";
+            }
+        }
+    } else {
+        // Si no hay usuario logueado, el botón se mantiene oculto
+        const botonBorrar = document.getElementById("boton-listo-borrar");
+        if (botonBorrar) {
+            botonBorrar.style.display = "none";
+        }
+    }
+});
 </script>
 <style>
 #boton-listo-borrar {
@@ -1840,38 +1424,13 @@ document.addEventListener('DOMContentLoaded', function() {
   transform: translateY(0); /* Vuelve a su posición original */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-</style>
-
+</style><div id="listaReservas"></div>
+        <h2 style="color: red !important; text-shadow: #000 1px 1px 2px;">⛔Horas Reservadas⛔</h2>
+        <input style="border: 1px solid red;" type="text" id="buscadorGlobal" placeholder="Buscar... por Año, Mes o Día" />
         <button id="boton-listo-borrar" onclick="miFuncionBorrar();ocultarBotonBorrar()">
-        
  Listo
 </button>
 <script>
-      function cargarReservasOrdenadas() {
-  const ref = database.ref("reservas-lista");
-  ref.once("value", (snapshot) => {
-    const reservas = [];
-
-    snapshot.forEach((child) => {
-      const reserva = child.val();
-      reservas.push(reserva);
-    });
-
-    // Ordenar por fecha y hora
-    reservas.sort((a, b) => {
-      const fechaA = new Date(`${a.fecha}T${a.hora.padStart(2, '0')}:${a.minutos.padStart(2, '0')}`);
-      const fechaB = new Date(`${b.fecha}T${b.hora.padStart(2, '0')}:${b.minutos.padStart(2, '0')}`);
-      return fechaA - fechaB;
-    });
-
-    // Mostrar en la lista
-    const lista = document.getElementById("reservas-lista");
-    lista.innerHTML = ""; // limpiar antes de mostrar
-    reservas.forEach((reserva) => {
-      mostrarReservaEnLista(reserva);
-    });
-  });
-}
     function mostrarBotonBorrar() {
     // Obtiene el elemento del botón
     const boton = document.getElementById("boton-listo-borrar");
@@ -1893,9 +1452,8 @@ function ocultarBotonBorrar() {
         ocultarBotonesX();
          }
 </script>
-    
+        <div id="reservas-lista"></div>
     </div>
-    <br><br><br><br>
     <style>
 
 /* Estilos generales del botón */
@@ -1961,14 +1519,6 @@ function ocultarBotonBorrar() {
 }
 </style>
     </style>
-    <script>
-       function ocultarreservar(){
-                   document.getElementById("reservar-button").style.display = 'none'; 
-            document.getElementById("cambiar-hora-btn").style.display = 'block'; 
-    
-     
-        }
-    </script>
 <form action="">
         <div id="modal-hora-personalizada" class="modal hidden">
         <div class="modal-content">
@@ -1977,168 +1527,24 @@ function ocultarBotonBorrar() {
 </button>  <input style="color: lime;" disabled type="date" id="fecha"  class="" required>
         
             <br>
-            <br>
-            <p style="text-shadow: #000 1px 1px 3px;">Se te redireccionará a <span style="text-shadow: #000 1px 1px 3px;  color: green;">WhatsApp</span></p>
-<b>           <!-- Ventana de advertencia -->
 
-<script>
-  function reservarbuttonmostrar(){
-    document.getElementById("reservar-button").style.display = 'block';
-  }
-</script>
-<!-- Font Awesome para el ícono de WhatsApp -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-<script>
-  function abrirAdvertencia() {
-    document.getElementById("ventanaAdvertencia").style.display = "block";
-  }
-
-  function cerrarAdvertencia() {
-    document.getElementById("ventanaAdvertencia").style.display = "none";
-  }
-
-</script>
-
-
-            <input type="text" style="font-size: 170%;" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
+            <p style="text-shadow: #000 1px 1px 3px;"  >Se te redireccionará a <span style="text-shadow: #000 1px 1px 3px;  color: green;">WhatsApp</span></p>
+<b>           
+            <input type="text" type="name" placeholder="Escribe tu nombre" id="nombre" oninput="miFuncion();">
             <br><br>
-            <button id="reservar-button" type="button" onclick="enviarMensajeWhatsApp();reservarHora();">Reservar</button>
-     <script>
-    
-function mostrarReservas(fecha) {
-  const listaReservas = document.getElementById("listaReservas");
-  listaReservas.innerHTML = "";
-
-  firebase.database().ref("reservas").once("value", snapshot => {
-    snapshot.forEach(barberoSnap => {
-      const barbero = barberoSnap.key;
-      barberoSnap.forEach(child => {
-        const r = child.val();
-        console.log("Reserva cargada:", r);
-
-        const nombre = (r && r.nombre) ? r.nombre : "⛔-Reservado-⛔";
-        const hora = (r && r.hora) ? r.hora : "⛔-Reservado-⛔";
-        const fechaReserva = r.fecha || fecha;
-        const idBloque = `${fechaReserva}-${hora}`;
-
-        if (document.getElementById(idBloque)) return;
-
-        const div = document.createElement("div");
-        div.className = "reserva-item";
-        div.id = idBloque;
-
-        const texto = document.createElement("span");
-        texto.textContent = `📅 ${fechaReserva} ⏰ ${hora} - Cliente 👉 (${nombre})`;
-
-        const botonX = document.createElement("span");
-botonX.textContent = " | ❌";
-botonX.className = "boton-x";
-botonX.title = "Eliminar esta hora";
-botonX.onclick = () => {
-  const reservaRef = firebase.database().ref(`reservas/${barbero}/${child.key}`);
-  reservaRef.remove().then(() => {
-    div.remove();
-  });
-};
-
-
-        div.appendChild(texto);
-        div.appendChild(botonX);
-        listaReservas.appendChild(div);
-      });
-    });
-  });
-}
-
-
-
-
-function reservarHora() {
-    ocultarreservar();
-  try {
-    const nombre = document.getElementById("nombre").value.trim();
-    const fecha = document.getElementById("fecha").value.trim();
-    const hora = document.getElementById("hora").value.trim();
-   const total = document.getElementById("eltotal").value.trim();
-   const tiempoMin = parseInt(document.getElementById("tiempoTotal")?.value || "60", 10);
-
-    if (!nombre || !fecha || !hora) {
-      alert("Por favor completa todos los campos.");
-      return;
-    }
-
-    const claveFechaHora = `${fecha}-${hora}`;
-    const reservasRef = firebase.database().ref(`reservas/${barberoSeleccionado}`);
-
-   reservasRef.once("value", snapshot => {
-  let ocupada = false;
-
-  snapshot.forEach(child => {
-    const r = child.val();
-    if (`${r.fecha}-${r.hora}` === claveFechaHora) {
-      ocupada = true;
-    }
-  });
-
-  if (ocupada) {
-    document.getElementById("modal-ocupado").classList.remove("hidden");
-  } else {
-    document.getElementById("modal-reservada").classList.remove("hidden");
-
-    const nombreSeguro = nombre || "⛔-Reservado-⛔";
-    reservarConDuracion(reservasRef, fecha, hora, nombreSeguro, tiempoMin, function() {
-      firebase.database().ref('reservas/JAMES-lista').push({ nombre: nombreSeguro, fecha, hora, ts: Date.now() });
-      marcarSlotsPorDuracion(hora, tiempoMin);
-      cargarReservasPorBarbero(() => {
-        mostrarReservas(fecha);
-        abrirVentanaHorarios(fecha);
-      });
-    });
-  }
-});
-
-  } catch (error) {
-    console.error("Error en reservarHora:", error?.message || error);
-    alert("Ocurrió un error al intentar reservar.");
-  }
-}
-
-
-
-</script>
-     
-     
+            <button id="reservar-button" type="button" onclick="reservarHora()">Reservar</button>
         </div>
     </div>
 </form>
 <script>
-  document.getElementById("reservar-button").addEventListener("click", reservarHora);
-
+  
 </script>
     <div id="modal-reservada" class="modal hidden">
         <div class="modal-content reservada">
             <h3 style="text-shadow: #000 1px 1px 3px;">HORA DISPONIBLE</h3>
         </div>
     </div>
-    <script>
-  function scrollToAncla(id) {
-    const destino = document.getElementById(id);
-    if (destino) {
-      destino.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-</script>
-<style>
-
-
-html {
-  scroll-behavior: smooth;
-}
-
-
-
-.dias-semana {
+<style>.dias-semana {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 6px; 
@@ -2159,23 +1565,21 @@ input {
   text-transform: capitalize;
 }
 .container {
-  max-width: 90%;
-  margin: auto;
+  width: 100% !important;
+  margin: 0 !important;
   background-color: #111;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 0 15px #FF7300;
+  padding: 0px !important;
+  border-radius: 0px;
   height: 100%;
-}
+} 
+/* IMPORTANTE CONFIG CONTAINER */
 
 h1, h2 {
   text-align: center;
   color: #F5A122 !important;
   text-shadow: #000 1px 1px 2px;
 }
-span{
-  font-size: 160%;
-}
+
 #modal-acceso{
   z-index: 2000;
 }
@@ -2448,7 +1852,8 @@ button {
 /* Logo */
 #logo, #logo-cerrado {
   border-radius: 10px;
-  box-shadow: 0 0 10px orange;
+  box-shadow: linear-gradient(to top, red, white,) 1;
+
 }
 
 /* Botón de calendario */
@@ -2880,13 +2285,23 @@ img {
 }
 
 .diaOcupado {
-  background-color: green;
+  background-color: #ff4d4d;
   color: white;
 }
 
 .diaCalendario:hover {
   transform: scale(1.05);
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+/* Slots de hora ocupados por duración */
+.hora-slot.ocupada {
+  background: #f44336;
+  color: #fff;
+  opacity: 0.85;
+  cursor: not-allowed;
+}
+.hora-slot[disabled] {
+  pointer-events: none;
 }
 
 /* 🪟 Modal de horarios */
@@ -2928,17 +2343,6 @@ img {
   text-align: center;
   cursor: pointer;
   transition: transform 0.2s ease;
-}
-.bloqueHora {
-    padding: 8px;
-    margin: 4px 0;
-    border: 2px solid transparent;
-    border-radius: 4px;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    border-image: linear-gradient(to top, black, white) 1;
 }
 
 .horaLibre {
@@ -3042,31 +2446,88 @@ img {
 <script>
 
 </script>
-
+<script src="app.js"></script>
+<script src="server.js"></script>
 <script>
+
+// Registrar el Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/firebase-messaging-sw.js')
+    .then(reg => {
+      console.log('Service Worker registrado');
+    })
+    .catch(err => {
+      console.error('Error al registrar el Service Worker:', err);
+    });
+}
+
+// Solicitar permiso y guardar token
+document.getElementById('solicitar').addEventListener('click', async () => {
+  try {
+    const permiso = await Notification.requestPermission();
+    if (permiso === 'granted') {
+      const token = await messaging.getToken({ vapidKey: 'LPiNDM_XNqEyUax9FouVf80pSRw0RKakQcr3uWolXio' }); // reemplaza con tu VAPID
+      console.log('Token:', token);
+
+      await fetch('http://localhost:3000/guardar-token', {
+        method: 'POST',
+        body: JSON.stringify({ token }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  } catch (err) {
+    console.error('Error al solicitar notificaciones:', err);
+  }
+});
+
+// Simular reserva y enviar notificación
+document.getElementById('reservar').addEventListener('click', async () => {
+  await fetch('http://localhost:3000/enviar-notificaciones', {
+    method: 'POST',
+    body: JSON.stringify({
+      titulo: 'Nueva reserva',
+      mensaje: 'Se ha confirmado una nueva reserva en la barbería 💈'
+    }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+});
 
 </script>
     <script>
 
-  
+// Import the functions you need from the SDKs you need
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBHLlV9HDfa1v-Uz4YVcbt3vQGByhNFYus",
+  authDomain: "jeisonstyle-1530f.firebaseapp.com",
+  databaseURL: "https://jeisonstyle-1530f-default-rtdb.firebaseio.com",
+  projectId: "jeisonstyle-1530f",
+  storageBucket: "jeisonstyle-1530f.firebasestorage.app",
+  messagingSenderId: "40159402096",
+  appId: "1:40159402096:web:d54b2d9a2dd990c1203cb5",
+  measurementId: "G-3RGRBSQ9QG"
+};
+
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const reservasRef = firebase.database().ref("reservas/JAMES");
-
+        const reservasRef = db.ref("reservas");
         const horariosRef = db.ref("horarios"); // Nueva referencia para los horarios personalizados
 
         const fechaInput = document.getElementById("fecha");
-        const listaReservas = document.getElementById("listaReservas");
-
+        const listaReservas = document.getElementById("reservas-lista");
         const cuadroCalendario = document.getElementById("cuadroCalendario");
         const ventanaHorarios = document.getElementById("modal-horarios");
         const cerrarVentana = document.getElementById("cerrarVentana");
         const tituloVentana = document.getElementById("tituloVentana");
         const horariosDisponibles = document.getElementById("horariosDisponibles");
+        const selectorMesTexto = document.getElementById("selectorMesTexto");
         const tituloMes = document.getElementById("tituloMes");
         const botonAnterior = document.getElementById("mesAnterior");
         const botonSiguiente = document.getElementById("mesSiguiente");
+        const botonHoy = document.getElementById("hoyBtn");
         const botonActivarBloqueo = document.getElementById("activarBloqueoDias");
         const botonDesactivarBloqueo = document.getElementById("desactivarBloqueoDias");
         const modalConfiguracionHorarios = document.getElementById("modal-configuracion-horarios");
@@ -3078,35 +2539,13 @@ img {
         let modoGestionHorarios = false;
         let diasBloqueados = [];
         let horariosPersonalizados = {};
+        let reservasPorDia = {};
         let fechaActualCalendario = new Date();
         let fechaSeleccionadaParaConfigurar = "";
 // CAMBIAR HORARIO
-      const bloquesBase = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
-    const horarioDelDia = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
-   
-const horariosBarberos = {
-    JAMES: {
-        semana: ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"],
-        domingo: ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"]
-    },
-    BRYAN: {
-        semana: ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"],
-        domingo: ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"]
-    },
-    Jhon: {
-        semana: ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"],
-        domingo: ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"]
-    }
-};
-let barberoSeleccionado = "JAMES"; // predeterminado
-
-document.querySelectorAll("#modal-horarios .barberbutton").forEach(boton => {
-    boton.addEventListener("click", () => {
-        barberoSeleccionado = boton.textContent.trim();
-        const fechaSeleccionada = fechaInput.value;
-        abrirVentanaHorarios(fechaSeleccionada);
-    });
-});
+        const horarioSemana = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
+        const horarioDomingo = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
+        const bloquesBase = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
 
 
         const mesesTexto = [
@@ -3119,32 +2558,18 @@ document.querySelectorAll("#modal-horarios .barberbutton").forEach(boton => {
         const diasBloqueadosRef = firebase.database().ref("diasBloqueados");
 
         // Escuchar reservas en tiempo real
-reservasRef.on("value", snapshot => {
-  reservasPorBarbero = {};
-
-  snapshot.forEach(barberoSnap => {
-    const barbero = barberoSnap.key;
-    reservasPorBarbero[barbero] = {};
-
-    barberoSnap.forEach(reservaSnap => {
-      const reserva = reservaSnap.val();
-      const fecha = reserva.fecha;
-      const hora = reserva.hora;
-      const nombre = reserva.nombre;
-      if (!reservasPorBarbero[barbero][fecha]) {
-        reservasPorBarbero[barbero][fecha] = [];
-      }
-
-      reservasPorBarbero[barbero][fecha].push(hora);
-    });
-  });
-
-  actualizarBarraMes();
-});
-
-
-
-
+        reservasRef.on("value", snapshot => {
+            reservasPorDia = {};
+            snapshot.forEach(child => {
+                const {
+                    fecha,
+                    hora
+                } = child.val();
+                if (!reservasPorDia[fecha]) reservasPorDia[fecha] = [];
+                reservasPorDia[fecha].push(hora);
+            });
+            actualizarBarraMes();
+        });
 
         // Escuchar días bloqueados en tiempo real
         diasBloqueadosRef.on("value", snapshot => {
@@ -3174,37 +2599,25 @@ function obtenerHorario(fechaStr) {
 
     return horarioSemana;
 }
-function obtenerHorarioDelDiaDesdeFecha(fecha) {
-    const diaSemana = new Date(fecha).getDay(); // 0 = Domingo
-    const horarios = horariosBarberos[barberoSeleccionado];
-    return diaSemana === 0 ? horarios.domingo : horarios.semana;
+
+  function obtenerHorarioDelDiaDesdeFecha(fechaStr) {
+    const partes = fechaStr.split("-");
+    const anio = parseInt(partes[0], 10);
+    const mes = parseInt(partes[1], 10);
+    const dia = parseInt(partes[2], 10);
+    const fechaObj = new Date(anio, mes - 1, dia);
+    const diaSemana = fechaObj.getDay();
+
+    if (horariosPersonalizados[fechaStr]) {
+        return horariosPersonalizados[fechaStr];
+    }
+
+    if (diaSemana === 0) {
+        return horarioDomingo;
+    }
+
+    return horarioSemana;
 }
-
-let reservasPorBarbero = {};
-
-function cargarReservasPorBarbero(callback) {
-  firebase.database().ref("reservas").once("value", snapshot => {
-    reservasPorBarbero = {}; // reiniciar
-
-    snapshot.forEach(barberoSnap => {
-      const barbero = barberoSnap.key;
-      reservasPorBarbero[barbero] = {};
-
-      barberoSnap.forEach(child => {
-        const r = child.val();
-        if (!reservasPorBarbero[barbero][r.fecha]) {
-          reservasPorBarbero[barbero][r.fecha] = [];
-          console.log("Reserva cargada:", r);
-
-        }
-        reservasPorBarbero[barbero][r.fecha].push(r.hora);
-      });
-    });
-
-    if (typeof callback === "function") callback();
-  });
-}
-
 
     
      function generarCuadroCalendario() {
@@ -3231,7 +2644,7 @@ function cargarReservasPorBarbero(callback) {
         celda.classList.add("diaCalendario");
         celda.textContent = dia;
 
-        const horasReservadas = reservasPorBarbero[barberoSeleccionado]?.[fechaActual] || [];
+        const horasReservadas = reservasPorDia[fechaActual] || [];
         
         
      const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fechaActual);
@@ -3261,7 +2674,7 @@ const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.leng
             celda.classList.add("diaBloqueado");
             celda.title = "Día bloqueado por el administrador";
         } else if (estaOcupado) {
-            celda.classList.add("diaBloqueado");
+            celda.classList.add("diaOcupado");
             celda.title = "Día con todas las horas reservadas";
         } else {
             celda.classList.add("diaLibre");
@@ -3269,7 +2682,7 @@ const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.leng
         }
         
         // **NUEVA LÓGICA:** Deshabilitar el clic si el día ya pasó
-        if (diaPasado || (!modoBloqueoDias && (estaBloqueado || estaOcupado))) {
+        if (diaPasado || (!modoBloqueoDias && estaBloqueado)) {
             celda.style.pointerEvents = "none";
         }
 
@@ -3301,7 +2714,8 @@ const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.leng
         };
 
         cuadroCalendario.appendChild(celda);
-    }
+            iniciarPresionDia(celda, fechaActual, 1000);
+        }
 }
 
 const diasDeLaSemanaBloqueados = [];
@@ -3336,14 +2750,24 @@ function habilitarDiaDeLaSemana(dia) {
             fechaActualCalendario.setMonth(fechaActualCalendario.getMonth() + 1);
             actualizarBarraMes();
         };
+        if (botonHoy) {
+            botonHoy.onclick = () => {
+                const hoy = new Date();
+                fechaActualCalendario = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+                actualizarBarraMes();
+                const fechaStr = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,"0")}-${String(hoy.getDate()).padStart(2,"0")}`;
+                const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fechaStr);
+                const estaBloqueado = diasBloqueados.includes(fechaStr) || horarioDelDia.length === 0;
+                if (!estaBloqueado) {
+                    fechaInput.value = fechaStr;
+                    abrirVentanaHorarios(fechaStr);
+                }
+            };
+        }
 
         window.addEventListener("DOMContentLoaded", () => {
             actualizarBarraMes();
-            abrirAdvertencia();
-            cargarReservasPorBarbero(generarCuadroCalendario);
             botonDesactivarBloqueo.style.display = 'none';
-
-            
         });
 
         botonActivarBloqueo.onclick = () => {
@@ -3379,7 +2803,7 @@ function habilitarDiaDeLaSemana(dia) {
        document.getElementById("buscadorGlobal").addEventListener("input", () => {
     // Convertir el valor del input a minúsculas y eliminar espacios en blanco
     const filtro = document.getElementById("buscadorGlobal").value.trim().toLowerCase();
-    const contenedor = document.getElementById("listaReservas");
+    const contenedor = document.getElementById("reservas-lista");
 
     if (!contenedor) return;
 
@@ -3485,11 +2909,51 @@ setTimeout(() => {
             if (div) div.remove();
         });
 
-        
+       function reservarHora() {
+    const fecha = document.getElementById("fecha").value;
+    const hora = document.getElementById("hora").value;
+    const nombre = document.getElementById("nombre").value.trim();
 
+    if (!fecha || !hora || !nombre) {
+        alert("Completa todos los campos: nombre, fecha y hora");
+        return;
+    }
 
+    const idBloque = `${fecha}-${hora}`;
+    const ref = reservasRef;
 
+    ref.once("value", snapshot => {
+        let ocupada = false;
+        snapshot.forEach(child => {
+            const r = child.val();
+            if (`${r.fecha}-${r.hora}` === idBloque) {
+                ocupada = true;
+            }
+        });
 
+       if (ocupada) {
+            document.getElementById("modal-ocupado").classList.remove("hidden");
+        } else {
+            const tiempoMin = parseInt(document.getElementById("tiempoTotal")?.value || "0", 10);
+            const horasNecesarias = Math.ceil(tiempoMin / 60);
+            const baseHH = parseInt(hora.split(":")[0], 10);
+            const ocupadasSet = new Set();
+            snapshot.forEach(child => {
+                const r = child.val();
+                if (r.fecha === fecha) ocupadasSet.add(r.hora);
+            });
+            for (let i = 0; i < Math.max(horasNecesarias, 1); i++) {
+                const h = String(baseHH + i).padStart(2, "0") + ":00";
+                if (!ocupadasSet.has(h)) {
+                    ref.push({ fecha, hora: h, nombre });
+                }
+            }
+            document.getElementById("modal-reservada").classList.remove("hidden");
+            marcarHorasOcupadasPorDuracion();
+            enviarMensajeWhatsApp();
+        }
+    });
+}
 
 
         function cerrarModal(id) {
@@ -3499,7 +2963,7 @@ setTimeout(() => {
         function validarClave() {
             const claveInput = document.getElementById("clave-input");
             const clave = claveInput.value;
-            if (clave === "3331") {
+            if (clave === "1234") {
                 document.getElementById("modal-acceso").classList.add("fantasma");
                 document.getElementById("modal-control").classList.remove("fantasma");
                 claveInput.value = "";
@@ -3518,55 +2982,149 @@ setTimeout(() => {
             document.getElementById("modal-control").classList.add("fantasma");
         }
 
+        estadoRef.on("value", snapshot => {
+            const estado = snapshot.val();
+            console.log("Estado actualizado:", estado);
+            if (estado === "cerrado") {
+                document.getElementById("modal-cerrado").style.display = "flex";
+            } else {
+                document.getElementById("modal-cerrado").style.display = "none";
+            }
+        });
+
         function activarPresionProlongada(elemento, accion, tiempo = 1000) {
-            elemento.addEventListener("mousedown", () => {
-                presionarTimer = setTimeout(accion, tiempo);
-            });
-            elemento.addEventListener("mouseup", () => clearTimeout(presionarTimer));
-            elemento.addEventListener("mouseleave", () => clearTimeout(presionarTimer));
-            elemento.addEventListener("touchstart", () => {
-                presionarTimer = setTimeout(accion, tiempo);
-            });
-            elemento.addEventListener("touchend", () => clearTimeout(presionarTimer));
+            let timer = null;
+            let startX = 0, startY = 0;
+            const threshold = 12;
+            const setFlag = () => {
+                elemento.dataset.longpress = "1";
+                accion();
+                setTimeout(() => { elemento.dataset.longpress = ""; }, 150);
+            };
+            const start = (x, y) => {
+                clearTimeout(timer);
+                startX = x; startY = y;
+                timer = setTimeout(setFlag, tiempo);
+            };
+            const move = (x, y) => {
+                if (!timer) return;
+                const dx = Math.abs(x - startX);
+                const dy = Math.abs(y - startY);
+                if (dx > threshold || dy > threshold) {
+                    clearTimeout(timer);
+                    timer = null;
+                }
+            };
+            const cancel = () => {
+                clearTimeout(timer);
+                timer = null;
+            };
+            if (window.PointerEvent) {
+                elemento.addEventListener("pointerdown", (e) => start(e.clientX, e.clientY));
+                elemento.addEventListener("pointermove", (e) => move(e.clientX, e.clientY));
+                elemento.addEventListener("pointerup", cancel);
+                elemento.addEventListener("pointercancel", cancel);
+                elemento.addEventListener("pointerleave", cancel);
+            } else {
+                elemento.addEventListener("mousedown", (e) => start(e.clientX, e.clientY));
+                elemento.addEventListener("mousemove", (e) => move(e.clientX, e.clientY));
+                elemento.addEventListener("mouseup", cancel);
+                elemento.addEventListener("mouseleave", cancel);
+                elemento.addEventListener("touchstart", (e) => {
+                    const t = e.changedTouches[0];
+                    start(t.clientX, t.clientY);
+                }, { passive: true });
+                elemento.addEventListener("touchmove", (e) => {
+                    const t = e.changedTouches[0];
+                    move(t.clientX, t.clientY);
+                }, { passive: true });
+                elemento.addEventListener("touchend", cancel);
+                elemento.addEventListener("touchcancel", cancel);
+            }
+        }
+        function iniciarPresionDia(elemento, fecha, tiempo = 1000) {
+            let timer = null;
+            const start = () => {
+                clearTimeout(timer);
+                timer = setTimeout(() => abrirModalReservasDia(fecha), tiempo);
+            };
+            const cancel = () => {
+                clearTimeout(timer);
+                timer = null;
+            };
+            elemento.addEventListener("mousedown", start);
+            elemento.addEventListener("mouseup", cancel);
+            elemento.addEventListener("mouseleave", cancel);
+            elemento.addEventListener("touchstart", start, { passive: true });
+            elemento.addEventListener("touchend", cancel);
+            elemento.addEventListener("touchcancel", cancel);
         }
 
-      const reservasRefMostrar = firebase.database().ref("reservas/JAMES");
-reservasRefMostrar.on("child_added", (snapshot) => {
-  const r = snapshot.val();
-  const fecha = r && r.fecha ? r.fecha : "";
-  const hora = r && r.hora ? r.hora : "⛔-Reservado-⛔";
-  const nombre = r && r.nombre ? r.nombre : "⛔-Reservado-⛔";
-  const barbero = barberoSeleccionado;
-
-  const idBloque = `${fecha}-${hora}`;
-  if (document.getElementById(idBloque)) return;
-
-  const div = document.createElement("div");
-  div.className = "reserva-item";
-  div.id = idBloque;
-
-  const texto = document.createElement("span");
-  texto.textContent = `📅 ${fecha} ⏰ ${hora} - Cliente 👉 (${nombre})`;
-
-  const botonX = document.createElement("span");
-  botonX.textContent = " | ❌";
-  botonX.className = "boton-x";
-  botonX.title = "Eliminar esta hora";
-  botonX.onclick = () => {
-    reservasRefMostrar.child(snapshot.key).remove().then(() => {
-      div.remove();
-      abrirVentanaHorarios(fecha);
-      document.getElementById("modal-horarios").style.display = 'none';
-    });
-  };
-
-  div.appendChild(texto);
-  div.appendChild(botonX);
-  listaReservas.appendChild(div);
-});
-
-
-
+        const reservasRefMostrar = firebase.database().ref("reservas");
+        reservasRefMostrar.on("child_added", (snapshot) => {
+            const {
+                fecha,
+                hora,
+                nombre
+            } = snapshot.val();
+            const idBloque = `${fecha}-${hora}`;
+            if (document.getElementById(idBloque)) return;
+            const grupoId = `grupo-${fecha}`;
+            let grupo = document.getElementById(grupoId);
+            if (!grupo) {
+                grupo = document.createElement("div");
+                grupo.id = grupoId;
+                grupo.className = "grupo-dia";
+                const header = document.createElement("h3");
+                header.textContent = `📅 ${fecha}`;
+                grupo.appendChild(header);
+                const ts = (function(f){ const [y,m,d]=f.split("-").map(n=>parseInt(n,10)); return new Date(y,m-1,d).getTime(); })(fecha);
+                const children = Array.from(listaReservas.children).filter(c => c.classList && c.classList.contains("grupo-dia"));
+                let inserted = false;
+                for (let i=0;i<children.length;i++){
+                    const id = children[i].id || "";
+                    const f = id.replace("grupo-","");
+                    const otherTs = (function(f){ const [y,m,d]=f.split("-").map(n=>parseInt(n,10)); return new Date(y,m-1,d).getTime(); })(f);
+                    if (ts > otherTs) {
+                        listaReservas.insertBefore(grupo, children[i]);
+                        inserted = true;
+                        break;
+                    }
+                }
+                if (!inserted) listaReservas.appendChild(grupo);
+            }
+            const item = document.createElement("div");
+            item.className = "reserva-item";
+            item.id = idBloque;
+            const texto = document.createElement("span");
+            texto.textContent = `⏰ ${hora} - ${nombre}`;
+            const botonX = document.createElement("span");
+            botonX.textContent = " | ❌";
+            botonX.className = "boton-x";
+            botonX.title = "Eliminar esta hora";
+            botonX.onclick = () => {
+                const reservaId = snapshot.key;
+                const reservaRef = reservasRefMostrar.child(reservaId);
+                reservaRef.remove().catch((error) => {
+                    console.error("Error al eliminar la reserva:", error);
+                });
+            };
+            item.appendChild(texto);
+            item.appendChild(botonX);
+            const childrenItems = Array.from(grupo.children).filter(c => c.classList && c.classList.contains("reserva-item"));
+            let insertedItem = false;
+            for (let i=0;i<childrenItems.length;i++){
+                const t = childrenItems[i].querySelector("span") ? childrenItems[i].querySelector("span").textContent : childrenItems[i].textContent;
+                const match = t.match(/(\d{2}:\d{2})/);
+                const otherHora = match ? match[1] : "";
+                if (hora > otherHora) {
+                    grupo.insertBefore(item, childrenItems[i]);
+                    insertedItem = true;
+                    break;
+                }
+            }
+            if (!insertedItem) grupo.appendChild(item);
+        });
 
         function mostrarBotonesX() {
             document.querySelectorAll(".boton-x").forEach(b => {
@@ -3592,12 +3150,16 @@ reservasRefMostrar.on("child_added", (snapshot) => {
             document.getElementById("modal-mensaje").classList.add("fantasma");
         }
 
+        mensajeRef.on("value", snapshot => {
+            const mensaje = snapshot.val();
+            document.getElementById("mensaje-cerrado").textContent = mensaje || "";
+        });
 
         function borrarTodasLasHorasEnPantalla() {
             reservasRef.remove()
                 .then(() => {
                     console.log("Todas las reservas han sido eliminadas de Firebase");
-                    const lista = document.getElementById("listaReservas");
+                    const lista = document.getElementById("reservas-lista");
                     if (!lista) {
                         console.warn("No se encontró el contenedor de reservas");
                         return;
@@ -3636,108 +3198,108 @@ reservasRefMostrar.on("child_added", (snapshot) => {
             document.getElementById("reservar-button").style.display = 'block';
               document.getElementById("nombre").addEventListener("input", function () {
   this.value = this.value.replace(/\d/g, ""); // elimina todos los números
-  
 });
         }
 
- function abrirVentanaHorarios(fecha) {
-    tituloVentana.textContent = `${fecha} - BARBERO: ${barberoSeleccionado}`;
-    horariosDisponibles.innerHTML = "";
-
-    const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fecha);
-    const reservasRef = firebase.database().ref(`reservas/${barberoSeleccionado}`);
-
-    reservasRef.once("value", snapshot => {
-        const horasReservadas = [];
-
-        snapshot.forEach(child => {
-            const reserva = child.val();
-            if (reserva.fecha === fecha && reserva.hora) {
-                horasReservadas.push(reserva.hora);
+        function smoothScrollToServicios() {
+            const modalContent = document.querySelector('#modal-horarios .contenidoModal');
+            const target = document.getElementById('serviciosTitulo');
+            if (!modalContent || !target) return;
+            const start = modalContent.scrollTop;
+            const targetTop = target.getBoundingClientRect().top - modalContent.getBoundingClientRect().top + modalContent.scrollTop;
+            const change = targetTop - start;
+            const duration = 2500;
+            let currentTime = 0;
+            const step = 1000 / 60;
+            function easeInOutCubic(t, b, c, d) {
+                t /= d / 2;
+                if (t < 1) return c / 2 * t * t * t + b;
+                t -= 2;
+                return c / 2 * (t * t * t + 2) + b;
             }
-        });
+            function animateScroll() {
+                currentTime += step;
+                const val = easeInOutCubic(currentTime, start, change, duration);
+                modalContent.scrollTop = val;
+                if (currentTime < duration) {
+                    requestAnimationFrame(animateScroll);
+                } else {
+                    modalContent.scrollTop = targetTop;
+                }
+            }
+            requestAnimationFrame(animateScroll);
+        }
+        function abrirVentanaHorarios(fecha) {
+            tituloVentana.textContent = `${fecha}`;
+            horariosDisponibles.innerHTML = "";
+            const horasReservadas = reservasPorDia[fecha] || [];
+           const diaSemana = new Date(fecha).getDay(); // 0 = Domingo
+   
+const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fecha);
 
-        mostrarBloquesHorario(fecha, horarioDelDia, horasReservadas);
-    });
-}
 
-function mostrarBloquesHorario(fecha, horarioDelDia, horasReservadas) {
-    horarioDelDia.forEach(hora => {
-        const bloque = document.createElement("div");
-        bloque.classList.add("bloqueHora");
-        bloque.classList.add("hora-slot");
-        bloque.setAttribute("data-hora", hora);
 
-        if (horasReservadas.includes(hora)) {
-            bloque.classList.add("horaOcupada");
-            bloque.textContent = `⛔ ${hora}`;
-        } else {
-            bloque.classList.add("horaLibre");
-            bloque.textContent = `✅ ${hora}`;
-            bloque.onclick = () => {
-                // Preparamos los datos para el mensaje de WhatsApp (Hora y Fecha)
-                document.getElementById("hora").value = hora;
-                fechaInput.value = fecha;
-abrirVentanaDia();
-                document.getElementById("modal-hora-personalizada").classList.remove("hidden");
-                ventanaHorarios.style.display = "none";
+            horarioDelDia.forEach(hora => {
+                const bloque = document.createElement("div");
+                bloque.classList.add("bloqueHora");
+                bloque.classList.add("hora-slot");
+                bloque.dataset.hora = `${hora.split(":")[0].padStart(2,"0")}:00`;
+                if (horasReservadas.includes(hora)) {
+                    bloque.classList.add("horaOcupada");
+                    bloque.classList.add("ocupada");
+                    bloque.setAttribute("disabled", "");
+                    bloque.textContent = `⛔ ${hora}`;
+                } else {
+                    bloque.classList.add("horaLibre");
+                    bloque.textContent = `✅ ${hora}`;
+                    bloque.onclick = () => {
+                        document.getElementById("hora").value = hora;
+                        fechaInput.value = fecha;
+                        document.getElementById("modal-hora-personalizada").classList.remove("hidden");
+                        ventanaHorarios.style.display = "none";
+                    };
+                }
+                horariosDisponibles.appendChild(bloque);
+            });
+            ventanaHorarios.style.display = "block";
+            setTimeout(smoothScrollToServicios, 80);
+        }
+        function abrirModalReservasDia(fecha) {
+            const modal = document.getElementById("modal-reservas-dia");
+            const titulo = document.getElementById("titulo-reservas-dia");
+            const cont = document.getElementById("lista-reservas-dia");
+            if (!modal || !titulo || !cont) return;
+            titulo.textContent = `Reservas de ${fecha}`;
+            cont.innerHTML = "";
+            reservasRef.orderByChild("fecha").equalTo(fecha).once("value", snapshot => {
+                const arr = [];
+                snapshot.forEach(child => {
+                    const r = child.val();
+                    arr.push({ hora: r.hora, nombre: r.nombre || "", key: child.key });
+                });
+                arr.sort((a,b) => a.hora < b.hora ? 1 : (a.hora > b.hora ? -1 : 0));
+                arr.forEach(r => {
+                    const d = document.createElement("div");
+                    d.className = "reserva-item";
+                    d.textContent = `⏰ ${r.hora} · ${r.nombre}`;
+                    cont.appendChild(d);
+                });
+                modal.classList.remove("fantasma");
+            });
+            window.onclick = (e) => {
+                if (e.target === modal) modal.classList.add("fantasma");
             };
         }
 
-        // Agregar el bloque
-        horariosDisponibles.appendChild(bloque);
+        cerrarVentana.onclick = () => {
+            ventanaHorarios.style.display = "none";
+        };
 
-        // Agregar dos saltos de línea después del bloque
-        horariosDisponibles.appendChild(document.createElement("br"));
-        horariosDisponibles.appendChild(document.createElement("br"));
-    });
+        window.onclick = (e) => {
+            if (e.target === ventanaHorarios) ventanaHorarios.style.display = "none";
+        };
 
-    ventanaHorarios.style.display = "block";
-}
-
-function marcarSlotsPorDuracion(baseHora, tiempoMin) {
-    const fecha = fechaInput.value;
-    const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fecha);
-    const idx = horarioDelDia.indexOf(baseHora);
-    const slots = Math.max(1, Math.ceil((parseInt(tiempoMin || "60", 10)) / 60));
-    for (let i = 0; i < slots && (idx + i) < horarioDelDia.length; i++) {
-        const h = horarioDelDia[idx + i];
-        document.querySelectorAll(`.hora-slot[data-hora="${h}"]`).forEach(el => {
-            el.classList.remove("horaLibre");
-            el.classList.add("horaOcupada");
-            el.setAttribute("disabled", "");
-            el.textContent = `⛔ ${h}`;
-            el.onclick = null;
-        });
-    }
-}
-
-function reservarConDuracion(ref, fecha, baseHora, nombre, tiempoMin, done) {
-    const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fecha);
-    const idx = horarioDelDia.indexOf(baseHora);
-    const slots = Math.max(1, Math.ceil((parseInt(tiempoMin || "60", 10)) / 60));
-    const objetivos = [];
-    for (let i = 0; i < slots && (idx + i) < horarioDelDia.length; i++) {
-        objetivos.push(horarioDelDia[idx + i]);
-    }
-    ref.once("value", snapshot => {
-        const ocupadas = {};
-        snapshot.forEach(child => {
-            const r = child.val();
-            if (r && r.fecha && r.hora) {
-                ocupadas[r.fecha + "|" + r.hora] = true;
-            }
-        });
-        objetivos.forEach(h => {
-            const k = fecha + "|" + h;
-            if (!ocupadas[k]) {
-                ref.push({ fecha, hora: h, nombre });
-            }
-        });
-        if (typeof done === "function") done();
-    });
-}
-
+     
         // NUEVA FUNCIONALIDAD: GESTIÓN DE HORARIOS PERSONALIZADOS
 
         function activarModoHorarios() {
@@ -3827,5 +3389,506 @@ function reservarConDuracion(ref, fecha, baseHora, nombre, tiempoMin, done) {
     cursor: not-allowed;
     pointer-events: none; /* Esto evita que se pueda hacer clic en el día */
 }</style>
+
+    <style>
+    :root{
+      --barber-red:#ff4d4d;
+      --barber-blue:#0066cc;
+      --barber-white:#ffffff;
+      --barber-orange:#ffa500;
+      --barber-black:#111111;
+    }
+
+    .container{
+      position: relative;
+    }
+    .container::before{
+      content:"";
+      position:absolute;
+      top:-6px;
+      left:0;
+      width:100%;
+      height:6px;
+      background:repeating-linear-gradient(45deg,var(--barber-red) 0 12px,var(--barber-white) 12px 24px,var(--barber-blue) 24px 36px);
+      border-radius:6px 6px 0 0;
+      box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    #tituloMes{
+      letter-spacing:1px;
+      text-shadow:0 2px 8px rgba(255,165,0,0.3);
+    }
+
+    .botonMes{
+      background:linear-gradient(135deg,var(--barber-orange),#ff6f00);
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      padding:8px 12px;
+      box-shadow:0 6px 18px rgba(255,111,0,0.35);
+      transition:transform .2s ease,box-shadow .2s ease;
+    }
+    .botonMes:hover{
+      transform:translateY(-2px);
+      box-shadow:0 10px 22px rgba(255,111,0,0.5);
+    }
+
+    .diaCalendario{
+      box-shadow:0 0 0 2px rgba(255,165,0,0.25) inset,0 4px 12px rgba(0,0,0,0.25);
+    }
+    .diaLibre{
+      background-image:linear-gradient(180deg,rgba(0,0,0,0.15),transparent);
+    }
+    .diaOcupado{
+      background-image:linear-gradient(180deg,rgba(255,255,255,0.08),transparent);
+    }
+    .diaBloqueado{
+      background-image:linear-gradient(180deg,rgba(0,0,0,0.2),transparent);
+    }
+    .diaPasado{
+      filter:grayscale(20%);
+      opacity:.85;
+    }
+
+    .caja-misteriosa{
+      border:6px solid transparent;
+      border-image:repeating-linear-gradient(45deg,var(--barber-red) 0 12px,var(--barber-white) 12px 24px,var(--barber-blue) 24px 36px) 6;
+    }
+
+    #reservar-button{
+      position:relative;
+      box-shadow:0 8px 22px rgba(255,165,0,0.45);
+    }
+    #reservar-button::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:50px;
+      box-shadow:0 0 0 3px rgba(255,255,255,0.15) inset;
+      pointer-events:none;
+    }
+
+    #logo{
+      box-shadow:0 0 0 6px rgba(255,165,0,0.25),0 10px 24px rgba(0,0,0,0.5);
+    }
+    .bloqueHora {
+    padding: 8px;
+    margin: 4px 0;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    border-image: linear-gradient(to top, black, white) 1;
+}
+
+    </style><script>
+document.getElementById("formReserva").addEventListener("submit", function(e) {
+  e.preventDefault(); // evita recarga
+
+  const nombre = document.getElementById("nombre").value;
+  const hora = document.getElementById("hora").value;
+
+  if (nombre && hora) {
+    const lista = document.getElementById("listaReservas");
+    const item = document.createElement("li");
+    item.textContent = `${nombre} - ${hora}`;
+    lista.appendChild(item);
+
+    // limpiar campos
+    document.getElementById("nombre").value = "";
+    document.getElementById("hora").value = "";
+  }
+});
+</script>
+<script>
+function marcarHorasOcupadasPorDuracion() {
+  const baseHora = document.getElementById("hora")?.value;
+  const tiempoMinStr = document.getElementById("tiempoTotal")?.value;
+  const tiempoMin = parseInt(tiempoMinStr || "0", 10);
+  if (!baseHora || isNaN(tiempoMin)) return;
+  const horasNecesarias = Math.ceil(tiempoMin / 60);
+  const hh = parseInt(baseHora.split(":")[0], 10);
+    for (let i = 0; i < horasNecesarias; i++) {
+        const target = String(hh + i).padStart(2, "0") + ":00";
+        document.querySelectorAll(`.hora-slot[data-hora="${target}"]`).forEach(el => {
+            el.classList.remove("horaLibre");
+            el.classList.add("horaOcupada");
+            el.classList.add("ocupada");
+            el.setAttribute("disabled", "");
+            el.textContent = `⛔ ${target}`;
+            el.onclick = null;
+        });
+    }
+}
+</script>
+<style>
+  :root{
+    --bg:#0b0b0d; 
+    --surface:#15161a; 
+    --text:#f1f1f1; 
+    --muted:#c2c2c2;
+    --gold:#e4a64f; 
+    --red:#ff3b3f; 
+    --blue:#2089ff; 
+    --green:#33d17a;
+    --orange:#ff7a1a;
+  }
+  body{
+    font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif;
+    background: radial-gradient(1200px 600px at 30% 0%, #131418 0%, #0c0d10 60%), linear-gradient(120deg, #15161a, #0f1013);
+    animation: bgShift 40s linear infinite;
+    background-size: 200% 200%;
+    color: var(--text);
+  }
+  @keyframes bgShift {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 100%; }
+  }
+  h1,h2,h3{ 
+    font-family: 'Playfair Display', serif; 
+    letter-spacing: .5px;
+    color: var(--gold);
+    text-shadow: 0 2px 8px rgba(0,0,0,.5);
+  }
+  .container{
+    background: var(--surface);
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    border-radius: 18px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .container::before{
+    animation: barberPole 14s linear infinite;
+  }
+  @keyframes barberPole {
+    0% { background-position: 0 0; }
+    100% { background-position: 300px 0; }
+  }
+  #tituloMes{
+    color: var(--gold) !important;
+    letter-spacing: 1px;
+  }
+  button{
+    background: linear-gradient(180deg, #232427, #1a1b1e);
+    color: var(--text);
+    border: 1px solid rgba(228,166,79,.55);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-weight: 600;
+    box-shadow: 0 8px 22px rgba(0,0,0,.35), 0 0 12px rgba(255,122,26,.25);
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s ease, box-shadow .2s ease, background .3s ease, filter .2s ease;
+  }
+  button::after{
+    content:"";
+    position:absolute;
+    left:-50%;
+    top:0;
+    width:55%;
+    height:100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+    transform: skewX(-25deg);
+    animation: sheen 2.8s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes sheen {
+    0% { left:-50%; }
+    100% { left:150%; }
+  }
+  button:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(0,0,0,.6), 0 0 16px rgba(255,122,26,.35);
+    filter: saturate(1.1);
+  }
+  #servicios{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  @media (min-width:700px){
+    #servicios{ grid-template-columns: 1fr 1fr; }
+  }
+  .servicios-bloque{
+    margin: 4px 0;
+    padding: 12px;
+    border: 1px solid rgba(197,157,95,.25);
+    border-radius: 10px;
+    background: rgba(20,20,22,.6);
+  }
+  .servicios-bloque h4{
+    margin: 0 0 8px;
+    font-family: 'Poppins', sans-serif;
+    color: var(--gold);
+    font-weight: 700;
+  }
+  .servicios-bloque .nota{
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: .92em;
+  }
+  #eltotal, #opciones, #tiempo{
+    background: #121317;
+    border: 1px solid rgba(228,166,79,.5);
+    color: var(--text);
+    border-radius: 10px;
+    box-shadow: 0 6px 14px rgba(0,0,0,.35);
+  }
+  .resumen-reserva{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .resumen-reserva label{
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .grupo-dia{
+    margin: 12px 0;
+    padding: 12px;
+    border: 1px solid rgba(197,157,95,.35);
+    border-radius: 10px;
+    background: rgba(20,20,22,.6);
+    box-shadow: 0 10px 24px rgba(0,0,0,.45);
+  }
+  .grupo-dia h3{
+    margin: 0 0 8px;
+    color: var(--gold);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+  }
+  .diaCalendario{
+    border: 1px solid rgba(228,166,79,.4);
+    background: linear-gradient(180deg,#202226,#14161a);
+    color: var(--text);
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.35), 0 0 10px rgba(32,137,255,.12);
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    appearance: none;
+  }
+  .diaCalendario:hover{
+    transform: scale(1.03);
+    box-shadow: 0 10px 24px rgba(0,0,0,.6), 0 0 14px rgba(32,137,255,.18);
+  }
+  .diaLibre{ background: linear-gradient(180deg,#224f33,#173924); box-shadow: 0 0 10px rgba(51,209,122,.22) inset; }
+  .diaOcupado{ background: linear-gradient(180deg,#5a1f1f,#2a1414); box-shadow: 0 0 10px rgba(255,59,63,.22) inset; }
+  .diaBloqueado{ background: linear-gradient(180deg,#1b1b1b,#121212); opacity:.75; }
+  .diaPasado{ filter:grayscale(40%); opacity:.7; }
+  .dias-semana{
+    color: var(--gold);
+    text-shadow: 0 2px 6px rgba(0,0,0,.4);
+    font-weight: 700;
+  }
+  input, select{
+    background: #111215;
+    border: 1px solid rgba(228,166,79,.45);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 6px 16px rgba(0,0,0,.35);
+    transition: box-shadow .2s ease, border-color .2s ease;
+  }
+  input:focus, select:focus{
+    outline: none;
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(255,122,26,.3);
+  }
+  .ventana-secreta{
+    backdrop-filter: blur(4px);
+  }
+  .caja-misteriosa{
+    background: linear-gradient(180deg,#22242a,#17181d);
+    color: var(--text);
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  }
+  .modal-content{
+    background: linear-gradient(180deg,#23252b,#17181d);
+    color: var(--text);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  }
+  #buscadorGlobal{
+    border: 1px solid rgba(228,166,79,.45) !important;
+    background: #111215;
+    color: var(--text);
+  }
+  .reserva-item{
+    background: linear-gradient(180deg,#24262b,#1b1c21) !important;
+    border: 1px solid rgba(228,166,79,.45) !important;
+    color: var(--text) !important;
+    border-left: 8px solid var(--orange) !important;
+    box-shadow: 0 10px 24px rgba(0,0,0,.45), 0 0 12px rgba(255,122,26,.2);
+  }
+  .bloqueHora{
+    background: linear-gradient(180deg,#232429,#16171b);
+    color: var(--text);
+    border: 1px solid rgba(228,166,79,.4);
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.35), 0 0 10px rgba(32,137,255,.12);
+  }
+  .horaLibre{ background: linear-gradient(180deg,#255437,#1c3b28); }
+  .horaOcupada{ background: linear-gradient(180deg,#5a1f1f,#2a1414); }
+  /* --- Responsive enhancements --- */
+  #logo{
+    width: clamp(120px, 32vw, 200px);
+    height: clamp(120px, 32vw, 200px);
+  }
+  body{
+    font-size: clamp(14px, 2.6vw, 18px);
+  }
+  .container{
+    width: min(96vw, 720px);
+    padding: clamp(16px, 4vw, 28px);
+    margin: 0 auto;
+  }
+  #cuadroCalendario{
+    gap: clamp(4px, 1.2vw, 8px);
+  }
+  .diaCalendario{
+    font-size: clamp(12px, 2.8vw, 18px);
+    min-height: clamp(36px, 8vw, 56px);
+    padding: clamp(6px, 1.8vw, 10px);
+  }
+  .modalBarberia .contenidoModal{
+    width: min(94vw, 600px);
+    max-height: 80vh;
+  }
+  #servicios{
+    grid-template-columns: 1fr;
+  }
+  @media (min-width:700px){
+    #servicios{ grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width:480px){
+    #barraMes > div{
+      flex-direction: column;
+      gap: 8px;
+    }
+    .dias-semana{
+      gap: clamp(4px, 1.2vw, 6px);
+    }
+    .resumen-reserva{
+      gap: 8px;
+    }
+    .servicios-bloque{
+      padding: clamp(10px, 3vw, 12px);
+    }
+    .bloqueHora{
+      padding: clamp(6px, 2vw, 8px);
+      font-size: clamp(12px, 2.6vw, 16px);
+    }
+  }
+  @media (max-width:360px){
+    .diaCalendario{
+      font-size: 12px;
+    }
+    button{
+      padding: 10px 12px;
+    }
+  }
+</style>
 </body>
 </html>
+<script>
+  (function(){
+    let ctx;
+    let master;
+    const lastHover = new WeakMap();
+    if (!Element.prototype.matches) {
+      Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+    }
+    function safeClosest(event, selector){
+      let t = event && event.target;
+      if (!t) return null;
+      if (t.nodeType !== 1) t = t.parentElement;
+      if (!t) return null;
+      if (typeof t.closest === 'function') return t.closest(selector);
+      for (let el = t; el; el = el.parentElement) {
+        if (el.matches && el.matches(selector)) return el;
+      }
+      return null;
+    }
+    function ensureCtx(){
+      if (!ctx) {
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        master = ctx.createGain();
+        master.gain.value = 0.6;
+        master.connect(ctx.destination);
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+    }
+    function playTone(freq, dur, vol){
+      ensureCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start();
+      osc.stop(ctx.currentTime + dur + 0.01);
+    }
+    function sequence(tones, gap){
+      let t = 0;
+      tones.forEach(([f,d,v])=>{
+        setTimeout(()=>playTone(f,d,v), t);
+        t += Math.max(0, Math.floor(gap));
+      });
+    }
+    function hashFreq(el){
+      const s = (el.id || '') + (el.className || '') + (el.textContent || '');
+      let h = 0;
+      for (let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
+      const base = 360 + (h % 520);
+      return base;
+    }
+    function playFor(el, type){
+      const vol = 0.3;
+      if (type === 'nav') sequence([[520,0.1,vol],[700,0.1,vol]], 100);
+      else if (type === 'service-select') {
+        const on = el.classList.contains('selected');
+        playTone(on ? 940 : 420, 0.1, vol);
+      } else if (type === 'hour-free') playTone(560, 0.1, vol);
+      else if (type === 'hour-occupied') playTone(300, 0.1, vol*0.95);
+      else if (type === 'reserve') sequence([[680,0.1,vol],[920,0.1,vol]], 120);
+      else if (type === 'toggle') playTone(740, 0.1, vol);
+      else playTone(hashFreq(el), 0.1, vol);
+    }
+    document.addEventListener('click', function(e){
+      const el = safeClosest(e, 'button, .bloqueHora');
+      if (!el) return;
+      let type = 'click';
+      if (el.classList.contains('botonMes')) type = 'nav';
+      else if (el.classList.contains('servicio-btn')) type = 'service-select';
+      else if (el.classList.contains('bloqueHora')) {
+        if (el.classList.contains('horaLibre')) type = 'hour-free';
+        else if (el.classList.contains('horaOcupada')) type = 'hour-occupied';
+      } else if (el.id === 'reservar-button') type = 'reserve';
+      else if (el.classList.contains('toggle-hora-btn')) type = 'toggle';
+      playFor(el, type);
+    }, true);
+    document.addEventListener('pointerenter', function(e){
+      const el = safeClosest(e, 'button, .bloqueHora');
+      if (!el) return;
+      const now = Date.now();
+      const last = lastHover.get(el) || 0;
+      if (now - last < 350) return;
+      lastHover.set(el, now);
+      playTone(Math.max(380, hashFreq(el)-80), 0.08, 0.18);
+    }, true);
+    document.addEventListener('pointerdown', ensureCtx, { once: true, capture: true });
+  })();
+</script>
