@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reservar Hora | James BarberShop</title>
+    <title>Reservas Barbería | James</title>
     <link rel="icon" href="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" type="image/x-icon">
-    <meta property="og:title" content="Reservar Hora | James BarberShop">
-    <meta property="og:description" content="Reserva tu cita en línea fácil y rápido">
-    <meta property="og:image" content="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg">
-    <meta property="og:type" content="website">
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
         :root {
             --barber-red: #ff3b3f;
+            --barber-red-light: #ffcccb;
             --barber-blue: #2089ff;
             --barber-gold: #e4a64f;
             --barber-black: #0b0b0d;
@@ -24,23 +24,23 @@
         }
 
         body {
-            font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+            font-family: 'Poppins', sans-serif;
             background: radial-gradient(1200px 600px at 30% 0%, #131418 0%, #0c0d10 60%);
             color: var(--barber-text);
             margin: 0;
-            padding: 20px;
-            font-size: clamp(14px, 2.6vw, 18px);
+            padding: 10px;
+            font-size: clamp(14px, 2.5vw, 17px);
             text-align: center;
-            font-weight: bold;
+            overflow-x: hidden;
         }
 
         .container {
             max-width: 600px;
             margin: 0 auto;
             background: var(--barber-surface);
-            padding: clamp(16px, 4vw, 28px);
-            border-radius: 18px;
-            box-shadow: 0 20px 60px rgba(0,0,0,.6);
+            padding: clamp(15px, 4vw, 25px);
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.7);
             position: relative;
             overflow: hidden;
         }
@@ -48,695 +48,450 @@
         .container::before {
             content: "";
             position: absolute;
-            top: 0; left: 0; right: 0; height: 6px;
-            background: repeating-linear-gradient(45deg, var(--barber-red) 0 12px, #fff 12px 24px, var(--barber-blue) 24px 36px);
-            animation: barberPole 14s linear infinite;
-            z-index: 10;
+            top: 0; left: 0; right: 0; height: 5px;
+            background: repeating-linear-gradient(45deg, var(--barber-red) 0 10px, #fff 10px 20px, var(--barber-blue) 20px 30px);
+            animation: barberPole 15s linear infinite;
         }
 
         @keyframes barberPole {
             0% { background-position: 0 0; }
-            100% { background-position: 300px 0; }
+            100% { background-position: 200px 0; }
         }
 
         #logo {
-            width: clamp(150px, 40vw, 200px);
-            height: clamp(150px, 40vw, 200px);
+            width: clamp(140px, 35vw, 180px);
+            height: clamp(140px, 35vw, 180px);
             background-image: url('https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg');
             background-size: cover;
             background-position: center;
             border-radius: 50%;
-            margin: 0 auto 20px;
+            margin: 10px auto 20px;
             border: 3px solid var(--barber-gold);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 18px rgba(255,122,26,0.25);
-            position: relative;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
             cursor: pointer;
-        }
-
-        #logo::after {
-            content: "";
-            position: absolute;
-            inset: -8px;
-            border-radius: 50%;
-            background: conic-gradient(from 0deg, rgba(255,59,63,0.28), rgba(255,255,255,0.14), rgba(32,137,255,0.28), rgba(255,255,255,0.14));
-            animation: ringSpin 12s linear infinite;
-            pointer-events: none;
-        }
-
-        @keyframes ringSpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         h1, h2, h3 {
             font-family: 'Playfair Display', serif;
-            color: var(--barber-gold) !important;
-            text-shadow: 0 2px 8px rgba(0,0,0,.5);
+            color: var(--barber-gold);
+            margin: 15px 0;
         }
 
         button {
-            background: linear-gradient(180deg, #232427, #1a1b1e);
+            background: linear-gradient(180deg, #2a2c31, #1a1b1e);
             color: var(--barber-text);
-            border: 1px solid rgba(228,166,79,.55);
+            border: 1px solid rgba(228,166,79,0.4);
             border-radius: 12px;
-            padding: 12px 16px;
+            padding: 10px 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform .2s ease, box-shadow .2s ease, background .3s ease;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.2s ease;
         }
 
-        button:hover:not(:disabled) {
+        button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 24px rgba(0,0,0,0.6), 0 0 16px rgba(255,122,26,0.35);
-        }
-
-        button:active:not(:disabled) {
-            transform: scale(0.98);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            border-color: var(--barber-gold);
         }
 
         .diaCalendario {
-            padding: clamp(6px, 1.8vw, 10px);
-            min-height: clamp(36px, 8vw, 56px);
-            font-size: clamp(12px, 2.8vw, 18px);
-            border: 1px solid rgba(228,166,79,.4);
+            padding: 10px 5px;
+            min-height: 45px;
             border-radius: 10px;
-            background: linear-gradient(180deg,#202226,#14161a);
-            color: var(--barber-text);
-            cursor: pointer;
-            transition: all 0.2s ease;
+            border: 1px solid rgba(228,166,79,0.3);
+            background: #1e2024;
+            color: #fff;
             font-weight: bold;
+            cursor: pointer;
         }
 
-        .diaLibre { background: linear-gradient(180deg,#224f33,#173924); box-shadow: 0 0 10px rgba(51,209,122,.22) inset; }
-        .diaOcupado { background: linear-gradient(180deg,#5a1f1f,#2a1414); box-shadow: 0 0 10px rgba(255,59,63,.22) inset; }
-        /* Manually closed days - Transparent red */
-        .diaBloqueado { background: rgba(255, 59, 63, 0.4) !important; border-color: var(--barber-red); opacity: 0.8; }
-        .diaPasado { background-color: #5f5f5f !important; color: #fff; filter: grayscale(40%); opacity: 0.7; pointer-events: none; }
+        .diaLibre { background: linear-gradient(180deg, #224f33, #173924); }
+        .diaOcupado { background: linear-gradient(180deg, #5a1f1f, #2a1414); }
+        .diaBloqueado { background: var(--barber-red-light) !important; color: #333 !important; border-color: var(--barber-red); }
+        .diaPasado { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
 
         .dias-semana {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: clamp(4px, 1.2vw, 8px);
+            gap: 5px;
             color: var(--barber-gold);
-            font-weight: 700;
-            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 0.8em;
+            margin-bottom: 8px;
         }
 
         #cuadroCalendario {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: clamp(4px, 1.2vw, 8px);
-            margin-top: 20px;
+            gap: 5px;
         }
 
-        /* Modal Styles */
-        .ventana-secreta, .modalBarberia, .modal {
+        .modal, .ventana-secreta {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            inset: 0;
+            background: rgba(0,0,0,0.85);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
-            backdrop-filter: blur(6px);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
         }
 
-        .caja-misteriosa, .contenidoModal, .modal-content {
-            background: linear-gradient(180deg,#22242a,#17181d);
-            padding: 30px;
-            border-radius: 18px;
+        .modal-content, .caja-misteriosa {
+            background: #1a1b20;
+            padding: 25px;
+            border-radius: 15px;
             width: 90%;
-            max-width: 500px;
-            max-height: 85vh;
-            overflow-y: auto;
+            max-width: 450px;
             border: 2px solid var(--barber-gold);
-            box-shadow: 0 20px 60px rgba(0,0,0,.8);
-            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
-        /* Toggle Schedule Buttons */
         .toggle-hora-btn {
             padding: 12px;
-            border-radius: 10px;
+            border-radius: 8px;
             font-weight: bold;
-            cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.2s ease;
             background: var(--barber-red);
             color: #fff;
-            font-size: 0.9em;
             margin-bottom: 5px;
+            width: 100%;
         }
-        .toggle-hora-btn.activo {
-            background: var(--barber-green);
-        }
+        .toggle-hora-btn.activo { background: var(--barber-green); }
 
         .bloqueHora {
             padding: 12px;
-            margin: 8px 0;
-            border-radius: 12px;
+            margin: 5px 0;
+            border-radius: 10px;
             font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background: linear-gradient(180deg,#232429,#16171b);
-            border: 1px solid rgba(228,166,79,.4);
+            background: #24262c;
+            border: 1px solid rgba(228,166,79,0.3);
         }
-        .horaLibre { background: linear-gradient(180deg,#255437,#1c3b28); }
-        .horaOcupada { background: linear-gradient(180deg,#5a1f1f,#2a1414); opacity: 0.7; pointer-events: none; }
+        .horaLibre { background: #255437; }
+        .horaOcupada { background: #5a1f1f; opacity: 0.7; pointer-events: none; }
 
-        input, select {
+        input {
             width: 100%;
             padding: 12px;
-            margin-top: 10px;
-            background: #111215;
-            border: 1px solid rgba(228,166,79,.45);
-            color: var(--barber-text);
-            border-radius: 10px;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,.04), 0 6px 16px rgba(0,0,0,.35);
-            transition: border-color 0.3s ease;
-            font-weight: bold;
+            margin: 10px 0;
+            background: #0c0d10;
+            border: 1px solid var(--barber-gold);
+            color: #fff;
+            border-radius: 8px;
+            box-sizing: border-box;
         }
-
-        input:focus { border-color: var(--barber-gold); outline: none; }
 
         .reserva-item {
-            background: linear-gradient(180deg,#24262b,#1b1c21);
-            padding: 12px;
-            margin: 8px 0;
-            border-left: 8px solid var(--barber-orange);
-            border-radius: 8px;
-            text-align: left;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            position: relative;
-        }
-
-        .hidden, .fantasma { display: none !important; }
-
-        .titulo-animado {
-            color: #fff !important;
-            animation: brilloSuave 1.5s infinite alternate ease-in-out;
-            display: inline-block;
+            background: #24262c;
             padding: 10px;
+            margin: 8px 0;
+            border-left: 5px solid var(--barber-orange);
+            border-radius: 5px;
+            text-align: left;
         }
 
-        @keyframes brilloSuave {
-            0% { transform: scale(1.02); text-shadow: 0 0 15px var(--barber-blue); }
-            100% { transform: scale(1); text-shadow: 0 0 15px var(--barber-red); }
-        }
+        .fantasma, .hidden { display: none !important; }
 
-        .servicio-btn {
-            display: inline-block;
-            margin: 6px;
-            padding: 12px 16px;
-            border: 1px solid rgba(228,166,79,0.5);
-            border-radius: 12px;
-            background: linear-gradient(180deg,#26272c,#16171b);
-            color: #f1f1f1;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.35);
-        }
-        .servicio-btn.selected {
-            background: linear-gradient(180deg,#ffb867,#ff7a1a);
-            color: #141414;
-        }
-
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--barber-black); }
-        ::-webkit-scrollbar-thumb { background: var(--barber-gold); border-radius: 10px; }
-
-        @media (max-width: 480px) {
-            body { padding: 10px; }
-            .container { padding: 15px; }
-            .dias-semana, #cuadroCalendario { gap: 4px; }
-            .diaCalendario { min-height: 45px; font-size: 14px; }
+        @media (max-width: 400px) {
+            .diaCalendario { min-height: 40px; font-size: 0.9em; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div id="logo"></div>
-        <br>
-        <div id="barraMes">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
-                <button id="mesAnterior">←</button>
-                <h2 id="tituloMes" style="margin: 0;"></h2>
-                <button id="mesSiguiente">→</button>
-                <button id="hoyBtn">Hoy</button>
-            </div>
-        </div>
-
-        <div style="margin: 20px 0;">
-            <button id="activarBloqueoDias" style="background-color: var(--barber-orange);">Bloquear Días</button>
-            <button id="desactivarBloqueoDias" style="background-color: var(--barber-red); display: none;">Desactivar Bloqueo</button>
-            <button onclick="activarModoHorarios()" style="background-color: var(--barber-blue);">Gestionar Horarios</button>
-        </div>
-
-        <h3 class="titulo-animado">Selecciona un día para tu cita</h3>
-        <div class="dias-semana">
-            <div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div><div>DOM</div>
-        </div>
-        <div id="cuadroCalendario"></div>
-
-        <div id="listaReservasContainer" style="margin-top: 40px;">
-            <h2 style="color: var(--barber-red) !important;">⛔ Horas Reservadas ⛔</h2>
-            <input type="text" id="buscadorGlobal" placeholder="Buscar por nombre, fecha o hora...">
-            <div id="reservas-lista"></div>
-        </div>
-
-        <input type="date" id="fecha" style="display:none;">
-        <input type="time" id="hora" style="display:none;">
-        <input type="hidden" id="tiempoTotal" value="0">
+<div class="container">
+    <div id="logo"></div>
+    
+    <div id="barraMes" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px;">
+        <button id="mesAnterior">←</button>
+        <h2 id="tituloMes" style="margin: 0; min-width: 140px;"></h2>
+        <button id="mesSiguiente">→</button>
     </div>
 
-    <!-- MODALS -->
-    <div id="modal-acceso" class="ventana-secreta fantasma">
-        <div class="caja-misteriosa">
-            <h3>Panel de Administración</h3>
-            <input type="password" id="clave-input" placeholder="Introduce la clave">
-            <br><br>
-            <button onclick="validarClave()">Entrar</button>
-            <button onclick="cerrarModal('modal-acceso')" style="background-color: #666;">Cerrar</button>
-        </div>
+    <div style="margin-bottom: 15px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+        <button id="activarBloqueo" style="background: var(--barber-orange); color: #000;">Bloquear Días</button>
+        <button id="desactivarBloqueo" class="hidden" style="background: var(--barber-green);">Terminar Bloqueo</button>
+        <button onclick="activarGestionHorarios()" style="background: var(--barber-blue);">Gestionar Horas</button>
     </div>
 
-    <div id="modal-control" class="ventana-secreta fantasma">
-        <div class="caja-misteriosa">
-            <h3>Control de Barbería</h3>
-            <button onclick="abrirBarberia()" style="background-color: var(--barber-green); width:100%; margin-bottom:10px;">Abrir Barbería</button>
-            <button onclick="cerrarBarberia()" style="background-color: var(--barber-red); width:100%; margin-bottom:10px;">Cerrar Barbería</button>
-            <button onclick="mostrarModalMensaje()" style="background-color: var(--barber-blue); width:100%; margin-bottom:10px;">Cambiar Mensaje</button>
-            <button onclick="borrarTodasLasHorasEnPantalla()" style="background-color: #000; width:100%; margin-bottom:10px;">Borrar TODO</button>
-            <button onclick="borrarHorasMesHastaHoy()" style="background-color: #444; width:100%; margin-bottom:10px;">Limpiar Antiguos</button>
-            <button onclick="mostrarBotonesX(); cerrarModal('modal-control')" style="background-color: var(--barber-orange); width:100%; margin-bottom:10px;">Borrar Individuales</button>
-            <br><br>
-            <button onclick="cerrarModal('modal-control')" style="background-color: #666; width:100%;">Cerrar</button>
-        </div>
+    <div class="dias-semana">
+        <div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div><div>DOM</div>
     </div>
+    <div id="cuadroCalendario"></div>
 
-    <div id="modal-horarios" class="modalBarberia" style="display:none;">
-        <div class="contenidoModal">
-            <span id="cerrarVentana" style="position:absolute; top:10px; right:20px; font-size:30px; cursor:pointer;">&times;</span>
-            <h3 id="tituloVentana" class="titulo-animado"></h3>
-            
-            <div id="serviciosSection">
-                <h4>Servicios</h4>
-                <div id="servicios">
-                    <div class="servicios-bloque">
-                        <h4>Cortes</h4>
-                        <button class="servicio-btn exclusivo" data-nombre="Corte Clásico" data-precio="10000" data-tiempo="20">Clásico · $10.000</button>
-                        <button class="servicio-btn exclusivo" data-nombre="Corte Degradado" data-precio="12000" data-tiempo="30">Degradado · $12.000</button>
-                    </div>
-                    <div class="servicios-bloque">
-                        <h4>Extras</h4>
-                        <button class="servicio-btn" data-nombre="Barba" data-precio="6000" data-tiempo="10">Barba · $6.000</button>
-                        <button class="servicio-btn" data-nombre="Cejas" data-precio="3000" data-tiempo="5">Cejas · $3.000</button>
-                    </div>
-                </div>
-                <div class="resumen-reserva">
-                    <p>Total: <span id="eltotal">$0</span> | Tiempo: <span id="tiempo">0 min</span></p>
-                    <p>Seleccionados: <span id="opciones">-</span></p>
-                </div>
-            </div>
-            <hr>
-            <h4>Horas disponibles</h4>
-            <div id="horariosDisponibles" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;"></div>
-        </div>
+    <div id="seccionReservas" style="margin-top: 30px;">
+        <h3 style="color: var(--barber-red);">Reservas Confirmadas</h3>
+        <input type="text" id="buscador" placeholder="Buscar reserva...">
+        <div id="lista-reservas"></div>
     </div>
+</div>
 
-    <div id="modal-hora-personalizada" class="modal hidden">
-        <div class="modal-content">
-            <h3>Confirmar Reserva</h3>
-            <input type="text" id="nombre" placeholder="Escribe tu nombre" required>
-            <br><br>
-            <button id="reservar-button" onclick="reservarHora()">Confirmar y enviar WhatsApp</button>
-            <button onclick="document.getElementById('modal-hora-personalizada').classList.add('hidden')" style="background-color: #666;">Cancelar</button>
-        </div>
+<!-- MODALS -->
+<div id="modal-login" class="ventana-secreta fantasma">
+    <div class="caja-misteriosa">
+        <h3>Acceso Administrador</h3>
+        <input type="password" id="pass" placeholder="Clave">
+        <button onclick="login()">Entrar</button>
+        <button onclick="cerrarModal('modal-login')" style="background: #444;">Cerrar</button>
     </div>
+</div>
 
-    <div id="modal-configuracion-horarios" class="ventana-secreta fantasma">
-        <div class="caja-misteriosa">
-            <h3 id="titulo-config-horarios">Configurar Horario</h3>
-            <p style="font-size: 0.8em; margin-bottom: 15px;">Toca las horas para activarlas (verde) o desactivarlas (rojo)</p>
-            <div id="botones-toggle-horas" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;"></div>
-            <button onclick="guardarHorarioPersonalizado()" style="background-color: var(--barber-green); width: 100%; margin-bottom: 10px;">Guardar Cambios</button>
-            <button onclick="cerrarModal('modal-configuracion-horarios')" style="background-color: #666; width: 100%;">Cerrar</button>
-        </div>
+<div id="modal-admin" class="ventana-secreta fantasma">
+    <div class="caja-misteriosa">
+        <h3>Panel Control</h3>
+        <button onclick="borrarTodo()" style="background: #000; width: 100%; margin-bottom: 10px;">Borrar TODO</button>
+        <button onclick="mostrarBotonesX(); cerrarModal('modal-admin')" style="background: var(--barber-orange); width: 100%; margin-bottom: 10px;">Borrar Individuales</button>
+        <button onclick="cerrarModal('modal-admin')" style="background: #444; width: 100%;">Cerrar</button>
     </div>
+</div>
 
-    <!-- SCRIPTS -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<div id="modal-horas" class="modal fantasma">
+    <div class="modal-content">
+        <h3 id="fecha-titulo"></h3>
+        <div id="grid-horas" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;"></div>
+        <button onclick="cerrarModal('modal-horas')" style="margin-top: 15px; width: 100%; background: #444;">Cerrar</button>
+    </div>
+</div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBHLlV9HDfa1v-Uz4YVcbt3vQGByhNFYus",
-            authDomain: "jeisonstyle-1530f.firebaseapp.com",
-            databaseURL: "https://jeisonstyle-1530f-default-rtdb.firebaseio.com",
-            projectId: "jeisonstyle-1530f",
-            storageBucket: "jeisonstyle-1530f.firebasestorage.app",
-            messagingSenderId: "40159402096",
-            appId: "1:40159402096:web:d54b2d9a2dd990c1203cb5"
-        };
+<div id="modal-reserva" class="modal fantasma">
+    <div class="modal-content">
+        <h3>Confirmar Cita</h3>
+        <p id="reserva-info"></p>
+        <input type="text" id="cliente-nombre" placeholder="Tu nombre">
+        <button id="btn-confirmar" style="background: var(--barber-green); width: 100%; margin-bottom: 10px;">Confirmar WhatsApp</button>
+        <button onclick="cerrarModal('modal-reserva')" style="background: #444; width: 100%;">Cancelar</button>
+    </div>
+</div>
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const reservasRef = db.ref("reservas");
-        const horariosRef = db.ref("horarios");
-        const estadoRef = db.ref("estadoBarberia");
-        const mensajeRef = db.ref("mensajeCierre");
-        const diasBloqueadosRef = db.ref("diasBloqueados");
+<div id="modal-config-horas" class="ventana-secreta fantasma">
+    <div class="caja-misteriosa">
+        <h3 id="config-fecha-titulo">Configurar Horas</h3>
+        <p style="font-size: 0.8em; margin-bottom: 10px;">Toca para cambiar disponibilidad</p>
+        <div id="toggle-horas-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;"></div>
+        <button onclick="guardarConfigHoras()" style="background: var(--barber-green); width: 100%; margin-bottom: 8px;">Guardar</button>
+        <button onclick="cerrarModal('modal-config-horas')" style="background: #444; width: 100%;">Cancelar</button>
+    </div>
+</div>
 
-        // State
-        let fechaActualCalendario = new Date();
-        let modoBloqueoDias = false;
-        let modoGestionHorarios = false;
-        let diasBloqueados = [];
-        let horariosPersonalizados = {};
-        let reservasPorDia = {};
-        let seleccionados = [];
-        let fechaSeleccionadaParaConfigurar = "";
-        
-        const bloquesBase = ["11:00", "12:00", "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "21:30"];
-        const mesesTexto = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+<!-- SCRIPTS -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
-        const cuadroCalendario = document.getElementById("cuadroCalendario");
-        const tituloMes = document.getElementById("tituloMes");
-        const reservasLista = document.getElementById("reservas-lista");
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBHLlV9HDfa1v-Uz4YVcbt3vQGByhNFYus",
+        authDomain: "jeisonstyle-1530f.firebaseapp.com",
+        databaseURL: "https://jeisonstyle-1530f-default-rtdb.firebaseio.com",
+        projectId: "jeisonstyle-1530f",
+        storageBucket: "jeisonstyle-1530f.firebasestorage.app",
+        messagingSenderId: "40159402096",
+        appId: "1:40159402096:web:d54b2d9a2dd990c1203cb5"
+    };
 
-        document.addEventListener('DOMContentLoaded', () => {
-            actualizarBarraMes();
-            setupEventListeners();
-            setupFirebaseListeners();
-            iniciarPresionLenta(document.getElementById("logo"));
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const resRef = db.ref("reservas");
+    const horRef = db.ref("horarios");
+    const bloqRef = db.ref("diasBloqueados");
+
+    // State
+    let currDate = new Date();
+    let bloqMode = false;
+    let gestMode = false;
+    let blockedDays = [];
+    let customHours = {};
+    let dailyRes = {};
+    let selectedDate = "";
+    let selectedHour = "";
+
+    const baseHours = ["11:00", "12:00", "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "21:30"];
+    const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+        updateCalendar();
+        setupFirebase();
+        setupUI();
+        longPress(document.getElementById("logo"), () => openModal("modal-login"));
+    });
+
+    function setupFirebase() {
+        resRef.on("value", snap => {
+            dailyRes = {};
+            document.getElementById("lista-reservas").innerHTML = "";
+            snap.forEach(child => {
+                const r = child.val();
+                if (!dailyRes[r.fecha]) dailyRes[r.fecha] = [];
+                dailyRes[r.fecha].push(r.hora);
+                addResItem(r, child.key);
+            });
+            renderCalendar();
         });
 
-        function setupFirebaseListeners() {
-            reservasRef.on("value", snapshot => {
-                reservasPorDia = {};
-                reservasLista.innerHTML = "";
-                snapshot.forEach(child => {
-                    const res = child.val();
-                    if (!reservasPorDia[res.fecha]) reservasPorDia[res.fecha] = [];
-                    reservasPorDia[res.fecha].push(res.hora);
-                    renderReservaItem(res, child.key);
-                });
-                generarCuadroCalendario();
+        bloqRef.on("value", snap => {
+            blockedDays = [];
+            snap.forEach(child => blockedDays.push(child.val().fecha));
+            renderCalendar();
+        });
+
+        horRef.on("value", snap => {
+            customHours = snap.val() || {};
+            renderCalendar();
+        });
+    }
+
+    function setupUI() {
+        document.getElementById("mesAnterior").onclick = () => { currDate.setMonth(currDate.getMonth() - 1); updateCalendar(); };
+        document.getElementById("mesSiguiente").onclick = () => { currDate.setMonth(currDate.getMonth() + 1); updateCalendar(); };
+        document.getElementById("activarBloqueo").onclick = () => { bloqMode = true; toggleBtn("activarBloqueo", "desactivarBloqueo"); renderCalendar(); };
+        document.getElementById("desactivarBloqueo").onclick = () => { bloqMode = false; toggleBtn("desactivarBloqueo", "activarBloqueo"); renderCalendar(); };
+        document.getElementById("buscador").oninput = (e) => {
+            const t = e.target.value.toLowerCase();
+            document.querySelectorAll(".reserva-item").forEach(item => {
+                item.style.display = item.textContent.toLowerCase().includes(t) ? "block" : "none";
             });
+        };
+        document.getElementById("btn-confirmar").onclick = confirmRes;
+    }
 
-            diasBloqueadosRef.on("value", snapshot => {
-                diasBloqueados = [];
-                snapshot.forEach(child => diasBloqueados.push(child.val().fecha));
-                generarCuadroCalendario();
-            });
+    function renderCalendar() {
+        const grid = document.getElementById("cuadroCalendario");
+        grid.innerHTML = "";
+        const y = currDate.getFullYear(), m = currDate.getMonth();
+        const first = new Date(y, m, 1).getDay();
+        const total = new Date(y, m + 1, 0).getDate();
+        const offset = first === 0 ? 6 : first - 1;
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
 
-            horariosRef.on("value", snapshot => {
-                horariosPersonalizados = snapshot.val() || {};
-                generarCuadroCalendario();
-            });
+        for (let i = 0; i < offset; i++) grid.appendChild(document.createElement("div"));
 
-            estadoRef.on("value", snapshot => {
-                document.getElementById("modal-cerrado").style.display = snapshot.val() === "cerrado" ? "flex" : "none";
-            });
-
-            mensajeRef.on("value", snapshot => {
-                document.getElementById("mensaje-cerrado").textContent = snapshot.val() || "Vuelve pronto";
-            });
-        }
-
-        function setupEventListeners() {
-            document.getElementById("mesAnterior").onclick = () => {
-                fechaActualCalendario.setMonth(fechaActualCalendario.getMonth() - 1);
-                actualizarBarraMes();
-            };
-            document.getElementById("mesSiguiente").onclick = () => {
-                fechaActualCalendario.setMonth(fechaActualCalendario.getMonth() + 1);
-                actualizarBarraMes();
-            };
-            document.getElementById("hoyBtn").onclick = () => {
-                fechaActualCalendario = new Date();
-                actualizarBarraMes();
-            };
-            document.getElementById("activarBloqueoDias").onclick = () => {
-                modoBloqueoDias = true;
-                document.getElementById("activarBloqueoDias").style.display = "none";
-                document.getElementById("desactivarBloqueoDias").style.display = "inline-block";
-                generarCuadroCalendario();
-            };
-            document.getElementById("desactivarBloqueoDias").onclick = () => {
-                modoBloqueoDias = false;
-                document.getElementById("activarBloqueoDias").style.display = "inline-block";
-                document.getElementById("desactivarBloqueoDias").style.display = "none";
-                generarCuadroCalendario();
-            };
-
-            document.querySelectorAll(".servicio-btn").forEach(btn => {
-                btn.onclick = () => {
-                    if (btn.classList.contains("exclusivo")) {
-                        document.querySelectorAll(".exclusivo").forEach(b => {
-                            if (b !== btn) {
-                                b.classList.remove("selected");
-                                seleccionados = seleccionados.filter(s => s.nombre !== b.dataset.nombre);
-                            }
-                        });
-                    }
-                    btn.classList.toggle("selected");
-                    const nombre = btn.dataset.nombre;
-                    if (btn.classList.contains("selected")) {
-                        seleccionados.push({ nombre, precio: parseInt(btn.dataset.precio), tiempo: parseInt(btn.dataset.tiempo) });
-                    } else {
-                        seleccionados = seleccionados.filter(s => s.nombre !== nombre);
-                    }
-                    actualizarResumenServicios();
-                };
-            });
-
-            document.getElementById("buscadorGlobal").oninput = (e) => {
-                const term = e.target.value.toLowerCase();
-                document.querySelectorAll(".reserva-item").forEach(item => {
-                    item.style.display = item.textContent.toLowerCase().includes(term) ? "block" : "none";
-                });
-            };
-
-            document.getElementById("cerrarVentana").onclick = () => {
-                document.getElementById("modal-horarios").style.display = "none";
-            };
-        }
-
-        function generarCuadroCalendario() {
-            cuadroCalendario.innerHTML = "";
-            const anio = fechaActualCalendario.getFullYear();
-            const mes = fechaActualCalendario.getMonth();
-            const hoy = new Date(); hoy.setHours(0,0,0,0);
-
-            const primerDia = new Date(anio, mes, 1).getDay();
-            const totalDias = new Date(anio, mes + 1, 0).getDate();
-            const offset = primerDia === 0 ? 6 : primerDia - 1;
-
-            for (let i = 0; i < offset; i++) cuadroCalendario.appendChild(document.createElement("div"));
-
-            for (let dia = 1; dia <= totalDias; dia++) {
-                const fechaStr = `${anio}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-                const celda = document.createElement("button");
-                celda.className = "diaCalendario";
-                celda.textContent = dia;
-                
-                const fechaObj = new Date(anio, mes, dia);
-                const diaPasado = fechaObj < hoy;
-                const estaBloqueado = diasBloqueados.includes(fechaStr);
-                const horarioDia = horariosPersonalizados[fechaStr] || bloquesBase;
-                const estaOcupado = (reservasPorDia[fechaStr] || []).length >= (horarioDia.length || 1);
-
-                if (diaPasado) celda.classList.add("diaPasado");
-                else if (estaBloqueado) celda.classList.add("diaBloqueado");
-                else if (estaOcupado) celda.classList.add("diaOcupado");
-                else celda.classList.add("diaLibre");
-
-                celda.onclick = () => handleDiaClick(fechaStr, estaBloqueado, diaPasado);
-                cuadroCalendario.appendChild(celda);
-            }
-        }
-
-        function handleDiaClick(fecha, estaBloqueado, diaPasado) {
-            if (diaPasado) return;
-            if (modoBloqueoDias) {
-                if (estaBloqueado) {
-                    diasBloqueadosRef.once("value", snap => {
-                        snap.forEach(child => { if (child.val().fecha === fecha) child.ref.remove(); });
-                    });
-                } else {
-                    diasBloqueadosRef.push({ fecha });
-                }
-            } else if (modoGestionHorarios) {
-                fechaSeleccionadaParaConfigurar = fecha;
-                abrirVentanaConfiguracionHorarios();
-            } else if (!estaBloqueado) {
-                abrirVentanaHorarios(fecha);
-            }
-        }
-
-        function abrirVentanaHorarios(fecha) {
-            document.getElementById("fecha").value = fecha;
-            document.getElementById("tituloVentana").textContent = `Horarios para ${fecha}`;
-            const container = document.getElementById("horariosDisponibles");
-            container.innerHTML = "";
+        for (let d = 1; d <= total; d++) {
+            const fStr = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+            const btn = document.createElement("button");
+            btn.className = "diaCalendario";
+            btn.textContent = d;
             
-            const horasReservadas = reservasPorDia[fecha] || [];
-            const horarioDia = horariosPersonalizados[fecha] || bloquesBase;
+            const dObj = new Date(y, m, d);
+            const isPast = dObj < hoy;
+            const isBloq = blockedDays.includes(fStr);
+            const hours = customHours[fStr] || baseHours;
+            const isFull = (dailyRes[fStr] || []).length >= hours.length;
 
-            horarioDia.forEach(hora => {
-                const btn = document.createElement("button");
-                btn.className = "bloqueHora " + (horasReservadas.includes(hora) ? "horaOcupada" : "horaLibre");
-                btn.textContent = (horasReservadas.includes(hora) ? "⛔ " : "✅ ") + hora;
-                if (!horasReservadas.includes(hora)) {
-                    btn.onclick = () => {
-                        document.getElementById("hora").value = hora;
-                        document.getElementById("modal-hora-personalizada").classList.remove("hidden");
-                        document.getElementById("modal-horarios").style.display = "none";
-                    };
-                }
-                container.appendChild(btn);
-            });
-            document.getElementById("modal-horarios").style.display = "flex";
+            if (isPast) btn.classList.add("diaPasado");
+            else if (isBloq) btn.classList.add("diaBloqueado");
+            else if (isFull) btn.classList.add("diaOcupado");
+            else btn.classList.add("diaLibre");
+
+            btn.onclick = () => handleDayClick(fStr, isBloq, isPast);
+            grid.appendChild(btn);
         }
+    }
 
-        function reservarHora() {
-            const nombre = document.getElementById("nombre").value.trim();
-            const fecha = document.getElementById("fecha").value;
-            const hora = document.getElementById("hora").value;
-            const servicios = seleccionados.map(s => s.nombre).join(" + ");
-            const total = document.getElementById("eltotal").textContent;
-
-            if (!nombre) { alert("Por favor, ingresa tu nombre"); return; }
-
-            reservasRef.push({ nombre, fecha, hora, servicios, total }).then(() => {
-                const msg = `Hola, soy ${nombre}. Reservé un ${servicios} para el ${fecha} a las ${hora}. Total: ${total}`;
-                window.open(`https://wa.me/56954527837?text=${encodeURIComponent(msg)}`, "_blank");
-                document.getElementById("modal-hora-personalizada").classList.add("hidden");
-                document.getElementById("nombre").value = "";
-            });
+    function handleDayClick(f, isBloq, isPast) {
+        if (isPast) return;
+        if (bloqMode) {
+            if (isBloq) bloqRef.once("value", s => s.forEach(c => { if(c.val().fecha === f) c.ref.remove(); }));
+            else bloqRef.push({ fecha: f });
+        } else if (gestMode) {
+            selectedDate = f;
+            openConfigHours(f);
+        } else if (!isBloq) {
+            openHours(f);
         }
+    }
 
-        function abrirVentanaConfiguracionHorarios() {
-            const container = document.getElementById("botones-toggle-horas");
-            container.innerHTML = "";
-            const actual = horariosPersonalizados[fechaSeleccionadaParaConfigurar] || bloquesBase;
-            
-            bloquesBase.forEach(hora => {
-                const btn = document.createElement("button");
-                btn.className = "toggle-hora-btn " + (actual.includes(hora) ? "activo" : "");
-                btn.textContent = hora + (actual.includes(hora) ? " - Disponible" : " - No Disponible");
-                btn.onclick = () => {
-                    const isActivo = btn.classList.toggle("activo");
-                    btn.textContent = hora + (isActivo ? " - Disponible" : " - No Disponible");
-                };
-                container.appendChild(btn);
-            });
-            document.getElementById("modal-configuracion-horarios").classList.remove("fantasma");
-        }
+    function openHours(f) {
+        selectedDate = f;
+        document.getElementById("fecha-titulo").textContent = f;
+        const grid = document.getElementById("grid-horas");
+        grid.innerHTML = "";
+        const res = dailyRes[f] || [];
+        const hours = customHours[f] || baseHours;
 
-        function guardarHorarioPersonalizado() {
-            const horas = [];
-            document.querySelectorAll("#botones-toggle-horas .activo").forEach(b => {
-                horas.push(b.textContent.split(" - ")[0]);
-            });
-            horariosRef.child(fechaSeleccionadaParaConfigurar).set(horas).then(() => {
-                cerrarModal('modal-configuracion-horarios');
-                modoGestionHorarios = false;
-                generarCuadroCalendario();
-            });
-        }
+        hours.forEach(h => {
+            const b = document.createElement("button");
+            const taken = res.includes(h);
+            b.className = "bloqueHora " + (taken ? "horaOcupada" : "horaLibre");
+            b.textContent = (taken ? "⛔ " : "✅ ") + h;
+            if (!taken) b.onclick = () => { selectedHour = h; openResModal(f, h); };
+            grid.appendChild(b);
+        });
+        openModal("modal-horas");
+    }
 
-        function renderReservaItem(res, key) {
-            const item = document.createElement("div");
-            item.className = "reserva-item";
-            item.innerHTML = `<strong>${res.fecha} | ${res.hora}</strong> - ${res.nombre}<br><small>${res.servicios || ""} (${res.total || ""})</small>`;
-            const delBtn = document.createElement("span");
-            delBtn.innerHTML = " | ❌";
-            delBtn.style.cursor = "pointer";
-            delBtn.className = "boton-x hidden";
-            delBtn.onclick = () => { if(confirm("¿Eliminar reserva?")) reservasRef.child(key).remove(); };
-            item.appendChild(delBtn);
-            reservasLista.prepend(item);
-        }
+    function openResModal(f, h) {
+        closeModal("modal-horas");
+        document.getElementById("reserva-info").textContent = `${f} a las ${h}`;
+        openModal("modal-reserva");
+    }
 
-        function actualizarBarraMes() {
-            tituloMes.textContent = `${mesesTexto[fechaActualCalendario.getMonth()]} ${fechaActualCalendario.getFullYear()}`;
-            generarCuadroCalendario();
-        }
+    function confirmRes() {
+        const n = document.getElementById("cliente-nombre").value.trim();
+        if (!n) return alert("Ingresa tu nombre");
+        resRef.push({ nombre: n, fecha: selectedDate, hora: selectedHour }).then(() => {
+            const msg = `Hola, reservé para el ${selectedDate} a las ${selectedHour}. Nombre: ${n}`;
+            window.open(`https://wa.me/56954527837?text=${encodeURIComponent(msg)}`, "_blank");
+            closeModal("modal-reserva");
+            document.getElementById("cliente-nombre").value = "";
+        });
+    }
 
-        function actualizarResumenServicios() {
-            const total = seleccionados.reduce((acc, s) => acc + s.precio, 0);
-            const tiempo = seleccionados.reduce((acc, s) => acc + s.tiempo, 0);
-            document.getElementById("eltotal").textContent = "$" + total.toLocaleString("es-CL");
-            document.getElementById("opciones").textContent = seleccionados.map(s => s.nombre).join(" + ") || "-";
-            document.getElementById("tiempo").textContent = tiempo + " min";
-            document.getElementById("tiempoTotal").value = tiempo;
-        }
+    function openConfigHours(f) {
+        document.getElementById("config-fecha-titulo").textContent = f;
+        const grid = document.getElementById("toggle-horas-grid");
+        grid.innerHTML = "";
+        const active = customHours[f] || baseHours;
 
-        function validarClave() {
-            if (document.getElementById("clave-input").value === "1234") {
-                cerrarModal('modal-acceso');
-                document.getElementById("modal-control").classList.remove("fantasma");
-                document.getElementById("clave-input").value = "";
-            } else alert("Clave incorrecta");
-        }
+        baseHours.forEach(h => {
+            const b = document.createElement("button");
+            const isActive = active.includes(h);
+            b.className = "toggle-hora-btn " + (isActive ? "activo" : "");
+            b.textContent = h + (isActive ? " - Disponible" : " - No Disponible");
+            b.onclick = () => {
+                const nowActive = b.classList.toggle("activo");
+                b.textContent = h + (nowActive ? " - Disponible" : " - No Disponible");
+            };
+            grid.appendChild(b);
+        });
+        openModal("modal-config-horas");
+    }
 
-        function iniciarPresionLenta(obj) {
-            let timer;
-            const start = () => timer = setTimeout(() => document.getElementById("modal-acceso").classList.remove("fantasma"), 3000);
-            const stop = () => clearTimeout(timer);
-            obj.onmousedown = start; obj.onmouseup = stop; obj.onmouseleave = stop;
-            obj.ontouchstart = start; obj.ontouchend = stop;
-        }
+    function guardarConfigHoras() {
+        const hours = [];
+        document.querySelectorAll("#toggle-horas-grid .activo").forEach(b => hours.push(b.textContent.split(" - ")[0]));
+        horRef.child(selectedDate).set(hours).then(() => {
+            closeModal("modal-config-horas");
+            gestMode = false;
+            renderCalendar();
+        });
+    }
 
-        function cerrarModal(id) { document.getElementById(id).classList.add("fantasma"); }
-        function abrirBarberia() { estadoRef.set("abierto"); cerrarModal('modal-control'); }
-        function cerrarBarberia() { estadoRef.set("cerrado"); cerrarModal('modal-control'); }
-        function mostrarModalMensaje() { cerrarModal('modal-control'); document.getElementById("modal-mensaje").classList.remove("fantasma"); }
-        function guardarMensajeCierre() { mensajeRef.set(document.getElementById("mensaje-cierre").value); cerrarModal('modal-mensaje'); }
-        function activarModoHorarios() { modoGestionHorarios = true; alert("Toca un día para configurar sus horas"); }
-        function mostrarBotonesX() { document.querySelectorAll(".boton-x").forEach(b => b.classList.remove("hidden")); }
-        function borrarTodasLasHorasEnPantalla() { if(confirm("¿Borrar TODO?")) reservasRef.remove(); }
-        function borrarHorasMesHastaHoy() {
-            const hoy = new Date();
-            reservasRef.once("value", snap => {
-                snap.forEach(child => {
-                    const [y, m, d] = child.val().fecha.split("-").map(Number);
-                    if (new Date(y, m-1, d) < hoy) child.ref.remove();
-                });
-            });
-        }
-    </script>
-    <script>
-        (function(){
-            let ctx; let master;
-            function ensureCtx(){
-                if (!ctx) {
-                    ctx = new (window.AudioContext || window.webkitAudioContext)();
-                    master = ctx.createGain(); master.gain.value = 0.4; master.connect(ctx.destination);
-                }
-                if (ctx.state === 'suspended') ctx.resume();
-            }
-            function playTone(freq, dur, vol){
-                ensureCtx();
-                const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                osc.type = 'triangle'; osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0, ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
-                osc.connect(gain); gain.connect(master);
-                osc.start(); osc.stop(ctx.currentTime + dur + 0.01);
-            }
-            document.addEventListener('click', (e) => {
-                const el = e.target.closest('button, .diaCalendario, .bloqueHora');
-                if (el) playTone(500 + (Math.random()*200), 0.1, 0.2);
-            });
-        })();
-    </script>
+    function addResItem(r, k) {
+        const item = document.createElement("div");
+        item.className = "reserva-item";
+        item.innerHTML = `<strong>${r.fecha} | ${r.hora}</strong> - ${r.nombre}`;
+        const x = document.createElement("span");
+        x.innerHTML = " | ❌";
+        x.className = "boton-x hidden";
+        x.style.cursor = "pointer";
+        x.onclick = () => confirm("¿Borrar?") && resRef.child(k).remove();
+        item.appendChild(x);
+        document.getElementById("lista-reservas").prepend(item);
+    }
+
+    // Helpers
+    function updateCalendar() {
+        document.getElementById("tituloMes").textContent = `${monthNames[currDate.getMonth()]} ${currDate.getFullYear()}`;
+        renderCalendar();
+    }
+    function openModal(id) { document.getElementById(id).classList.remove("fantasma"); }
+    function closeModal(id) { document.getElementById(id).classList.add("fantasma"); }
+    function toggleBtn(hide, show) { document.getElementById(hide).classList.add("hidden"); document.getElementById(show).classList.remove("hidden"); }
+    function login() { if(document.getElementById("pass").value === "1234") { closeModal("modal-login"); openModal("modal-admin"); document.getElementById("pass").value=""; } else alert("Clave mal"); }
+    function longPress(el, fn) { let t; const s = () => t = setTimeout(fn, 2500); const c = () => clearTimeout(t); el.onmousedown = s; el.onmouseup = c; el.onmouseleave = c; el.ontouchstart = s; el.ontouchend = c; }
+    function activarGestionHorarios() { gestMode = true; alert("Toca un día para cambiar sus horas"); }
+    function mostrarBotonesX() { document.querySelectorAll(".boton-x").forEach(b => b.classList.remove("hidden")); }
+    function borrarTodo() { if(confirm("¿Borrar TODO?")) resRef.remove(); }
+</script>
 </body>
 </html>
