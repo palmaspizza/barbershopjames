@@ -9,10 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
    
-    <link rel="icon" href="IMG-LOGO" type="image/x-icon">
-<meta property="og:title" content="Jeison Barber Style">
+    <link rel="icon" href="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" type="image/x-icon">
+<meta property="og:title" content="James Barbershop">
 <meta property="og:description" content="Reservar Hora">
-<meta property="og:image" content="IMG-LOGO">
+<meta property="og:image" content="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg">
 <meta property="og:type" content="website">
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -26,7 +26,7 @@
 </head>
 <body>
     
-    <!-- REMPLAZAR: "Jeison Barber Style" POR "EL NOMBRE DE LABARBER" -->
+    <!-- REMPLAZAR: "James Barbershop" POR "EL NOMBRE DE LABARBER" -->
     
     
     <!-- ESCRIBIR: "CAMBIAR HORARIOS" PARA CAMBIAR LOS HORARIOS DE TODOS LOS DÍAS -->
@@ -35,7 +35,7 @@
 
 <!-- LOGO -->
 <!-- REMPLAZAR ESTE LINK POR EL LINK DEL LOGO: -->
-<!-- "IMG-LOGO" -->
+<!-- "https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" -->
 
 <div class="container">
    <br>  <div id="logo" style="
@@ -52,7 +52,7 @@
   #logo {
     width: 200px;
     height: 200px;
-    background-image: url('IMG-LOGO');
+    background-image: url('https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg');
     background-size: cover;
     background-position: center;
     border-radius: 50%;
@@ -75,7 +75,7 @@
     100% { transform: rotate(360deg); }
   }
 </style><br>
-              <h2 id="tituloMes" style="margin: 0; color: orange !important;"></h2><br>
+              <h1 id="tituloMes" style="margin: 0; color: orange !important;"></h1><br>
         <div id="barraMes" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
            <center>
              <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
@@ -2860,6 +2860,7 @@ const firebaseConfig = {
         let reservasPorDia = {};
         let fechaActualCalendario = new Date();
         let fechaSeleccionadaParaConfigurar = "";
+        let modoEliminarReservas = false;
 // CAMBIAR HORARIO
         const horarioSemana = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
         const horarioDomingo = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
@@ -3452,12 +3453,14 @@ function validarClave() {
         });
 
         function mostrarBotonesX() {
+            modoEliminarReservas = true;
             document.querySelectorAll(".boton-x").forEach(b => {
                 b.style.display = "inline";
             });
         }
 
         function ocultarBotonesX() {
+            modoEliminarReservas = false;
             document.querySelectorAll(".boton-x").forEach(b => {
                 b.style.display = "none";
             });
@@ -3598,9 +3601,24 @@ const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fecha);
                     const d = document.createElement("div");
                     d.className = "reserva-item";
                     d.textContent = `⏰ ${r.hora} · ${r.nombre}`;
+                    const botonX = document.createElement("span");
+                    botonX.textContent = " | ❌";
+                    botonX.className = "boton-x";
+                    botonX.title = "Eliminar esta hora";
+                    botonX.style.display = "none";
+                    botonX.onclick = () => {
+                        const reservaRef = reservasRef.child(r.key);
+                        reservaRef.remove().then(() => {
+                            d.remove();
+                        }).catch((error) => {
+                            console.error("Error al eliminar la reserva:", error);
+                        });
+                    };
+                    d.appendChild(botonX);
                     cont.appendChild(d);
                 });
                 modal.classList.remove("fantasma");
+                if (modoEliminarReservas) mostrarBotonesX();
             });
             window.onclick = (e) => {
                 if (e.target === modal) modal.classList.add("fantasma");
@@ -4186,3 +4204,194 @@ function marcarHorasOcupadasPorDuracion() {
     document.addEventListener('pointerdown', ensureCtx, { once: true, capture: true });
   })();
 </script>
+<style>
+  /* Animación suave y llamativa para el botón "Mes siguiente" */
+#mesSiguiente {
+    background: linear-gradient(135deg, #ff8c00 0%, #ff6b35 50%, #ff4500 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    border-radius: 50px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 4px 15px rgba(255, 107, 53, 0.4),
+        0 0 20px rgba(255, 140, 0, 0.3);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    /* Animación constante de pulso */
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Efecto de brillo interior que se mueve */
+#mesSiguiente::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 70%
+    );
+    animation: shimmer 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Animación de pulso suave */
+@keyframes pulseGlow {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 
+            0 4px 15px rgba(255, 107, 53, 0.4),
+            0 0 20px rgba(255, 140, 0, 0.3);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 
+            0 6px 25px rgba(255, 107, 53, 0.6),
+            0 0 30px rgba(255, 140, 0, 0.5);
+    }
+}
+
+/* Animación de brillo deslizante */
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%) rotate(45deg);
+    }
+    100% {
+        transform: translateX(100%) rotate(45deg);
+    }
+}
+
+/* Efecto al pasar el mouse */
+#mesSiguiente:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 8px 30px rgba(255, 107, 53, 0.6),
+        0 0 40px rgba(255, 140, 0, 0.5);
+    background: linear-gradient(135deg, #ff9f1a 0%, #ff7a45 50%, #ff5722 100%);
+}
+
+/* Efecto al hacer clic */
+#mesSiguiente:active {
+    transform: translateY(-1px) scale(0.98);
+    box-shadow: 
+        0 4px 15px rgba(255, 107, 53, 0.4),
+        0 0 20px rgba(255, 140, 0, 0.3);
+    transition: all 0.1s ease;
+}
+
+/* Flecha animada dentro del botón */
+#mesSiguiente::after {
+    content: '→';
+    display: inline-block;
+    margin-left: 8px;
+    animation: arrowBounce 1.5s ease-in-out infinite;
+}
+
+/* Animación de rebote de la flecha */
+@keyframes arrowBounce {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(6px);
+    }
+}
+/* Botón "Mes anterior" - Estilo llamativo sin animación */
+#mesAnterior {
+    background: linear-gradient(135deg, #ff8c00 0%, #ff6b35 50%, #ff4500 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    border-radius: 50px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 4px 15px rgba(255, 107, 53, 0.4),
+        0 0 20px rgba(255, 140, 0, 0.3);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    /* Sin animación constante */
+}
+
+/* Efecto de brillo interior estático */
+#mesAnterior::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.2) 50%,
+        transparent 70%
+    );
+    /* Sin animación - solo el brillo estático */
+    transform: translateX(-30%) rotate(45deg);
+    pointer-events: none;
+}
+
+/* Efecto al pasar el mouse */
+#mesAnterior:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 8px 30px rgba(255, 107, 53, 0.6),
+        0 0 40px rgba(255, 140, 0, 0.5);
+    background: linear-gradient(135deg, #ff9f1a 0%, #ff7a45 50%, #ff5722 100%);
+}
+
+/* Efecto al hacer clic */
+#mesAnterior:active {
+    transform: translateY(-1px) scale(0.98);
+    box-shadow: 
+        0 4px 15px rgba(255, 107, 53, 0.4),
+        0 0 20px rgba(255, 140, 0, 0.3);
+    transition: all 0.1s ease;
+}
+
+/* Flecha estática dentro del botón */
+#mesAnterior::after {
+    content: '←';
+    display: inline-block;
+    margin-left: 8px;
+    /* Sin animación de rebote */
+}
+
+/* Variante responsive para móviles */
+@media (max-width: 480px) {
+    #mesAnterior {
+        padding: 10px 18px;
+        font-size: 14px;
+    }
+    
+    #mesAnterior::after {
+        margin-left: 6px;
+    }
+}
+/* Variante responsive para móviles */
+@media (max-width: 480px) {
+    #mesSiguiente {
+        padding: 10px 18px;
+        font-size: 14px;
+    }
+    
+    #mesSiguiente::after {
+        margin-left: 6px;
+    }
+}
+</style>
