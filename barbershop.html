@@ -98,6 +98,43 @@
         <button id="solicitar" hidden>Solicitar notificaciones</button>
 <script>
   // Las notificaciones se envían automáticamente vía ntfy.sh al reservar
+  // ============================================
+// NOTIFICACIONES PUSH - INTEGRACIÓN
+// ============================================
+// ============================================
+// NOTIFICACIONES PUSH - INTEGRACIÓN
+// ============================================
+const NTFY_TOPIC = 'james-barber-shop-2026'; // Cambia esto por tu topic único
+
+async function notificarNuevaReserva(datosReserva) {
+    // Emojis SOLO en el body, NUNCA en los headers
+    const mensaje = `💈 Nueva Reserva
+👤 ${datosReserva.nombre}
+📅 ${datosReserva.fecha} a las ${datosReserva.hora}
+✂️ ${datosReserva.servicios || 'Sin servicio'}
+💰 ${datosReserva.total || 'No especificado'}`;
+
+    try {
+        const respuesta = await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+            method: 'POST',
+            body: mensaje,
+            headers: {
+                // Headers: solo caracteres ASCII/ISO-8859-1 (sin emojis)
+                'Title': 'Nueva Reserva - Barberia',
+                'Priority': 'high',
+                'Tags': 'scissors,calendar'
+            }
+        });
+        
+        if (respuesta.ok) {
+            console.log('Notificacion enviada correctamente');
+        } else {
+            console.error('Error HTTP al enviar notificacion:', respuesta.status);
+        }
+    } catch (error) {
+        console.error('Error de red al enviar notificacion:', error);
+    }
+}
 </script>
 <style>
   /* Contenedor principal con efecto vidrio */
@@ -3201,7 +3238,7 @@ setTimeout(() => {
             if (div) div.remove();
         });
 
-       function reservarHora() {
+      function reservarHora() {
     const fecha = document.getElementById("fecha").value;
     const hora = document.getElementById("hora").value;
     const nombre = document.getElementById("nombre").value.trim();
@@ -3225,7 +3262,7 @@ setTimeout(() => {
             }
         });
 
-       if (ocupada) {
+        if (ocupada) {
             document.getElementById("modal-ocupado")?.classList.remove("hidden");
         } else {
             const tiempoMin = parseInt(document.getElementById("tiempoTotal")?.value || "0", 10);
@@ -3236,28 +3273,33 @@ setTimeout(() => {
                 const r = child.val();
                 if (r.fecha === fecha) ocupadasSet.add(r.hora);
             });
-            
+
+            // Crear objeto de reserva para notificación
             const nuevaReserva = {
-                nombre,
-                fecha,
-                hora,
-                servicios,
-                total,
+                nombre: nombre,
+                fecha: fecha,
+                hora: hora,
+                servicios: servicios,
+                total: total,
                 timestamp: Date.now()
             };
 
+            // Guardar en Firebase
             for (let i = 0; i < Math.max(horasNecesarias, 1); i++) {
                 const h = String(baseHH + i).padStart(2, "0") + ":00";
                 if (!ocupadasSet.has(h)) {
                     ref.push({ ...nuevaReserva, hora: h });
                 }
             }
-            
-            // ✅ ENVIAR NOTIFICACIÓN AL BARBERO (vía app.js)
+
+            // ✅ ENVIAR NOTIFICACIÓN AL BARBERO (aquí es el momento correcto)
             if (typeof notificarNuevaReserva === 'function') {
                 notificarNuevaReserva(nuevaReserva);
+            } else {
+                console.error('❌ Función notificarNuevaReserva no disponible');
             }
 
+            // Mostrar confirmación al cliente
             document.getElementById("modal-reservada").classList.remove("hidden");
             marcarHorasOcupadasPorDuracion();
             enviarMensajeWhatsApp();
@@ -4192,33 +4234,7 @@ function marcarHorasOcupadasPorDuracion() {
 
 
 
-  // ============================================
-// NOTIFICACIONES PUSH - INTEGRACIÓN
-// ============================================
-const NTFY_TOPIC = 'james-barber-shop-2026'; // Cambia esto por tu topic único
-
-async function notificarNuevaReserva(datosReserva) {
-    const mensaje = `💈 Nueva Reserva
-👤 ${datosReserva.nombre}
-📅 ${datosReserva.fecha} a las ${datosReserva.hora}
-✂️ ${datosReserva.servicios || 'Sin servicio'}
-💰 ${datosReserva.total || 'No especificado'}`;
-
-    try {
-        await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
-            method: 'POST',
-            body: mensaje,
-            headers: {
-                'Title': '🔔 Nueva Reserva - Barbería',
-                'Priority': 'high',
-                'Tags': 'scissors,calendar'
-            }
-        });
-        console.log('✅ Notificación enviada');
-    } catch (error) {
-        console.error('❌ Error notificación:', error);
-    }
-}
+  
 
 // Modificar tu función reservarHora() existente para incluir la notificación:
 const reservarHoraOriginal = reservarHora; // Guardar referencia si existe
