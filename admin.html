@@ -1,0 +1,1434 @@
+<!-- ============================================
+     ADMIN.HTML - PANEL DE CONTROL BARBERÍA
+     Versión: 1.0 | Completo y Funcional
+     ============================================ -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Barbería</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase 9.22.2 (misma versión que tu app original) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    
+    <style>
+        /* ============================================
+           VARIABLES CSS - TEMA BARBERÍA
+           ============================================ */
+        :root {
+            --barber-red: #ff3b3f;
+            --barber-blue: #2089ff;
+            --barber-white: #ffffff;
+            --barber-orange: #e4a64f;
+            --barber-black: #0b0b0d;
+            --barber-surface: #15161a;
+            --barber-green: #33d17a;
+            --barber-gray: #2b2b2b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--barber-black) 0%, #1a1a1e 100%);
+            color: var(--barber-white);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        /* ============================================
+           PANTALLA DE LOGIN
+           ============================================ */
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--barber-black) 0%, #1a1a1e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .login-box {
+            background: var(--barber-surface);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid var(--barber-orange);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(228,166,79,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .login-box h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--barber-orange);
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .login-box p {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+        
+        .pin-input {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .pin-input input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 1.5rem;
+            border: 2px solid var(--barber-orange);
+            border-radius: 10px;
+            background: var(--barber-black);
+            color: var(--barber-white);
+            font-weight: bold;
+        }
+        
+        .pin-input input:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(228,166,79,0.5);
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--barber-orange), #ff6f00);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255,111,0,0.4);
+        }
+        
+        .error-msg {
+            color: var(--barber-red);
+            margin-top: 15px;
+            display: none;
+        }
+        
+        /* ============================================
+           LAYOUT PRINCIPAL
+           ============================================ */
+        #admin-panel {
+            display: none;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--barber-orange);
+        }
+        
+        .admin-header h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--barber-orange);
+            font-size: 2rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-header {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-logout {
+            background: var(--barber-gray);
+            color: white;
+        }
+        
+        .btn-refresh {
+            background: var(--barber-blue);
+            color: white;
+        }
+        
+        /* ============================================
+           GRID PRINCIPAL
+           ============================================ */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 900px) {
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* ============================================
+           CARDS / SECCIONES
+           ============================================ */
+        .card {
+            background: var(--barber-surface);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(228,166,79,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+        
+        .card h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--barber-orange);
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card h2::before {
+            content: '';
+            width: 4px;
+            height: 25px;
+            background: linear-gradient(to bottom, var(--barber-orange), var(--barber-red));
+            border-radius: 2px;
+        }
+        
+        /* ============================================
+           STATS DEL DÍA
+           ============================================ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(145deg, #1e1f24, #16171b);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(228,166,79,0.3);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--barber-orange);
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        /* ============================================
+           LISTA DE RESERVAS HOY
+           ============================================ */
+        .reservas-hoy-lista {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .reserva-item {
+            background: linear-gradient(145deg, #1e1f24, #16171b);
+            border-left: 4px solid var(--barber-orange);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .reserva-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        
+        .reserva-info h4 {
+            color: var(--barber-white);
+            margin-bottom: 5px;
+        }
+        
+        .reserva-info p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .reserva-hora {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--barber-orange);
+        }
+        
+        .btn-eliminar {
+            background: var(--barber-red);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-eliminar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255,59,63,0.4);
+        }
+        
+        .sin-reservas {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            font-style: italic;
+        }
+        
+        /* ============================================
+           CALENDARIO ADMIN
+           ============================================ */
+        .calendario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendario-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-nav {
+            background: var(--barber-gray);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .mes-titulo {
+            font-family: 'Playfair Display', serif;
+            color: var(--barber-orange);
+            font-size: 1.3rem;
+        }
+        
+        .dias-semana {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--barber-orange);
+            font-size: 0.85rem;
+        }
+        
+        .calendario-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+        
+        .dia-celda {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #1e1f24, #16171b);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+        
+        .dia-celda:hover {
+            transform: scale(1.05);
+            border-color: var(--barber-orange);
+        }
+        
+        .dia-celda.pasado {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #1a1a1e;
+        }
+        
+        .dia-celda.cerrado {
+            background: rgba(255,59,63,0.2);
+            border-color: var(--barber-red);
+        }
+        
+        .dia-celda.cerrado::after {
+            content: '🔒';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 0.7rem;
+        }
+        
+        .dia-celda.hoy {
+            border-color: var(--barber-orange);
+            box-shadow: 0 0 15px rgba(228,166,79,0.3);
+        }
+        
+        .dia-celda.seleccionado {
+            background: var(--barber-orange);
+            color: var(--barber-black);
+            font-weight: bold;
+        }
+        
+        .dia-numero {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .dia-reservas {
+            font-size: 0.7rem;
+            color: var(--barber-orange);
+            margin-top: 2px;
+        }
+        
+        /* ============================================
+           PANEL DE ACCIONES DEL DÍA
+           ============================================ */
+        .panel-dia {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(228,166,79,0.2);
+        }
+        
+        .panel-dia h3 {
+            color: var(--barber-orange);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .acciones-dia {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-accion {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 140px;
+        }
+        
+        .btn-cerrar-dia {
+            background: var(--barber-red);
+            color: white;
+        }
+        
+        .btn-abrir-dia {
+            background: var(--barber-green);
+            color: white;
+        }
+        
+        .btn-ver-horarios {
+            background: var(--barber-blue);
+            color: white;
+        }
+        
+        /* ============================================
+           CONFIGURACIÓN RÁPIDA
+           ============================================ */
+        .config-section {
+            margin-bottom: 25px;
+        }
+        
+        .config-section h3 {
+            color: var(--barber-orange);
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        
+        .dias-semana-config {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .dia-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(145deg, #1e1f24, #16171b);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .dia-checkbox:hover {
+            border-color: var(--barber-orange);
+        }
+        
+        .dia-checkbox input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--barber-red);
+        }
+        
+        .dia-checkbox.checked {
+            background: rgba(255,59,63,0.2);
+            border-color: var(--barber-red);
+        }
+        
+        .dia-checkbox.checked span {
+            color: var(--barber-red);
+        }
+        
+        /* ============================================
+           HORARIOS
+           ============================================ */
+        .horario-config {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .horario-box {
+            background: linear-gradient(145deg, #1e1f24, #16171b);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(228,166,79,0.2);
+        }
+        
+        .horario-box h4 {
+            color: var(--barber-orange);
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+        
+        .horas-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .hora-tag {
+            background: rgba(228,166,79,0.2);
+            color: var(--barber-orange);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .btn-editar-horario {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--barber-gray);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        /* ============================================
+           MODAL DE EDICIÓN
+           ============================================ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--barber-surface);
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid var(--barber-orange);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            color: var(--barber-orange);
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .btn-cerrar-modal {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .horas-editables {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .hora-btn {
+            padding: 10px;
+            border: 2px solid var(--barber-orange);
+            background: transparent;
+            color: var(--barber-orange);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .hora-btn.activa {
+            background: var(--barber-orange);
+            color: var(--barber-black);
+        }
+        
+        .hora-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* ============================================
+           BOTONES DE ACCIÓN GLOBAL
+           ============================================ */
+        .acciones-globales {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-peligro {
+            background: linear-gradient(135deg, #8b0000, var(--barber-red));
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-peligro:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255,59,63,0.4);
+        }
+        
+        .btn-secundario {
+            background: var(--barber-gray);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        /* ============================================
+           NOTIFICACIONES TOAST
+           ============================================ */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--barber-surface);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            border-left: 4px solid var(--barber-green);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 9999;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.error {
+            border-left-color: var(--barber-red);
+        }
+        
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .horario-config {
+                grid-template-columns: 1fr;
+            }
+            
+            .horas-editables {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .admin-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================
+         PANTALLA DE LOGIN
+    ============================================ -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h1>🔒 Panel de Control</h1>
+            <p>Ingresa tu clave de barbero</p>
+            
+            <div class="pin-input">
+                <input type="password" maxlength="1" data-index="0">
+                <input type="password" maxlength="1" data-index="1">
+                <input type="password" maxlength="1" data-index="2">
+                <input type="password" maxlength="1" data-index="3">
+            </div>
+            
+            <button class="btn-login" onclick="verificarLogin()">Ingresar</button>
+            <p class="error-msg" id="login-error">Clave incorrecta</p>
+        </div>
+    </div>
+
+    <!-- ============================================
+         PANEL ADMIN (oculto inicialmente)
+    ============================================ -->
+    <div id="admin-panel">
+        
+        <!-- Header -->
+        <div class="admin-header">
+            <h1>💈 Panel de Administración</h1>
+            <div class="header-actions">
+                <button class="btn-header btn-refresh" onclick="cargarDatos()">🔄 Actualizar</button>
+                <button class="btn-header btn-logout" onclick="logout()">Salir</button>
+            </div>
+        </div>
+        
+        <!-- Grid Principal -->
+        <div class="admin-grid">
+            
+            <!-- COLUMNA IZQUIERDA -->
+            <div class="columna-izquierda">
+                
+                <!-- STATS Y RESERVAS DE HOY -->
+                <div class="card">
+                    <h2>📋 Hoy - <span id="fecha-hoy"></span></h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-number" id="stat-total">0</div>
+                            <div class="stat-label">Reservas</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="stat-ingresos">$0</div>
+                            <div class="stat-label">Ingresos</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="stat-pendientes">0</div>
+                            <div class="stat-label">Pendientes</div>
+                        </div>
+                    </div>
+                    
+                    <div class="reservas-hoy-lista" id="reservas-hoy-lista">
+                        <div class="sin-reservas">No hay reservas para hoy</div>
+                    </div>
+                </div>
+                
+                <!-- CONFIGURACIÓN RÁPIDA -->
+                <div class="card" style="margin-top: 25px;">
+                    <h2>⚙️ Configuración Rápida</h2>
+                    
+                    <div class="config-section">
+                        <h3>Días de descanso semanales</h3>
+                        <p style="color: #666; font-size: 0.85rem; margin-bottom: 10px;">
+                            Marca los días que la barbería SIEMPRE está cerrada
+                        </p>
+                        <div class="dias-semana-config" id="dias-semana-config">
+                            <!-- Se genera con JS -->
+                        </div>
+                    </div>
+                    
+                    <div class="config-section">
+                        <h3>Horarios de atención</h3>
+                        <div class="horario-config">
+                            <div class="horario-box">
+                                <h4>Lunes a Sábado</h4>
+                                <div class="horas-tags" id="horario-semana-tags"></div>
+                                <button class="btn-editar-horario" onclick="editarHorario('semana')">Editar</button>
+                            </div>
+                            <div class="horario-box">
+                                <h4>Domingos</h4>
+                                <div class="horas-tags" id="horario-domingo-tags"></div>
+                                <button class="btn-editar-horario" onclick="editarHorario('domingo')">Editar</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="config-section">
+                        <h3>Acciones globales</h3>
+                        <div class="acciones-globales">
+                            <button class="btn-peligro" onclick="borrarTodasReservas()">🗑️ Borrar TODAS las reservas</button>
+                            <button class="btn-secundario" onclick="borrarReservasAntiguas()">📜 Borrar reservas antiguas</button>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- COLUMNA DERECHA -->
+            <div class="columna-derecha">
+                
+                <!-- CALENDARIO -->
+                <div class="card">
+                    <h2>📅 Calendario de Reservas</h2>
+                    
+                    <div class="calendario-header">
+                        <div class="calendario-nav">
+                            <button class="btn-nav" onclick="cambiarMes(-1)">←</button>
+                            <button class="btn-nav" onclick="irAHoy()">Hoy</button>
+                            <button class="btn-nav" onclick="cambiarMes(1)">→</button>
+                        </div>
+                        <div class="mes-titulo" id="mes-titulo">Abril 2026</div>
+                    </div>
+                    
+                    <div class="dias-semana">
+                        <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div>
+                        <div>Jue</div><div>Vie</div><div>Sáb</div>
+                    </div>
+                    
+                    <div class="calendario-grid" id="calendario-grid">
+                        <!-- Se genera con JS -->
+                    </div>
+                    
+                    <!-- Panel de acciones del día seleccionado -->
+                    <div class="panel-dia" id="panel-dia" style="display: none;">
+                        <h3>Acciones para <span id="dia-seleccionado-texto"></span></h3>
+                        <div class="acciones-dia">
+                            <button class="btn-accion btn-cerrar-dia" id="btn-cerrar-dia" onclick="toggleDiaCerrado()">
+                                🔒 Cerrar día
+                            </button>
+                            <button class="btn-accion btn-abrir-dia" id="btn-abrir-dia" onclick="toggleDiaCerrado()">
+                                🔓 Abrir día
+                            </button>
+                            <button class="btn-accion btn-ver-horarios" onclick="editarHorarioEspecifico()">
+                                ⚙️ Horario especial
+                            </button>
+                        </div>
+                        
+                        <!-- Lista de reservas del día seleccionado -->
+                        <div id="reservas-dia-seleccionado" style="margin-top: 20px;">
+                            <!-- Se llena con JS -->
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <!-- ============================================
+         MODAL DE EDICIÓN DE HORARIO
+    ============================================ -->
+    <div class="modal-overlay" id="modal-horario">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Horario</h3>
+                <button class="btn-cerrar-modal" onclick="cerrarModal()">×</button>
+            </div>
+            <p style="color: #888; margin-bottom: 15px;" id="modal-horario-subtitulo">
+                Selecciona las horas disponibles
+            </p>
+            <div class="horas-editables" id="horas-editables">
+                <!-- Se genera con JS -->
+            </div>
+            <button class="btn-login" onclick="guardarHorario()" style="margin-top: 20px;">
+                Guardar Cambios
+            </button>
+        </div>
+    </div>
+    
+    <!-- Toast de notificaciones -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // CONFIGURACIÓN FIREBASE (misma que tu app)
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHLlV9HDfa1v-Uz4YVcbt3vQGByhNFYus",
+            authDomain: "Jamesstyle-1530f.firebaseapp.com",
+            databaseURL: "https://Jamesstyle-1530f-default-rtdb.firebaseio.com",
+            projectId: "Jamesstyle-1530f",
+            storageBucket: "Jamesstyle-1530f.firebasestorage.app",
+            messagingSenderId: "40159402096",
+            appId: "1:40159402096:web:d54b2d9a2dd990c1203cb5"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
+        const CLAVE_ADMIN = '2024'; // ← CAMBIA ESTO POR TU CLAVE
+        let fechaActual = new Date();
+        let diaSeleccionado = null;
+        let tipoHorarioEditando = null;
+        
+        // Datos en memoria
+        let reservas = {};
+        let diasCerrados = [];
+        let diasSemanaCerrados = [];
+        let horarioSemana = ["11:00","12:00","13:00","14:00","16:00","17:00","18:00","19:00","20:00","21:30"];
+        let horarioDomingo = ["11:00","12:00","13:00","14:00","16:00","17:00","18:00","19:00","20:00","21:30"];
+        let horariosEspecificos = {};
+        
+        const nombresMeses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+        const nombresDias = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+        
+        // ============================================
+        // LOGIN
+        // ============================================
+        
+        // Auto-focus en inputs de PIN
+        document.querySelectorAll('.pin-input input').forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value && index < 3) {
+                    e.target.nextElementSibling.focus();
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    e.target.previousElementSibling.focus();
+                }
+                if (e.key === 'Enter') verificarLogin();
+            });
+        });
+        
+        function verificarLogin() {
+            const inputs = document.querySelectorAll('.pin-input input');
+            const claveIngresada = Array.from(inputs).map(i => i.value).join('');
+            
+            if (claveIngresada === CLAVE_ADMIN) {
+                sessionStorage.setItem('adminAuth', 'true');
+                mostrarPanel();
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+                inputs.forEach(i => {
+                    i.value = '';
+                    i.style.borderColor = 'var(--barber-red)';
+                });
+                inputs[0].focus();
+            }
+        }
+        
+        function mostrarPanel() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            inicializarPanel();
+        }
+        
+        function logout() {
+            sessionStorage.removeItem('adminAuth');
+            location.reload();
+        }
+        
+        // Verificar si ya está logueado
+        if (sessionStorage.getItem('adminAuth')) {
+            mostrarPanel();
+        }
+        
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        
+        function inicializarPanel() {
+            document.getElementById('fecha-hoy').textContent = formatearFechaLarga(new Date());
+            
+            // Cargar datos de Firebase
+            cargarDatos();
+            
+            // Escuchar cambios en tiempo real
+            db.ref('reservas').on('value', snapshot => {
+                reservas = snapshot.val() || {};
+                actualizarTodo();
+            });
+            
+            db.ref('diasCerrados').on('value', snapshot => {
+                const data = snapshot.val() || {};
+                diasCerrados = Object.values(data).map(d => d.fecha);
+                renderCalendario();
+            });
+            
+            db.ref('config/diasSemanaCerrados').on('value', snapshot => {
+                diasSemanaCerrados = snapshot.val() || [];
+                renderDiasSemanaConfig();
+                renderCalendario();
+            });
+            
+            db.ref('config/horarioSemana').on('value', snapshot => {
+                if (snapshot.val()) horarioSemana = snapshot.val();
+                renderHorarioTags('semana');
+            });
+            
+            db.ref('config/horarioDomingo').on('value', snapshot => {
+                if (snapshot.val()) horarioDomingo = snapshot.val();
+                renderHorarioTags('domingo');
+            });
+            
+            db.ref('config/horariosEspecificos').on('value', snapshot => {
+                horariosEspecificos = snapshot.val() || {};
+            });
+        }
+        
+        function cargarDatos() {
+            mostrarToast('Datos actualizados');
+        }
+        
+        function actualizarTodo() {
+            renderReservasHoy();
+            renderCalendario();
+            if (diaSeleccionado) renderPanelDia();
+        }
+        
+        // ============================================
+        // RENDERIZADO - RESERVAS DE HOY
+        // ============================================
+        
+        function renderReservasHoy() {
+            const hoy = formatearFecha(new Date());
+            const reservasHoy = [];
+            
+            Object.entries(reservas).forEach(([id, reserva]) => {
+                if (reserva.fecha === hoy) {
+                    reservasHoy.push({ id, ...reserva });
+                }
+            });
+            
+            reservasHoy.sort((a, b) => a.hora.localeCompare(b.hora));
+            
+            document.getElementById('stat-total').textContent = reservasHoy.length;
+            document.getElementById('stat-pendientes').textContent = reservasHoy.length;
+            
+            let total = 0;
+            reservasHoy.forEach(r => {
+                if (r.total) total += parseInt(r.total.replace(/[^0-9]/g, '')) || 0;
+            });
+            document.getElementById('stat-ingresos').textContent = '$' + total.toLocaleString();
+            
+            const container = document.getElementById('reservas-hoy-lista');
+            if (reservasHoy.length === 0) {
+                container.innerHTML = '<div class="sin-reservas">No hay reservas para hoy</div>';
+                return;
+            }
+            
+            container.innerHTML = reservasHoy.map(r => `
+                <div class="reserva-item">
+                    <div class="reserva-info">
+                        <h4>${r.nombre}</h4>
+                        <p>${r.servicios || 'Sin servicio especificado'}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="reserva-hora">${r.hora}</div>
+                        <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Eliminar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // ============================================
+        // RENDERIZADO - CALENDARIO
+        // ============================================
+        
+        function renderCalendario() {
+            const año = fechaActual.getFullYear();
+            const mes = fechaActual.getMonth();
+            
+            document.getElementById('mes-titulo').textContent = `${nombresMeses[mes]} ${año}`;
+            
+            const primerDia = new Date(año, mes, 1).getDay();
+            const diasEnMes = new Date(año, mes + 1, 0).getDate();
+            const hoy = new Date();
+            
+            let html = '';
+            
+            for (let i = 0; i < primerDia; i++) {
+                html += '<div></div>';
+            }
+            
+            for (let dia = 1; dia <= diasEnMes; dia++) {
+                const fecha = new Date(año, mes, dia);
+                const fechaStr = formatearFecha(fecha);
+                const esPasado = fecha < new Date(hoy.setHours(0,0,0,0));
+                const diaSemana = fecha.getDay();
+                const esHoy = fecha.toDateString() === new Date().toDateString();
+                
+                const esDiaSemanaCerrado = diasSemanaCerrados.includes(diaSemana);
+                const esDiaEspecificoCerrado = diasCerrados.includes(fechaStr);
+                const estaCerrado = esDiaSemanaCerrado || esDiaEspecificoCerrado;
+                
+                const numReservas = Object.values(reservas).filter(r => r.fecha === fechaStr).length;
+                
+                let clases = 'dia-celda';
+                if (esPasado) clases += ' pasado';
+                if (estaCerrado) clases += ' cerrado';
+                if (esHoy) clases += ' hoy';
+                if (diaSeleccionado === fechaStr) clases += ' seleccionado';
+                
+                html += `
+                    <div class="${clases}" onclick="seleccionarDia('${fechaStr}', ${esPasado})">
+                        <div class="dia-numero">${dia}</div>
+                        ${numReservas > 0 && !estaCerrado ? `<div class="dia-reservas">${numReservas} res.</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            document.getElementById('calendario-grid').innerHTML = html;
+        }
+        
+        function cambiarMes(delta) {
+            fechaActual.setMonth(fechaActual.getMonth() + delta);
+            renderCalendario();
+        }
+        
+        function irAHoy() {
+            fechaActual = new Date();
+            renderCalendario();
+        }
+        
+        function seleccionarDia(fechaStr, esPasado) {
+            if (esPasado) return;
+            diaSeleccionado = fechaStr;
+            renderCalendario();
+            renderPanelDia();
+        }
+        
+        // ============================================
+        // PANEL DE DÍA SELECCIONADO
+        // ============================================
+        
+        function renderPanelDia() {
+            const panel = document.getElementById('panel-dia');
+            panel.style.display = 'block';
+            
+            const fecha = new Date(diaSeleccionado);
+            const diaSemana = fecha.getDay();
+            const esDiaSemanaCerrado = diasSemanaCerrados.includes(diaSemana);
+            const esDiaEspecificoCerrado = diasCerrados.includes(diaSeleccionado);
+            const estaCerrado = esDiaSemanaCerrado || esDiaEspecificoCerrado;
+            
+            document.getElementById('dia-seleccionado-texto').textContent = 
+                `${nombresDias[diaSemana]} ${diaSeleccionado}`;
+            
+            document.getElementById('btn-cerrar-dia').style.display = estaCerrado ? 'none' : 'block';
+            document.getElementById('btn-abrir-dia').style.display = estaCerrado ? 'block' : 'none';
+            
+            const reservasDia = Object.entries(reservas)
+                .filter(([id, r]) => r.fecha === diaSeleccionado)
+                .map(([id, r]) => ({ id, ...r }))
+                .sort((a, b) => a.hora.localeCompare(b.hora));
+            
+            const container = document.getElementById('reservas-dia-seleccionado');
+            if (reservasDia.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Sin reservas para este día</p>';
+            } else {
+                container.innerHTML = `
+                    <h4 style="color: var(--barber-orange); margin-bottom: 10px;">Reservas:</h4>
+                    ${reservasDia.map(r => `
+                        <div class="reserva-item">
+                            <div class="reserva-info">
+                                <h4>${r.nombre}</h4>
+                                <p>${r.servicios || 'Sin servicio'}</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="reserva-hora">${r.hora}</div>
+                                <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Eliminar</button>
+                            </div>
+                        </div>
+                    `).join('')}`;
+            }
+        }
+        
+        function toggleDiaCerrado() {
+            const esCerrado = diasCerrados.includes(diaSeleccionado);
+            
+            if (esCerrado) {
+                db.ref('diasCerrados').once('value', snapshot => {
+                    snapshot.forEach(child => {
+                        if (child.val().fecha === diaSeleccionado) {
+                            child.ref.remove();
+                        }
+                    });
+                });
+                mostrarToast('Día abierto correctamente');
+            } else {
+                db.ref('diasCerrados').push({ fecha: diaSeleccionado });
+                mostrarToast('Día cerrado correctamente');
+            }
+        }
+        
+        // ============================================
+        // CONFIGURACIÓN - DÍAS DE SEMANA
+        // ============================================
+        
+        function renderDiasSemanaConfig() {
+            const container = document.getElementById('dias-semana-config');
+            const dias = [
+                { num: 1, nombre: 'Lunes' },
+                { num: 2, nombre: 'Martes' },
+                { num: 3, nombre: 'Miércoles' },
+                { num: 4, nombre: 'Jueves' },
+                { num: 5, nombre: 'Viernes' },
+                { num: 6, nombre: 'Sábado' },
+                { num: 0, nombre: 'Domingo' }
+            ];
+            
+            container.innerHTML = dias.map(d => {
+                const checked = diasSemanaCerrados.includes(d.num);
+                return `
+                    <label class="dia-checkbox ${checked ? 'checked' : ''}" onclick="toggleDiaSemana(${d.num})">
+                        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleDiaSemana(${d.num})">
+                        <span>${d.nombre}</span>
+                    </label>
+                `;
+            }).join('');
+        }
+        
+        function toggleDiaSemana(diaNum) {
+            const index = diasSemanaCerrados.indexOf(diaNum);
+            let nuevoArray = [...diasSemanaCerrados];
+            
+            if (index > -1) {
+                nuevoArray.splice(index, 1);
+            } else {
+                nuevoArray.push(diaNum);
+            }
+            
+            db.ref('config/diasSemanaCerrados').set(nuevoArray);
+        }
+        
+        // ============================================
+        // CONFIGURACIÓN - HORARIOS
+        // ============================================
+        
+        function renderHorarioTags(tipo) {
+            const horario = tipo === 'semana' ? horarioSemana : horarioDomingo;
+            const container = document.getElementById(`horario-${tipo}-tags`);
+            container.innerHTML = horario.map(h => `<span class="hora-tag">${h}</span>`).join('');
+        }
+        
+        function editarHorario(tipo) {
+            tipoHorarioEditando = tipo;
+            const horario = tipo === 'semana' ? horarioSemana : horarioDomingo;
+            
+            document.getElementById('modal-horario-subtitulo').textContent = 
+                tipo === 'semana' ? 'Horario de Lunes a Sábado' : 'Horario de Domingos';
+            
+            const horasDisponibles = [];
+            for (let h = 9; h <= 22; h++) {
+                horasDisponibles.push(`${h.toString().padStart(2,'0')}:00`);
+                if (h < 22) horasDisponibles.push(`${h.toString().padStart(2,'0')}:30`);
+            }
+            
+            const container = document.getElementById('horas-editables');
+            container.innerHTML = horasDisponibles.map(hora => {
+                const activa = horario.includes(hora);
+                return `<button class="hora-btn ${activa ? 'activa' : ''}" onclick="toggleHora('${hora}')">${hora}</button>`;
+            }).join('');
+            
+            document.getElementById('modal-horario').classList.add('active');
+        }
+        
+        function editarHorarioEspecifico() {
+            tipoHorarioEditando = diaSeleccionado;
+            const horarioDefault = obtenerHorarioDefault(diaSeleccionado);
+            const horarioActual = horariosEspecificos[diaSeleccionado] || horarioDefault;
+            
+            document.getElementById('modal-horario-subtitulo').textContent = 
+                `Horario especial para ${diaSeleccionado}`;
+            
+            const horasDisponibles = [];
+            for (let h = 9; h <= 22; h++) {
+                horasDisponibles.push(`${h.toString().padStart(2,'0')}:00`);
+                if (h < 22) horasDisponibles.push(`${h.toString().padStart(2,'0')}:30`);
+            }
+            
+            const container = document.getElementById('horas-editables');
+            container.innerHTML = horasDisponibles.map(hora => {
+                const activa = horarioActual.includes(hora);
+                return `<button class="hora-btn ${activa ? 'activa' : ''}" onclick="toggleHora('${hora}')">${hora}</button>`;
+            }).join('');
+            
+            document.getElementById('modal-horario').classList.add('active');
+        }
+        
+        function toggleHora(hora) {
+            event.target.classList.toggle('activa');
+        }
+        
+        function guardarHorario() {
+            const horasActivas = Array.from(document.querySelectorAll('.hora-btn.activa'))
+                .map(btn => btn.textContent);
+            
+            if (tipoHorarioEditando === 'semana') {
+                db.ref('config/horarioSemana').set(horasActivas);
+            } else if (tipoHorarioEditando === 'domingo') {
+                db.ref('config/horarioDomingo').set(horasActivas);
+            } else {
+                if (horasActivas.length === 0) {
+                    db.ref(`config/horariosEspecificos/${tipoHorarioEditando}`).remove();
+                } else {
+                    db.ref(`config/horariosEspecificos/${tipoHorarioEditando}`).set(horasActivas);
+                }
+            }
+            
+            cerrarModal();
+            mostrarToast('Horario guardado');
+        }
+        
+        function cerrarModal() {
+            document.getElementById('modal-horario').classList.remove('active');
+        }
+        
+        function obtenerHorarioDefault(fechaStr) {
+            const fecha = new Date(fechaStr);
+            const diaSemana = fecha.getDay();
+            return diaSemana === 0 ? horarioDomingo : horarioSemana;
+        }
+        
+        // ============================================
+        // ACCIONES GLOBALES
+        // ============================================
+        
+        function eliminarReserva(id) {
+            if (!confirm('¿Eliminar esta reserva?')) return;
+            db.ref(`reservas/${id}`).remove();
+            mostrarToast('Reserva eliminada');
+        }
+        
+        function borrarTodasReservas() {
+            if (!confirm('⚠️ ¿ESTÁS SEGURO?\n\nEsto eliminará TODAS las reservas permanentemente.')) return;
+            if (!confirm('Doble confirmación: ¿Realmente quieres borrar todo?')) return;
+            
+            db.ref('reservas').remove();
+            mostrarToast('Todas las reservas eliminadas');
+        }
+        
+        function borrarReservasAntiguas() {
+            const hoy = formatearFecha(new Date());
+            const confirmar = confirm(`¿Borrar reservas anteriores a ${hoy}?`);
+            if (!confirmar) return;
+            
+            db.ref('reservas').once('value', snapshot => {
+                let count = 0;
+                snapshot.forEach(child => {
+                    if (child.val().fecha < hoy) {
+                        child.ref.remove();
+                        count++;
+                    }
+                });
+                mostrarToast(`${count} reservas antiguas eliminadas`);
+            });
+        }
+        
+        // ============================================
+        // UTILIDADES
+        // ============================================
+        
+        function formatearFecha(fecha) {
+            const a = fecha.getFullYear();
+            const m = String(fecha.getMonth() + 1).padStart(2, '0');
+            const d = String(fecha.getDate()).padStart(2, '0');
+            return `${a}-${m}-${d}`;
+        }
+        
+        function formatearFechaLarga(fecha) {
+            return `${nombresDias[fecha.getDay()]} ${fecha.getDate()} de ${nombresMeses[fecha.getMonth()]}`;
+        }
+        
+        function mostrarToast(mensaje, esError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.className = esError ? 'toast error show' : 'toast show';
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Cerrar modal al hacer click fuera
+        document.getElementById('modal-horario').addEventListener('click', (e) => {
+            if (e.target.id === 'modal-horario') cerrarModal();
+        });
+    </script>
+</body>
+</html>
