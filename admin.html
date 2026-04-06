@@ -717,22 +717,44 @@
            RESPONSIVE
            ============================================ */
         @media (max-width: 600px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
+            body {
+                padding: 10px;
             }
-            
-            .horario-config {
-                grid-template-columns: 1fr;
-            }
-            
-            .horas-editables {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            
+
             .admin-header {
                 flex-direction: column;
                 gap: 15px;
                 text-align: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .reservas-hoy-lista {
+                max-height: 200px;
+            }
+
+            .horario-config {
+                grid-template-columns: 1fr;
+            }
+
+            .calendario-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .horas-editables {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .btn-header, .btn-nav, .btn-accion {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+
+            .card {
+                padding: 15px;
             }
         }
     </style>
