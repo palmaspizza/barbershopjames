@@ -364,17 +364,18 @@
         .calendario-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
+            gap: 5px;
         }
         
         .dia-celda {
-            aspect-ratio: 1;
+            height: 30px;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(145deg, #1e1f24, #16171b);
-            border-radius: 10px;
+            font-size: 0.8rem;
+            background: var(--barber-surface);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
             cursor: pointer;
             transition: all 0.3s ease;
             border: 2px solid transparent;
@@ -393,8 +394,8 @@
         }
         
         .dia-celda.cerrado {
-            background: rgba(255,59,63,0.2);
-            border-color: var(--barber-red);
+            background: var(--barber-red);
+            color: white;
         }
         
         .dia-celda.cerrado::after {
@@ -1132,264 +1133,104 @@
         // RENDERIZADO - CALENDARIO
         // ============================================
         
+        function renderDiasSemana() {
+            const contenedorDias = document.querySelector(".dias-semana");
+            const dias = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
+            contenedorDias.innerHTML = ""; // Limpia el contenedor para evitar duplicados
+            dias.forEach(nombreDia => {
+                const diaElemento = document.createElement("div");
+                diaElemento.classList.add("dia-semana");
+                diaElemento.textContent = nombreDia;
+                contenedorDias.appendChild(diaElemento);
+            });
+        }
+
         function renderCalendario() {
-            const año = fechaActual.getFullYear();
-            const mes = fechaActual.getMonth();
-            
-            document.getElementById('mes-titulo').textContent = `${nombresMeses[mes]} ${año}`;
-            
-            const primerDia = new Date(año, mes, 1).getDay();
-            const diasEnMes = new Date(año, mes + 1, 0).getDate();
-            const hoy = new Date();
-            
-            let html = '';
-            
-            for (let i = 0; i < primerDia; i++) {
-                html += '<div></div>';
+            const cuadroCalendario = document.getElementById("calendario-grid");
+            cuadroCalendario.innerHTML = "";
+            const fechaInicio = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
+            const primerDiaSemana = fechaInicio.getDay();
+            const totalDias = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0).getDate();
+            const offset = primerDiaSemana === 0 ? 6 : primerDiaSemana - 1;
+
+            for (let i = 0; i < offset; i++) {
+                const vacio = document.createElement("div");
+                vacio.classList.add("dia-celda", "vacio");
+                cuadroCalendario.appendChild(vacio);
             }
-            
-            for (let dia = 1; dia <= diasEnMes; dia++) {
-                const fecha = new Date(año, mes, dia);
-                const fechaStr = formatearFecha(fecha);
-                const esPasado = fecha < new Date(hoy.setHours(0,0,0,0));
-                const diaSemana = fecha.getDay();
-                const esHoy = fecha.toDateString() === new Date().toDateString();
-                
-                const esDiaSemanaCerrado = diasSemanaCerrados.includes(diaSemana);
-                const esDiaEspecificoCerrado = diasCerrados.includes(fechaStr);
-                const estaCerrado = esDiaSemanaCerrado || esDiaEspecificoCerrado;
-                
-                const numReservas = Object.values(reservas).filter(r => r.fecha === fechaStr).length;
-                
-                let clases = 'dia-celda';
-                if (esPasado) clases += ' pasado';
-                if (estaCerrado) clases += ' cerrado';
-                if (esHoy) clases += ' hoy';
-                if (diaSeleccionado === fechaStr) clases += ' seleccionado';
-                
-                html += `
-                    <div class="${clases}" onclick="seleccionarDia('${fechaStr}', ${esPasado})">
-                        <div class="dia-numero">${dia}</div>
-                        ${numReservas > 0 && !estaCerrado ? `<div class="dia-reservas">${numReservas} res.</div>` : ''}
-                    </div>
-                `;
-            }
-            
-            document.getElementById('calendario-grid').innerHTML = html;
-        }
-        
-        function cambiarMes(delta) {
-            fechaActual.setMonth(fechaActual.getMonth() + delta);
-            renderCalendario();
-        }
-        
-        function irAHoy() {
-            fechaActual = new Date();
-            renderCalendario();
-        }
-        
-        function seleccionarDia(fechaStr, esPasado) {
-            if (esPasado) return;
-            diaSeleccionado = fechaStr;
-            renderCalendario();
-            renderPanelDia();
-        }
-        
-        // ============================================
-        // PANEL DE DÍA SELECCIONADO
-        // ============================================
-        
-        function renderPanelDia() {
-            const panel = document.getElementById('panel-dia');
-            panel.style.display = 'block';
-            
-            const fecha = new Date(diaSeleccionado);
-            const diaSemana = fecha.getDay();
-            const esDiaSemanaCerrado = diasSemanaCerrados.includes(diaSemana);
-            const esDiaEspecificoCerrado = diasCerrados.includes(diaSeleccionado);
-            const estaCerrado = esDiaSemanaCerrado || esDiaEspecificoCerrado;
-            
-            document.getElementById('dia-seleccionado-texto').textContent = 
-                `${nombresDias[diaSemana]} ${diaSeleccionado}`;
-            
-            document.getElementById('btn-cerrar-dia').style.display = estaCerrado ? 'none' : 'block';
-            document.getElementById('btn-abrir-dia').style.display = estaCerrado ? 'block' : 'none';
-            
-            const reservasDia = Object.entries(reservas)
-                .filter(([id, r]) => r.fecha === diaSeleccionado)
-                .map(([id, r]) => ({ id, ...r }))
-                .sort((a, b) => a.hora.localeCompare(b.hora));
-            
-            const container = document.getElementById('reservas-dia-seleccionado');
-            if (reservasDia.length === 0) {
-                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Sin reservas para este día</p>';
-            } else {
-                container.innerHTML = `
-                    <h4 style="color: var(--barber-orange); margin-bottom: 10px;">Reservas:</h4>
-                    ${reservasDia.map(r => `
-                        <div class="reserva-item">
-                            <div class="reserva-info">
-                                <h4>${r.nombre}</h4>
-                                <p>${r.servicios || 'Sin servicio'}</p>
-                            </div>
-                            <div style="text-align: right;">
-                                <div class="reserva-hora">${r.hora}</div>
-                                <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Eliminar</button>
-                            </div>
-                        </div>
-                    `).join('')}`;
-            }
-        }
-        
-        function toggleDiaCerrado() {
-            const esCerrado = diasCerrados.includes(diaSeleccionado);
-            
-            if (esCerrado) {
-                db.ref('diasCerrados').once('value', snapshot => {
-                    snapshot.forEach(child => {
-                        if (child.val().fecha === diaSeleccionado) {
-                            child.ref.remove();
-                        }
-                    });
-                });
-                mostrarToast('Día abierto correctamente');
-            } else {
-                db.ref('diasCerrados').push({ fecha: diaSeleccionado });
-                mostrarToast('Día cerrado correctamente');
-            }
-        }
-        
-        // ============================================
-        // CONFIGURACIÓN - DÍAS DE SEMANA
-        // ============================================
-        
-        function renderDiasSemanaConfig() {
-            const container = document.getElementById('dias-semana-config');
-            const dias = [
-                { num: 1, nombre: 'Lunes' },
-                { num: 2, nombre: 'Martes' },
-                { num: 3, nombre: 'Miércoles' },
-                { num: 4, nombre: 'Jueves' },
-                { num: 5, nombre: 'Viernes' },
-                { num: 6, nombre: 'Sábado' },
-                { num: 0, nombre: 'Domingo' }
-            ];
-            
-            container.innerHTML = dias.map(d => {
-                const checked = diasSemanaCerrados.includes(d.num);
-                return `
-                    <label class="dia-checkbox ${checked ? 'checked' : ''}" onclick="toggleDiaSemana(${d.num})">
-                        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleDiaSemana(${d.num})">
-                        <span>${d.nombre}</span>
-                    </label>
-                `;
-            }).join('');
-        }
-        
-        function toggleDiaSemana(diaNum) {
-            const index = diasSemanaCerrados.indexOf(diaNum);
-            let nuevoArray = [...diasSemanaCerrados];
-            
-            if (index > -1) {
-                nuevoArray.splice(index, 1);
-            } else {
-                nuevoArray.push(diaNum);
-            }
-            
-            db.ref('config/diasSemanaCerrados').set(nuevoArray);
-        }
-        
-        // ============================================
-        // CONFIGURACIÓN - HORARIOS
-        // ============================================
-        
-        function renderHorarioTags(tipo) {
-            const horario = tipo === 'semana' ? horarioSemana : horarioDomingo;
-            const container = document.getElementById(`horario-${tipo}-tags`);
-            container.innerHTML = horario.map(h => `<span class="hora-tag">${h}</span>`).join('');
-        }
-        
-        function editarHorario(tipo) {
-            tipoHorarioEditando = tipo;
-            const horario = tipo === 'semana' ? horarioSemana : horarioDomingo;
-            
-            document.getElementById('modal-horario-subtitulo').textContent = 
-                tipo === 'semana' ? 'Horario de Lunes a Sábado' : 'Horario de Domingos';
-            
-            const horasDisponibles = [];
-            for (let h = 9; h <= 22; h++) {
-                horasDisponibles.push(`${h.toString().padStart(2,'0')}:00`);
-                if (h < 22) horasDisponibles.push(`${h.toString().padStart(2,'0')}:30`);
-            }
-            
-            const container = document.getElementById('horas-editables');
-            container.innerHTML = horasDisponibles.map(hora => {
-                const activa = horario.includes(hora);
-                return `<button class="hora-btn ${activa ? 'activa' : ''}" onclick="toggleHora('${hora}')">${hora}</button>`;
-            }).join('');
-            
-            document.getElementById('modal-horario').classList.add('active');
-        }
-        
-        function editarHorarioEspecifico() {
-            tipoHorarioEditando = diaSeleccionado;
-            const horarioDefault = obtenerHorarioDefault(diaSeleccionado);
-            const horarioActual = horariosEspecificos[diaSeleccionado] || horarioDefault;
-            
-            document.getElementById('modal-horario-subtitulo').textContent = 
-                `Horario especial para ${diaSeleccionado}`;
-            
-            const horasDisponibles = [];
-            for (let h = 9; h <= 22; h++) {
-                horasDisponibles.push(`${h.toString().padStart(2,'0')}:00`);
-                if (h < 22) horasDisponibles.push(`${h.toString().padStart(2,'0')}:30`);
-            }
-            
-            const container = document.getElementById('horas-editables');
-            container.innerHTML = horasDisponibles.map(hora => {
-                const activa = horarioActual.includes(hora);
-                return `<button class="hora-btn ${activa ? 'activa' : ''}" onclick="toggleHora('${hora}')">${hora}</button>`;
-            }).join('');
-            
-            document.getElementById('modal-horario').classList.add('active');
-        }
-        
-        function toggleHora(hora) {
-            event.target.classList.toggle('activa');
-        }
-        
-        function guardarHorario() {
-            const horasActivas = Array.from(document.querySelectorAll('.hora-btn.activa'))
-                .map(btn => btn.textContent);
-            
-            if (tipoHorarioEditando === 'semana') {
-                db.ref('config/horarioSemana').set(horasActivas);
-            } else if (tipoHorarioEditando === 'domingo') {
-                db.ref('config/horarioDomingo').set(horasActivas);
-            } else {
-                if (horasActivas.length === 0) {
-                    db.ref(`config/horariosEspecificos/${tipoHorarioEditando}`).remove();
-                } else {
-                    db.ref(`config/horariosEspecificos/${tipoHorarioEditando}`).set(horasActivas);
+
+            for (let dia = 1; dia <= totalDias; dia++) {
+                const fechaStr = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+                const celda = document.createElement("div");
+                celda.classList.add("dia-celda");
+                celda.textContent = dia;
+                celda.dataset.fecha = fechaStr;
+
+                if (diasCerrados.includes(fechaStr)) {
+                    celda.classList.add("cerrado");
                 }
+
+                celda.addEventListener("click", () => toggleDiaCerrado(fechaStr));
+                cuadroCalendario.appendChild(celda);
             }
-            
-            cerrarModal();
-            mostrarToast('Horario guardado');
         }
-        
-        function cerrarModal() {
-            document.getElementById('modal-horario').classList.remove('active');
-        }
-        
-        function obtenerHorarioDefault(fechaStr) {
-            const fecha = new Date(fechaStr);
-            const diaSemana = fecha.getDay();
-            return diaSemana === 0 ? horarioDomingo : horarioSemana;
-        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderDiasSemana();
+            renderCalendario();
+        });
+
+        // ============================================
+        // ESTILOS PARA AJUSTAR EL TAMAÑO Y ALINEACIÓN
+        // ============================================
+        const style = document.createElement('style');
+        style.textContent = `
+            .dias-semana {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                text-align: center;
+                margin-bottom: 10px;
+            }
+
+            .dia-semana {
+                font-size: 0.9rem;
+                font-weight: bold;
+                color: var(--barber-orange);
+            }
+
+            .calendario-grid {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                gap: 5px;
+            }
+
+            .dia-celda {
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.8rem;
+                background: var(--barber-surface);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+            .dia-celda.cerrado {
+                background: var(--barber-red);
+                color: white;
+            }
+
+            .dia-celda.vacio {
+                background: transparent;
+                border: none;
+                pointer-events: none;
+            }
+        `;
+        document.head.appendChild(style);
         
         // ============================================
-        // ACCIONES GLOBALES
+        // BOTONES DE ACCIÓN GLOBAL
         // ============================================
         
         function eliminarReserva(id) {
