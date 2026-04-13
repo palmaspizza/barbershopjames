@@ -1138,9 +1138,18 @@
             
             // Escuchar cambios en tiempo real
             db.ref('reservas').on('value', snapshot => {
-                reservas = snapshot.val() || {};
-                actualizarTodo();
-            });
+    reservas = {};
+    snapshot.forEach(child => {
+        if (child.val()) {
+            reservas[child.key] = child.val();
+        }
+    });
+    renderReservasHoy();
+    renderCalendario();
+    if (diaSeleccionado) renderPanelDia();
+}, error => {
+    console.error('Error Firebase:', error);
+});
             
             db.ref('diasCerrados').on('value', snapshot => {
                 const data = snapshot.val() || {};
@@ -1184,45 +1193,51 @@
         // ============================================
         
         function renderReservasHoy() {
-            const hoy = formatearFecha(new Date());
-            const reservasHoy = [];
-            
-            Object.entries(reservas).forEach(([id, reserva]) => {
-                if (reserva.fecha === hoy) {
-                    reservasHoy.push({ id, ...reserva });
-                }
-            });
-            
-            reservasHoy.sort((a, b) => a.hora.localeCompare(b.hora));
-            
-            document.getElementById('stat-total').textContent = reservasHoy.length;
-            document.getElementById('stat-pendientes').textContent = reservasHoy.length;
-            
-            let total = 0;
-            reservasHoy.forEach(r => {
-                if (r.total) total += parseInt(r.total.replace(/[^0-9]/g, '')) || 0;
-            });
-            document.getElementById('stat-ingresos').textContent = '$' + total.toLocaleString();
-            
-            const container = document.getElementById('reservas-hoy-lista');
-            if (reservasHoy.length === 0) {
-                container.innerHTML = '<div class="sin-reservas">No hay reservas para hoy</div>';
-                return;
-            }
-            
-            container.innerHTML = reservasHoy.map(r => `
-                <div class="reserva-item">
-                    <div class="reserva-info">
-                        <h4>${r.nombre}</h4>
-                        <p>${r.servicios || 'Sin servicio especificado'}</p>
-                    </div>
-                    <div style="text-align: right;">
-                        <div class="reserva-hora">${r.hora}</div>
-                        <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Eliminar</button>
-                    </div>
-                </div>
-            `).join('');
+    const hoy = formatearFecha(new Date());
+    const reservasHoy = [];
+    
+    Object.entries(reservas).forEach(([id, reserva]) => {
+        if (reserva && reserva.fecha === hoy) {
+            reservasHoy.push({ id, ...reserva });
         }
+    });
+    
+    reservasHoy.sort((a, b) => (a.hora || '').localeCompare(b.hora || ''));
+    
+    document.getElementById('stat-total').textContent = reservasHoy.length;
+    document.getElementById('stat-pendientes').textContent = reservasHoy.length;
+    
+    let total = 0;
+    reservasHoy.forEach(r => {
+        if (r.total) {
+            const num = parseInt(r.total.replace(/[^0-9]/g, '')) || 0;
+            total += num;
+        }
+    });
+    document.getElementById('stat-ingresos').textContent = '$' + total.toLocaleString('es-CL');
+    
+    const container = document.getElementById('reservas-hoy-lista');
+    if (!container) return;
+    
+    if (reservasHoy.length === 0) {
+        container.innerHTML = '<div class="sin-reservas">No hay reservas para hoy</div>';
+        return;
+    }
+    
+    container.innerHTML = reservasHoy.map(r => `
+        <div class="reserva-item">
+            <div class="reserva-info">
+                <h4>${r.nombre || 'Sin nombre'}</h4>
+                <p>${r.servicios || 'Sin servicio especificado'}</p>
+                ${r.total ? `<p style="color: var(--barber-green); font-weight: 600;">${r.total}</p>` : ''}
+            </div>
+            <div style="text-align: right;">
+                <div class="reserva-hora">${r.hora}</div>
+                <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Eliminar</button>
+            </div>
+        </div>
+    `).join('');
+}
         
         // ============================================
         // RENDERIZADO - CALENDARIO
@@ -1524,11 +1539,11 @@
         // ============================================
         
         function formatearFecha(fecha) {
-            const a = fecha.getFullYear();
-            const m = String(fecha.getMonth() + 1).padStart(2, '0');
-            const d = String(fecha.getDate()).padStart(2, '0');
-            return `${a}-${m}-${d}`;
-        }
+    const a = fecha.getFullYear();
+    const m = String(fecha.getMonth() + 1).padStart(2, '0');
+    const d = String(fecha.getDate()).padStart(2, '0');
+    return `${a}-${m}-${d}`;
+}
         
         function formatearFechaLarga(fecha) {
             return `${nombresDias[fecha.getDay()]} ${fecha.getDate()} de ${nombresMeses[fecha.getMonth()]}`;
