@@ -408,6 +408,7 @@ async function notificarNuevaReserva(datosReserva) {
 }
 
 .galeria-item-cliente {
+        width: 200%;
     position: relative;
     border-radius: 12px;
     overflow: hidden;
@@ -418,8 +419,8 @@ async function notificarNuevaReserva(datosReserva) {
 }
 
 .galeria-item-cliente img {
-    width: 100%;
-    height: 100%;
+    width: auto;
+    
     object-fit: cover;
     display: block;
     transition: transform 0.4s ease;
@@ -450,6 +451,88 @@ async function notificarNuevaReserva(datosReserva) {
     
     .titulo-galeria {
         font-size: 1.2rem;
+    }
+}
+
+
+/* ============================================
+   GALERÍA - CLIENTES (IMÁGENES COMPLETAS)
+   ============================================ */
+
+.galeria-clientes {
+    margin: 30px auto;
+    max-width: 800px;
+    padding: 0 15px;
+}
+
+.titulo-galeria {
+    text-align: center;
+    color: #e4a64f;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.galeria-grid-clientes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.galeria-item-cliente {
+    width: 100%;  /* ✅ Ocupa todo el ancho disponible */
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #1e1f24, #16171b);
+    border: 1px solid rgba(228, 166, 79, 0.2);
+    /* Eliminado: aspect-ratio: 4/3 */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.galeria-item-cliente img {
+    width: 100%;           /* ✅ Ocupa todo el ancho del contenedor */
+    height: auto;          /* ✅ Altura automática según proporción original */
+    max-width: 100%;       /* ✅ Nunca excede el contenedor */
+    display: block;
+    transition: transform 0.4s ease;
+    /* Eliminado: object-fit: cover */
+}
+
+.galeria-item-cliente:hover img {
+    transform: scale(1.05);  /* Efecto zoom suave al pasar el mouse */
+}
+
+/* Estado vacío */
+.galeria-vacia-clientes {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .galeria-grid-clientes {
+        grid-template-columns: 1fr;  /* ✅ Una columna en móvil para mejor vista */
+        gap: 15px;
+    }
+    
+    .galeria-item-cliente {
+        width: 100%;
+    }
+    
+    .titulo-galeria {
+        font-size: 1.2rem;
+    }
+}
+
+/* Para pantallas grandes - imágenes más grandes */
+@media (min-width: 1200px) {
+    .galeria-grid-clientes {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     }
 }
 </style>
