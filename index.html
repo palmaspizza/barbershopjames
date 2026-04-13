@@ -1908,12 +1908,1170 @@ firebase.auth().onAuthStateChanged((user) => {
   transform: translateY(0); /* Vuelve a su posición original */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-</style><div id="listaReservas"></div>
+</style><!-- ============================================
+     SECCIÓN: MIS RESERVAS - CLIENTE
+     ============================================ -->
+<!-- Verifica que tu HTML tenga esta estructura exacta: -->
+<div class="mis-reservas-container" id="misReservasSection">
+    <h2 class="mis-reservas-titulo">
+        <span class="icono-titulo">📋</span>
+        Mis Reservas
+    </h2>
+    
+    <!-- Formulario de identificación (inicialmente visible) -->
+    <div class="identificacion-cliente" id="identificacionCliente">
+        <p class="texto-identificacion">Ingresa tu nombre para ver tus reservas</p>
+        <div class="input-group">
+            <input 
+                type="text" 
+                id="nombreClienteBusqueda" 
+                placeholder="Tu nombre (como lo escribiste al reservar)"
+                class="input-nombre-cliente"
+                autocomplete="name"
+            >
+            <button class="btn-buscar-reservas">
+                🔍 Buscar
+            </button>
+        </div>
+        <p class="hint-text">💡 O tus reservas aparecerán automáticamente si las hiciste desde este dispositivo</p>
+    </div>
+    
+    <!-- Lista de reservas (inicialmente oculta) -->
+    <div class="lista-reservas-cliente hidden" id="listaReservasCliente">
+        <div class="reservas-header">
+            <h3>Tus reservas activas</h3>
+            <button onclick="cerrarMisReservas()" class="btn-cambiar-nombre">
+                ✏️ Cambiar nombre / Cerrar sesión
+            </button>
+        </div>
+        
+        <div id="contenedorReservasCliente" class="reservas-grid">
+            <!-- Se llena dinámicamente -->
+        </div>
+        
+        <div class="sin-reservas hidden" id="sinReservas">
+            <span class="icono-vacio">🔍</span>
+            <p>No encontramos reservas</p>
+            <button onclick="volverABuscar()" class="btn-reintentar">
+                Intentar con otro nombre
+            </button>
+        </div>
+    </div>
+    
+    <!-- Modal de confirmación de cancelación -->
+    <div class="modal-cancelar hidden" id="modalCancelar">
+        <div class="modal-content-cancelar">
+            <h3>⚠️ ¿Cancelar reserva?</h3>
+            <div class="info-reserva-cancelar" id="infoReservaCancelar"></div>
+            <div class="modal-botones">
+                <button onclick="confirmarCancelacion()" class="btn-confirmar-cancelar">
+                    ✅ Sí, cancelar reserva
+                </button>
+                <button onclick="cerrarModalCancelar()" class="btn-cancelar-accion">
+                    ❌ No, mantener reserva
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast de notificaciones -->
+<div class="toast-cliente" id="toastCliente"></div>
+<style>/* ============================================
+   MIS RESERVAS - SECCIÓN CLIENTE
+   ============================================ */
+
+.mis-reservas-container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 25px;
+    background: linear-gradient(145deg, #1e1f24, #16171b);
+    border-radius: 20px;
+    border: 2px solid rgba(228, 166, 79, 0.3);
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.6),
+        0 0 30px rgba(228, 166, 79, 0.1);
+}
+
+.mis-reservas-titulo {
+    font-family: 'Playfair Display', serif;
+    color: #e4a64f;
+    text-align: center;
+    font-size: 1.6rem;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-shadow: 0 2px 10px rgba(228, 166, 79, 0.3);
+}
+
+.icono-titulo {
+    font-size: 1.8rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+/* --- Identificación del cliente --- */
+
+.identificacion-cliente {
+    text-align: center;
+    padding: 20px;
+}
+
+.texto-identificacion {
+    color: #c2c2c2;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.input-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.input-nombre-cliente {
+    flex: 1;
+    min-width: 250px;
+    padding: 14px 20px;
+    border: 2px solid rgba(228, 166, 79, 0.4);
+    border-radius: 12px;
+    background: #0b0b0d;
+    color: #f1f1f1;
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.input-nombre-cliente:focus {
+    outline: none;
+    border-color: #e4a64f;
+    box-shadow: 
+        inset 0 2px 8px rgba(0,0,0,0.3),
+        0 0 20px rgba(228, 166, 79, 0.2);
+}
+
+.input-nombre-cliente::placeholder {
+    color: #666;
+    font-style: italic;
+}
+
+.btn-buscar-reservas {
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #e4a64f, #ff6f00);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(255, 111, 0, 0.35);
+    white-space: nowrap;
+}
+
+.btn-buscar-reservas:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(255, 111, 0, 0.5);
+}
+
+.btn-buscar-reservas:active {
+    transform: scale(0.98);
+}
+
+.hint-text {
+    color: #888;
+    font-size: 0.85rem;
+    margin-top: 15px;
+    font-style: italic;
+}
+
+/* --- Lista de reservas --- */
+
+.lista-reservas-cliente {
+    animation: fadeInUp 0.5s ease;
+}
+
+.reservas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(228, 166, 79, 0.2);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.reservas-header h3 {
+    color: #e4a64f;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.btn-cambiar-nombre {
+    padding: 8px 16px;
+    background: rgba(228, 166, 79, 0.15);
+    color: #e4a64f;
+    border: 1px solid rgba(228, 166, 79, 0.4);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cambiar-nombre:hover {
+    background: rgba(228, 166, 79, 0.25);
+    transform: scale(1.02);
+}
+
+.reservas-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* --- Card de reserva individual --- */
+
+.reserva-card-cliente {
+    background: linear-gradient(145deg, #25262c, #1a1b20);
+    border-radius: 16px;
+    padding: 20px;
+    border-left: 4px solid #33d17a;
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.03);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.reserva-card-cliente::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(51, 209, 122, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.reserva-card-cliente:hover {
+    transform: translateX(5px);
+    box-shadow: 
+        0 12px 35px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(228, 166, 79, 0.1);
+}
+
+.reserva-card-cliente.pasada {
+    border-left-color: #ff3b3f;
+    opacity: 0.7;
+}
+
+.reserva-card-cliente.pasada::before {
+    background: radial-gradient(circle, rgba(255, 59, 63, 0.1) 0%, transparent 70%);
+}
+
+.reserva-header-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.reserva-fecha-hora {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.fecha-reserva {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #f1f1f1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hora-reserva {
+    font-size: 0.95rem;
+    color: #e4a64f;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.estado-reserva {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.estado-activa {
+    background: rgba(51, 209, 122, 0.2);
+    color: #33d17a;
+    border: 1px solid rgba(51, 209, 122, 0.4);
+}
+
+.estado-pasada {
+    background: rgba(255, 59, 63, 0.2);
+    color: #ff3b3f;
+    border: 1px solid rgba(255, 59, 63, 0.4);
+}
+
+.reserva-servicios {
+    color: #c2c2c2;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.reserva-total {
+    color: #e4a64f;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+/* --- Botón cancelar --- */
+
+.btn-cancelar-reserva {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #ff3b3f, #c92a2a);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 6px 20px rgba(255, 59, 63, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-cancelar-reserva:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 59, 63, 0.5);
+    background: linear-gradient(135deg, #ff5555, #d62828);
+}
+
+.btn-cancelar-reserva:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.btn-cancelar-reserva:disabled {
+    background: #444;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.6;
+}
+
+.btn-cancelar-reserva.procesando {
+    background: #666;
+    pointer-events: none;
+}
+
+/* --- Sin reservas --- */
+
+.sin-reservas {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+}
+
+.icono-vacio {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.btn-reintentar {
+    margin-top: 15px;
+    padding: 12px 24px;
+    background: rgba(228, 166, 79, 0.2);
+    color: #e4a64f;
+    border: 1px solid rgba(228, 166, 79, 0.4);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-reintentar:hover {
+    background: rgba(228, 166, 79, 0.3);
+}
+
+/* --- Modal de confirmación --- */
+
+.modal-cancelar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content-cancelar {
+    background: linear-gradient(145deg, #1e1f24, #16171b);
+    padding: 30px;
+    border-radius: 20px;
+    max-width: 400px;
+    width: 90%;
+    border: 2px solid #ff3b3f;
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(255, 59, 63, 0.2);
+    animation: scaleIn 0.3s ease;
+}
+
+.modal-content-cancelar h3 {
+    color: #ff3b3f;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+}
+
+.info-reserva-cancelar {
+    background: rgba(255, 59, 63, 0.1);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(255, 59, 63, 0.2);
+}
+
+.info-reserva-cancelar p {
+    color: #c2c2c2;
+    margin: 8px 0;
+    font-size: 0.95rem;
+}
+
+.info-reserva-cancelar strong {
+    color: #f1f1f1;
+}
+
+.modal-botones {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-confirmar-cancelar {
+    padding: 14px;
+    background: linear-gradient(135deg, #ff3b3f, #c92a2a);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(255, 59, 63, 0.35);
+}
+
+.btn-confirmar-cancelar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 59, 63, 0.5);
+}
+
+.btn-cancelar-accion {
+    padding: 14px;
+    background: transparent;
+    color: #888;
+    border: 1px solid rgba(136, 136, 136, 0.4);
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancelar-accion:hover {
+    background: rgba(136, 136, 136, 0.1);
+    color: #c2c2c2;
+}
+
+/* --- Toast --- */
+
+.toast-cliente {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #1e1f24;
+    color: white;
+    padding: 16px 28px;
+    border-radius: 12px;
+    border-left: 4px solid #33d17a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-weight: 500;
+    max-width: 90%;
+    text-align: center;
+}
+
+.toast-cliente.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-cliente.error {
+    border-left-color: #ff3b3f;
+}
+
+/* --- Utilidades --- */
+
+.hidden {
+    display: none !important;
+}
+
+/* --- Animaciones --- */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 600px) {
+    .mis-reservas-container {
+        margin: 20px 10px;
+        padding: 20px;
+        border-radius: 16px;
+    }
+    
+    .mis-reservas-titulo {
+        font-size: 1.3rem;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-nombre-cliente {
+        min-width: 100%;
+    }
+    
+    .btn-buscar-reservas {
+        width: 100%;
+    }
+    
+    .reservas-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .reserva-header-card {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .estado-reserva {
+        align-self: flex-start;
+    }
+    
+    .modal-content-cancelar {
+        padding: 20px;
+    }
+}</style><script>// ============================================
+// SISTEMA: MIS RESERVAS - CLIENTE (AUTOMÁTICO)
+// ============================================
+
+const NTFY_TOPIC_CANCELACIONES = 'james-barber-shop-2026';
+
+// Variables de estado
+let nombreClienteActual = '';
+let reservasClienteActuales = [];
+let reservaPendienteCancelar = null;
+
+// ============================================
+// PERSISTENCIA LOCAL (localStorage)
+// ============================================
+
+function guardarReservaLocal(reservaId, nombre, fecha, hora, servicios, total) {
+    let misReservas = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber') || '[]');
+    
+    // Agregar nueva reserva
+    misReservas.push({
+        reservaId: reservaId,
+        nombre: nombre,
+        fecha: fecha,
+        hora: hora,
+        servicios: servicios,
+        total: total,
+        timestamp: Date.now()
+    });
+    
+    // Guardar
+    localStorage.setItem('mis_reservas_jamesbarber', JSON.stringify(misReservas));
+    localStorage.setItem('mi_nombre_barberia', nombre);
+}
+
+function eliminarReservaLocal(reservaId) {
+    let misReservas = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber') || '[]');
+    misReservas = misReservas.filter(r => r.reservaId !== reservaId);
+    localStorage.setItem('mis_reservas_jamesbarber', JSON.stringify(misReservas));
+}
+
+function obtenerMisReservasLocales() {
+    return JSON.parse(localStorage.getItem('mis_reservas_jamesbarber') || '[]');
+}
+
+function obtenerNombreGuardado() {
+    return localStorage.getItem('mi_nombre_barberia');
+}
+
+function limpiarDatosLocales() {
+    localStorage.removeItem('mis_reservas_jamesbarber');
+    localStorage.removeItem('mi_nombre_barberia');
+}
+
+// ============================================
+// INICIALIZACIÓN AUTOMÁTICA
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Cargar automáticamente al iniciar la página
+    cargarMisReservasAutomatico();
+    
+    // Permitir buscar con Enter
+    document.getElementById('nombreClienteBusqueda')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') buscarMisReservasManual();
+    });
+});
+
+// ============================================
+// CARGA AUTOMÁTICA DE RESERVAS
+// ============================================
+
+function cargarMisReservasAutomatico() {
+    const reservasLocales = obtenerMisReservasLocales();
+    const miNombre = obtenerNombreGuardado();
+    
+    if (reservasLocales.length > 0) {
+        // Poner el nombre en el input
+        const inputNombre = document.getElementById('nombreClienteBusqueda');
+        if (inputNombre && miNombre) inputNombre.value = miNombre;
+        
+        // Cargar desde Firebase las reservas guardadas
+        cargarReservasPorIds(reservasLocales);
+    } else {
+        // No hay reservas guardadas, mostrar formulario
+        mostrarFormularioBusqueda();
+    }
+}
+
+function cargarReservasPorIds(reservasLocales) {
+    const seccionIdentificacion = document.getElementById('identificacionCliente');
+    const seccionReservas = document.getElementById('listaReservasCliente');
+    const contenedor = document.getElementById('contenedorReservasCliente');
+    const sinReservas = document.getElementById('sinReservas');
+    
+    if (seccionIdentificacion) seccionIdentificacion.classList.add('hidden');
+    if (seccionReservas) seccionReservas.classList.remove('hidden');
+    
+    const idsGuardados = reservasLocales.map(r => r.reservaId);
+    
+    const promises = idsGuardados.map(id => 
+        db.ref(`reservas/${id}`).once('value').then(snap => {
+            if (snap.exists()) {
+                return { id: snap.key, ...snap.val() };
+            }
+            return null;
+        })
+    );
+    
+    Promise.all(promises).then(reservas => {
+        reservasClienteActuales = reservas.filter(r => r !== null);
+        
+        // Limpiar localStorage de reservas que ya no existen
+        const idsValidos = reservasClienteActuales.map(r => r.id);
+        const reservasValidas = reservasLocales.filter(r => idsValidos.includes(r.reservaId));
+        localStorage.setItem('mis_reservas_jamesbarber', JSON.stringify(reservasValidas));
+        
+        if (reservasClienteActuales.length === 0) {
+            if (contenedor) contenedor.innerHTML = '';
+            if (sinReservas) {
+                sinReservas.classList.remove('hidden');
+                sinReservas.innerHTML = `
+                    <span class="icono-vacio">📭</span>
+                    <p>No tienes reservas activas</p>
+                    <p style="font-size: 0.85rem; color: #666; margin-top: 10px;">
+                        Tus reservas anteriores ya no están disponibles
+                    </p>
+                    <button onclick="volverABuscar()" class="btn-reintentar">
+                        Buscar con otro nombre
+                    </button>
+                `;
+            }
+        } else {
+            if (sinReservas) sinReservas.classList.add('hidden');
+            renderizarMisReservas(reservasClienteActuales);
+        }
+    });
+}
+
+// ============================================
+// BÚSQUEDA MANUAL (RESPALDO)
+// ============================================
+
+function buscarMisReservasManual() {
+    const nombreInput = document.getElementById('nombreClienteBusqueda');
+    const nombre = nombreInput.value.trim();
+    
+    if (!nombre) {
+        mostrarToastCliente('⚠️ Escribe tu nombre para buscar', true);
+        nombreInput.focus();
+        return;
+    }
+    
+    localStorage.setItem('mi_nombre_barberia', nombre);
+    
+    const btnBuscar = document.querySelector('.btn-buscar-reservas');
+    const textoOriginal = btnBuscar ? btnBuscar.textContent : 'Buscar';
+    if (btnBuscar) {
+        btnBuscar.textContent = '⏳ Buscando...';
+        btnBuscar.disabled = true;
+    }
+    
+    db.ref('reservas').orderByChild('nombre').equalTo(nombre).once('value')
+        .then(snapshot => {
+            reservasClienteActuales = [];
+            const ahora = new Date();
+            const hoyStr = formatearFechaSimple(new Date());
+            
+            snapshot.forEach(child => {
+                const reserva = { id: child.key, ...child.val() };
+                const fechaReserva = new Date(reserva.fecha);
+                
+                if (fechaReserva >= new Date(ahora.setHours(0,0,0,0)) || reserva.fecha === hoyStr) {
+                    reservasClienteActuales.push(reserva);
+                }
+            });
+            
+            reservasClienteActuales.sort((a, b) => {
+                const fechaA = new Date(a.fecha + 'T' + a.hora);
+                const fechaB = new Date(b.fecha + 'T' + b.hora);
+                return fechaA - fechaB;
+            });
+            
+            // Guardar en localStorage para futuras visitas
+            guardarReservasEncontradas(reservasClienteActuales);
+            
+            mostrarResultadosBusqueda();
+        })
+        .catch(error => {
+            console.error('Error buscando reservas:', error);
+            mostrarToastCliente('❌ Error al buscar. Intenta de nuevo.', true);
+        })
+        .finally(() => {
+            if (btnBuscar) {
+                btnBuscar.textContent = textoOriginal;
+                btnBuscar.disabled = false;
+            }
+        });
+}
+
+function guardarReservasEncontradas(reservas) {
+    const misReservas = reservas.map(r => ({
+        reservaId: r.id,
+        nombre: r.nombre,
+        fecha: r.fecha,
+        hora: r.hora,
+        servicios: r.servicios || '',
+        total: r.total || '',
+        timestamp: Date.now()
+    }));
+    localStorage.setItem('mis_reservas_jamesbarber', JSON.stringify(misReservas));
+}
+
+function mostrarFormularioBusqueda() {
+    const seccionIdentificacion = document.getElementById('identificacionCliente');
+    const seccionReservas = document.getElementById('listaReservasCliente');
+    
+    if (seccionIdentificacion) seccionIdentificacion.classList.remove('hidden');
+    if (seccionReservas) seccionReservas.classList.add('hidden');
+}
+
+function mostrarResultadosBusqueda() {
+    const seccionIdentificacion = document.getElementById('identificacionCliente');
+    const seccionReservas = document.getElementById('listaReservasCliente');
+    
+    if (seccionIdentificacion) seccionIdentificacion.classList.add('hidden');
+    if (seccionReservas) seccionReservas.classList.remove('hidden');
+    
+    renderizarMisReservas(reservasClienteActuales);
+}
+
+// ============================================
+// RENDERIZAR RESERVAS
+// ============================================
+
+function renderizarMisReservas(reservas) {
+    const contenedor = document.getElementById('contenedorReservasCliente');
+    const sinReservas = document.getElementById('sinReservas');
+    
+    if (!contenedor) return;
+    
+    if (reservas.length === 0) {
+        contenedor.innerHTML = '';
+        if (sinReservas) {
+            sinReservas.classList.remove('hidden');
+            sinReservas.innerHTML = `
+                <span class="icono-vacio">🔍</span>
+                <p>No encontramos reservas con ese nombre</p>
+                <button onclick="volverABuscar()" class="btn-reintentar">
+                    Intentar con otro nombre
+                </button>
+            `;
+        }
+        return;
+    }
+    
+    if (sinReservas) sinReservas.classList.add('hidden');
+    
+    const ahora = new Date();
+    
+    contenedor.innerHTML = reservas.map(reserva => {
+        const fechaReserva = new Date(reserva.fecha + 'T' + reserva.hora);
+        const esPasada = fechaReserva < ahora;
+        const fechaFormateada = formatearFechaLarga(new Date(reserva.fecha));
+        
+        return `
+            <div class="reserva-card-cliente ${esPasada ? 'pasada' : ''}" data-id="${reserva.id}">
+                <div class="reserva-header-card">
+                    <div class="reserva-fecha-hora">
+                        <span class="fecha-reserva">
+                            📅 ${fechaFormateada}
+                        </span>
+                        <span class="hora-reserva">
+                            ⏰ ${reserva.hora}
+                        </span>
+                    </div>
+                    <span class="estado-reserva ${esPasada ? 'estado-pasada' : 'estado-activa'}">
+                        ${esPasada ? 'Finalizada' : 'Activa'}
+                    </span>
+                </div>
+                
+                <div class="reserva-servicios">
+                    ${reserva.servicios || 'Sin servicios especificados'}
+                </div>
+                
+                ${reserva.total ? `<div class="reserva-total">💰 ${reserva.total}</div>` : ''}
+                
+                ${!esPasada ? `
+                    <button 
+                        class="btn-cancelar-reserva" 
+                        onclick="solicitarCancelacion('${reserva.id}')"
+                        id="btn-cancelar-${reserva.id}"
+                    >
+                        🗑️ CANCELAR RESERVA
+                    </button>
+                ` : '<button class="btn-cancelar-reserva" disabled>✅ Reserva completada</button>'}
+            </div>
+        `;
+    }).join('');
+}
+
+// ============================================
+// CANCELACIÓN DE RESERVAS (SIN CÓDIGO)
+// ============================================
+
+function solicitarCancelacion(reservaId) {
+    const reserva = reservasClienteActuales.find(r => r.id === reservaId);
+    if (!reserva) return;
+    
+    reservaPendienteCancelar = reserva;
+    
+    const modal = document.getElementById('modalCancelar');
+    const info = document.getElementById('infoReservaCancelar');
+    
+    if (!modal || !info) {
+        if (confirm(`¿Cancelar tu reserva del ${reserva.fecha} a las ${reserva.hora}?`)) {
+            confirmarCancelacion();
+        }
+        return;
+    }
+    
+    info.innerHTML = `
+        <p><strong>📅 Fecha:</strong> ${formatearFechaLarga(new Date(reserva.fecha))}</p>
+        <p><strong>⏰ Hora:</strong> ${reserva.hora}</p>
+        <p><strong>💈 Servicios:</strong> ${reserva.servicios || 'No especificado'}</p>
+        ${reserva.total ? `<p><strong>💰 Total:</strong> ${reserva.total}</p>` : ''}
+    `;
+    
+    modal.classList.remove('hidden');
+}
+
+function cerrarModalCancelar() {
+    const modal = document.getElementById('modalCancelar');
+    if (modal) modal.classList.add('hidden');
+    reservaPendienteCancelar = null;
+}
+
+function confirmarCancelacion() {
+    if (!reservaPendienteCancelar) return;
+    
+    const reserva = reservaPendienteCancelar;
+    const btn = document.getElementById(`btn-cancelar-${reserva.id}`);
+    
+    if (btn) {
+        btn.classList.add('procesando');
+        btn.textContent = '⏳ Cancelando...';
+    }
+    
+    db.ref(`reservas/${reserva.id}`).remove()
+        .then(() => {
+            eliminarReservaLocal(reserva.id);
+            notificarCancelacion(reserva);
+            
+            cerrarModalCancelar();
+            mostrarToastCliente('✅ Reserva cancelada correctamente');
+            
+            const card = document.querySelector(`.reserva-card-cliente[data-id="${reserva.id}"]`);
+            if (card) {
+                card.style.transform = 'translateX(100%)';
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    card.remove();
+                    cargarMisReservasAutomatico();
+                }, 300);
+            }
+        })
+        .catch(error => {
+            console.error('Error cancelando:', error);
+            mostrarToastCliente('❌ Error al cancelar. Intenta de nuevo.', true);
+            if (btn) {
+                btn.classList.remove('procesando');
+                btn.textContent = '🗑️ CANCELAR RESERVA';
+            }
+        });
+}
+
+// ============================================
+// NOTIFICACIÓN NTfy
+// ============================================
+
+async function notificarCancelacion(reserva) {
+    const mensaje = `❌ RESERVA CANCELADA
+❌👤 Cliente: ${reserva.nombre}
+❌📅 ${reserva.fecha} a las ${reserva.hora}
+❌💈 ${reserva.servicios || 'Sin servicio'}
+❌💰 ${reserva.total || 'No especificado'}`;
+
+    try {
+        await fetch(`https://ntfy.sh/${NTFY_TOPIC_CANCELACIONES}`, {
+            method: 'POST',
+            body: mensaje,
+            headers: {
+                'Title': 'CANCELACION - Barberia',
+                'Priority': 'high',
+                'Tags': 'x,cancel,warning'
+            }
+        });
+    } catch (error) {
+        console.error('Error enviando notificación:', error);
+    }
+}
+
+// ============================================
+// UTILIDADES UI
+// ============================================
+
+function cerrarMisReservas() {
+    limpiarDatosLocales();
+    nombreClienteActual = '';
+    reservasClienteActuales = [];
+    
+    document.getElementById('identificacionCliente').classList.remove('hidden');
+    document.getElementById('listaReservasCliente').classList.add('hidden');
+    document.getElementById('nombreClienteBusqueda').value = '';
+    document.getElementById('nombreClienteBusqueda').focus();
+}
+
+function volverABuscar() {
+    document.getElementById('sinReservas').classList.add('hidden');
+    document.getElementById('identificacionCliente').classList.remove('hidden');
+    document.getElementById('nombreClienteBusqueda').focus();
+}
+
+function mostrarToastCliente(mensaje, esError = false) {
+    const toast = document.getElementById('toastCliente');
+    if (!toast) return;
+    
+    toast.textContent = mensaje;
+    toast.className = esError ? 'toast-cliente error show' : 'toast-cliente show';
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3500);
+}
+
+function formatearFechaSimple(fecha) {
+    const a = fecha.getFullYear();
+    const m = String(fecha.getMonth() + 1).padStart(2, '0');
+    const d = String(fecha.getDate()).padStart(2, '0');
+    return `${a}-${m}-${d}`;
+}
+
+function formatearFechaLarga(fecha) {
+    const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return fecha.toLocaleDateString('es-CL', opciones);
+}
+
+</script>
+<!-- Toast de notificaciones -->
+<div class="toast-cliente" id="toastCliente"></div><div id="listaReservas"></div>
         <h2 style="color: red !important; text-shadow: #000 1px 1px 2px;">⛔Horas Reservadas⛔</h2>
+        
         <input style="border: 1px solid red;" type="text" id="buscadorGlobal" placeholder="Buscar... por Año, Mes o Día" />
         <button id="boton-listo-borrar" onclick="miFuncionBorrar();ocultarBotonBorrar()">
  Listo
-</button>
+</button><style>/* ============================================
+   MODAL CÓDIGO DE SEGURIDAD
+   ============================================ */
+
+.modal-codigo-reserva {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+}
+
+.contenido-codigo {
+    background: linear-gradient(145deg, #1e1f24, #16171b);
+    padding: 35px;
+    border-radius: 20px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    border: 2px solid #e4a64f;
+    box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.7),
+        0 0 40px rgba(228, 166, 79, 0.3);
+    animation: scaleIn 0.3s ease;
+}
+
+.contenido-codigo h3 {
+    color: #33d17a;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+}
+
+.codigo-box {
+    background: linear-gradient(135deg, #0b0b0d, #1a1b20);
+    padding: 25px;
+    border-radius: 15px;
+    border: 2px dashed #e4a64f;
+    margin-bottom: 20px;
+}
+
+.codigo-box .label {
+    display: block;
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.codigo-box .codigo {
+    display: block;
+    font-family: 'Courier New', monospace;
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #e4a64f;
+    letter-spacing: 4px;
+    text-shadow: 0 0 20px rgba(228, 166, 79, 0.5);
+    margin: 15px 0;
+    user-select: all;
+}
+
+.codigo-box .hint {
+    display: block;
+    color: #666;
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+.info-reserva {
+    color: #c2c2c2;
+    margin-bottom: 20px;
+    font-size: 1rem;
+}
+
+.btn-entendido {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #e4a64f, #ff6f00);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-entendido:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 111, 0, 0.4);
+}</style>
 <script>
     function mostrarBotonBorrar() {
     // Obtiene el elemento del botón
@@ -3470,43 +4628,37 @@ setTimeout(() => {
             if (div) div.remove();
         });
 
-      function reservarHora() {
-    const fecha = document.getElementById("fecha").value;
-    const hora = document.getElementById("hora").value;
-    const nombre = document.getElementById("nombre").value.trim();
-    const servicios = document.getElementById("opciones")?.value || "";
-    const total = document.getElementById("eltotal")?.value || "";
+// Guarda tu función original y reemplázala con esta versión:
+// REEMPLAZAR la función reservarHora() completa con esta:
+
+async function reservarHora() {
+    const fecha = document.getElementById("fecha").value
+    const hora = document.getElementById("hora").value
+    const nombre = document.getElementById("nombre").value.trim()
+    const servicios = document.getElementById("opciones")?.value || ""
+    const total = document.getElementById("eltotal")?.value || ""
 
     if (!fecha || !hora || !nombre) {
-        alert("Completa todos los campos: nombre, fecha y hora");
-        return;
+        alert("Completa todos los campos: nombre, fecha y hora")
+        return
     }
 
-    const idBloque = `${fecha}-${hora}`;
-    const ref = reservasRef;
+    const idBloque = `${fecha}-${hora}`
+    const ref = db.ref("reservas")
 
     ref.once("value", snapshot => {
-        let ocupada = false;
+        let ocupada = false
         snapshot.forEach(child => {
-            const r = child.val();
+            const r = child.val()
             if (`${r.fecha}-${r.hora}` === idBloque) {
-                ocupada = true;
+                ocupada = true
             }
-        });
+        })
 
         if (ocupada) {
-            document.getElementById("modal-ocupado")?.classList.remove("hidden");
+            document.getElementById("modal-ocupado")?.classList.remove("hidden")
         } else {
-            const tiempoMin = parseInt(document.getElementById("tiempoTotal")?.value || "0", 10);
-            const horasNecesarias = Math.ceil(tiempoMin / 60);
-            const baseHH = parseInt(hora.split(":")[0], 10);
-            const ocupadasSet = new Set();
-            snapshot.forEach(child => {
-                const r = child.val();
-                if (r.fecha === fecha) ocupadasSet.add(r.hora);
-            });
-
-            // Crear objeto de reserva para notificación
+            // Crear reserva en Firebase
             const nuevaReserva = {
                 nombre: nombre,
                 fecha: fecha,
@@ -3514,31 +4666,112 @@ setTimeout(() => {
                 servicios: servicios,
                 total: total,
                 timestamp: Date.now()
-            };
-
-            // Guardar en Firebase
-            for (let i = 0; i < Math.max(horasNecesarias, 1); i++) {
-                const h = String(baseHH + i).padStart(2, "0") + ":00";
-                if (!ocupadasSet.has(h)) {
-                    ref.push({ ...nuevaReserva, hora: h });
-                }
             }
 
-            // ✅ ENVIAR NOTIFICACIÓN AL BARBERO (aquí es el momento correcto)
+            const reservaRef = ref.push(nuevaReserva)
+            const reservaId = reservaRef.key
+
+            // GUARDAR automáticamente en localStorage para este dispositivo
+            guardarReservaLocal(reservaId, nombre, fecha, hora, servicios, total)
+
+            // Mostrar confirmación
+            mostrarConfirmacionReserva(reservaId, fecha, hora, nombre)
+
+            // Notificar al barbero
             if (typeof notificarNuevaReserva === 'function') {
-                notificarNuevaReserva(nuevaReserva);
-            } else {
-                console.error('❌ Función notificarNuevaReserva no disponible');
+                notificarNuevaReserva(nuevaReserva)
             }
 
-            // Mostrar confirmación al cliente
-            document.getElementById("modal-reservada").classList.remove("hidden");
-            marcarHorasOcupadasPorDuracion();
-            enviarMensajeWhatsApp();
+            // Enviar WhatsApp
+            enviarMensajeWhatsApp()
         }
-    });
+    })
+}
+// NUEVA FUNCIÓN: Mostrar confirmación bonita
+function mostrarConfirmacionReserva(reservaId, fecha, hora, nombre) {
+    // Crear modal de confirmación
+    const modalExistente = document.getElementById('modal-confirmacion-reserva')
+    if (modalExistente) modalExistente.remove()
+
+    const modal = document.createElement('div')
+    modal.id = 'modal-confirmacion-reserva'
+    modal.className = 'modal-codigo-reserva'
+    modal.innerHTML = `
+        <div class="contenido-codigo">
+            <h3>✅ ¡Reserva Confirmada!</h3>
+            <div class="codigo-box">
+                <span class="label">Tu reserva está guardada</span>
+                <div class="info-reserva" style="margin: 15px 0; text-align: center;">
+                    <p><strong>📅 ${formatearFechaLarga(new Date(fecha))}</strong></p>
+                    <p><strong>⏰ ${hora}</strong></p>
+                    <p style="color: #888; font-size: 0.9rem;">A nombre de: ${nombre}</p>
+                </div>
+                <span class="hint">Puedes ver y cancelar tu reserva en "Mis Reservas"</span>
+            </div>
+            <button onclick="cerrarModalConfirmacion(); location.reload()" class="btn-entendido">
+                Entendido
+            </button>
+        </div>
+    `
+    document.body.appendChild(modal)
+}
+function cerrarModalConfirmacion() {
+    const modal = document.getElementById('modal-confirmacion-reserva')
+    if (modal) modal.remove()
 }
 
+// Helper para formatear fecha
+function formatearFechaLarga(fecha) {
+    const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
+    return fecha.toLocaleDateString('es-CL', opciones)
+}
+// NUEVA FUNCIÓN: Guardar reserva en localStorage automáticamente
+function guardarReservaLocal(reservaId, nombre, fecha, hora, servicios, total) {
+    // Obtener reservas existentes
+    let misReservas = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber') || '[]')
+    
+    // Agregar nueva reserva
+    misReservas.push({
+        reservaId: reservaId,
+        nombre: nombre,
+        fecha: fecha,
+        hora: hora,
+        servicios: servicios,
+        total: total,
+        timestamp: Date.now()
+    })
+    
+    // Guardar
+    localStorage.setItem('mis_reservas_jamesbarber', JSON.stringify(misReservas))
+    
+    // Guardar también el nombre del cliente para búsquedas futuras
+    localStorage.setItem('mi_nombre_barberia', nombre)
+}
+
+// ============================================
+// NUEVA FUNCIÓN: Cancelar con verificación de código
+// ============================================
+
+async function solicitarCancelacionSegura(reservaId) {
+    // Pedir código al cliente
+    const codigo = prompt('🔒 Ingresa tu código de seguridad de 8 caracteres\n(Es el que te dimos al reservar)')
+    
+    if (!codigo || codigo.length !== 8) {
+        mostrarToastCliente('❌ Código inválido', true)
+        return
+    }
+    
+    // Verificar código
+    const esValido = await ReservaSegura.puedeCancelar(reservaId, codigo.toUpperCase())
+    
+    if (!esValido) {
+        mostrarToastCliente('❌ Código incorrecto. Solo el creador de la reserva puede cancelarla.', true)
+        return
+    }
+    
+    // Código correcto: proceder a cancelar
+    solicitarCancelacion(reservaId) // Tu función existente del modal
+}
 
         function cerrarModal(id) {
             document.getElementById(id).classList.add("fantasma");
@@ -3973,7 +5206,155 @@ const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fecha);
                     });
             }
         }
+        // ============================================
+// SISTEMA DE CÓDIGOS ÚNICOS DE RESERVA
+// ============================================
+
+const ReservaSegura = {
+    
+    // Generar código único para nueva reserva
+    async generarCodigo() {
+        // Si estamos en Android nativo, usar su generador criptográfico
+        if (typeof AndroidBridge !== 'undefined') {
+            return AndroidBridge.generarCodigoUnico()
+        }
+        // Fallback: generar en JavaScript
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+        const array = new Uint8Array(8)
+        crypto.getRandomValues(array)
+        return Array.from(array, x => chars[x % chars.length]).join('')
+    },
+
+    // Guardar reserva con código secreto (llamar DESPUÉS de crear en Firebase)
+    async guardarReservaLocal(reservaId, codigoSecreto, fecha) {
+        const datos = { reservaId, codigoSecreto, fecha, timestamp: Date.now() }
         
+        // Intentar guardar en Android nativo primero
+        if (typeof AndroidBridge !== 'undefined') {
+            try {
+                AndroidBridge.guardarCodigoReserva(reservaId, codigoSecreto, fecha)
+                return { exito: true, origen: 'nativo' }
+            } catch (e) {
+                console.warn('Falló guardado nativo, usando localStorage:', e)
+            }
+        }
+        
+        // Fallback a localStorage
+        try {
+            let reservas = JSON.parse(localStorage.getItem('mis_reservas_seguras') || '[]')
+            
+            // Evitar duplicados
+            reservas = reservas.filter(r => r.reservaId !== reservaId)
+            reservas.push(datos)
+            
+            localStorage.setItem('mis_reservas_seguras', JSON.stringify(reservas))
+            return { exito: true, origen: 'localStorage' }
+        } catch (e) {
+            console.error('Error guardando en localStorage:', e)
+            return { exito: false, error: e.message }
+        }
+    },
+
+    // Obtener mis reservas guardadas
+    async obtenerMisReservas() {
+        // Priorizar Android nativo
+        if (typeof AndroidBridge !== 'undefined') {
+            try {
+                const datos = AndroidBridge.obtenerMisReservas()
+                if (!datos) return []
+                
+                // Parsear formato: "id|codigo|fecha;;id|codigo|fecha"
+                return datos.split(';;').filter(x => x).map(entrada => {
+                    const partes = entrada.split('|')
+                    return {
+                        reservaId: partes[0],
+                        codigoSecreto: partes[1],
+                        fecha: partes[2]
+                    }
+                })
+            } catch (e) {
+                console.warn('Falló lectura nativa:', e)
+            }
+        }
+        
+        // Fallback localStorage
+        try {
+            const reservas = JSON.parse(localStorage.getItem('mis_reservas_seguras') || '[]')
+            // Limpiar antiguas (>30 días)
+            const hoy = Date.now()
+            const validas = reservas.filter(r => (hoy - r.timestamp) < 30 * 24 * 60 * 60 * 1000)
+            
+            if (validas.length < reservas.length) {
+                localStorage.setItem('mis_reservas_seguras', JSON.stringify(validas))
+            }
+            
+            return validas
+        } catch (e) {
+            return []
+        }
+    },
+
+    // Verificar si el cliente puede cancelar esta reserva
+    async puedeCancelar(reservaId, codigoIngresado) {
+        // Verificar en Android nativo
+        if (typeof AndroidBridge !== 'undefined') {
+            try {
+                return AndroidBridge.verificarCodigoReserva(reservaId, codigoIngresado)
+            } catch (e) {
+                console.warn('Falló verificación nativa:', e)
+            }
+        }
+        
+        // Verificar en localStorage
+        const reservas = await this.obtenerMisReservas()
+        return reservas.some(r => r.reservaId === reservaId && r.codigoSecreto === codigoIngresado)
+    },
+
+    // Eliminar reserva local después de cancelar
+    async eliminarReservaLocal(reservaId) {
+        if (typeof AndroidBridge !== 'undefined') {
+            try {
+                AndroidBridge.eliminarReservaLocal(reservaId)
+                return true
+            } catch (e) {
+                console.warn('Falló eliminación nativa:', e)
+            }
+        }
+        
+        try {
+            let reservas = await this.obtenerMisReservas()
+            reservas = reservas.filter(r => r.reservaId !== reservaId)
+            localStorage.setItem('mis_reservas_seguras', JSON.stringify(reservas))
+            return true
+        } catch (e) {
+            return false
+        }
+    },
+
+    // Mostrar código al cliente (para que lo guarde/screenshot)
+    mostrarCodigoAlCliente(reservaId, codigo, fecha, hora) {
+        // Crear modal bonito con el código
+        const modal = document.createElement('div')
+        modal.className = 'modal-codigo-reserva'
+        modal.innerHTML = `
+            <div class="contenido-codigo">
+                <h3>✅ ¡Reserva Confirmada!</h3>
+                <div class="codigo-box">
+                    <span class="label">Tu código de seguridad:</span>
+                    <span class="codigo">${codigo}</span>
+                    <span class="hint">Guarda este código para cancelar tu reserva</span>
+                </div>
+                <div class="info-reserva">
+                    <p>📅 ${fecha} ⏰ ${hora}</p>
+                </div>
+                <button onclick="this.closest('.modal-codigo-reserva').remove()" class="btn-entendido">
+                    Entendido
+                </button>
+            </div>
+        `
+        document.body.appendChild(modal)
+    }
+}
     </script>
     <style>/* Dentro de la etiqueta <style> */
 .diaCalendario.diaPasado {
@@ -4552,6 +5933,10 @@ function reservarHoraConNotificacion() {
   .botonMes:hover {
     background: #ff6f00;
   }
+
+
+
+  
 </style>
 
 <script>
