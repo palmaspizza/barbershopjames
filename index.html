@@ -77,7 +77,10 @@
 </style><br>
               <h1 id="tituloMes" style="margin: 0; color: orange !important;"></h1><br>
         <div id="barraMes" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-           <center>
+           <center><!-- ============================================
+     GALERÍA DE TRABAJOS - CLIENTES
+     ============================================ -->
+
              <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
               
                 <button id="mesAnterior" class="botonMes">←Mes anterior</button>
@@ -111,7 +114,7 @@ async function notificarNuevaReserva(datosReserva) {
     const mensaje = `💈 Nueva Reserva
 👤 ${datosReserva.nombre}
 📅 ${datosReserva.fecha} a las ${datosReserva.hora}
-✂️ ${datosReserva.servicios || 'Sin servicio'}
+ ${datosReserva.servicios || 'Sin servicio'}
 💰 ${datosReserva.total || 'No especificado'}`;
 
     try {
@@ -368,7 +371,92 @@ async function notificarNuevaReserva(datosReserva) {
   }
 </style>
 <button onclick="enviar()" hidden>Enviar notificación</button>
+<!-- ============================================
+     GALERÍA DE TRABAJOS - CLIENTES
+     ============================================ -->
+<div class="galeria-clientes" id="galeria-clientes">
+    <h3 class="titulo-galeria"> Nuestras promos</h3>
+    <div class="galeria-grid-clientes" id="galeria-grid-clientes">
+        <!-- Se carga dinámicamente -->
+    </div>
+</div>
 
+<style>
+/* ============================================
+   GALERÍA - CLIENTES
+   ============================================ */
+
+.galeria-clientes {
+    margin: 30px auto;
+    max-width: 800px;
+    padding: 0 15px;
+}
+
+.titulo-galeria {
+    text-align: center;
+    color: #e4a64f;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.galeria-grid-clientes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.galeria-item-cliente {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #1e1f24, #16171b);
+    border: 1px solid rgba(228, 166, 79, 0.2);
+    aspect-ratio: 4/3;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.galeria-item-cliente img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.galeria-item-cliente:hover img {
+    transform: scale(1.08);
+}
+
+/* Estado vacío */
+.galeria-vacia-clientes {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-style: italic;
+}
+
+@media (max-width: 600px) {
+    .galeria-grid-clientes {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .galeria-item-cliente {
+        aspect-ratio: 1;
+    }
+    
+    .titulo-galeria {
+        font-size: 1.2rem;
+    }
+}
+</style>
+
+<script>
+
+</script>
  <h3 style="font-size: 170%;" >Selecciona un día</h3>
      
   <!-- Día Disponible -->
@@ -2851,7 +2939,43 @@ const firebaseConfig = {
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const reservasRef = db.ref("reservas");
-        
+        // ============================================
+// GALERÍA - CLIENTES (solo visualización)
+// ============================================
+
+const galeriaGridClientes = document.getElementById('galeria-grid-clientes');
+
+// Escuchar galería en tiempo real (misma ruta que admin)
+db.ref('galeria').on('value', snapshot => {
+    const imagenes = snapshot.val() || {};
+    renderGaleriaClientes(imagenes);
+});
+
+function renderGaleriaClientes(imagenes) {
+    const keys = Object.keys(imagenes);
+    const grid = document.getElementById('galeria-grid-clientes');
+
+    if (keys.length === 0) {
+        grid.innerHTML = '<div class="galeria-vacia-clientes">Próximamente mostraremos Nuestras promos</div>';
+        return;
+    }
+
+    const ordenadas = keys
+        .map(key => ({ key, ...imagenes[key] }))
+        .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+        .slice(0, 6);
+
+    grid.innerHTML = ordenadas.map(img => `
+        <div class="galeria-item-cliente">
+            <img 
+                src="${img.url}" 
+                alt="Trabajo de barbería" 
+                loading="lazy"
+                onerror="this.parentElement.style.display='none'"
+            >
+        </div>
+    `).join('');
+}
         // Rutas unificadas con admin.html
         const horariosRef = db.ref("config/horariosEspecificos"); 
         const diasBloqueadosRef = db.ref("diasCerrados");
