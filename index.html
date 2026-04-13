@@ -97,20 +97,44 @@
         </div>
         <button id="solicitar" hidden>Solicitar notificaciones</button>
 <script>
-  async function enviar() {
-    try {
-      const response = await window.fetch('http://localhost:3000/enviar-notificaciones', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ titulo: 'Hola', mensaje: 'Mensaje desde el cliente' })
-      });
+  // Las notificaciones se envían automáticamente vía ntfy.sh al reservar
+  // ============================================
+// NOTIFICACIONES PUSH - INTEGRACIÓN
+// ============================================
+// ============================================
+// NOTIFICACIONES PUSH - INTEGRACIÓN
+// ============================================
+const NTFY_TOPIC = 'james-barber-shop-2026'; // Cambia esto por tu topic único
 
-      const result = await response.text();
-      console.log('Respuesta del servidor:', result);
+async function notificarNuevaReserva(datosReserva) {
+    // Emojis SOLO en el body, NUNCA en los headers
+    const mensaje = `💈 Nueva Reserva
+👤 ${datosReserva.nombre}
+📅 ${datosReserva.fecha} a las ${datosReserva.hora}
+✂️ ${datosReserva.servicios || 'Sin servicio'}
+💰 ${datosReserva.total || 'No especificado'}`;
+
+    try {
+        const respuesta = await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+            method: 'POST',
+            body: mensaje,
+            headers: {
+                // Headers: solo caracteres ASCII/ISO-8859-1 (sin emojis)
+                'Title': 'Nueva Reserva - Barberia',
+                'Priority': 'high',
+                'Tags': 'scissors,calendar'
+            }
+        });
+        
+        if (respuesta.ok) {
+            console.log('Notificacion enviada correctamente');
+        } else {
+            console.error('Error HTTP al enviar notificacion:', respuesta.status);
+        }
     } catch (error) {
-      console.error('Error al enviar la notificación:', error);
+        console.error('Error de red al enviar notificacion:', error);
     }
-  }
+}
 </script>
 <style>
   /* Contenedor principal con efecto vidrio */
@@ -445,17 +469,12 @@ document.getElementById('solicitar').addEventListener('click', async () => {
 
                 const fechaActual = `${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
 
-                const celda = document.createElement("button");
-                celda.type = "button";
+                const celda = document.createElement("div");
                 celda.classList.add("diaCalendario");
                 celda.textContent = dia;
                 celda.dataset.fecha = fechaActual;
 
-                celda.dataset.fecha = fechaActual;
-
-
                 const horasReservadas = reservasPorDia[fechaActual] || [];
-
                 if (horasReservadas.length > 0) {
                     const badge = document.createElement("span");
                     badge.className = "badge-reservas";
@@ -467,46 +486,44 @@ document.getElementById('solicitar').addEventListener('click', async () => {
 
                 const estaOcupado = horasReservadas.length >= horarioDelDia.length;
 
+                const diaPasado = new Date(anio, mes - 1, dia) < hoy;
 
-
-                if (estaBloqueado) {
-
+                if (diaPasado) {
+                    celda.classList.add("diaPasado");
+                    celda.title = "Este día ya ha pasado";
+                } else if (estaBloqueado) {
                     celda.classList.add("diaBloqueado");
-
                     celda.title = "Día bloqueado por el administrador";
-
                 } else if (estaOcupado) {
-
                     celda.classList.add("diaOcupado");
-
                     celda.title = "Día con todas las horas reservadas";
-
                 } else {
-
                     celda.classList.add("diaLibre");
-
                     celda.title = "Día disponible";
-
                 }
 
-
+                if (diaPasado) {
+                    celda.style.pointerEvents = "none";
+                }
 
                 celda.onclick = () => {
-                    if (celda.dataset.longpress === "1") { celda.dataset.longpress=""; return; }
+                    if (diaPasado) return;
 
-                    // ... (tu lógica de clic, que no se modificó) ...
-
+                    if (modoGestionHorarios) {
+                        fechaSeleccionadaParaConfigurar = fechaActual;
+                        abrirVentanaConfiguracionHorarios();
+                    } else if (modoBloqueoDias) {
+                        // Lógica de bloqueo
+                    } else {
+                        if (!estaBloqueado) {
+                            fechaInput.value = fechaActual;
+                            abrirVentanaHorarios(fechaActual);
+                        }
+                    }
                 };
 
-                
-
-                
-
-
-
                 cuadroCalendario.appendChild(celda);
-                activarPresionProlongada(celda, () => abrirModalReservasDia(fechaActual), 1000);
-
+                iniciarPresionDia(celda, fechaActual, 1000);
             }
 
         }
@@ -1085,14 +1102,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             for (let dia = 1; dia <= totalDias; dia++) {
                 const fechaActual = `${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-                const celda = document.createElement("button");
-                celda.type = "button";
+                const celda = document.createElement("div");
                 celda.classList.add("diaCalendario");
                 celda.textContent = dia;
                 celda.dataset.fecha = fechaActual;
-
-                const fechaCelda = new Date(anio, mes - 1, dia);
-                const diaSemana = fechaCelda.getDay();
 
                 const horasReservadas = reservasPorDia[fechaActual] || [];
                 if (horasReservadas.length > 0) {
@@ -1102,9 +1115,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     celda.appendChild(badge);
                 }
                 
-                const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0 || diasDeLaSemanaBloqueados.includes(diaSemana);
+                const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0;
+
                 const estaOcupado = horasReservadas.length >= horarioDelDia.length;
-                const diaPasado = fechaCelda < hoy;
+                const diaPasado = new Date(anio, mes - 1, dia) < hoy;
 
                 if (diaPasado) {
                     celda.classList.add("diaPasado");
@@ -1125,7 +1139,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 celda.onclick = () => {
-                    if (celda.dataset.longpress === "1") { celda.dataset.longpress=""; return; }
                     if (diaPasado) return;
 
                     if (modoGestionHorarios) {
@@ -1457,20 +1470,20 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="servicios-bloque">
     <h4>Cortes</h4>
     <p class="nota">Elige tu corte</p>
-    <button class="servicio-btn exclusivo" data-nombre="Corte Clásico" data-precio="10000" data-tiempo="20">Corte clásico · $10.000 · 20min</button>
-    <button class="servicio-btn exclusivo" data-nombre="Corte Degradado" data-precio="12000" data-tiempo="30">Degradado · $12.000 · 30min</button>
+    <button class="servicio-btn exclusivo" data-nombre="Corte Clásico" data-precio="10000" data-tiempo="20">Corte clásico · $10.000</button>
+    <button class="servicio-btn exclusivo" data-nombre="Corte Degradado" data-precio="12000" data-tiempo="30">Degradado · $12.000</button>
   </div>
   <div class="servicios-bloque">
     <h4>Extras</h4>
     <p class="nota">Opcional</p>
-    <button class="servicio-btn" data-nombre="Barba" data-precio="6000" data-tiempo="10">Barba · $6.000 · 10min</button>
-    <button class="servicio-btn" data-nombre="Cejas" data-precio="3000" data-tiempo="5">Cejas · $3.000 · 5min</button>
+    <button class="servicio-btn" data-nombre="Barba" data-precio="6000" data-tiempo="10">Barba · $6.000</button>
+    <button class="servicio-btn" data-nombre="Cejas" data-precio="3000" data-tiempo="5">Cejas · $3.000</button>
   </div>
   <div class="servicios-bloque">
     <h4>Color (Opcional)</h4>
     <p class="nota">Elige uno</p>
-    <button class="servicio-btn color" data-nombre="Color Global" data-precio="70000" data-tiempo="60">Color Global · $70.000 · 60min</button>
-    <button class="servicio-btn color" data-nombre="Visos" data-precio="50000" data-tiempo="60">Risos/Ondulaciones · $50.000 · 60min</button>
+    <button class="servicio-btn color" data-nombre="Color Global" data-precio="70000" data-tiempo="60">Color Global · $70.000</button>
+    <button class="servicio-btn color" data-nombre="Visos" data-precio="50000" data-tiempo="60">Risos/Ondulaciones · $50.000</button>
   </div>
 </div>
 <div class="resumen-reserva">
@@ -1478,9 +1491,11 @@ document.addEventListener('DOMContentLoaded', function() {
   <input id="eltotal" placeholder="Total" readonly>
   <label>Servicios seleccionados</label>
   <input id="opciones" placeholder="Opciones" readonly>
-  <label>Tiempo total aproximado</label>
+<div hidden>
+      <label>Tiempo total aproximado</label>
   <input id="tiempo" placeholder="Tiempo total" readonly>
   <input id="tiempoTotal" type="hidden">
+</div>
 </div>
 
 <script>
@@ -1563,10 +1578,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             const numeroDestino = "56954527837";
-            const opciones = (opcionesInput?.value || "").trim();
-            const tiempo = (tiempoInput?.value || "").trim();
+            const opciones = (opcionesInput?.value || "").trim()
             const total = (totalInput?.value || "").trim();
-            const mensaje = `Hola, soy ${nombre}. Quiero reservar un ${opciones} para el día ${fecha} a las ${hora}.\nTiempo (Aprox): ${tiempo}\nTotal: ${total}`;
+            const mensaje = `Hola, soy ${nombre}. Quiero reservar un ${opciones} para el día ${fecha} a las ${hora}.\nTotal: ${total}`;
             const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`;
             window.open(url, "_blank");
         }
@@ -1841,7 +1855,33 @@ function ocultarBotonBorrar() {
     <div id="modal-reservada" class="modal hidden">
         <div class="modal-content reservada">
             <h3 style="text-shadow: #000 1px 1px 3px;">HORA DISPONIBLE</h3>
-        </div>
+      <style>
+  .btn-reserva {
+    background-color: #ff7f50; /* Naranjo coral */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  }
+
+  .btn-reserva:hover {
+    background-color: #ff5722; /* Naranjo más intenso */
+    transform: scale(1.05);
+  }
+
+  .btn-reserva:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+</style>
+
+<button class="btn-reserva" onclick="location.reload()">Hacer otra reserva</button>
+  </div>
     </div>
 <style>.dias-semana {
     display: grid;
@@ -1955,8 +1995,10 @@ select, input[type="date"] {
 /* Estilo para modales personalizados */
 .ventana-secreta {
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
@@ -2100,11 +2142,18 @@ button {
   text-align: center;
   width: 90%;
   max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 0 20px rgba(255, 165, 0, 0.3);
+  text-align: center;
+  font-family: 'Segoe UI', sans-serif;
+  color: #f0f0f0;
 }
 
 .fantasma {
   display: none;
 }
+
 .boton-x{
   display: none;
 }
@@ -2744,7 +2793,7 @@ img {
   color: white;
   cursor: default;
 }
-/* Este selector y el de abajo deben tener los mismos valores de 'grid' */
+/* Este selector y el de arriba deben tener los mismos valores de 'grid' */
 .dias-semana {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -2754,7 +2803,7 @@ img {
     
 }
 
-/* Este selector y el de arriba deben tener los mismos valores de 'grid' */
+/* Este selector y el de abajo deben tener los mismos valores de 'grid' */
 #cuadroCalendario {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -2779,37 +2828,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// Solicitar permiso y guardar token
-document.getElementById('solicitar').addEventListener('click', async () => {
-  try {
-    const permiso = await Notification.requestPermission();
-    if (permiso === 'granted') {
-      const token = await messaging.getToken({ vapidKey: 'LPiNDM_XNqEyUax9FouVf80pSRw0RKakQcr3uWolXio' }); // reemplaza con tu VAPID
-      console.log('Token:', token);
-
-      await fetch('http://localhost:3000/guardar-token', {
-        method: 'POST',
-        body: JSON.stringify({ token }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-  } catch (err) {
-    console.error('Error al solicitar notificaciones:', err);
-  }
-});
-
-// Simular reserva y enviar notificación
-document.getElementById('reservar').addEventListener('click', async () => {
-  await fetch('http://localhost:3000/enviar-notificaciones', {
-    method: 'POST',
-    body: JSON.stringify({
-      titulo: 'Nueva reserva',
-      mensaje: 'Se ha confirmado una nueva reserva en la barbería 💈'
-    }),
-    headers: { 'Content-Type': 'application/json' }
-  });
-});
-
+// Notificaciones integradas vía app.js
 </script>
     <script>
 
@@ -2832,7 +2851,11 @@ const firebaseConfig = {
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const reservasRef = db.ref("reservas");
-        const horariosRef = db.ref("horarios"); // Nueva referencia para los horarios personalizados
+        
+        // Rutas unificadas con admin.html
+        const horariosRef = db.ref("config/horariosEspecificos"); 
+        const diasBloqueadosRef = db.ref("diasCerrados");
+        const configRef = db.ref("config");
 
         const fechaInput = document.getElementById("fecha");
         const listaReservas = document.getElementById("reservas-lista");
@@ -2861,9 +2884,10 @@ const firebaseConfig = {
         let fechaActualCalendario = new Date();
         let fechaSeleccionadaParaConfigurar = "";
         let modoEliminarReservas = false;
-// CAMBIAR HORARIO
-        const horarioSemana = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
-        const horarioDomingo = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
+
+        // Horarios base (se cargarán de Firebase)
+        let horarioSemana = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
+        let horarioDomingo = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
         const bloquesBase = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
 
 
@@ -2874,18 +2898,20 @@ const firebaseConfig = {
 
         const estadoRef = firebase.database().ref("estadoBarberia");
         const mensajeRef = firebase.database().ref("mensajeCierre");
-        const diasBloqueadosRef = firebase.database().ref("diasBloqueados");
+
+        // Escuchar configuración base en tiempo real
+        configRef.child("horarioSemana").on("value", s => { if(s.val()) horarioSemana = s.val(); actualizarBarraMes(); });
+        configRef.child("horarioDomingo").on("value", s => { if(s.val()) horarioDomingo = s.val(); actualizarBarraMes(); });
 
         // Escuchar reservas en tiempo real
         reservasRef.on("value", snapshot => {
             reservasPorDia = {};
             snapshot.forEach(child => {
-                const {
-                    fecha,
-                    hora
-                } = child.val();
-                if (!reservasPorDia[fecha]) reservasPorDia[fecha] = [];
-                reservasPorDia[fecha].push(hora);
+                const val = child.val();
+                if (val && val.fecha && val.hora) {
+                    if (!reservasPorDia[val.fecha]) reservasPorDia[val.fecha] = [];
+                    reservasPorDia[val.fecha].push(val.hora);
+                }
             });
             actualizarBarraMes();
         });
@@ -2894,7 +2920,10 @@ const firebaseConfig = {
         diasBloqueadosRef.on("value", snapshot => {
             diasBloqueados = [];
             snapshot.forEach(child => {
-                diasBloqueados.push(child.val().fecha);
+                const val = child.val();
+                if (val && val.fecha) {
+                    diasBloqueados.push(val.fecha);
+                }
             });
             actualizarBarraMes();
         });
@@ -3234,10 +3263,12 @@ setTimeout(() => {
             if (div) div.remove();
         });
 
-       function reservarHora() {
+      function reservarHora() {
     const fecha = document.getElementById("fecha").value;
     const hora = document.getElementById("hora").value;
     const nombre = document.getElementById("nombre").value.trim();
+    const servicios = document.getElementById("opciones")?.value || "";
+    const total = document.getElementById("eltotal")?.value || "";
 
     if (!fecha || !hora || !nombre) {
         alert("Completa todos los campos: nombre, fecha y hora");
@@ -3256,8 +3287,8 @@ setTimeout(() => {
             }
         });
 
-       if (ocupada) {
-            document.getElementById("modal-ocupado").classList.remove("hidden");
+        if (ocupada) {
+            document.getElementById("modal-ocupado")?.classList.remove("hidden");
         } else {
             const tiempoMin = parseInt(document.getElementById("tiempoTotal")?.value || "0", 10);
             const horasNecesarias = Math.ceil(tiempoMin / 60);
@@ -3267,12 +3298,33 @@ setTimeout(() => {
                 const r = child.val();
                 if (r.fecha === fecha) ocupadasSet.add(r.hora);
             });
+
+            // Crear objeto de reserva para notificación
+            const nuevaReserva = {
+                nombre: nombre,
+                fecha: fecha,
+                hora: hora,
+                servicios: servicios,
+                total: total,
+                timestamp: Date.now()
+            };
+
+            // Guardar en Firebase
             for (let i = 0; i < Math.max(horasNecesarias, 1); i++) {
                 const h = String(baseHH + i).padStart(2, "0") + ":00";
                 if (!ocupadasSet.has(h)) {
-                    ref.push({ fecha, hora: h, nombre });
+                    ref.push({ ...nuevaReserva, hora: h });
                 }
             }
+
+            // ✅ ENVIAR NOTIFICACIÓN AL BARBERO (aquí es el momento correcto)
+            if (typeof notificarNuevaReserva === 'function') {
+                notificarNuevaReserva(nuevaReserva);
+            } else {
+                console.error('❌ Función notificarNuevaReserva no disponible');
+            }
+
+            // Mostrar confirmación al cliente
             document.getElementById("modal-reservada").classList.remove("hidden");
             marcarHorasOcupadasPorDuracion();
             enviarMensajeWhatsApp();
@@ -4203,195 +4255,107 @@ function marcarHorasOcupadasPorDuracion() {
     }, true);
     document.addEventListener('pointerdown', ensureCtx, { once: true, capture: true });
   })();
+
+
+
+
+  
+
+// Modificar tu función reservarHora() existente para incluir la notificación:
+const reservarHoraOriginal = reservarHora; // Guardar referencia si existe
+function reservarHoraConNotificacion() {
+    // ... tu código actual de reservarHora ...
+    
+    // Al final, después de guardar en Firebase:
+    const nuevaReserva = {
+        nombre: document.getElementById("nombre").value,
+        fecha: fechaInput.value,
+        hora: document.getElementById("hora").value,
+        servicios: document.getElementById("opciones")?.value,
+        total: document.getElementById("eltotal")?.value
+    };
+    
+    // Enviar notificación
+    notificarNuevaReserva(nuevaReserva);
+    
+    // Continuar con el flujo normal...
+}
 </script>
 <style>
-  /* Animación suave y llamativa para el botón "Mes siguiente" */
-#mesSiguiente {
-    background: linear-gradient(135deg, #ff8c00 0%, #ff6b35 50%, #ff4500 100%);
+  /* Simplificación del diseño para clientes */
+  .leyenda-calendario {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: rgba(21, 22, 26, 0.8);
+    border-radius: 15px;
+    border: 2px solid rgba(228, 166, 79, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    border-radius: 10px;
+    background: rgba(11, 11, 13, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+
+  .leyenda-item:hover {
+    transform: scale(1.05);
+    background: rgba(11, 11, 13, 0.9);
+  }
+
+  .indicador {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+  }
+
+  .indicador.disponible {
+    background: #33d17a;
+  }
+
+  .indicador.cerrado {
+    background: #ff3b3f;
+  }
+
+  .leyenda-texto {
+    font-size: 1rem;
+    color: #f1f1f1;
+  }
+
+  .botonMes {
+    padding: 10px 20px;
+    background: #e4a64f;
     color: white;
     border: none;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 700;
-    font-family: 'Poppins', sans-serif;
-    border-radius: 50px;
+    border-radius: 8px;
     cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 
-        0 4px 15px rgba(255, 107, 53, 0.4),
-        0 0 20px rgba(255, 140, 0, 0.3);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    
-    /* Animación constante de pulso */
-    animation: pulseGlow 2s ease-in-out infinite;
-}
+    font-size: 1rem;
+    transition: background 0.3s ease;
+  }
 
-/* Efecto de brillo interior que se mueve */
-#mesSiguiente::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        45deg,
-        transparent 30%,
-        rgba(255, 255, 255, 0.3) 50%,
-        transparent 70%
-    );
-    animation: shimmer 3s ease-in-out infinite;
-    pointer-events: none;
-}
-
-/* Animación de pulso suave */
-@keyframes pulseGlow {
-    0%, 100% {
-        transform: scale(1);
-        box-shadow: 
-            0 4px 15px rgba(255, 107, 53, 0.4),
-            0 0 20px rgba(255, 140, 0, 0.3);
-    }
-    50% {
-        transform: scale(1.02);
-        box-shadow: 
-            0 6px 25px rgba(255, 107, 53, 0.6),
-            0 0 30px rgba(255, 140, 0, 0.5);
-    }
-}
-
-/* Animación de brillo deslizante */
-@keyframes shimmer {
-    0% {
-        transform: translateX(-100%) rotate(45deg);
-    }
-    100% {
-        transform: translateX(100%) rotate(45deg);
-    }
-}
-
-/* Efecto al pasar el mouse */
-#mesSiguiente:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 
-        0 8px 30px rgba(255, 107, 53, 0.6),
-        0 0 40px rgba(255, 140, 0, 0.5);
-    background: linear-gradient(135deg, #ff9f1a 0%, #ff7a45 50%, #ff5722 100%);
-}
-
-/* Efecto al hacer clic */
-#mesSiguiente:active {
-    transform: translateY(-1px) scale(0.98);
-    box-shadow: 
-        0 4px 15px rgba(255, 107, 53, 0.4),
-        0 0 20px rgba(255, 140, 0, 0.3);
-    transition: all 0.1s ease;
-}
-
-/* Flecha animada dentro del botón */
-#mesSiguiente::after {
-    content: '→';
-    display: inline-block;
-    margin-left: 8px;
-    animation: arrowBounce 1.5s ease-in-out infinite;
-}
-
-/* Animación de rebote de la flecha */
-@keyframes arrowBounce {
-    0%, 100% {
-        transform: translateX(0);
-    }
-    50% {
-        transform: translateX(6px);
-    }
-}
-/* Botón "Mes anterior" - Estilo llamativo sin animación */
-#mesAnterior {
-    background: linear-gradient(135deg, #ff8c00 0%, #ff6b35 50%, #ff4500 100%);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 700;
-    font-family: 'Poppins', sans-serif;
-    border-radius: 50px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 
-        0 4px 15px rgba(255, 107, 53, 0.4),
-        0 0 20px rgba(255, 140, 0, 0.3);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    
-    /* Sin animación constante */
-}
-
-/* Efecto de brillo interior estático */
-#mesAnterior::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        45deg,
-        transparent 30%,
-        rgba(255, 255, 255, 0.2) 50%,
-        transparent 70%
-    );
-    /* Sin animación - solo el brillo estático */
-    transform: translateX(-30%) rotate(45deg);
-    pointer-events: none;
-}
-
-/* Efecto al pasar el mouse */
-#mesAnterior:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 
-        0 8px 30px rgba(255, 107, 53, 0.6),
-        0 0 40px rgba(255, 140, 0, 0.5);
-    background: linear-gradient(135deg, #ff9f1a 0%, #ff7a45 50%, #ff5722 100%);
-}
-
-/* Efecto al hacer clic */
-#mesAnterior:active {
-    transform: translateY(-1px) scale(0.98);
-    box-shadow: 
-        0 4px 15px rgba(255, 107, 53, 0.4),
-        0 0 20px rgba(255, 140, 0, 0.3);
-    transition: all 0.1s ease;
-}
-
-/* Flecha estática dentro del botón */
-#mesAnterior::after {
-    content: '←';
-    display: inline-block;
-    margin-left: 8px;
-    /* Sin animación de rebote */
-}
-
-/* Variante responsive para móviles */
-@media (max-width: 480px) {
-    #mesAnterior {
-        padding: 10px 18px;
-        font-size: 14px;
-    }
-    
-    #mesAnterior::after {
-        margin-left: 6px;
-    }
-}
-/* Variante responsive para móviles */
-@media (max-width: 480px) {
-    #mesSiguiente {
-        padding: 10px 18px;
-        font-size: 14px;
-    }
-    
-    #mesSiguiente::after {
-        margin-left: 6px;
-    }
-}
+  .botonMes:hover {
+    background: #ff6f00;
+  }
 </style>
+
+<script>
+  // Simplificación de la navegación del calendario
+  document.getElementById('mesAnterior').addEventListener('click', () => {
+    console.log('Mes anterior');
+  });
+
+  document.getElementById('mesSiguiente').addEventListener('click', () => {
+    console.log('Mes siguiente');
+  });
+</script>
+</body>
+</html>
