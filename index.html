@@ -3180,7 +3180,19 @@ function ocultarBotonBorrar() {
             <p style="text-shadow: #000 1px 1px 3px;"  >Se te redireccionará a <span style="text-shadow: #000 1px 1px 3px;  color: green;">WhatsApp</span></p>
 <b>           
             <input type="text" type="name" placeholder="Escribe tu Nombre y Apellido" id="nombre" oninput="miFuncion();">
-            <br><br>
+            <!-- TÉRMINOS Y CONDICIONES - Checkbox -->
+<br><br><div class="terminos-container" style="margin: 15px 0; text-align: left; padding: 12px; background: rgba(20,20,22,0.6); border-radius: 10px; border: 1px solid rgba(228,166,79,0.3);">
+    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #f1f1f1; font-size: 0.95rem; line-height: 1.4;">
+        <input type="checkbox" id="aceptoTerminos" style="margin-top: 3px; width: 18px; height: 18px; accent-color: #e4a64f; cursor: pointer;">
+        <span>
+            Acepto los 
+            <a href="/terminos.html" target="_blank" style="color: #e4a64f; text-decoration: underline; font-weight: 600;">Términos y Condiciones</a>
+            y la 
+            <a href="/privacidad" target="_blank" style="color: #e4a64f; text-decoration: underline; font-weight: 600;">Política de Privacidad</a>
+        </span>
+    </label>
+    <p id="errorTerminos" style="color: #ff3b3f; font-size: 0.85rem; margin: 8px 0 0 28px; display: none;">⚠️ Debes aceptar los términos para continuar</p>
+</div><br><br>
             <button id="reservar-button" type="button" onclick="reservarHora()">Reservar</button>
         </div>
     </div>
@@ -4639,6 +4651,18 @@ setTimeout(() => {
 // REEMPLAZAR la función reservarHora() completa con esta:
 
 async function reservarHora() {
+        // ✅ VALIDACIÓN DE TÉRMINOS
+    const checkboxTerminos = document.getElementById("aceptoTerminos");
+    const errorTerminos = document.getElementById("errorTerminos");
+    
+    if (!checkboxTerminos || !checkboxTerminos.checked) {
+        if (errorTerminos) errorTerminos.style.display = "block";
+        mostrarToastCliente("⚠️ Debes aceptar los términos y condiciones", true);
+        return; // Detener la reserva
+    }
+    
+    // Ocultar error si existe
+    if (errorTerminos) errorTerminos.style.display = "none";
     const fecha = document.getElementById("fecha").value
     const hora = document.getElementById("hora").value
     const nombre = document.getElementById("nombre").value.trim()
