@@ -2618,18 +2618,53 @@ function cargarReservasPorIds(reservasLocales) {
     
     const idsGuardados = reservasLocales.map(r => r.reservaId);
     
+    // 🔴 DEBUG: Ver qué fechas tenemos guardadas
+    console.log("Reservas locales:", reservasLocales.map(r => ({id: r.reservaId, fecha: r.fecha, hora: r.hora})));
+
     const promises = idsGuardados.map(id => 
         db.ref(`reservas/${id}`).once('value').then(snap => {
             if (snap.exists()) {
-                return { id: snap.key, ...snap.val() };
+                const data = snap.val();
+                // 🔴 CRÍTICO: Asegurar que la fecha de Firebase se use tal cual
+                return { 
+                    id: snap.key, 
+                    ...data,
+                    // Si Firebase devuelve timestamp, no usarlo como fecha
+                    fecha: data.fecha || data.fechaReserva || 'fecha-no-encontrada'
+                };
             }
             return null;
         })
     );
     
     Promise.all(promises).then(reservas => {
-        reservasClienteActuales = reservas.filter(r => r !== null);
+    reservasClienteActuales = reservas.filter(r => r !== null).map(r => {
+        // 🔴 PRIORIDAD: Usar fechaOriginal si existe (es la más confiable)
+        // Si no, usar fecha, pero validar que no esté corrupta
+        let fechaFinal = r.fechaOriginal || r.fecha;
         
+        // Si la fecha parece corrupta (no es YYYY-MM-DD), intentar corregir
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaFinal)) {
+            console.warn("🟡 Fecha corrupta detectada:", fechaFinal, "para reserva", r.id);
+            
+            // Intentar extraer de timestamp si existe
+            if (r.timestamp) {
+                const tsDate = new Date(r.timestamp);
+                const a = tsDate.getFullYear();
+                const m = String(tsDate.getMonth() + 1).padStart(2, '0');
+                const d = String(tsDate.getDate()).padStart(2, '0');
+                fechaFinal = `${a}-${m}-${d}`;
+                console.log("🟡 Fecha reconstruida de timestamp:", fechaFinal);
+            }
+        }
+        
+        // Actualizar el objeto con la fecha corregida
+        return { ...r, fecha: fechaFinal };
+    });
+        
+        // 🔴 DEBUG: Ver qué fechas vienen de Firebase
+        console.log("Reservas desde Firebase:", reservasClienteActuales.map(r => ({id: r.id, fecha: r.fecha, hora: r.hora})));
+
         // Limpiar localStorage de reservas que ya no existen
         const idsValidos = reservasClienteActuales.map(r => r.id);
         const reservasValidas = reservasLocales.filter(r => idsValidos.includes(r.reservaId));
@@ -2752,7 +2787,6 @@ function mostrarResultadosBusqueda() {
 // ============================================
 // RENDERIZAR RESERVAS
 // ============================================
-
 function renderizarMisReservas(reservas) {
     const contenedor = document.getElementById('contenedorReservasCliente');
     const sinReservas = document.getElementById('sinReservas');
@@ -2776,23 +2810,40 @@ function renderizarMisReservas(reservas) {
     
     if (sinReservas) sinReservas.classList.add('hidden');
     
-    const ahora = new Date();
-    
+    // ✅ CORREGIDO: asignar el HTML generado al contenedor
     contenedor.innerHTML = reservas.map(reserva => {
-        const fechaReserva = new Date(reserva.fecha + 'T' + reserva.hora);
+        let fechaStr = reserva.fecha;
+        
+        if (fechaStr instanceof Date) {
+            const a = fechaStr.getFullYear();
+            const m = String(fechaStr.getMonth() + 1).padStart(2, '0');
+            const d = String(fechaStr.getDate()).padStart(2, '0');
+            fechaStr = `${a}-${m}-${d}`;
+        }
+        
+        if (typeof fechaStr === 'string' && fechaStr.includes('T')) {
+            fechaStr = fechaStr.split('T')[0];
+        }
+        
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) {
+            console.error("❌ Fecha inválida:", fechaStr);
+            fechaStr = reserva.fechaOriginal || "fecha-error";
+        }
+        
+        const [anio, mes, dia] = fechaStr.split('-').map(Number);
+        const [hora, minuto] = (reserva.hora || "00:00").split(':').map(Number);
+        const fechaReserva = new Date(anio, mes - 1, dia, hora, minuto || 0);
+        const ahora = new Date();
         const esPasada = fechaReserva < ahora;
-        const fechaFormateada = formatearFechaLarga(new Date(reserva.fecha));
+        
+        const fechaFormateada = formatearFechaLargaDesdePartes(anio, mes, dia);
         
         return `
             <div class="reserva-card-cliente ${esPasada ? 'pasada' : ''}" data-id="${reserva.id}">
                 <div class="reserva-header-card">
                     <div class="reserva-fecha-hora">
-                        <span class="fecha-reserva">
-                            📅 ${fechaFormateada}
-                        </span>
-                        <span class="hora-reserva">
-                            ⏰ ${reserva.hora}
-                        </span>
+                        <span class="fecha-reserva">📅 ${fechaFormateada}</span>
+                        <span class="hora-reserva">⏰ ${reserva.hora}</span>
                     </div>
                     <span class="estado-reserva ${esPasada ? 'estado-pasada' : 'estado-activa'}">
                         ${esPasada ? 'Finalizada' : 'Activa'}
@@ -2822,7 +2873,18 @@ function renderizarMisReservas(reservas) {
 // ============================================
 // CANCELACIÓN DE RESERVAS (SIN CÓDIGO)
 // ============================================
-
+function formatearFechaLargaDesdePartes(anio, mes, dia) {
+    // mes viene 1-12
+    const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
+                   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+    
+    const fecha = new Date(anio, mes - 1, dia);
+    const diaSemana = diasSemana[fecha.getDay()];
+    const nombreMes = meses[mes - 1];
+    
+    return `${diaSemana}, ${dia} de ${nombreMes} de ${anio}`;
+}
 function solicitarCancelacion(reservaId) {
     const reserva = reservasClienteActuales.find(r => r.id === reservaId);
     if (!reserva) return;
@@ -2900,11 +2962,11 @@ function confirmarCancelacion() {
 
 async function notificarCancelacion(reserva) {
     // Notificación ntfy (la que ya tienes, sin cambios)
-    const mensajeNtfy = `❌ RESERVA CANCELADA
-❌👤 Cliente: ${reserva.nombre}
-❌📅 ${reserva.fecha} a las ${reserva.hora}
-❌💈 ${reserva.servicios || 'Sin servicio'}
-❌💰 ${reserva.total || 'No especificado'}`;
+    const mensajeNtfy = `❌ RESERVA CANCELADA ❌
+❌👤 Cliente: ${reserva.nombre}❌
+❌📅 ${reserva.fecha} a las ${reserva.hora}❌
+❌💈 ${reserva.servicios || 'Sin servicio'}❌
+❌💰 ${reserva.total || 'No especificado'}❌`;
 
     try {
         await fetch(`https://ntfy.sh/${NTFY_TOPIC_CANCELACIONES}`, {
@@ -2960,16 +3022,40 @@ function mostrarToastCliente(mensaje, esError = false) {
     }, 3500);
 }
 
+// REEMPLAZAR cualquier función similar a esta
 function formatearFechaSimple(fecha) {
-    const a = fecha.getFullYear();
-    const m = String(fecha.getMonth() + 1).padStart(2, '0');
-    const d = String(fecha.getDate()).padStart(2, '0');
-    return `${a}-${m}-${d}`;
+    // Si es string YYYY-MM-DD, devolverlo directamente sin crear Date
+    if (typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+        return fecha;
+    }
+    
+    // Solo si es un objeto Date, formatear manualmente
+    if (fecha instanceof Date) {
+        const a = fecha.getFullYear();
+        const m = String(fecha.getMonth() + 1).padStart(2, '0');
+        const d = String(fecha.getDate()).padStart(2, '0');
+        return `${a}-${m}-${d}`;
+    }
+    
+    return fecha;
 }
 
 function formatearFechaLarga(fecha) {
-    const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    return fecha.toLocaleDateString('es-CL', opciones);
+    // Si es string YYYY-MM-DD, parsear manualmente
+    if (typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+        const [a, m, d] = fecha.split('-').map(Number);
+        const dateObj = new Date(a, m - 1, d);
+        const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        return dateObj.toLocaleDateString('es-CL', opciones);
+    }
+    
+    // Si ya es Date
+    if (fecha instanceof Date) {
+        const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        return fecha.toLocaleDateString('es-CL', opciones);
+    }
+    
+    return String(fecha);
 }
 
 </script>
@@ -3179,11 +3265,39 @@ function ocultarBotonBorrar() {
 
             <p style="text-shadow: #000 1px 1px 3px;"  >Se te redireccionará a <span style="text-shadow: #000 1px 1px 3px;  color: green;">WhatsApp</span></p>
 <b>           
-            <input type="text" type="name" placeholder="Escribe tu Nombre y Apellido" id="nombre" oninput="miFuncion();">
+            <input type="text" type="name" placeholder="Escribe tu Nombre y Apellido" id="nombre">
             <!-- TÉRMINOS Y CONDICIONES - Checkbox -->
-<br><br><div class="terminos-container" style="margin: 15px 0; text-align: left; padding: 12px; background: rgba(20,20,22,0.6); border-radius: 10px; border: 1px solid rgba(228,166,79,0.3);">
+<br><br><script>
+    // Función que se ejecuta al aceptar los términos
+function alAceptarTerminos(checkbox) {
+    if (checkbox.checked) {
+        miFuncion();
+        // ✅ Aquí pones lo que quieras ejecutar
+        console.log("Términos aceptados");
+        
+        // Ejemplo: habilitar botón de reserva
+        document.getElementById("reservar-button").disabled = false;
+        
+        // Ejemplo: mostrar mensaje
+        mostrarToastCliente("✅ Términos aceptados. Puedes continuar con tu reserva.");
+        
+        // Ejemplo: ocultar error
+        document.getElementById("errorTerminos").style.display = "none";
+        
+        // TU CÓDIGO PERSONALIZADO AQUÍ:
+        // ...
+        
+    } else {
+        // Si desmarca el checkbox
+        console.log("Términos rechazados");
+        document.getElementById("reservar-button").disabled = true;
+    }
+}
+</script>
+<!-- Checkbox con función onchange -->
+<div class="terminos-container" style="margin: 15px 0; text-align: left; padding: 12px; background: rgba(20,20,22,0.6); border-radius: 10px; border: 1px solid rgba(228,166,79,0.3);">
     <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #f1f1f1; font-size: 0.95rem; line-height: 1.4;">
-        <input type="checkbox" id="aceptoTerminos" style="margin-top: 3px; width: 18px; height: 18px; accent-color: #e4a64f; cursor: pointer;">
+        <input type="checkbox" id="aceptoTerminos" onchange="alAceptarTerminos(this);" style="margin-top: 3px; width: 18px; height: 18px; accent-color: #e4a64f; cursor: pointer;">
         <span>
             Acepto los 
             <a href="/terminos.html" target="_blank" style="color: #e4a64f; text-decoration: underline; font-weight: 600;">Términos y Condiciones</a>
@@ -3192,8 +3306,10 @@ function ocultarBotonBorrar() {
         </span>
     </label>
     <p id="errorTerminos" style="color: #ff3b3f; font-size: 0.85rem; margin: 8px 0 0 28px; display: none;">⚠️ Debes aceptar los términos para continuar</p>
-</div><br><br>
-            <button id="reservar-button" type="button" onclick="reservarHora()">Reservar</button>
+</div>
+
+<br><br>
+            <button id="reservar-button" type="button" onclick="reservarHora()">Reservar a Whatsapp</button>
         </div>
     </div>
 </form>
@@ -4651,132 +4767,195 @@ setTimeout(() => {
 // REEMPLAZAR la función reservarHora() completa con esta:
 
 async function reservarHora() {
-        // ✅ VALIDACIÓN DE TÉRMINOS
+    // ✅ VALIDACIÓN DE TÉRMINOS
     const checkboxTerminos = document.getElementById("aceptoTerminos");
     const errorTerminos = document.getElementById("errorTerminos");
     
     if (!checkboxTerminos || !checkboxTerminos.checked) {
         if (errorTerminos) errorTerminos.style.display = "block";
         mostrarToastCliente("⚠️ Debes aceptar los términos y condiciones", true);
-        return; // Detener la reserva
+        return;
     }
     
-    // Ocultar error si existe
     if (errorTerminos) errorTerminos.style.display = "none";
-    const fecha = document.getElementById("fecha").value
-    const hora = document.getElementById("hora").value
-    const nombre = document.getElementById("nombre").value.trim()
-    const servicios = document.getElementById("opciones")?.value || ""
-    const total = document.getElementById("eltotal")?.value || ""
+    
+    // 🔴 CRÍTICO: Usar el valor del input directamente, SIN crear objeto Date
+   // 🔴 CRÍTICO: CAPTURAR EL VALOR EXACTO DEL INPUT - ESTE ES EL ÚNICO VALOR VÁLIDO
+const fechaInputElement = document.getElementById("fecha");
+const fechaInputValor = fechaInputElement.value; // "2026-04-16" - ESTE ES EL VALOR CORRECTO
 
-    if (!fecha || !hora || !nombre) {
-        alert("Completa todos los campos: nombre, fecha y hora")
-        return
+// GUARDAR EN VARIABLE GLOBAL PARA USO POSTERIOR
+window.ULTIMA_FECHA_RESERVA = fechaInputValor;
+
+console.log("🔴 FECHA CAPTURADA DEL INPUT:", fechaInputValor); // DEBUG
+
+const hora = document.getElementById("hora").value;
+const nombre = document.getElementById("nombre").value.trim();
+const servicios = document.getElementById("opciones")?.value || "";
+const total = document.getElementById("eltotal")?.value || "";
+
+    if (!fechaInputValor || !hora || !nombre) {
+        alert("Completa todos los campos: nombre, fecha y hora");
+        return;
     }
 
-    const idBloque = `${fecha}-${hora}`
-    const ref = db.ref("reservas")
+    // Validar formato de fecha
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaInputValor)) {
+        alert("Error en formato de fecha. Recarga la página e intenta de nuevo.");
+        return;
+    }
+
+    const idBloque = `${fechaInputValor}-${hora}`;
+    const ref = db.ref("reservas");
 
     ref.once("value", snapshot => {
-        let ocupada = false
+        let ocupada = false;
         snapshot.forEach(child => {
-            const r = child.val()
+            const r = child.val();
             if (`${r.fecha}-${r.hora}` === idBloque) {
-                ocupada = true
+                ocupada = true;
             }
-        })
+        });
 
         if (ocupada) {
-            document.getElementById("modal-ocupado")?.classList.remove("hidden")
+            document.getElementById("modal-ocupado")?.classList.remove("hidden");
         } else {
-            // Crear reserva en Firebase
+            // Crear reserva en Firebase - USAR fechaInputValor DIRECTAMENTE
             const nuevaReserva = {
                 nombre: nombre,
-                fecha: fecha,
+                fecha: fechaInputValor,  // 🔴 SIEMPRE usar el string YYYY-MM-DD
                 hora: hora,
                 servicios: servicios,
                 total: total,
-                timestamp: Date.now()
-            }
+                timestamp: firebase.database.ServerValue.TIMESTAMP  // Usar timestamp del servidor
+            };
 
-            const reservaRef = ref.push(nuevaReserva)
-            const reservaId = reservaRef.key
+            const reservaRef = ref.push(nuevaReserva);
+            const reservaId = reservaRef.key;
 
-            // GUARDAR automáticamente en localStorage para este dispositivo
-            guardarReservaLocal(reservaId, nombre, fecha, hora, servicios, total)
+            // Guardar en localStorage con la fecha correcta
+            guardarReservaLocal(reservaId, nombre, fechaInputValor, hora, servicios, total);
 
             // Mostrar confirmación
-            mostrarConfirmacionReserva(reservaId, fecha, hora, nombre)
+            mostrarConfirmacionReserva(reservaId, fechaInputValor, hora, nombre);
 
             // Notificar al barbero
             if (typeof notificarNuevaReserva === 'function') {
-                notificarNuevaReserva(nuevaReserva)
+                notificarNuevaReserva(nuevaReserva);
             }
 
             // Enviar WhatsApp
-            enviarMensajeWhatsApp()
+            enviarMensajeWhatsApp();
+            setTimeout(() => cargarMisReservasAutomatico(), 800);
         }
-    })
+    });
 }
 // NUEVA FUNCIÓN: Mostrar confirmación bonita
 function mostrarConfirmacionReserva(reservaId, fecha, hora, nombre) {
+    // 🔴 USAR EL VALOR GLOBAL SI EXISTE, SINO EL PARÁMETRO
+    const fechaSegura = window.ULTIMA_FECHA_RESERVA || fecha;
+    
+    console.log("🔴 FECHA EN CONFIRMACIÓN:", fechaSegura); // DEBUG
+    
     // Crear modal de confirmación
-    const modalExistente = document.getElementById('modal-confirmacion-reserva')
-    if (modalExistente) modalExistente.remove()
+    const modalExistente = document.getElementById('modal-confirmacion-reserva');
+    if (modalExistente) modalExistente.remove();
 
-    const modal = document.createElement('div')
-    modal.id = 'modal-confirmacion-reserva'
-    modal.className = 'modal-codigo-reserva'
+    const modal = document.createElement('div');
+    modal.id = 'modal-confirmacion-reserva';
+    modal.className = 'modal-codigo-reserva';
     modal.innerHTML = `
         <div class="contenido-codigo">
             <h3>✅ ¡Reserva Confirmada!</h3>
             <div class="codigo-box">
                 <span class="label">Tu reserva está guardada</span>
                 <div class="info-reserva" style="margin: 15px 0; text-align: center;">
-                    <p><strong>📅 ${formatearFechaLarga(new Date(fecha))}</strong></p>
+                    <p><strong>📅 ${formatearFechaLarga(fechaSegura)}</strong></p>
                     <p><strong>⏰ ${hora}</strong></p>
                     <p style="color: #888; font-size: 0.9rem;">A nombre de: ${nombre}</p>
+                    <p style="color: #33d17a; font-size: 0.8rem; margin-top: 8px;">
+                        Fecha registrada: ${fechaSegura}
+                    </p>
                 </div>
-                <span class="hint">Puedes ver y cancelar tu reserva en "Mis Reservas"</span>
+                <span class="hint">Guarda este código para cancelar tu reserva</span>
             </div>
             <button onclick="cerrarModalConfirmacion(); location.reload()" class="btn-entendido">
                 Entendido
             </button>
         </div>
-    `
-    document.body.appendChild(modal)
+    `;
+    document.body.appendChild(modal);
+    
+    // Limpiar variable global
+    window.ULTIMA_FECHA_RESERVA = null;
 }
+
+
+
+
 function cerrarModalConfirmacion() {
     const modal = document.getElementById('modal-confirmacion-reserva')
     if (modal) modal.remove()
 }
 
-// Helper para formatear fecha
-function formatearFechaLarga(fecha) {
-    const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
-    return fecha.toLocaleDateString('es-CL', opciones)
-}
-// NUEVA FUNCIÓN: Guardar reserva en localStorage automáticamente
 function guardarReservaLocal(reservaId, nombre, fecha, hora, servicios, total) {
-    // Obtener reservas existentes
-    let misReservas = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber') || '[]')
+    // 🔴 PRIORIDAD 1: Usar el valor original del input si está disponible
+    let fechaGuardar = window.ULTIMA_FECHA_RESERVA || fecha;
     
-    // Agregar nueva reserva
-    misReservas.push({
+    // Si aún no hay valor, usar el parámetro pero validar
+    if (!fechaGuardar) {
+        fechaGuardar = fecha;
+    }
+    
+    // 🔴 CRÍTICO: Asegurar que sea string YYYY-MM-DD, nunca un objeto Date
+    if (fechaGuardar instanceof Date) {
+        console.error("❌ ERROR: fechaGuardar es Date, convirtiendo manualmente");
+        const a = fechaGuardar.getFullYear();
+        const m = String(fechaGuardar.getMonth() + 1).padStart(2, '0');
+        const d = String(fechaGuardar.getDate()).padStart(2, '0');
+        fechaGuardar = `${a}-${m}-${d}`;
+    }
+    
+    // Validar formato exacto
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaGuardar)) {
+        console.error("❌ ERROR: Formato de fecha inválido:", fechaGuardar);
+        // Último recurso: intentar corregir
+        if (typeof fechaGuardar === 'string' && fechaGuardar.includes('T')) {
+            // Viene como ISO string, extraer solo la fecha
+            fechaGuardar = fechaGuardar.split('T')[0];
+            console.log("🟡 Corregido de ISO string:", fechaGuardar);
+        } else {
+            alert("Error crítico con la fecha. Recarga la página.");
+            return;
+        }
+    }
+
+    let misReservas = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber') || '[]');
+    
+    // Evitar duplicados
+    misReservas = misReservas.filter(r => r.reservaId !== reservaId);
+    
+    const nuevaReserva = {
         reservaId: reservaId,
         nombre: nombre,
-        fecha: fecha,
+        fecha: fechaGuardar,  // 🔴 SIEMPRE el string YYYY-MM-DD del input
         hora: hora,
         servicios: servicios,
         total: total,
-        timestamp: Date.now()
-    })
+        timestamp: Date.now(),
+        // 🔴 GUARDAR TAMBIÉN EL VALOR ORIGINAL POR SEGURIDAD
+        fechaOriginal: window.ULTIMA_FECHA_RESERVA || fechaGuardar
+    };
     
-    // Guardar
-    localStorage.setItem('mis_reservas_jamesbarber', JSON.stringify(misReservas))
+    misReservas.push(nuevaReserva);
     
-    // Guardar también el nombre del cliente para búsquedas futuras
-    localStorage.setItem('mi_nombre_barberia', nombre)
+    localStorage.setItem('mis_reservas_jamesbarber', JSON.stringify(misReservas));
+    localStorage.setItem('mi_nombre_barberia', nombre);
+    
+    console.log("✅ Reserva guardada:", nuevaReserva); // DEBUG
+    
+    // Limpiar variable global
+    window.ULTIMA_FECHA_RESERVA = null;
 }
 
 // ============================================
