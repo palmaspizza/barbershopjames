@@ -1521,11 +1521,47 @@
         // ACCIONES GLOBALES
         // ============================================
         
-        function eliminarReserva(id) {
-            if (!confirm('¿Eliminar esta reserva?')) return;
-            db.ref(`reservas/${id}`).remove();
+       function eliminarReserva(id) {
+    if (!confirm('¿Eliminar esta reserva?')) return;
+    
+    // Obtener datos de la reserva antes de borrar
+    db.ref(`reservas/${id}`).once('value', snapshot => {
+        const reserva = snapshot.val();
+        
+        db.ref(`reservas/${id}`).remove().then(() => {
             mostrarToast('Reserva eliminada');
-        }
+            
+            // Notificar al servidor ntfy con etiqueta de admin
+            if (reserva) {
+                notificarCancelacionAdmin(reserva);
+            }
+        });
+    });
+}
+
+async function notificarCancelacionAdmin(reserva) {
+    const NTFY_TOPIC = 'james-barber-shop-2026';
+    
+    const mensaje = `❌🔧 CANCELADA POR ADMIN 🔧❌
+❌👤 ${reserva.nombre || 'Sin nombre'}❌
+❌📅 ${reserva.fecha} a las ${reserva.hora}❌
+❌💈 ${reserva.servicios || 'Sin servicio'}❌
+❌💰 ${reserva.total || 'No especificado'}❌`;
+
+    try {
+        await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+            method: 'POST',
+            body: mensaje,
+            headers: {
+                'Title': 'Admin elimino reserva',
+                'Priority': 'default',  // Menos urgente que una cancelación de cliente
+                'Tags': 'scissors,x'
+            }
+        });
+    } catch (error) {
+        console.error('Error ntfy admin:', error);
+    }
+}
         
         function borrarTodasReservas() {
             if (!confirm('⚠️ ¿ESTÁS SEGURO?\n\nEsto eliminará TODAS las reservas permanentemente.')) return;
