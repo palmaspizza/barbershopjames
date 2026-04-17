@@ -1952,9 +1952,6 @@ firebase.auth().onAuthStateChanged((user) => {
         <div class="sin-reservas hidden" id="sinReservas">
             <span class="icono-vacio">🔍</span>
             <p>No encontramos reservas</p>
-            <button onclick="volverABuscar()" class="btn-reintentar">
-                Intentar con otro nombre
-            </button>
         </div>
     </div>
     
@@ -4877,7 +4874,7 @@ function mostrarConfirmacionReserva(reservaId, fecha, hora, nombre) {
                         Fecha registrada: ${fechaSegura}
                     </p>
                 </div>
-                <span class="hint">Guarda este código para cancelar tu reserva</span>
+                <span class="hint">Puedes cancelar tu reserva cuando quieras</span>
             </div>
             <button onclick="cerrarModalConfirmacion(); location.reload()" class="btn-entendido">
                 Entendido
