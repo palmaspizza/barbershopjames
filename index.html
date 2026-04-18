@@ -61,34 +61,15 @@
     box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 18px rgba(255,122,26,0.25);
     position: relative;
   }
-  #logo::after {
-    content: "";
-    position: absolute;
-    inset: -8px;
-    border-radius: 50%;
-    background: conic-gradient(from 0deg, rgba(255,59,63,0.28), rgba(255,255,255,0.14), rgba(32,137,255,0.28), rgba(255,255,255,0.14));
-    animation: ringSpin 12s linear infinite;
-    pointer-events: none;
-  }
-  @keyframes ringSpin {
-    0%   { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
+
 </style><br>
-              <h1 id="tituloMes" style="margin: 0; color: orange !important;"></h1><br>
+       
         <div id="barraMes" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
            <center><!-- ============================================
      GALERÍA DE TRABAJOS - CLIENTES
      ============================================ -->
 
-             <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
-              
-                <button id="mesAnterior" class="botonMes">←Mes anterior</button>
-    
-      
-                <button id="mesSiguiente" class="botonMes">Mes siguiente →</button>
-               
-            </div>
+         
            </center>
         </div>
         <div id="modal-reservas-dia" class="ventana-secreta fantasma">
@@ -374,7 +355,63 @@ async function notificarNuevaReserva(datosReserva) {
 <!-- ============================================
      GALERÍA DE TRABAJOS - CLIENTES
      ============================================ -->
-<div class="galeria-clientes" id="galeria-clientes">
+<!-- BANNER MODO DEMO - Solo visible si no es cliente real -->
+<div id="banner-demo" style=" margin:10px; padding:18px; background:#1a1b1f; border:1.5px solid #e4a64f; border-radius:14px; text-align:center;">
+  <p style="color:#e4a64f; font-size:16px; font-weight:bold; margin-bottom:8px;">¿Eres tester de esta app?</p>
+  <p style="color:#aaa; font-size:13px; margin-bottom:14px;">Activa el Modo Demo para probar sin hacer reservas reales</p>
+  <button onclick="activarModoDemo()" style="background:linear-gradient(135deg,#e4a64f,#ff6f00); color:white; border:none; padding:12px 24px; border-radius:10px; font-size:14px; font-weight:bold; cursor:pointer; width:100%;">
+    Activar Modo Demo
+  </button>
+  <button onclick="document.getElementById('banner-demo').style.display='none'" style="background:transparent; color:#666; border:none; padding:10px; font-size:13px; cursor:pointer; margin-top:6px; width:100%;">
+    Soy cliente real, cerrar
+  </button>
+</div><script>// ============================================
+// MODO DEMO PARA TESTERS
+// ============================================
+
+const ES_MODO_DEMO = () => localStorage.getItem('modo_demo_activo') === 'true';
+
+function activarModoDemo() {
+    localStorage.setItem('modo_demo_activo', 'true');
+
+    // Ocultar banner
+    const banner = document.getElementById('banner-demo');
+    if(banner) banner.style.display = 'none';
+
+    // 🔴 Una sola llamada que maneja todo: mostrar + scroll + iniciar
+    if(typeof arrancarContadorDemo === 'function') {
+        arrancarContadorDemo();
+    }
+
+    mostrarToastCliente('✅ Modo Demo activado. Espera 15 segundos.');
+}
+// Mostrar banner solo si el usuario nunca eligió
+window.addEventListener('DOMContentLoaded', () => {
+    // 🔴 NUEVO: Verificar si ya interactuó hoy
+    const hoy = new Date().toDateString();
+    const ultimaInteraccion = localStorage.getItem('ultima_interaccion_demo');
+    const yaEligio = localStorage.getItem('modo_demo_activo') !== null || 
+                     localStorage.getItem('mi_nombre_barberia') !== null;
+    
+    // Si ya interactuó hoy, mostrar solo el banner (no el contador)
+    if (ultimaInteraccion === hoy) {
+        const banner = document.getElementById('banner-demo');
+        const contador = document.getElementById('contador-tester');
+        
+        if (banner) banner.style.display = 'block';
+        if (contador) contador.style.display = 'none';
+        
+        // Limpiar modo demo para permitir nueva interacción
+        localStorage.removeItem('modo_demo_activo');
+    } 
+    // Si nunca ha elegido, mostrar banner normal
+    else if (!yaEligio) {
+        document.getElementById('banner-demo').style.display = 'block';
+    }
+});
+
+
+</script><div class="galeria-clientes" id="galeria-clientes">
     <h3 class="titulo-galeria"> Nuestras promos</h3>
     <div class="galeria-grid-clientes" id="galeria-grid-clientes">
         <!-- Se carga dinámicamente -->
@@ -535,7 +572,252 @@ async function notificarNuevaReserva(datosReserva) {
         grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     }
 }
+
 </style>
+
+<script>
+
+</script><!-- CONTADOR TESTER - pegar debajo del logo -->
+<!-- CONTADOR TESTER - pegar debajo del logo -->
+<div id="contador-tester" style="display:none; background:#111317; border-radius:18px; padding:32px 20px; text-align:center; max-width:360px; margin:20px auto; border:1.5px solid #e4a64f;">
+
+  <div style="font-size:13px; color:#888; font-family:'Poppins',sans-serif; letter-spacing:1px; text-transform:uppercase; margin-bottom:18px;">
+    Interacción diaria
+  </div>
+
+  <div style="position:relative; width:180px; height:180px; margin:0 auto 24px;">
+    <svg viewBox="0 0 180 180" width="180" height="180" style="position:absolute; top:0; left:0; transform:rotate(-90deg);">
+      <circle fill="none" stroke="#222" stroke-width="10" cx="90" cy="90" r="80"/>
+      <circle id="ct-ring" fill="none" stroke="#e4a64f" stroke-width="10" stroke-linecap="round"
+        cx="90" cy="90" r="80"
+        stroke-dasharray="502.65"
+        stroke-dashoffset="0"
+        style="transition: stroke-dashoffset 1s linear, stroke .4s;"/>
+    </svg>
+    <div id="ct-num" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:72px; font-weight:700; color:#f1f1f1; font-family:'Poppins',sans-serif;">15</div>
+  </div>
+
+  <div id="ct-msg" style="font-size:15px; color:#aaa; font-family:'Poppins',sans-serif; min-height:48px; line-height:1.5; margin-bottom:20px;">
+    Mantén la app abierta un momento...
+  </div>
+  
+  <!-- Botón OK - inicialmente oculto, se mostrará cuando el contador termine -->
+  <button id="ct-btn" onclick="finalizarYResetear()" style="display:none; width:100%; padding:14px; background:#33d17a; color:#111; border:none; border-radius:12px; font-size:26px; font-weight:700; font-family:'Poppins',sans-serif; cursor:pointer; margin-bottom:10px;">
+    ✅ OK, puedo cerrar la app
+  </button>
+
+</div>
+
+<script>
+// ============================================
+// CONTADOR TESTER - VERSIÓN CORREGIDA
+// ============================================
+
+(function(){
+  const TOTAL = 15;
+  const circ = 2 * Math.PI * 80;
+  let seg = TOTAL;
+  let tmr = null;
+  let estaActivo = false;
+  let scrollRealizado = false;
+
+  const box = document.getElementById('contador-tester');
+  const ring = document.getElementById('ct-ring');
+  const num = document.getElementById('ct-num');
+  const msg = document.getElementById('ct-msg');
+  const btn = document.getElementById('ct-btn');
+
+  function setOffset(s){
+    if (ring) ring.style.strokeDashoffset = circ - (circ * s / TOTAL);
+  }
+
+  function resetVisual(){
+    clearInterval(tmr);
+    tmr = null;
+    estaActivo = false;
+    scrollRealizado = false;
+    seg = TOTAL;
+    if (ring) {
+      ring.style.stroke = '#e4a64f';
+      ring.style.strokeDashoffset = '0';
+    }
+    if (num) {
+      num.style.color = '#f1f1f1';
+      num.textContent = TOTAL;
+    }
+    if (msg) {
+      msg.style.color = '#aaa';
+      msg.style.fontSize = '15px';
+      msg.textContent = 'Mantén la app abierta un momento...';
+    }
+    // 🔴 CRÍTICO: Ocultar el botón OK al resetear
+    if (btn) btn.style.display = 'none';
+    setOffset(TOTAL);
+  }
+
+  // 🔴 FUNCIÓN EXTERNA: Se ejecuta cuando el usuario presiona "OK"
+  window.finalizarYResetear = function() {
+    // 1. Ocultar el contador inmediatamente
+    if (box) box.style.display = 'none';
+    
+    // 2. Detener el intervalo (por si acaso)
+    clearInterval(tmr);
+    tmr = null;
+    estaActivo = false;
+    scrollRealizado = false;
+    
+    // 3. Resetear visualmente a 15 (congelado) para la próxima vez
+    seg = TOTAL;
+    if (num) {
+        num.textContent = '15';
+        num.style.color = '#f1f1f1';
+    }
+    if (ring) {
+        ring.style.stroke = '#e4a64f';
+        ring.style.strokeDashoffset = '0';
+    }
+    if (msg) {
+        msg.style.color = '#aaa';
+        msg.textContent = 'Mantén la app abierta un momento...';
+    }
+    // 🔴 CRÍTICO: Ocultar el botón OK
+    if (btn) btn.style.display = 'none';
+    
+    // 4. Mostrar el banner de demo nuevamente
+    const banner = document.getElementById('banner-demo');
+    if (banner) {
+        banner.style.display = 'block';
+        // Scroll suave al banner
+        banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    // 5. Limpiar modo demo para permitir nueva activación
+    localStorage.removeItem('modo_demo_activo');
+    
+    // 6. Guardar que ya interactuó hoy
+    const hoy = new Date().toDateString();
+    localStorage.setItem('ultima_interaccion_demo', hoy);
+    
+    console.log('Contador finalizado manualmente, todo reseteado, banner visible');
+  };
+
+  // 🔴 FUNCIÓN INTERNA: Se ejecuta automáticamente cuando el contador llega a 0
+  function finalizarContador(){
+    clearInterval(tmr);
+    tmr = null;
+    estaActivo = false;
+    
+    // 🔴 CRÍTICO: NO ocultar el contenedor todavía
+    // En su lugar, mostrar el botón OK y congelar en 15
+    
+    // Congelar visualmente en 15
+    if (num) {
+        num.textContent = '15';
+        num.style.color = '#33d17a'; // Verde para indicar éxito
+    }
+    if (ring) {
+        ring.style.stroke = '#33d17a'; // Verde
+        ring.style.strokeDashoffset = '0'; // Círculo completo
+    }
+    
+    // Cambiar mensaje
+    if (msg) {
+        msg.style.color = '#33d17a';
+        msg.style.fontWeight = '600';
+        msg.textContent = '¡Listo! Presiona el botón para continuar';
+    }
+    
+    // 🔴 CRÍTICO: MOSTRAR el botón OK (esto es lo que faltaba)
+    if (btn) btn.style.display = 'block';
+    
+    // Hacer scroll al botón para asegurar que sea visible
+    setTimeout(() => {
+        if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    
+    console.log('Contador terminado, esperando que usuario presione OK');
+  }
+
+  function tick(){
+    seg--;
+    if (num) num.textContent = seg;
+    setOffset(seg);
+
+    if (seg <= 5 && seg > 0){
+      if (ring) ring.style.stroke = '#ff4d4d';
+      if (num) num.style.color = '#ff4d4d';
+      if (msg) msg.textContent = '¡Casi listo!';
+    }
+
+    if (seg <= 0){
+      finalizarContador(); // Llamar a la nueva versión que muestra el botón
+    }
+  }
+
+  // 🔴 FUNCIÓN CON SCROLL INTEGRADO Y SEGURO
+  window.arrancarContadorDemo = function(){
+    if (estaActivo) {
+        console.log('Contador ya está activo');
+        return;
+    }
+    
+    if (!box) return;
+    
+    // Asegurar que el contador esté visible
+    box.style.display = 'block';
+    
+    // Ocultar banner
+    const banner = document.getElementById('banner-demo');
+    if (banner) banner.style.display = 'none';
+    
+    // SCROLL SUAVE SIN AFECTAR EL TIMER
+    if (!scrollRealizado) {
+        scrollRealizado = true;
+        requestAnimationFrame(() => {
+            box.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center',
+                inline: 'nearest'
+            });
+        });
+    }
+    
+    // Iniciar timer DESPUÉS del scroll, con delay seguro
+    setTimeout(() => {
+        if (!estaActivo) {
+            resetVisual();
+            estaActivo = true;
+            tmr = setInterval(tick, 1000);
+        }
+    }, 400);
+  };
+
+  window.reiniciarContador = function(){
+    scrollRealizado = false;
+    resetVisual();
+    estaActivo = true;
+    
+    // Asegurar que el contador sea visible al reiniciar
+    if (box) box.style.display = 'block';
+    
+    tmr = setInterval(tick, 1000);
+  };
+
+  // FUNCIÓN EXTERNA PARA SCROLL MANUAL (opcional)
+  window.scrollAlContador = function(){
+    if (box) {
+      box.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+    }
+  };
+
+  resetVisual();
+
+})();
+</script>
+</script>
 
 <script>
 
@@ -553,7 +835,14 @@ async function notificarNuevaReserva(datosReserva) {
     <div class="indicador cerrado"></div>
     <span class="leyenda-texto">Día no disponible</span>
   </div>
-  
+      <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
+              
+                <button id="mesAnterior" class="botonMes">←Mes anterior</button>
+    
+      
+                <button id="mesSiguiente" class="botonMes">Mes siguiente →</button>
+               
+            </div>       <h1 id="tituloMes" style="margin: 0; color: orange !important;"></h1><br>
 </div>   <div class="dias-semana"></div>
 <div id="cuadroCalendario"></div>
     <script>
@@ -1033,7 +1322,7 @@ function limpiarReservasMayoresAUnaño() {
 document.addEventListener('DOMContentLoaded', function() {
     // Llama a la función de limpieza de reservas al cargar la página
     limpiarReservasMayoresAUnaño();
-
+ocultarContadorTemporal();
     // Aquí iría el resto de tu código que se ejecuta al cargar la página,
     // como la generación del calendario, etc.
     generarCuadroCalendario();
@@ -1206,17 +1495,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     return null;
   }
-  function startPress(e){
-    const t = e.touches && e.touches[0] ? e.touches[0] : e;
-    cell = closestCell(e.target);
-    if (!cell) return;
-    startX = t.clientX; startY = t.clientY;
-    clearTimeout(timer);
-    timer = setTimeout(()=>{
-      const fecha = cell.dataset.fecha;
-      if (fecha) abrirModalReservasDia(fecha);
-    }, 1000);
-  }
+
   function movePress(e){
     if (!timer) return;
     const t = e.touches && e.touches[0] ? e.touches[0] : e;
@@ -3063,6 +3342,7 @@ function formatearFechaLarga(fecha) {
         <input style="border: 1px solid red;" type="text" id="buscadorGlobal" placeholder="Buscar... por Año, Mes o Día" />
         <button id="boton-listo-borrar" onclick="miFuncionBorrar();ocultarBotonBorrar()">
  Listo
+
 </button><style>/* ============================================
    MODAL CÓDIGO DE SEGURIDAD
    ============================================ */
@@ -5282,47 +5562,7 @@ const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fecha);
             ventanaHorarios.style.display = "block";
             setTimeout(smoothScrollToServicios, 80);
         }
-        function abrirModalReservasDia(fecha) {
-            const modal = document.getElementById("modal-reservas-dia");
-            const titulo = document.getElementById("titulo-reservas-dia");
-            const cont = document.getElementById("lista-reservas-dia");
-            if (!modal || !titulo || !cont) return;
-            titulo.textContent = `Reservas de ${fecha}`;
-            cont.innerHTML = "";
-            reservasRef.orderByChild("fecha").equalTo(fecha).once("value", snapshot => {
-                const arr = [];
-                snapshot.forEach(child => {
-                    const r = child.val();
-                    arr.push({ hora: r.hora, nombre: r.nombre || "", key: child.key });
-                });
-                arr.sort((a,b) => a.hora < b.hora ? 1 : (a.hora > b.hora ? -1 : 0));
-                arr.forEach(r => {
-                    const d = document.createElement("div");
-                    d.className = "reserva-item";
-                    d.textContent = `⏰ ${r.hora} · ${r.nombre}`;
-                    const botonX = document.createElement("span");
-                    botonX.textContent = " | ❌";
-                    botonX.className = "boton-x";
-                    botonX.title = "Eliminar esta hora";
-                    botonX.style.display = "none";
-                    botonX.onclick = () => {
-                        const reservaRef = reservasRef.child(r.key);
-                        reservaRef.remove().then(() => {
-                            d.remove();
-                        }).catch((error) => {
-                            console.error("Error al eliminar la reserva:", error);
-                        });
-                    };
-                    d.appendChild(botonX);
-                    cont.appendChild(d);
-                });
-                modal.classList.remove("fantasma");
-                if (modoEliminarReservas) mostrarBotonesX();
-            });
-            window.onclick = (e) => {
-                if (e.target === modal) modal.classList.add("fantasma");
-            };
-        }
+        
 
         cerrarVentana.onclick = () => {
             ventanaHorarios.style.display = "none";
