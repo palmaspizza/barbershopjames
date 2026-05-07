@@ -527,7 +527,72 @@
   </div>
 
 </div>
+<!--
+  ══════════════════════════════════════════════════════════════
+  PEGAR ESTO en privacidad.html
+  DÓNDE: justo antes del bloque <a href="/" class="volver">
+  ══════════════════════════════════════════════════════════════
+-->
 
+<!-- SECCIÓN: Recordatorios del período de prueba -->
+<div class="section">
+    <h2><span class="num">12</span> Recordatorios del período de prueba (app Android)</h2>
+    <p>
+        La aplicación móvil de James Barbershop se encuentra actualmente en fase de evaluación
+        en Google Play Store. Durante este período, la app solicita los siguientes permisos
+        adicionales al usuario:
+    </p>
+
+    <p><strong>Permiso de notificaciones (<code>POST_NOTIFICATIONS</code>)</strong></p>
+    <p>
+        Con este permiso, la app envía un recordatorio diario al usuario durante un máximo de
+        15 días consecutivos, con el fin de mantener su participación activa durante el período
+        de evaluación. Estas notificaciones:
+    </p>
+    <ul>
+        <li>Son un máximo de 15 en total, una por día.</li>
+        <li>Se detienen automáticamente al completarse los 15 días.</li>
+        <li>No contienen publicidad ni información de terceros.</li>
+        <li>Pueden desactivarse en cualquier momento desde:
+            Ajustes → Apps → Reservas James Barbershop → Notificaciones.</li>
+    </ul>
+
+    <p style="margin-top:14px;"><strong>Permiso de optimización de batería
+        (<code>REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</code>)</strong></p>
+    <p>
+        Para garantizar que los recordatorios lleguen correctamente aunque el dispositivo
+        esté inactivo, la app solicita ser excluida de la optimización de batería de Android.
+        Este permiso permite que el sistema operativo despierte la aplicación brevemente
+        (1–2 segundos por día) para enviar el aviso diario. El impacto en la batería es
+        inferior al 0,1% del consumo diario. Este permiso puede revocarse en cualquier momento
+        desde: Ajustes → Apps → Reservas James Barbershop → Batería.
+    </p>
+
+    <p style="margin-top:14px;"><strong>Datos guardados localmente en el dispositivo (SharedPreferences)</strong></p>
+    <p>
+        Además del <code>localStorage</code> del navegador, la app Android guarda en
+        almacenamiento nativo (<code>SharedPreferences</code>) los siguientes datos:
+    </p>
+    <ul>
+        <li>Número de días interactuados durante el período de prueba.</li>
+        <li>Fecha de la última interacción registrada.</li>
+        <li>Nombre de usuario ingresado en la app.</li>
+        <li>Código único de reserva generado para el dispositivo.</li>
+    </ul>
+    <p>
+        Estos datos permanecen únicamente en el dispositivo del usuario y pueden eliminarse
+        desinstalando la aplicación o borrando sus datos desde los ajustes del sistema.
+    </p>
+
+    <p style="margin-top:14px;"><strong>Alarmas programadas (<code>AlarmManager</code>)</strong></p>
+    <p>
+        La app utiliza el servicio <code>AlarmManager</code> de Android para programar
+        los recordatorios diarios. Esto significa que la alarma queda registrada en el sistema
+        operativo y puede ejecutarse aunque la aplicación esté completamente cerrada.
+        Esta funcionalidad se limita exclusivamente al envío del recordatorio diario y
+        se cancela automáticamente al finalizar los 15 días de prueba o al desinstalar la app.
+    </p>
+</div>
 <footer>
   <p>© 2025 James Barbershop · Todos los derechos reservados</p>
   <p style="margin-top:6px;">Esta política de privacidad fue redactada para cumplir con la <strong>Ley N° 19.628 de Chile</strong> y los estándares de <strong>Google Play Store</strong>.</p>
