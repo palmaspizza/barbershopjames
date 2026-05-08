@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BARBERSHOP JAMES</title>
+  <meta name="description" content="APLICACION PLAYSTORE"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #e4a64f;
+      --gold2: #f5c97a;
+      --dark: #090909;
+      --card: #141416;
+      --border: rgba(228,166,79,.2);
+      --text: #f0ede8;
+      --muted: #7a7570;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(ellipse, rgba(228,166,79,.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .g-bar {
+      position: fixed; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg,
+        #4285f4 0%, #4285f4 25%,
+        #ea4335 25%, #ea4335 50%,
+        #fbbc05 50%, #fbbc05 75%,
+        #34a853 75%);
+      z-index: 10;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 52px 44px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      animation: rise .7s cubic-bezier(.22,1,.36,1) both;
+      box-shadow: 0 40px 80px rgba(0,0,0,.5);
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      width: 88px; height: 88px;
+      border-radius: 22px;
+      object-fit: cover;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(228,166,79,.25);
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem;
+      letter-spacing: .08em;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+
+    .sub {
+      font-size: .82rem;
+      color: var(--muted);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 32px;
+    }
+
+    .explain {
+      background: rgba(228,166,79,.07);
+      border: 1px solid rgba(228,166,79,.18);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 28px;
+      text-align: left;
+    }
+    .explain p {
+      font-size: .84rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .explain p strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 18px 24px;
+      background: #fff;
+      border-radius: 16px;
+      text-decoration: none;
+      color: #111;
+      font-weight: 600;
+      font-size: .95rem;
+      transition: transform .18s, box-shadow .18s;
+      box-shadow: 0 6px 24px rgba(0,0,0,.35);
+      margin-bottom: 14px;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,0,0,.5); }
+    .btn:active { transform: translateY(0); }
+    .btn img { width: 26px; height: 26px; object-fit: contain; }
+    .btn-text { text-align: left; }
+    .btn-text small { display: block; font-size: .65rem; font-weight: 400; color: #666; }
+
+    .tags {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+    .tag {
+      font-size: .73rem;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+    }
+    .tag span { color: #34a853; }
+  </style>
+</head>
+<body>
+
+  <div class="g-bar"></div>
+
+  <div class="card">
+    <img class="logo"
+      src="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg"
+      alt="James Barbershop"/>
+
+    <h1>Barbershop James</h1>
+    <div class="sub">Aplicación en Google Play Store</div>
+
+    <div class="divider"></div>
+
+    <div class="explain">
+      <p>
+        Estamos lanzando nuestra app de reservas y necesitamos personas que
+        la <strong>prueben gratis</strong> antes del lanzamiento oficial.<br/><br/>
+        Si te unes, solo tienes que <strong>usarla durante 15 días</strong>
+        — sin costo, sin tarjeta, sin complicaciones.
+        Tu ayuda hace que la app llegue a más personas. 🙌
+      </p>
+    </div>
+
+    <a class="btn"
+      href="https://play.google.com/apps/testing/jamesbarber.app.reservas?hl=es"
+      target="_blank">
+      <img src="https://www.freepnglogos.com/uploads/play-store-logo-png/google-play-store-logo-png-transparent-png-logos-10.png" alt="Play Store"/>
+      <div class="btn-text">
+        <small>Descargar gratis en</small>
+        <span>Google Play — Unirme a la prueba</span>
+      </div>
+    </a>
+
+    <div class="tags">
+      <div class="tag"><span>✓</span> Gratis</div>
+      <div class="tag"><span>✓</span> Sin tarjeta</div>
+      <div class="tag"><span>✓</span> 15 días</div>
+      <div class="tag"><span>✓</span> Sin compromiso</div>
+    </div>
+  </div>
+
+</body>
+</html>
