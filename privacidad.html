@@ -29,10 +29,7 @@
       letter-spacing: 1px;
     }
 
-    header p {
-      color: #888;
-      font-size: 0.9rem;
-    }
+    header p { color: #888; font-size: 0.9rem; }
 
     .container {
       max-width: 860px;
@@ -76,13 +73,8 @@
 
     p { margin-bottom: 12px; color: #ccc; }
 
-    ul, ol {
-      margin: 10px 0 14px 20px;
-      color: #ccc;
-    }
-
+    ul, ol { margin: 10px 0 14px 20px; color: #ccc; }
     li { margin-bottom: 7px; }
-
     strong { color: #f1f1f1; }
 
     .highlight {
@@ -142,7 +134,6 @@
     }
 
     tr:last-child td { border-bottom: none; }
-
     tr:hover td { background: rgba(255,255,255,0.02); }
 
     a { color: #e4a64f; text-decoration: none; }
@@ -169,34 +160,31 @@
 <header>
   <h1>💈 Política de Privacidad</h1>
   <p>James Barbershop · Aplicación móvil y sitio web</p>
-  <p style="margin-top:6px;">Última actualización: <strong style="color:#e4a64f;">Abril 2025</strong></p>
+  <p style="margin-top:6px;">Última actualización: <strong style="color:#e4a64f;">Mayo 2026</strong></p>
 </header>
 
 <div class="container">
 
-  <!-- 1. INTRODUCCIÓN -->
   <div class="card">
     <h2><span class="num">1</span> Introducción y responsable del tratamiento</h2>
     <p>
-      La presente Política de Privacidad describe cómo <strong>James Barbershop</strong> ("nosotros", "nuestro" o "el negocio")
-      recopila, utiliza, almacena y protege la información personal de los usuarios que acceden a nuestra
-      <strong>aplicación móvil</strong> y/o <strong>sitio web</strong> (en adelante, "el Servicio") para realizar reservas de
-      servicios de barbería.
+      La presente Política de Privacidad describe cómo <strong>James Barbershop</strong>
+      recopila, utiliza, almacena y protege la información personal de los usuarios que
+      acceden a nuestra <strong>aplicación móvil</strong> y/o <strong>sitio web</strong>
+      para realizar reservas de servicios de barbería.
     </p>
     <div class="highlight">
-      Al utilizar nuestro Servicio, usted acepta los términos descritos en esta política. Si no está de acuerdo,
-      le pedimos que no utilice la aplicación ni el sitio web.
+      Al utilizar nuestro Servicio, usted acepta los términos descritos en esta política.
+      Si no está de acuerdo, le pedimos que no utilice la aplicación ni el sitio web.
     </div>
     <p><strong>Responsable:</strong> James Barbershop</p>
     <p><strong>País de operación:</strong> Chile</p>
-    <p><strong>Contacto:</strong> A través del número de WhatsApp disponible en la aplicación (+56 9 5452 7837)</p>
+    <p><strong>Contacto:</strong> +56 9 5452 7837 (WhatsApp)</p>
   </div>
 
-  <!-- 2. DATOS QUE RECOPILAMOS -->
   <div class="card">
     <h2><span class="num">2</span> Datos personales que recopilamos</h2>
     <p>Al realizar una reserva a través de nuestra aplicación, recopilamos los siguientes datos:</p>
-
     <table>
       <thead>
         <tr>
@@ -228,7 +216,7 @@
         <tr>
           <td><strong>Servicios seleccionados</strong></td>
           <td>Preferencias del servicio</td>
-          <td>Conocer qué servicios necesita el cliente (corte, barba, color, etc.)</td>
+          <td>Conocer qué servicios necesita el cliente</td>
           <td><span class="tag">Opcional</span></td>
         </tr>
         <tr>
@@ -240,76 +228,77 @@
         <tr>
           <td><strong>Timestamp de creación</strong></td>
           <td>Metadato técnico</td>
-          <td>Registro de la fecha y hora exacta en que se realizó la reserva</td>
+          <td>Fecha y hora exacta en que se realizó la reserva</td>
           <td><span class="tag green">Automático</span></td>
         </tr>
         <tr>
-          <td><strong>Identificador de reserva (ID)</strong></td>
+          <td><strong>Identificador único de reserva (ID)</strong></td>
           <td>Metadato técnico</td>
-          <td>Clave única generada por Firebase para identificar cada reserva</td>
+          <td>Clave única para identificar cada reserva</td>
           <td><span class="tag green">Automático</span></td>
         </tr>
       </tbody>
     </table>
-
-    <p style="margin-top:10px;"><strong>Datos almacenados localmente en el dispositivo (localStorage):</strong></p>
-    <ul>
-      <li>Lista de reservas realizadas desde ese dispositivo (IDs y datos de la reserva)</li>
-      <li>Nombre del cliente guardado para facilitar búsquedas futuras</li>
-    </ul>
-
     <div class="highlight">
-      <strong>No recopilamos:</strong> correo electrónico, contraseñas, número de teléfono del cliente,
-      ubicación geográfica, datos bancarios ni información de tarjetas de crédito.
+      <strong>No recopilamos:</strong> correo electrónico, contraseñas, número de teléfono
+      del cliente, ubicación geográfica, datos bancarios ni información de tarjetas de crédito.
     </div>
   </div>
 
-  <!-- 3. CÓMO USAMOS LOS DATOS -->
   <div class="card">
     <h2><span class="num">3</span> Finalidad y uso de los datos</h2>
     <p>Los datos recopilados se utilizan exclusivamente para:</p>
     <ul>
       <li><strong>Gestión de reservas:</strong> Crear, visualizar, modificar y cancelar citas en el calendario de la barbería.</li>
-      <li><strong>Comunicación interna:</strong> Notificar al barbero mediante el servicio <strong>ntfy.sh</strong> cuando se realiza o cancela una reserva.</li>
+      <li><strong>Comunicación interna:</strong> Notificar al barbero mediante <strong>ntfy.sh</strong> cuando se realiza o cancela una reserva.</li>
       <li><strong>Confirmación por WhatsApp:</strong> Redirigir al cliente a WhatsApp para confirmar su cita con el número +56 9 5452 7837.</li>
-      <li><strong>Historial de reservas:</strong> Mostrar al propio cliente sus reservas activas o pasadas en la sección "Mis Reservas" de la aplicación.</li>
-      <li><strong>Administración del negocio:</strong> Permitir al barbero consultar reservas del día, ingresos estimados y gestionar el calendario desde el panel de administración.</li>
-      <li><strong>Limpieza automática de datos:</strong> Las reservas con más de un año de antigüedad se eliminan automáticamente de la base de datos.</li>
+      <li><strong>Historial de reservas:</strong> Mostrar al propio cliente sus reservas activas en "Mis Reservas".</li>
+      <li><strong>Administración del negocio:</strong> Permitir al barbero consultar reservas del día y gestionar el calendario.</li>
+      <li><strong>Limpieza automática:</strong> Las reservas con más de un año de antigüedad se eliminan automáticamente.</li>
     </ul>
   </div>
 
-  <!-- 4. BASE DE DATOS Y ALMACENAMIENTO -->
   <div class="card">
-    <h2><span class="num">4</span> Almacenamiento y base de datos</h2>
+    <h2><span class="num">4</span> Almacenamiento local en el dispositivo (app Android)</h2>
     <p>
-      Los datos de las reservas se almacenan en <strong>Firebase Realtime Database</strong>, un servicio de base de
-      datos en la nube proporcionado por <strong>Google LLC</strong> (Google Firebase).
+      La aplicación Android guarda en el dispositivo del usuario, de forma
+      local y privada, los siguientes datos mediante <strong>SharedPreferences</strong>:
     </p>
     <ul>
-      <li><strong>Proveedor:</strong> Google Firebase (Firebase Realtime Database)</li>
-      <li><strong>Proyecto:</strong> jeisonstyle-1530f.firebaseio.com</li>
-      <li><strong>Ubicación de servidores:</strong> Servidores de Google (principalmente EE.UU. y/o regiones de Google Cloud)</li>
-      <li><strong>Cifrado:</strong> Los datos se transmiten mediante HTTPS (cifrado SSL/TLS)</li>
+      <li>Lista de reservas realizadas desde ese dispositivo (ID, nombre, fecha, hora, servicios).</li>
+      <li>Nombre del usuario para facilitar búsquedas futuras.</li>
+      <li>Código único de reserva generado localmente.</li>
     </ul>
     <div class="highlight">
-      Google Firebase tiene sus propias políticas de privacidad y seguridad. Puede consultarlas en:
+      Estos datos permanecen únicamente en el dispositivo del usuario. Pueden eliminarse
+      desinstalando la aplicación o borrando sus datos desde Ajustes → Apps.
+      <strong>No se sincronizan con ningún servidor externo.</strong>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">5</span> Almacenamiento en la nube</h2>
+    <p>
+      Los datos de reservas se almacenan en <strong>Firebase Realtime Database</strong>,
+      un servicio proporcionado por <strong>Google LLC</strong>.
+    </p>
+    <ul>
+      <li><strong>Proveedor:</strong> Google Firebase</li>
+      <li><strong>Cifrado:</strong> Toda comunicación se realiza mediante HTTPS (TLS)</li>
+      <li><strong>Servidores:</strong> Google Cloud (principalmente EE. UU.)</li>
+    </ul>
+    <div class="highlight">
+      Puede consultar la política de privacidad de Firebase en:
       <a href="https://firebase.google.com/support/privacy" target="_blank">firebase.google.com/support/privacy</a>
     </div>
-
-    <p style="margin-top:14px;"><strong>Almacenamiento local en el dispositivo:</strong></p>
-    <p>
-      La aplicación utiliza <strong>localStorage</strong> del navegador para guardar temporalmente en su
-      propio dispositivo los datos de sus reservas, de modo que pueda consultarlas sin necesidad de
-      volver a buscarlas. Este almacenamiento local es controlado por usted y puede eliminarse
-      borrando los datos del navegador o la aplicación.
+    <p style="margin-top:14px;">
+      La aplicación también usa <strong>localStorage</strong> del navegador para guardar reservas
+      de forma temporal en el dispositivo, permitiéndole consultarlas sin conexión.
     </p>
   </div>
 
-  <!-- 5. SERVICIOS TERCEROS -->
   <div class="card">
-    <h2><span class="num">5</span> Servicios de terceros utilizados</h2>
-    <p>La aplicación se integra con los siguientes servicios externos:</p>
-
+    <h2><span class="num">6</span> Servicios de terceros utilizados</h2>
     <table>
       <thead>
         <tr>
@@ -328,189 +317,119 @@
         </tr>
         <tr>
           <td><strong>ntfy.sh</strong></td>
-          <td>Binwiederhier (servicio open source)</td>
-          <td>Notificaciones push al barbero</td>
+          <td>Binwiederhier</td>
+          <td>Notificaciones push al barbero (solo administrador)</td>
           <td>Nombre, fecha, hora, servicios, total</td>
         </tr>
         <tr>
           <td><strong>WhatsApp</strong></td>
           <td>Meta Platforms Inc.</td>
           <td>Confirmación de reserva y cancelaciones</td>
-          <td>Nombre, fecha, hora, servicios, total (en el texto del mensaje)</td>
+          <td>Nombre, fecha, hora, servicios (en el mensaje)</td>
         </tr>
         <tr>
           <td><strong>Google Fonts</strong></td>
           <td>Google LLC</td>
-          <td>Fuentes tipográficas (Poppins, Playfair Display)</td>
-          <td>Dirección IP del usuario (propia de Google Fonts)</td>
-        </tr>
-        <tr>
-          <td><strong>ImgBB (ibb.co)</strong></td>
-          <td>ImgBB</td>
-          <td>Almacenamiento del logotipo e imágenes de la galería de promociones</td>
-          <td>No se comparten datos personales de usuarios</td>
+          <td>Fuentes tipográficas</td>
+          <td>Dirección IP del usuario (gestionado por Google)</td>
         </tr>
       </tbody>
     </table>
-
     <div class="highlight">
-      Cuando usted confirma una reserva, es redirigido a WhatsApp. El contenido del mensaje incluye
-      su nombre, fecha, hora y servicios seleccionados. Este proceso ocurre en la aplicación de
-      WhatsApp, sujeta a las políticas de Meta Platforms Inc.
+      Las notificaciones vía ntfy.sh son <strong>exclusivas para el administrador del negocio</strong>.
+      La app <strong>no envía notificaciones push a los clientes</strong>.
     </div>
   </div>
 
-  <!-- 6. CANCELACIONES -->
   <div class="card">
-    <h2><span class="num">6</span> Cancelación de reservas y eliminación de datos</h2>
-    <p>
-      El cliente puede <strong>cancelar su propia reserva</strong> directamente desde la sección
-      "Mis Reservas" de la aplicación. Al cancelar una reserva:
-    </p>
+    <h2><span class="num">7</span> Cancelación de reservas y eliminación de datos</h2>
+    <p>El cliente puede cancelar su reserva directamente desde "Mis Reservas". Al cancelar:</p>
     <ul>
-      <li>La reserva se elimina permanentemente de Firebase Realtime Database.</li>
-      <li>Se elimina del localStorage de su dispositivo.</li>
-      <li>Se envía una notificación automática al barbero mediante ntfy.sh y WhatsApp informando la cancelación.</li>
+      <li>La reserva se elimina permanentemente de Firebase.</li>
+      <li>Se elimina del almacenamiento local del dispositivo.</li>
+      <li>Se notifica automáticamente al barbero vía ntfy.sh y WhatsApp.</li>
     </ul>
-    <p>
-      Adicionalmente, el sistema realiza una <strong>limpieza automática</strong> de reservas:
-    </p>
-    <ul>
-      <li>Las reservas con más de <strong>1 año de antigüedad</strong> se eliminan automáticamente de la base de datos al cargar la aplicación.</li>
-      <li>El administrador puede eliminar reservas manualmente desde el panel de control.</li>
-    </ul>
+    <p>Adicionalmente, el sistema realiza limpieza automática de reservas con más de <strong>1 año de antigüedad</strong>.</p>
     <div class="highlight">
-      Si desea solicitar la eliminación de todos sus datos personales de nuestra base de datos,
-      puede contactarnos directamente por WhatsApp al +56 9 5452 7837 indicando su nombre
-      y fecha de reserva.
+      Para solicitar la eliminación de todos sus datos, contáctenos por WhatsApp al
+      <strong>+56 9 5452 7837</strong> indicando su nombre y fecha de reserva.
     </div>
   </div>
 
-  <!-- 7. DERECHOS DEL USUARIO -->
   <div class="card">
-    <h2><span class="num">7</span> Derechos de los usuarios</h2>
-    <p>De acuerdo con la legislación chilena (Ley N° 19.628 sobre Protección de la Vida Privada) y, en lo aplicable, el Reglamento General de Protección de Datos (RGPD) de la Unión Europea, usted tiene derecho a:</p>
+    <h2><span class="num">8</span> Derechos de los usuarios</h2>
+    <p>De acuerdo con la <strong>Ley N° 19.628</strong> de Chile sobre Protección de la Vida Privada, usted tiene derecho a:</p>
     <ul>
-      <li><strong>Acceso:</strong> Solicitar información sobre qué datos personales suyos tenemos almacenados.</li>
-      <li><strong>Rectificación:</strong> Pedir la corrección de datos incorrectos o incompletos.</li>
-      <li><strong>Eliminación (Derecho al olvido):</strong> Solicitar que eliminemos sus datos personales de nuestra base de datos.</li>
-      <li><strong>Cancelación de reserva:</strong> Cancelar su cita directamente desde la aplicación, lo que elimina sus datos asociados a esa reserva.</li>
-      <li><strong>Portabilidad:</strong> Solicitar una copia de los datos que nos ha proporcionado.</li>
+      <li><strong>Acceso:</strong> Solicitar qué datos suyos tenemos almacenados.</li>
+      <li><strong>Rectificación:</strong> Pedir la corrección de datos incorrectos.</li>
+      <li><strong>Eliminación:</strong> Solicitar la eliminación de sus datos personales.</li>
+      <li><strong>Portabilidad:</strong> Solicitar una copia de los datos proporcionados.</li>
       <li><strong>Oposición:</strong> Oponerse al tratamiento de sus datos en determinadas circunstancias.</li>
     </ul>
-    <p>
-      Para ejercer cualquiera de estos derechos, contáctenos por WhatsApp al número
-      <strong>+56 9 5452 7837</strong>. Responderemos en un plazo razonable.
-    </p>
+    <p>Para ejercer estos derechos, contáctenos por WhatsApp al <strong>+56 9 5452 7837</strong>.</p>
   </div>
 
-  <!-- 8. SEGURIDAD -->
   <div class="card">
-    <h2><span class="num">8</span> Seguridad de los datos</h2>
-    <p>Implementamos las siguientes medidas para proteger sus datos:</p>
+    <h2><span class="num">9</span> Seguridad de los datos</h2>
     <ul>
-      <li><strong>Transmisión cifrada:</strong> Toda comunicación entre la aplicación y Firebase usa HTTPS/TLS.</li>
-      <li><strong>Acceso restringido al panel de administración:</strong> El panel de control requiere una clave de acceso para ser usado. Solo el barbero administrador tiene acceso.</li>
-      <li><strong>Sin contraseñas de clientes:</strong> Los clientes no necesitan crear una cuenta ni contraseña. No almacenamos credenciales de usuarios.</li>
+      <li><strong>Transmisión cifrada:</strong> Toda comunicación usa HTTPS/TLS.</li>
+      <li><strong>Panel de administración protegido:</strong> Solo el barbero tiene acceso con clave.</li>
+      <li><strong>Sin cuentas de clientes:</strong> No almacenamos contraseñas ni credenciales de usuarios.</li>
+      <li><strong>Sin datos bancarios:</strong> No procesamos ni almacenamos datos de pago.</li>
       <li><strong>Limpieza periódica:</strong> Los datos antiguos se eliminan automáticamente.</li>
-      <li><strong>Sin datos bancarios:</strong> No procesamos ni almacenamos datos de pago. El cobro se realiza de forma presencial en la barbería.</li>
     </ul>
-    <div class="highlight">
-      A pesar de nuestras medidas de seguridad, ningún sistema de transmisión de datos por internet
-      es 100% seguro. No podemos garantizar la seguridad absoluta de la información.
-    </div>
   </div>
 
-  <!-- 9. MENORES DE EDAD -->
   <div class="card">
-    <h2><span class="num">9</span> Menores de edad</h2>
+    <h2><span class="num">10</span> Menores de edad</h2>
     <p>
-      Nuestra aplicación no está dirigida específicamente a menores de 13 años. No recopilamos
-      conscientemente datos personales de menores sin el consentimiento de sus padres o tutores legales.
-    </p>
-    <p>
-      Si usted es padre, madre o tutor y cree que su hijo ha proporcionado datos personales a través
-      de nuestra aplicación, contáctenos para proceder a su eliminación.
+      Nuestra aplicación no está dirigida a menores de 13 años. No recopilamos conscientemente
+      datos de menores sin consentimiento de sus padres o tutores. Si detectamos datos de un menor,
+      los eliminaremos de inmediato al ser notificados.
     </p>
   </div>
 
-  <!-- 10. COOKIES Y ALMACENAMIENTO LOCAL -->
   <div class="card">
-    <h2><span class="num">10</span> Cookies y almacenamiento local</h2>
+    <h2><span class="num">11</span> Cookies y almacenamiento local</h2>
     <p>Esta aplicación <strong>no utiliza cookies propias</strong> de seguimiento o publicidad.</p>
     <p>Sí utiliza <strong>localStorage</strong> del navegador para:</p>
     <ul>
-      <li>Guardar sus reservas activas localmente en su dispositivo, permitiéndole consultarlas sin conexión o en futuras visitas.</li>
-      <li>Recordar su nombre para facilitar la búsqueda de reservas.</li>
+      <li>Guardar reservas activas localmente en el dispositivo.</li>
+      <li>Recordar el nombre del usuario para facilitar búsquedas.</li>
     </ul>
-    <p>
-      El uso de Google Fonts puede implicar que Google registre su dirección IP al cargar las tipografías.
-      Esto es gestionado por Google bajo su propia política de privacidad.
-    </p>
+    <p>Google Fonts puede registrar la dirección IP del usuario al cargar las tipografías, bajo la política de privacidad de Google.</p>
   </div>
 
-  <!-- 11. NOTIFICACIONES PUSH -->
-  <div class="card">
-    <h2><span class="num">11</span> Notificaciones push y comunicaciones</h2>
-    <p>La aplicación utiliza el servicio <strong>ntfy.sh</strong> para enviar notificaciones al dispositivo del barbero cuando:</p>
-    <ul>
-      <li>Un cliente realiza una nueva reserva.</li>
-      <li>Un cliente cancela una reserva existente.</li>
-    </ul>
-    <p>
-      Estas notificaciones contienen: nombre del cliente, fecha, hora, servicios y total de la reserva.
-      Este servicio es exclusivo para el administrador del negocio y <strong>no envía notificaciones
-      a los clientes</strong>.
-    </p>
-    <p>
-      El topic utilizado en ntfy.sh es privado y únicamente accesible para el administrador con la
-      app ntfy instalada.
-    </p>
-  </div>
-
-  <!-- 12. TRANSFERENCIAS INTERNACIONALES -->
   <div class="card">
     <h2><span class="num">12</span> Transferencia internacional de datos</h2>
     <p>
-      Al utilizar Firebase (Google) y ntfy.sh, sus datos pueden ser procesados en servidores ubicados
-      fuera de Chile, incluyendo los Estados Unidos de América y/u otras regiones donde Google
-      opera sus centros de datos.
-    </p>
-    <p>
-      Google garantiza un nivel adecuado de protección de datos mediante sus términos de servicio
-      y mecanismos de transferencia internacional reconocidos internacionalmente.
+      Al usar Firebase (Google) y ntfy.sh, los datos pueden procesarse en servidores ubicados
+      fuera de Chile, incluyendo EE. UU. Google garantiza protección adecuada mediante sus
+      términos de servicio y mecanismos de transferencia reconocidos internacionalmente.
     </p>
   </div>
 
-  <!-- 13. CAMBIOS EN LA POLÍTICA -->
   <div class="card">
-    <h2><span class="num">13</span> Cambios en esta política de privacidad</h2>
+    <h2><span class="num">13</span> Cambios en esta política</h2>
     <p>
       Nos reservamos el derecho de actualizar esta Política de Privacidad en cualquier momento.
-      Cuando realicemos cambios significativos, actualizaremos la fecha de "Última actualización"
-      en la parte superior de esta página.
-    </p>
-    <p>
-      Le recomendamos revisar esta política periódicamente. El uso continuado de la aplicación
-      después de la publicación de cambios implica la aceptación de dichos cambios.
+      Cuando realicemos cambios significativos, actualizaremos la fecha en la parte superior.
+      El uso continuado de la aplicación implica la aceptación de dichos cambios.
     </p>
   </div>
 
-  <!-- 14. CONTACTO -->
   <div class="card">
     <h2><span class="num">14</span> Contacto</h2>
-    <p>Para cualquier consulta, solicitud o reclamación relacionada con el tratamiento de sus datos personales, puede contactarnos a través de:</p>
     <ul>
       <li><strong>WhatsApp:</strong> <a href="https://wa.me/56954527837" target="_blank">+56 9 5452 7837</a></li>
       <li><strong>Negocio:</strong> James Barbershop</li>
-      <li><strong>País:</strong> Chile</li>
+      <li><strong>Dirección:</strong> Alejandro Fleming 9099, Chile</li>
     </ul>
     <div class="highlight">
-      Intentaremos responder a todas las solicitudes legítimas en un plazo máximo de 30 días hábiles.
+      Respondemos a todas las solicitudes en un plazo máximo de 30 días hábiles.
     </div>
   </div>
 
-  <!-- RESUMEN RÁPIDO -->
   <div class="card">
     <h2><span class="num">✓</span> Resumen rápido</h2>
     <p>En pocas palabras, esto es lo que hacemos con sus datos:</p>
@@ -527,75 +446,14 @@
   </div>
 
 </div>
-<!--
-  ══════════════════════════════════════════════════════════════
-  PEGAR ESTO en privacidad.html
-  DÓNDE: justo antes del bloque <a href="/" class="volver">
-  ══════════════════════════════════════════════════════════════
--->
 
-<!-- SECCIÓN: Recordatorios del período de prueba -->
-<div class="section">
-    <h2><span class="num">12</span> Recordatorios del período de prueba (app Android)</h2>
-    <p>
-        La aplicación móvil de James Barbershop se encuentra actualmente en fase de evaluación
-        en Google Play Store. Durante este período, la app solicita los siguientes permisos
-        adicionales al usuario:
-    </p>
-
-    <p><strong>Permiso de notificaciones (<code>POST_NOTIFICATIONS</code>)</strong></p>
-    <p>
-        Con este permiso, la app envía un recordatorio diario al usuario durante un máximo de
-        15 días consecutivos, con el fin de mantener su participación activa durante el período
-        de evaluación. Estas notificaciones:
-    </p>
-    <ul>
-        <li>Son un máximo de 15 en total, una por día.</li>
-        <li>Se detienen automáticamente al completarse los 15 días.</li>
-        <li>No contienen publicidad ni información de terceros.</li>
-        <li>Pueden desactivarse en cualquier momento desde:
-            Ajustes → Apps → Reservas James Barbershop → Notificaciones.</li>
-    </ul>
-
-    <p style="margin-top:14px;"><strong>Permiso de optimización de batería
-        (<code>REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</code>)</strong></p>
-    <p>
-        Para garantizar que los recordatorios lleguen correctamente aunque el dispositivo
-        esté inactivo, la app solicita ser excluida de la optimización de batería de Android.
-        Este permiso permite que el sistema operativo despierte la aplicación brevemente
-        (1–2 segundos por día) para enviar el aviso diario. El impacto en la batería es
-        inferior al 0,1% del consumo diario. Este permiso puede revocarse en cualquier momento
-        desde: Ajustes → Apps → Reservas James Barbershop → Batería.
-    </p>
-
-    <p style="margin-top:14px;"><strong>Datos guardados localmente en el dispositivo (SharedPreferences)</strong></p>
-    <p>
-        Además del <code>localStorage</code> del navegador, la app Android guarda en
-        almacenamiento nativo (<code>SharedPreferences</code>) los siguientes datos:
-    </p>
-    <ul>
-        <li>Número de días interactuados durante el período de prueba.</li>
-        <li>Fecha de la última interacción registrada.</li>
-        <li>Nombre de usuario ingresado en la app.</li>
-        <li>Código único de reserva generado para el dispositivo.</li>
-    </ul>
-    <p>
-        Estos datos permanecen únicamente en el dispositivo del usuario y pueden eliminarse
-        desinstalando la aplicación o borrando sus datos desde los ajustes del sistema.
-    </p>
-
-    <p style="margin-top:14px;"><strong>Alarmas programadas (<code>AlarmManager</code>)</strong></p>
-    <p>
-        La app utiliza el servicio <code>AlarmManager</code> de Android para programar
-        los recordatorios diarios. Esto significa que la alarma queda registrada en el sistema
-        operativo y puede ejecutarse aunque la aplicación esté completamente cerrada.
-        Esta funcionalidad se limita exclusivamente al envío del recordatorio diario y
-        se cancela automáticamente al finalizar los 15 días de prueba o al desinstalar la app.
-    </p>
-</div>
 <footer>
-  <p>© 2025 James Barbershop · Todos los derechos reservados</p>
-  <p style="margin-top:6px;">Esta política de privacidad fue redactada para cumplir con la <strong>Ley N° 19.628 de Chile</strong> y los estándares de <strong>Google Play Store</strong>.</p>
+  <p>© 2026 James Barbershop · Todos los derechos reservados</p>
+  <p style="margin-top:6px;">
+    Esta política fue redactada para cumplir con la
+    <strong>Ley N° 19.628 de Chile</strong> y los estándares de
+    <strong>Google Play Store</strong>.
+  </p>
 </footer>
 
 </body>
