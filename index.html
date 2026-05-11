@@ -2189,8 +2189,131 @@ firebase.auth().onAuthStateChanged((user) => {
     <h2 class="mis-reservas-titulo">
         <span class="icono-titulo">📋</span>
         Mis Reservas
-    </h2>
-    
+    </h2><p class="hint-text">💡 tus reservas aparecerán automáticamente si las hiciste desde este dispositivo</p>
+    <!-- SNIPPET: pega esto donde quieras dentro de tu HTML -->
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  .privacidad-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 2.5rem 2rem;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .privacidad-label {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #999;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .privacidad-btn {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    background: #1a1a1a;
+    color: #f5f0e8;
+    border: none;
+    border-radius: 4px;
+    padding: 1.3rem 2.4rem;
+    cursor: pointer;
+    text-decoration: none;
+    overflow: hidden;
+    transition: background 0.25s, transform 0.15s;
+  }
+
+  .privacidad-btn::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: 0;
+    height: 2px;
+    width: 0%;
+    background: #c0392b;
+    transition: width 0.35s ease;
+  }
+
+  .privacidad-btn:hover { background: #2d2d2d; transform: translateY(-1px); }
+  .privacidad-btn:hover::after { width: 100%; }
+  .privacidad-btn:active { transform: translateY(0) scale(0.985); }
+
+  .privacidad-btn-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    white-space: nowrap;
+  }
+
+  .privacidad-btn-email {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: rgba(245, 240, 232, 0.5);
+    letter-spacing: 0.04em;
+  }
+
+  .privacidad-nota {
+    font-size: 10.5px;
+    color: #aaa;
+    letter-spacing: 0.04em;
+    text-align: center;
+    line-height: 1.9;
+  }
+</style>
+
+<div class="privacidad-wrap">
+
+  <p class="privacidad-label">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+    Protección de datos personales
+  </p>
+
+  <a class="privacidad-btn" id="btnBorrarDatos" href="#" aria-label="Solicitar eliminación de datos personales">
+    <span class="privacidad-btn-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14H6L5 6"/>
+        <path d="M10 11v6M14 11v6"/>
+        <path d="M9 6V4h6v2"/>
+      </svg>
+      Solicitar que borren mis datos
+    </span>
+    <span class="privacidad-btn-email">diegofraciscopalmaarriagada@gmail.com <br>(Desarrollador de la página)</span>
+  </a>
+
+  <p class="privacidad-nota">
+    Al hacer clic se abrirá Gmail con un mensaje<br>pre-redactado listo para enviar.
+  </p>
+
+</div>
+
+<script>
+  document.getElementById('btnBorrarDatos').addEventListener('click', function(e) {
+    e.preventDefault();
+    var destinatario = 'diegofraciscopalmaarriagada@gmail.com';
+    var asunto = encodeURIComponent('Solicitud de eliminación de mis datos personales');
+    var cuerpo = encodeURIComponent(
+      'Estimado/a,\n\n' +
+      'Por medio del presente correo, solicito formalmente la eliminación de todos mis datos personales ' +
+      'que obren en su poder, en conformidad con la normativa vigente de protección de datos.\n\n' +
+      'Quedo a la espera de su respuesta.\n\n' +
+      'Atentamente,\n[Tu nombre]'
+    );
+    var url = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + destinatario + '&su=' + asunto + '&body=' + cuerpo;
+    window.open(url, '_blank');
+  });
+</script>
     <!-- Formulario de identificación (inicialmente visible) -->
     <div class="identificacion-cliente" id="identificacionCliente">
         <p  hidden="texto-identificacion">Ingresa tu nombre para ver tus reservas</p>
@@ -2206,7 +2329,7 @@ firebase.auth().onAuthStateChanged((user) => {
                 🔍 Buscar
             </button>
         </div>
-        <p class="hint-text">💡 tus reservas aparecerán automáticamente si las hiciste desde este dispositivo</p>
+        
     </div>
     
     <!-- Lista de reservas (inicialmente oculta) -->
