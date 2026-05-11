@@ -3453,10 +3453,9 @@ function formatearFechaLarga(fecha) {
 
 </script>
 <!-- Toast de notificaciones -->
-<div class="toast-cliente" id="toastCliente"></div><div id="listaReservas"></div>
-        <h2 style="color: red !important; text-shadow: #000 1px 1px 2px;">⛔Horas Reservadas⛔</h2>
+<div class="toast-cliente" id="toastCliente"></div>        
         
-        <input style="border: 1px solid red;" type="text" id="buscadorGlobal" placeholder="Buscar... por Año, Mes o Día" />
+        
         <button id="boton-listo-borrar" onclick="miFuncionBorrar();ocultarBotonBorrar()">
  Listo
 
@@ -3581,7 +3580,7 @@ function ocultarBotonBorrar() {
         ocultarBotonesX();
          }
 </script>
-        <div id="reservas-lista"></div>
+        
     </div>
     <style>
 
@@ -4752,7 +4751,6 @@ function renderGaleriaClientes(imagenes) {
         const configRef = db.ref("config");
 
         const fechaInput = document.getElementById("fecha");
-        const listaReservas = document.getElementById("reservas-lista");
         const cuadroCalendario = document.getElementById("cuadroCalendario");
         const ventanaHorarios = document.getElementById("modal-horarios");
         const cerrarVentana = document.getElementById("cerrarVentana");
@@ -5465,89 +5463,24 @@ function validarClave() {
             }
         }
         function iniciarPresionDia(elemento, fecha, tiempo = 1000) {
-            let timer = null;
-            const start = () => {
-                clearTimeout(timer);
-                timer = setTimeout(() => abrirModalReservasDia(fecha), tiempo);
-            };
-            const cancel = () => {
-                clearTimeout(timer);
-                timer = null;
-            };
-            elemento.addEventListener("mousedown", start);
-            elemento.addEventListener("mouseup", cancel);
-            elemento.addEventListener("mouseleave", cancel);
-            elemento.addEventListener("touchstart", start, { passive: true });
-            elemento.addEventListener("touchend", cancel);
-            elemento.addEventListener("touchcancel", cancel);
-        }
+    let timer = null;
+    const start = () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => abrirModalReservasDia(fecha), tiempo);
+    };
+    const cancel = () => {
+        clearTimeout(timer);
+        timer = null;
+    };
+    elemento.addEventListener("mousedown", start);
+    elemento.addEventListener("mouseup", cancel);
+    elemento.addEventListener("mouseleave", cancel);
+    elemento.addEventListener("touchstart", start, { passive: true });
+    elemento.addEventListener("touchend", cancel);
+    elemento.addEventListener("touchcancel", cancel);
+}
 
-        const reservasRefMostrar = firebase.database().ref("reservas");
-        reservasRefMostrar.on("child_added", (snapshot) => {
-            const {
-                fecha,
-                hora,
-                nombre
-            } = snapshot.val();
-            const idBloque = `${fecha}-${hora}`;
-            if (document.getElementById(idBloque)) return;
-            const grupoId = `grupo-${fecha}`;
-            let grupo = document.getElementById(grupoId);
-            if (!grupo) {
-                grupo = document.createElement("div");
-                grupo.id = grupoId;
-                grupo.className = "grupo-dia";
-                const header = document.createElement("h3");
-                header.textContent = `📅 ${fecha}`;
-                grupo.appendChild(header);
-                const ts = (function(f){ const [y,m,d]=f.split("-").map(n=>parseInt(n,10)); return new Date(y,m-1,d).getTime(); })(fecha);
-                const children = Array.from(listaReservas.children).filter(c => c.classList && c.classList.contains("grupo-dia"));
-                let inserted = false;
-                for (let i=0;i<children.length;i++){
-                    const id = children[i].id || "";
-                    const f = id.replace("grupo-","");
-                    const otherTs = (function(f){ const [y,m,d]=f.split("-").map(n=>parseInt(n,10)); return new Date(y,m-1,d).getTime(); })(f);
-                    if (ts > otherTs) {
-                        listaReservas.insertBefore(grupo, children[i]);
-                        inserted = true;
-                        break;
-                    }
-                }
-                if (!inserted) listaReservas.appendChild(grupo);
-            }
-            const item = document.createElement("div");
-            item.className = "reserva-item";
-            item.id = idBloque;
-            const texto = document.createElement("span");
-            texto.textContent = `⏰ ${hora} - ${nombre}`;
-            const botonX = document.createElement("span");
-            botonX.textContent = " | ❌";
-            botonX.className = "boton-x";
-            botonX.title = "Eliminar esta hora";
-            botonX.onclick = () => {
-                const reservaId = snapshot.key;
-                const reservaRef = reservasRefMostrar.child(reservaId);
-                reservaRef.remove().catch((error) => {
-                    console.error("Error al eliminar la reserva:", error);
-                });
-            };
-            item.appendChild(texto);
-            item.appendChild(botonX);
-            const childrenItems = Array.from(grupo.children).filter(c => c.classList && c.classList.contains("reserva-item"));
-            let insertedItem = false;
-            for (let i=0;i<childrenItems.length;i++){
-                const t = childrenItems[i].querySelector("span") ? childrenItems[i].querySelector("span").textContent : childrenItems[i].textContent;
-                const match = t.match(/(\d{2}:\d{2})/);
-                const otherHora = match ? match[1] : "";
-                if (hora > otherHora) {
-                    grupo.insertBefore(item, childrenItems[i]);
-                    insertedItem = true;
-                    break;
-                }
-            }
-            if (!insertedItem) grupo.appendChild(item);
-        });
-
+const reservasRefMostrar = firebase.database().ref("reservas");
         function mostrarBotonesX() {
             modoEliminarReservas = true;
             document.querySelectorAll(".boton-x").forEach(b => {
