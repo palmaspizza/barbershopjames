@@ -362,7 +362,7 @@ async function notificarNuevaReserva(datosReserva) {
 </div>
 <!-- CONTADOR VISIBLE DE TESTERS DIARIOS -->
 <div id="panel-testers-diarios" style="
-  display:block;
+  display: none;
   background:#111317;
   border:1.5px solid #e4a64f;
   border-radius:18px;
@@ -382,59 +382,6 @@ async function notificarNuevaReserva(datosReserva) {
   <div id="ptd-msg" style="font-size:13px; color:#888; margin-top:8px;">Sé el primero en probar hoy 💈</div>
 </div>
 
-<script>
-// ── Actualiza el panel visible en la página ─────────────────────
-(function(){
-  const MAX = 20;
-
-  function hoyKey(){ return new Date().toISOString().split('T')[0]; }
-
-  function getTotalHoy(){
-    try {
-      const d = JSON.parse(localStorage.getItem('testers_diarios') || '{}');
-      return d.fecha === hoyKey() ? (d.total || 0) : 0;
-    } catch(e){ return 0; }
-  }
-
-  function actualizarPanel(){
-    const panel  = document.getElementById('panel-testers-diarios');
-    const numero = document.getElementById('ptd-numero');
-    const barra  = document.getElementById('ptd-barra');
-    const msg    = document.getElementById('ptd-msg');
-    if (!panel) return;
-
-    const n = getTotalHoy();
-
-    // Mostrar panel solo si ya hay al menos 1 tester hoy
-    panel.style.display = n > 0 ? 'block' : 'none';
-
-    if (numero) numero.textContent = `${n}/20`;
-    if (barra)  barra.style.width  = `${Math.min(100, (n / MAX) * 100)}%`;
-
-    if (msg){
-      if (n === 0)        msg.textContent = 'Sé el primero en probar hoy 💈';
-      else if (n < 10)    msg.textContent = `¡${n} tester${n>1?'s':''} ya probaron hoy!`;
-      else if (n < MAX-1) msg.textContent = `🔥 ¡${n} testers! Quedan ${MAX - n} cupos`;
-      else if (n === MAX-1) msg.textContent = '⚠️ ¡Solo queda 1 cupo!';
-      else                msg.textContent = '✅ Cupo del día completo';
-
-      msg.style.color = n >= MAX ? '#33d17a' : n >= MAX-1 ? '#ff4d4d' : '#aaa';
-    }
-
-    if (numero) numero.style.color = n >= MAX ? '#33d17a' : '#e4a64f';
-  }
-
-  // Exponer para que registrarTesterDiario() lo llame al subir el contador
-  const _orig = window.registrarTesterDiario;
-  window.registrarTesterDiario = function(){
-    if (typeof _orig === 'function') _orig();
-    actualizarPanel();
-  };
-
-  // Actualizar al cargar la página
-  document.addEventListener('DOMContentLoaded', actualizarPanel);
-})();
-</script>
 
 
 <script>// ============================================
@@ -647,9 +594,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 </style>
 
-<script>
-
-</script><!-- CONTADOR TESTER - pegar debajo del logo -->
+<!-- CONTADOR TESTER - pegar debajo del logo -->
 <!-- CONTADOR TESTER - pegar debajo del logo -->
 <div id="contador-tester" style="display:none; background:#111317; border-radius:18px; padding:32px 20px; text-align:center; max-width:360px; margin:20px auto; border:1.5px solid #e4a64f;">
 
@@ -679,12 +624,7 @@ window.addEventListener('DOMContentLoaded', () => {
   </button>
 
 </div>
-
 <script>
-// ============================================
-// CONTADOR TESTER - VERSIÓN CORREGIDA
-// ============================================
-
 (function(){
   const TOTAL = 15;
   const circ = 2 * Math.PI * 80;
@@ -693,444 +633,87 @@ window.addEventListener('DOMContentLoaded', () => {
   let estaActivo = false;
   let scrollRealizado = false;
 
-  const box = document.getElementById('contador-tester');
+  const box  = document.getElementById('contador-tester');
   const ring = document.getElementById('ct-ring');
-  const num = document.getElementById('ct-num');
-  const msg = document.getElementById('ct-msg');
-  const btn = document.getElementById('ct-btn');
+  const num  = document.getElementById('ct-num');
+  const msg  = document.getElementById('ct-msg');
+  const btn  = document.getElementById('ct-btn');
 
   function setOffset(s){
     if (ring) ring.style.strokeDashoffset = circ - (circ * s / TOTAL);
   }
 
   function resetVisual(){
-    clearInterval(tmr);
-    tmr = null;
-    estaActivo = false;
-    scrollRealizado = false;
-    seg = TOTAL;
-    if (ring) {
-      ring.style.stroke = '#e4a64f';
-      ring.style.strokeDashoffset = '0';
-    }
-    if (num) {
-      num.style.color = '#f1f1f1';
-      num.textContent = TOTAL;
-    }
-    if (msg) {
-      msg.style.color = '#aaa';
-      msg.style.fontSize = '15px';
-      msg.textContent = 'Mantén la app abierta un momento...';
-    }
-    // 🔴 CRÍTICO: Ocultar el botón OK al resetear
+    clearInterval(tmr); tmr = null; estaActivo = false; scrollRealizado = false; seg = TOTAL;
+    if (ring){ ring.style.stroke = '#e4a64f'; ring.style.strokeDashoffset = '0'; }
+    if (num){ num.style.color = '#f1f1f1'; num.textContent = TOTAL; }
+    if (msg){ msg.style.color = '#aaa'; msg.style.fontSize = '15px'; msg.textContent = 'Mantén la app abierta un momento...'; }
     if (btn) btn.style.display = 'none';
     setOffset(TOTAL);
   }
 
-  // 🔴 FUNCIÓN EXTERNA: Se ejecuta cuando el usuario presiona "OK"
-  window.finalizarYResetear = function() {
-    // 1. Ocultar el contador inmediatamente
+  window.finalizarYResetear = function(){
     if (box) box.style.display = 'none';
-    
-    // 2. Detener el intervalo (por si acaso)
-    clearInterval(tmr);
-    tmr = null;
-    estaActivo = false;
-    scrollRealizado = false;
-    
-    // 3. Resetear visualmente a 15 (congelado) para la próxima vez
+    clearInterval(tmr); tmr = null; estaActivo = false; scrollRealizado = false;
     seg = TOTAL;
-    if (num) {
-        num.textContent = '15';
-        num.style.color = '#f1f1f1';
-    }
-    if (ring) {
-        ring.style.stroke = '#e4a64f';
-        ring.style.strokeDashoffset = '0';
-    }
-    if (msg) {
-        msg.style.color = '#aaa';
-        msg.textContent = 'Mantén la app abierta un momento...';
-    }
-    // 🔴 CRÍTICO: Ocultar el botón OK
+    if (num){ num.textContent = '15'; num.style.color = '#f1f1f1'; }
+    if (ring){ ring.style.stroke = '#e4a64f'; ring.style.strokeDashoffset = '0'; }
+    if (msg){ msg.style.color = '#aaa'; msg.textContent = 'Mantén la app abierta un momento...'; }
     if (btn) btn.style.display = 'none';
-    
-    // 4. Mostrar el banner de demo nuevamente
     const banner = document.getElementById('banner-demo');
-    if (banner) {
-        banner.style.display = 'block';
-        // Scroll suave al banner
-        banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    
-    // 5. Limpiar modo demo para permitir nueva activación
+    if (banner){ banner.style.display = 'block'; banner.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
     localStorage.removeItem('modo_demo_activo');
-    
-    // 6. Guardar que ya interactuó hoy
-    const hoy = new Date().toDateString();
-    localStorage.setItem('ultima_interaccion_demo', hoy);
-    
-    console.log('Contador finalizado manualmente, todo reseteado, banner visible');
+    localStorage.setItem('ultima_interaccion_demo', new Date().toDateString());
   };
 
-  // 🔴 FUNCIÓN INTERNA: Se ejecuta automáticamente cuando el contador llega a 0
   function finalizarContador(){
-    clearInterval(tmr);
-    tmr = null;
-    estaActivo = false;
-    
-    // 🔴 CRÍTICO: NO ocultar el contenedor todavía
-    // En su lugar, mostrar el botón OK y congelar en 15
-    
-    // Congelar visualmente en 15
-    if (num) {
-        num.textContent = '15';
-        num.style.color = '#33d17a'; // Verde para indicar éxito
-    }
-    if (ring) {
-        ring.style.stroke = '#33d17a'; // Verde
-        ring.style.strokeDashoffset = '0'; // Círculo completo
-    }
-    
-    // Cambiar mensaje
-    if (msg) {
-        msg.style.color = '#33d17a';
-        msg.style.fontWeight = '600';
-        msg.textContent = '¡Listo! Presiona el botón para continuar';
-    }
-    
-    // 🔴 CRÍTICO: MOSTRAR el botón OK (esto es lo que faltaba)
+    clearInterval(tmr); tmr = null; estaActivo = false;
+    if (num){ num.textContent = '15'; num.style.color = '#33d17a'; }
+    if (ring){ ring.style.stroke = '#33d17a'; ring.style.strokeDashoffset = '0'; }
+    if (msg){ msg.style.color = '#33d17a'; msg.style.fontWeight = '600'; msg.textContent = '¡Listo! Presiona el botón para continuar'; }
     if (btn) btn.style.display = 'block';
-    
     if (typeof window.registrarTesterDiario === 'function') window.registrarTesterDiario();
-    // Hacer scroll al botón para asegurar que sea visible
-    setTimeout(() => {
-        if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 100);
-    // Registrar tester diario y notificar ntfy
-if (typeof registrarTesterDiario === 'function') registrarTesterDiario();
-    console.log('Contador terminado, esperando que usuario presione OK');
+    setTimeout(function(){ if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
   }
 
   function tick(){
     seg--;
     if (num) num.textContent = seg;
     setOffset(seg);
-
     if (seg <= 5 && seg > 0){
       if (ring) ring.style.stroke = '#ff4d4d';
       if (num) num.style.color = '#ff4d4d';
       if (msg) msg.textContent = '¡Casi listo!';
     }
-
-    if (seg <= 0){
-      finalizarContador(); // Llamar a la nueva versión que muestra el botón
-    }
+    if (seg <= 0) finalizarContador();
   }
 
-  // 🔴 FUNCIÓN CON SCROLL INTEGRADO Y SEGURO
   window.arrancarContadorDemo = function(){
-    if (estaActivo) {
-        console.log('Contador ya está activo');
-        return;
-    }
-    
+    if (estaActivo) return;
     if (!box) return;
-    
-    // Asegurar que el contador esté visible
     box.style.display = 'block';
-    
-    // Ocultar banner
     const banner = document.getElementById('banner-demo');
     if (banner) banner.style.display = 'none';
-    
-    // SCROLL SUAVE SIN AFECTAR EL TIMER
-    if (!scrollRealizado) {
-        scrollRealizado = true;
-        requestAnimationFrame(() => {
-            box.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'center',
-                inline: 'nearest'
-            });
-        });
+    if (!scrollRealizado){
+      scrollRealizado = true;
+      requestAnimationFrame(function(){ box.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' }); });
     }
-    
-    // Iniciar timer DESPUÉS del scroll, con delay seguro
-    setTimeout(() => {
-        if (!estaActivo) {
-            resetVisual();
-            estaActivo = true;
-            tmr = setInterval(tick, 1000);
-        }
+    setTimeout(function(){
+      if (!estaActivo){ resetVisual(); estaActivo = true; tmr = setInterval(tick, 1000); }
     }, 400);
   };
 
   window.reiniciarContador = function(){
-    scrollRealizado = false;
-    resetVisual();
-    estaActivo = true;
-    
-    // Asegurar que el contador sea visible al reiniciar
+    scrollRealizado = false; resetVisual(); estaActivo = true;
     if (box) box.style.display = 'block';
-    
     tmr = setInterval(tick, 1000);
   };
 
-  // FUNCIÓN EXTERNA PARA SCROLL MANUAL (opcional)
   window.scrollAlContador = function(){
-    if (box) {
-      box.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'center' 
-      });
-    }
+    if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   resetVisual();
-
-})();
-// ============================================
-// CONTADOR DE TESTERS DIARIO — Firebase + ntfy
-// ============================================
-(function(){
-  const NTFY_TOPIC = 'james-barber-shop-2026';
-  const MAX = 20;
-
-  // ── Clave de hoy en formato YYYY-MM-DD (hora local) ──
-  function hoyKey(){
-    const d = new Date();
-    return d.getFullYear() + '-' +
-      String(d.getMonth()+1).padStart(2,'0') + '-' +
-      String(d.getDate()).padStart(2,'0');
-  }
-
-  // ── Referencia Firebase ──────────────────────────────
-  // Usa el mismo `db` que ya está definido en tu código
-  function getRef(){
-    return firebase.database().ref('testers_diarios/' + hoyKey());
-  }
-
-  // ── Actualizar panel visible ─────────────────────────
-  function actualizarPanel(n){
-    const panel  = document.getElementById('panel-testers-diarios');
-    const numero = document.getElementById('ptd-numero');
-    const barra  = document.getElementById('ptd-barra');
-    const msg    = document.getElementById('ptd-msg');
-
-    if (!panel) return;
-    panel.style.display = n > 0 ? 'block' : 'none';
-
-    if (numero) {
-      numero.textContent   = n + '/20';
-      numero.style.color   = n >= MAX ? '#33d17a' : '#e4a64f';
-    }
-    if (barra) barra.style.width = Math.min(100, (n / MAX) * 100) + '%';
-    if (msg){
-      if      (n === 0)        msg.textContent = 'Sé el primero en probar hoy 💈';
-      else if (n < 10)         msg.textContent = '¡' + n + ' tester' + (n>1?'s':'') + ' ya probaron hoy!';
-      else if (n < MAX - 1)    msg.textContent = '🔥 ¡' + n + ' testers! Quedan ' + (MAX-n) + ' cupos';
-      else if (n === MAX - 1)  msg.textContent = '⚠️ ¡Solo queda 1 cupo!';
-      else                     msg.textContent = '✅ Cupo del día completo';
-      msg.style.color = n >= MAX ? '#33d17a' : n >= MAX-1 ? '#ff4d4d' : '#aaa';
-    }
-  }
-
-  // ── Badge flotante ───────────────────────────────────
-  function actualizarBadge(n){
-    let el = document.getElementById('jb-tester-badge');
-    if (!el){
-      el = document.createElement('div');
-      el.id = 'jb-tester-badge';
-      el.style.cssText = [
-        'position:fixed','bottom:22px','right:18px',
-        'background:#111317','color:#f1f1f1',
-        'font-family:Poppins,sans-serif','font-size:13px','font-weight:700',
-        'padding:9px 16px','border-radius:999px',
-        'box-shadow:0 4px 18px rgba(0,0,0,0.5)',
-        'border:2px solid #e4a64f','z-index:99999',
-        'letter-spacing:.5px','transition:border-color .4s,opacity .4s',
-        'opacity:0'
-      ].join(';');
-      document.body.appendChild(el);
-      setTimeout(()=>{ el.style.opacity='1'; }, 100);
-    }
-    const lleno = n >= MAX;
-    el.textContent      = lleno ? '✅ ' + n + '/20 Completo' : '🧪 ' + n + '/20 testers hoy';
-    el.style.borderColor = lleno ? '#33d17a' : '#e4a64f';
-  }
-
-  // ── Notificación ntfy ────────────────────────────────
-  async function notificarNtfy(n){
-    let titulo, cuerpo, tags, prio;
-
-    if (n === MAX - 1){
-      titulo = 'PENULTIMO CUPO - James Barbershop';
-      cuerpo = '⚡️⚠️ Solo queda 1 cupo! Ya van ' + n + '/' + MAX + ' testers hoy. Date prisa! ⏳🔥';
-      tags   = 'warning,rotating_light';
-      prio   = 'high';
-    } else if (n >= MAX){
-      titulo = 'CUPO COMPLETO - James Barbershop';
-      cuerpo = '🚀🎉DÍA COMPLETADO✅✅✅✅ Los ' + MAX + '/' + MAX + ' testers del dia estan adentro! Prueba cerrada por hoy. Vuelve mañana 🙌🎊💈';
-      tags   = 'tada,rocket,white_check_mark,100';
-      prio   = 'urgent';
-    } else {
-      titulo = 'Tester #' + n + ' - James Barbershop';
-      cuerpo = '👤💈 Se unio el tester ' + n + '/' + MAX + ' de hoy. Vamos sumando! 💪';
-      tags   = 'busts_in_silhouette,scissors';
-      prio   = 'default';
-    }
-
-    try {
-      await fetch('https://ntfy.sh/' + NTFY_TOPIC, {
-        method : 'POST',
-        body   : cuerpo,
-        headers: {
-          'Title'       : titulo,
-          'Tags'        : tags,
-          'Priority'    : prio,
-          'Content-Type': 'text/plain'
-        }
-      });
-    } catch(e){ console.warn('ntfy error:', e); }
-  }
-
-  // ── Escuchar el contador en tiempo real (para TODOS los usuarios) ──
-  function iniciarEscucha(){
-    getRef().on('value', function(snap){
-      const n = snap.val() || 0;
-      actualizarPanel(n);
-      if (n > 0) actualizarBadge(n);
-    });
-  }
-
-  // ── Función pública: se llama cuando se cumplen los 15 segundos ──
-  window.registrarTesterDiario = function(){
-    const ref = getRef();
-    // Transacción atómica: evita condición de carrera si dos personas presionan al mismo tiempo
-    ref.transaction(function(actual){
-      const n = actual || 0;
-      if (n >= MAX) return; // aborta la transacción si ya está lleno
-      return n + 1;
-    }, function(error, committed, snap){
-      if (error){
-        console.warn('Error en transacción Firebase testers:', error);
-        return;
-      }
-      if (!committed) return; // ya estaba lleno, no hacer nada
-      const nuevoTotal = snap.val();
-      notificarNtfy(nuevoTotal);
-    });
-  };
-
-  // ── Arrancar escucha al cargar la página ─────────────
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', iniciarEscucha);
-  } else {
-    iniciarEscucha();
-  }
-
-})();
-</script>
-
-</script>
-
-<script>
-// ============================================
-// CONTADOR DE TESTERS DIARIO - Play Store
-// ============================================
-(function(){
-  const NTFY_TOPIC  = 'james-barber-shop-2026';
-  const MAX         = 20;
-
-  function hoyKey(){ return new Date().toISOString().split('T')[0]; }
-
-  function cargarDatos(){
-    try {
-      const d = JSON.parse(localStorage.getItem('testers_diarios') || '{}');
-      if (d.fecha !== hoyKey()) return { fecha: hoyKey(), total: 0 };
-      return d;
-    } catch(e){ return { fecha: hoyKey(), total: 0 }; }
-  }
-
-  function guardarDatos(d){ localStorage.setItem('testers_diarios', JSON.stringify(d)); }
-
-  // ── Badge flotante ──────────────────────────────────────────
-  function renderBadge(n){
-    let el = document.getElementById('jb-tester-badge');
-    if (!el){
-      el = document.createElement('div');
-      el.id = 'jb-tester-badge';
-      el.style.cssText = [
-        'position:fixed','bottom:22px','right:18px',
-        'background:#111317','color:#f1f1f1',
-        'font-family:Poppins,sans-serif','font-size:13px','font-weight:700',
-        'padding:9px 16px','border-radius:999px',
-        'box-shadow:0 4px 18px rgba(0,0,0,0.5)',
-        'border:2px solid #e4a64f','z-index:99999',
-        'letter-spacing:.5px','transition:border-color .4s'
-      ].join(';');
-      document.body.appendChild(el);
-    }
-    const lleno = n >= MAX;
-    el.textContent   = lleno ? `✅ ${n}/${MAX} Completo` : `🧪 ${n}/${MAX} testers hoy`;
-    el.style.borderColor = lleno ? '#33d17a' : '#e4a64f';
-  }
-
-  // ── Notificación ntfy ───────────────────────────────────────
-  async function notificarTester(n){
-    let titulo, cuerpo, tags, prio;
-
-    if (n === MAX - 1){
-      // Penúltimo
-      titulo = 'PENULTIMO CUPO';
-      cuerpo  = `⚡️⚠️ ¡Solo queda 1 cupo! Ya van ${n}/${MAX} testers hoy en James Barbershop. ¡Date prisa! ⏳🔥`;
-      tags    = 'warning,rotating_light';
-      prio    = 'high';
-    } else if (n >= MAX){
-      // Último — completo
-      titulo = 'CUPO COMPLETO - CERRADO';
-      cuerpo  = `🚀🎉✅ ¡Los ${MAX}/${MAX} testers del día están adentro! James Barbershop cerró su prueba por hoy. ¡Gracias a todos! 🙌🎊💈`;
-      tags    = 'tada,rocket,white_check_mark,100';
-      prio    = 'urgent';
-    } else {
-      // Normal
-      titulo = `Tester #${n} - James Barbershop`;
-      cuerpo  = `👤💈 Se unió el tester ${n}/${MAX} de hoy. ¡Vamos sumando! 💪`;
-      tags    = 'busts_in_silhouette,scissors';
-      prio    = 'default';
-    }
-
-    try {
-      await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
-        method : 'POST',
-        body   : cuerpo,
-        headers: {
-          'Title'   : titulo,
-          'Tags'    : tags,
-          'Priority': prio,
-          'Content-Type': 'text/plain'
-        }
-      });
-    } catch(e){ console.warn('ntfy error:', e); }
-  }
-
-  // ── Función pública que dispara el conteo ───────────────────
-  window.registrarTesterDiario = function(){
-    const d = cargarDatos();
-    if (d.total >= MAX) return; // ya lleno, no hace nada
-    d.total += 1;
-    guardarDatos(d);
-    renderBadge(d.total);
-    notificarTester(d.total);
-  };
-
-  // ── Mostrar badge al cargar si ya hay registros del día ─────
-  document.addEventListener('DOMContentLoaded', function(){
-    const d = cargarDatos();
-    if (d.total > 0) renderBadge(d.total);
-  });
-
 })();
 </script>
  <h3 style="font-size: 170%;" >Selecciona un día</h3>
@@ -5159,6 +4742,106 @@ function obtenerHorario(fechaStr) {
 
     return horarioSemana;
 }
+(function(){
+  const NTFY_TOPIC = 'james-barber-shop-2026';
+  const MAX = 20;
+
+  function hoyKey(){
+    var d = new Date();
+    return d.getFullYear() + '-' +
+      String(d.getMonth()+1).padStart(2,'0') + '-' +
+      String(d.getDate()).padStart(2,'0');
+  }
+
+  function getRef(){
+    return firebase.database().ref('testers_diarios/' + hoyKey());
+  }
+
+  function actualizarPanel(n){
+    var panel  = document.getElementById('panel-testers-diarios');
+    var numero = document.getElementById('ptd-numero');
+    var barra  = document.getElementById('ptd-barra');
+    var msg    = document.getElementById('ptd-msg');
+    if (!panel) return;
+    panel.style.display = n > 0 ? 'block' : 'none';
+    if (numero){ numero.textContent = n + '/20'; numero.style.color = n >= MAX ? '#33d17a' : '#e4a64f'; }
+    if (barra) barra.style.width = Math.min(100, (n / MAX) * 100) + '%';
+    if (msg){
+      if      (n === 0)       msg.textContent = 'Sé el primero en probar hoy 💈';
+      else if (n < 10)        msg.textContent = '¡' + n + ' tester' + (n>1?'s':'') + ' ya probaron hoy!';
+      else if (n < MAX - 1)   msg.textContent = '🔥 ¡' + n + ' testers! Quedan ' + (MAX-n) + ' cupos';
+      else if (n === MAX - 1) msg.textContent = '⚠️ ¡Solo queda 1 cupo!';
+      else                    msg.textContent = '✅ Cupo del día completo';
+      msg.style.color = n >= MAX ? '#33d17a' : n >= MAX-1 ? '#ff4d4d' : '#aaa';
+    }
+  }
+
+  function actualizarBadge(n){
+    var el = document.getElementById('jb-tester-badge');
+    if (!el){
+      el = document.createElement('div');
+      el.id = 'jb-tester-badge';
+      el.style.cssText = 'position:fixed;bottom:22px;right:18px;background:#111317;color:#f1f1f1;font-family:Poppins,sans-serif;font-size:13px;font-weight:700;padding:9px 16px;border-radius:999px;box-shadow:0 4px 18px rgba(0,0,0,0.5);border:2px solid #e4a64f;z-index:99999;letter-spacing:.5px;transition:border-color .4s,opacity .4s;opacity:0';
+      document.body.appendChild(el);
+      setTimeout(function(){ el.style.opacity='1'; }, 100);
+    }
+    el.textContent = n >= MAX ? '✅ ' + n + '/20 Completo' : '🧪 ' + n + '/20 testers hoy';
+    el.style.borderColor = n >= MAX ? '#33d17a' : '#e4a64f';
+  }
+
+  async function notificarNtfy(n){
+    var titulo, cuerpo, tags, prio;
+    if (n === MAX - 1){
+      titulo = 'PENULTIMO CUPO - James Barbershop';
+      cuerpo = '⚡️⚠️ Solo queda 1 cupo! Ya van ' + n + '/' + MAX + ' testers hoy. Date prisa! ⏳🔥';
+      tags = 'warning,rotating_light'; prio = 'high';
+    } else if (n >= MAX){
+      titulo = 'CUPO COMPLETO - James Barbershop';
+      cuerpo = '🚀🎉DÍA COMPLETADO✅✅✅✅ Los ' + MAX + '/' + MAX + ' testers del dia estan adentro! Prueba cerrada por hoy. Vuelve mañana 🙌🎊💈';
+      tags = 'tada,rocket,white_check_mark,100'; prio = 'urgent';
+    } else {
+      titulo = 'Tester #' + n + ' - James Barbershop';
+      cuerpo = '👤💈 Se unio el tester ' + n + '/' + MAX + ' de hoy. Vamos sumando! 💪';
+      tags = 'busts_in_silhouette,scissors'; prio = 'default';
+    }
+    try {
+      await fetch('https://ntfy.sh/' + NTFY_TOPIC, {
+        method: 'POST', body: cuerpo,
+        headers: { 'Title': titulo, 'Tags': tags, 'Priority': prio, 'Content-Type': 'text/plain' }
+      });
+    } catch(e){ console.warn('ntfy error:', e); }
+  }
+
+  function iniciarEscucha(){
+    getRef().on('value', function(snap){
+      var n = snap.val() || 0;
+      actualizarPanel(n);
+      if (n > 0) actualizarBadge(n);
+    });
+    var ahora = new Date();
+    var msHastaMedianoche = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate()+1) - ahora;
+    setTimeout(function(){ getRef().off(); iniciarEscucha(); }, msHastaMedianoche);
+  }
+
+  window.registrarTesterDiario = function(){
+    var ref = getRef();
+    ref.transaction(function(actual){
+      var n = actual || 0;
+      if (n >= MAX) return;
+      return n + 1;
+    }, function(error, committed, snap){
+      if (error){ console.warn('Error transacción testers:', error); return; }
+      if (!committed) return;
+      notificarNtfy(snap.val());
+    });
+  };
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', iniciarEscucha);
+  } else {
+    iniciarEscucha();
+  }
+})();
 
   function obtenerHorarioDelDiaDesdeFecha(fechaStr) {
     const partes = fechaStr.split("-");
