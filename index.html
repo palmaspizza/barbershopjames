@@ -356,10 +356,88 @@ async function notificarNuevaReserva(datosReserva) {
   <button onclick="activarModoDemo()" style="background:linear-gradient(135deg,#e4a64f,#ff6f00); color:white; border:none; padding:12px 24px; border-radius:10px; font-size:22px; font-weight:bold; cursor:pointer; width:100%;">
   <br>  PROBAR APLICACIÓN <br><br> (solo toma 15 segundos de tu tiempo)
   </button>
-  <button onclick="document.getElementById('banner-demo').style.display='none'" style="background:transparent; color:#666; border:none; padding:10px; font-size:13px; cursor:pointer; margin-top:6px; width:100%;">
+  <button hidden onclick="document.getElementById('banner-demo').style.display='none'" style="background:transparent; color:#666; border:none; padding:10px; font-size:13px; cursor:pointer; margin-top:6px; width:100%;">
     Soy cliente real, cerrar
   </button>
-</div><script>// ============================================
+</div>
+<!-- CONTADOR VISIBLE DE TESTERS DIARIOS -->
+<div id="panel-testers-diarios" style="
+  display:block;
+  background:#111317;
+  border:1.5px solid #e4a64f;
+  border-radius:18px;
+  padding:20px;
+  max-width:360px;
+  margin:16px auto;
+  text-align:center;
+  font-family:'Poppins',sans-serif;
+">
+  <div style="font-size:11px; color:#888; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px;">
+    Testers de hoy
+  </div>
+  <div style="font-size:42px; font-weight:700; color:#e4a64f;" id="ptd-numero">0/20</div>
+  <div style="margin:12px auto; background:#1e1f24; border-radius:999px; height:8px; max-width:260px; overflow:hidden;">
+    <div id="ptd-barra" style="height:100%; width:0%; background:linear-gradient(90deg,#e4a64f,#ff6f00); border-radius:999px; transition:width .6s ease;"></div>
+  </div>
+  <div id="ptd-msg" style="font-size:13px; color:#888; margin-top:8px;">Sé el primero en probar hoy 💈</div>
+</div>
+
+<script>
+// ── Actualiza el panel visible en la página ─────────────────────
+(function(){
+  const MAX = 20;
+
+  function hoyKey(){ return new Date().toISOString().split('T')[0]; }
+
+  function getTotalHoy(){
+    try {
+      const d = JSON.parse(localStorage.getItem('testers_diarios') || '{}');
+      return d.fecha === hoyKey() ? (d.total || 0) : 0;
+    } catch(e){ return 0; }
+  }
+
+  function actualizarPanel(){
+    const panel  = document.getElementById('panel-testers-diarios');
+    const numero = document.getElementById('ptd-numero');
+    const barra  = document.getElementById('ptd-barra');
+    const msg    = document.getElementById('ptd-msg');
+    if (!panel) return;
+
+    const n = getTotalHoy();
+
+    // Mostrar panel solo si ya hay al menos 1 tester hoy
+    panel.style.display = n > 0 ? 'block' : 'none';
+
+    if (numero) numero.textContent = `${n}/20`;
+    if (barra)  barra.style.width  = `${Math.min(100, (n / MAX) * 100)}%`;
+
+    if (msg){
+      if (n === 0)        msg.textContent = 'Sé el primero en probar hoy 💈';
+      else if (n < 10)    msg.textContent = `¡${n} tester${n>1?'s':''} ya probaron hoy!`;
+      else if (n < MAX-1) msg.textContent = `🔥 ¡${n} testers! Quedan ${MAX - n} cupos`;
+      else if (n === MAX-1) msg.textContent = '⚠️ ¡Solo queda 1 cupo!';
+      else                msg.textContent = '✅ Cupo del día completo';
+
+      msg.style.color = n >= MAX ? '#33d17a' : n >= MAX-1 ? '#ff4d4d' : '#aaa';
+    }
+
+    if (numero) numero.style.color = n >= MAX ? '#33d17a' : '#e4a64f';
+  }
+
+  // Exponer para que registrarTesterDiario() lo llame al subir el contador
+  const _orig = window.registrarTesterDiario;
+  window.registrarTesterDiario = function(){
+    if (typeof _orig === 'function') _orig();
+    actualizarPanel();
+  };
+
+  // Actualizar al cargar la página
+  document.addEventListener('DOMContentLoaded', actualizarPanel);
+})();
+</script>
+
+
+<script>// ============================================
 // MODO DEMO PARA TESTERS
 // ============================================
 
@@ -724,11 +802,13 @@ window.addEventListener('DOMContentLoaded', () => {
     // 🔴 CRÍTICO: MOSTRAR el botón OK (esto es lo que faltaba)
     if (btn) btn.style.display = 'block';
     
+    if (typeof window.registrarTesterDiario === 'function') window.registrarTesterDiario();
     // Hacer scroll al botón para asegurar que sea visible
     setTimeout(() => {
         if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
-    
+    // Registrar tester diario y notificar ntfy
+if (typeof registrarTesterDiario === 'function') registrarTesterDiario();
     console.log('Contador terminado, esperando que usuario presione OK');
   }
 
@@ -810,11 +890,248 @@ window.addEventListener('DOMContentLoaded', () => {
   resetVisual();
 
 })();
+// ============================================
+// CONTADOR DE TESTERS DIARIO — Firebase + ntfy
+// ============================================
+(function(){
+  const NTFY_TOPIC = 'james-barber-shop-2026';
+  const MAX = 20;
+
+  // ── Clave de hoy en formato YYYY-MM-DD (hora local) ──
+  function hoyKey(){
+    const d = new Date();
+    return d.getFullYear() + '-' +
+      String(d.getMonth()+1).padStart(2,'0') + '-' +
+      String(d.getDate()).padStart(2,'0');
+  }
+
+  // ── Referencia Firebase ──────────────────────────────
+  // Usa el mismo `db` que ya está definido en tu código
+  function getRef(){
+    return firebase.database().ref('testers_diarios/' + hoyKey());
+  }
+
+  // ── Actualizar panel visible ─────────────────────────
+  function actualizarPanel(n){
+    const panel  = document.getElementById('panel-testers-diarios');
+    const numero = document.getElementById('ptd-numero');
+    const barra  = document.getElementById('ptd-barra');
+    const msg    = document.getElementById('ptd-msg');
+
+    if (!panel) return;
+    panel.style.display = n > 0 ? 'block' : 'none';
+
+    if (numero) {
+      numero.textContent   = n + '/20';
+      numero.style.color   = n >= MAX ? '#33d17a' : '#e4a64f';
+    }
+    if (barra) barra.style.width = Math.min(100, (n / MAX) * 100) + '%';
+    if (msg){
+      if      (n === 0)        msg.textContent = 'Sé el primero en probar hoy 💈';
+      else if (n < 10)         msg.textContent = '¡' + n + ' tester' + (n>1?'s':'') + ' ya probaron hoy!';
+      else if (n < MAX - 1)    msg.textContent = '🔥 ¡' + n + ' testers! Quedan ' + (MAX-n) + ' cupos';
+      else if (n === MAX - 1)  msg.textContent = '⚠️ ¡Solo queda 1 cupo!';
+      else                     msg.textContent = '✅ Cupo del día completo';
+      msg.style.color = n >= MAX ? '#33d17a' : n >= MAX-1 ? '#ff4d4d' : '#aaa';
+    }
+  }
+
+  // ── Badge flotante ───────────────────────────────────
+  function actualizarBadge(n){
+    let el = document.getElementById('jb-tester-badge');
+    if (!el){
+      el = document.createElement('div');
+      el.id = 'jb-tester-badge';
+      el.style.cssText = [
+        'position:fixed','bottom:22px','right:18px',
+        'background:#111317','color:#f1f1f1',
+        'font-family:Poppins,sans-serif','font-size:13px','font-weight:700',
+        'padding:9px 16px','border-radius:999px',
+        'box-shadow:0 4px 18px rgba(0,0,0,0.5)',
+        'border:2px solid #e4a64f','z-index:99999',
+        'letter-spacing:.5px','transition:border-color .4s,opacity .4s',
+        'opacity:0'
+      ].join(';');
+      document.body.appendChild(el);
+      setTimeout(()=>{ el.style.opacity='1'; }, 100);
+    }
+    const lleno = n >= MAX;
+    el.textContent      = lleno ? '✅ ' + n + '/20 Completo' : '🧪 ' + n + '/20 testers hoy';
+    el.style.borderColor = lleno ? '#33d17a' : '#e4a64f';
+  }
+
+  // ── Notificación ntfy ────────────────────────────────
+  async function notificarNtfy(n){
+    let titulo, cuerpo, tags, prio;
+
+    if (n === MAX - 1){
+      titulo = 'PENULTIMO CUPO - James Barbershop';
+      cuerpo = '⚡️⚠️ Solo queda 1 cupo! Ya van ' + n + '/' + MAX + ' testers hoy. Date prisa! ⏳🔥';
+      tags   = 'warning,rotating_light';
+      prio   = 'high';
+    } else if (n >= MAX){
+      titulo = 'CUPO COMPLETO - James Barbershop';
+      cuerpo = '🚀🎉DÍA COMPLETADO✅✅✅✅ Los ' + MAX + '/' + MAX + ' testers del dia estan adentro! Prueba cerrada por hoy. Vuelve mañana 🙌🎊💈';
+      tags   = 'tada,rocket,white_check_mark,100';
+      prio   = 'urgent';
+    } else {
+      titulo = 'Tester #' + n + ' - James Barbershop';
+      cuerpo = '👤💈 Se unio el tester ' + n + '/' + MAX + ' de hoy. Vamos sumando! 💪';
+      tags   = 'busts_in_silhouette,scissors';
+      prio   = 'default';
+    }
+
+    try {
+      await fetch('https://ntfy.sh/' + NTFY_TOPIC, {
+        method : 'POST',
+        body   : cuerpo,
+        headers: {
+          'Title'       : titulo,
+          'Tags'        : tags,
+          'Priority'    : prio,
+          'Content-Type': 'text/plain'
+        }
+      });
+    } catch(e){ console.warn('ntfy error:', e); }
+  }
+
+  // ── Escuchar el contador en tiempo real (para TODOS los usuarios) ──
+  function iniciarEscucha(){
+    getRef().on('value', function(snap){
+      const n = snap.val() || 0;
+      actualizarPanel(n);
+      if (n > 0) actualizarBadge(n);
+    });
+  }
+
+  // ── Función pública: se llama cuando se cumplen los 15 segundos ──
+  window.registrarTesterDiario = function(){
+    const ref = getRef();
+    // Transacción atómica: evita condición de carrera si dos personas presionan al mismo tiempo
+    ref.transaction(function(actual){
+      const n = actual || 0;
+      if (n >= MAX) return; // aborta la transacción si ya está lleno
+      return n + 1;
+    }, function(error, committed, snap){
+      if (error){
+        console.warn('Error en transacción Firebase testers:', error);
+        return;
+      }
+      if (!committed) return; // ya estaba lleno, no hacer nada
+      const nuevoTotal = snap.val();
+      notificarNtfy(nuevoTotal);
+    });
+  };
+
+  // ── Arrancar escucha al cargar la página ─────────────
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', iniciarEscucha);
+  } else {
+    iniciarEscucha();
+  }
+
+})();
 </script>
+
 </script>
 
 <script>
+// ============================================
+// CONTADOR DE TESTERS DIARIO - Play Store
+// ============================================
+(function(){
+  const NTFY_TOPIC  = 'james-barber-shop-2026';
+  const MAX         = 20;
 
+  function hoyKey(){ return new Date().toISOString().split('T')[0]; }
+
+  function cargarDatos(){
+    try {
+      const d = JSON.parse(localStorage.getItem('testers_diarios') || '{}');
+      if (d.fecha !== hoyKey()) return { fecha: hoyKey(), total: 0 };
+      return d;
+    } catch(e){ return { fecha: hoyKey(), total: 0 }; }
+  }
+
+  function guardarDatos(d){ localStorage.setItem('testers_diarios', JSON.stringify(d)); }
+
+  // ── Badge flotante ──────────────────────────────────────────
+  function renderBadge(n){
+    let el = document.getElementById('jb-tester-badge');
+    if (!el){
+      el = document.createElement('div');
+      el.id = 'jb-tester-badge';
+      el.style.cssText = [
+        'position:fixed','bottom:22px','right:18px',
+        'background:#111317','color:#f1f1f1',
+        'font-family:Poppins,sans-serif','font-size:13px','font-weight:700',
+        'padding:9px 16px','border-radius:999px',
+        'box-shadow:0 4px 18px rgba(0,0,0,0.5)',
+        'border:2px solid #e4a64f','z-index:99999',
+        'letter-spacing:.5px','transition:border-color .4s'
+      ].join(';');
+      document.body.appendChild(el);
+    }
+    const lleno = n >= MAX;
+    el.textContent   = lleno ? `✅ ${n}/${MAX} Completo` : `🧪 ${n}/${MAX} testers hoy`;
+    el.style.borderColor = lleno ? '#33d17a' : '#e4a64f';
+  }
+
+  // ── Notificación ntfy ───────────────────────────────────────
+  async function notificarTester(n){
+    let titulo, cuerpo, tags, prio;
+
+    if (n === MAX - 1){
+      // Penúltimo
+      titulo = 'PENULTIMO CUPO';
+      cuerpo  = `⚡️⚠️ ¡Solo queda 1 cupo! Ya van ${n}/${MAX} testers hoy en James Barbershop. ¡Date prisa! ⏳🔥`;
+      tags    = 'warning,rotating_light';
+      prio    = 'high';
+    } else if (n >= MAX){
+      // Último — completo
+      titulo = 'CUPO COMPLETO - CERRADO';
+      cuerpo  = `🚀🎉✅ ¡Los ${MAX}/${MAX} testers del día están adentro! James Barbershop cerró su prueba por hoy. ¡Gracias a todos! 🙌🎊💈`;
+      tags    = 'tada,rocket,white_check_mark,100';
+      prio    = 'urgent';
+    } else {
+      // Normal
+      titulo = `Tester #${n} - James Barbershop`;
+      cuerpo  = `👤💈 Se unió el tester ${n}/${MAX} de hoy. ¡Vamos sumando! 💪`;
+      tags    = 'busts_in_silhouette,scissors';
+      prio    = 'default';
+    }
+
+    try {
+      await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+        method : 'POST',
+        body   : cuerpo,
+        headers: {
+          'Title'   : titulo,
+          'Tags'    : tags,
+          'Priority': prio,
+          'Content-Type': 'text/plain'
+        }
+      });
+    } catch(e){ console.warn('ntfy error:', e); }
+  }
+
+  // ── Función pública que dispara el conteo ───────────────────
+  window.registrarTesterDiario = function(){
+    const d = cargarDatos();
+    if (d.total >= MAX) return; // ya lleno, no hace nada
+    d.total += 1;
+    guardarDatos(d);
+    renderBadge(d.total);
+    notificarTester(d.total);
+  };
+
+  // ── Mostrar badge al cargar si ya hay registros del día ─────
+  document.addEventListener('DOMContentLoaded', function(){
+    const d = cargarDatos();
+    if (d.total > 0) renderBadge(d.total);
+  });
+
+})();
 </script>
  <h3 style="font-size: 170%;" >Selecciona un día</h3>
      
@@ -3689,6 +4006,7 @@ function alAceptarTerminos(checkbox) {
     }
 }
 </script>
+
 <!-- Checkbox con función onchange -->
 <div class="terminos-container" style="margin: 15px 0; text-align: left; padding: 12px; background: rgba(20,20,22,0.6); border-radius: 10px; border: 1px solid rgba(228,166,79,0.3);">
     <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #f1f1f1; font-size: 0.95rem; line-height: 1.4;">
