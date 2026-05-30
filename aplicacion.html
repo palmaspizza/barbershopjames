@@ -7,18 +7,15 @@
   <meta name="description" content="APLICACION PLAYSTORE"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet"/>
-  <!-- Open Graph: vista previa en WhatsApp, Instagram, Twitter, etc. -->
-<meta property="og:title"       content="Barbershop James — Únete a la prueba" />
-<meta property="og:description" content="Prueba gratis nuestra app de reservas durante 15 días. Sin costo ni compromiso." />
-<meta property="og:image"       content="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" />
-<meta property="og:url"         content="https://barbershopjames.netlify.app/aplicacion" />
-<meta property="og:type"        content="website" />
-
-<!-- WhatsApp y Twitter usan estas también -->
-<meta name="twitter:card"        content="summary_large_image" />
-<meta name="twitter:title"       content="Barbershop James — Únete a la prueba" />
-<meta name="twitter:description" content="Prueba gratis nuestra app de reservas durante 15 días." />
-<meta name="twitter:image"       content="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" />
+  <meta property="og:title"       content="Barbershop James — Únete a la prueba" />
+  <meta property="og:description" content="Prueba gratis nuestra app de reservas durante 15 días. Sin costo ni compromiso." />
+  <meta property="og:image"       content="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" />
+  <meta property="og:url"         content="https://barbershopjames.netlify.app/aplicacion" />
+  <meta property="og:type"        content="website" />
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="Barbershop James — Únete a la prueba" />
+  <meta name="twitter:description" content="Prueba gratis nuestra app de reservas durante 15 días." />
+  <meta name="twitter:image"       content="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -63,9 +60,10 @@
         #ea4335 25%, #ea4335 50%,
         #fbbc05 50%, #fbbc05 75%,
         #34a853 75%);
-      z-index: 10;
+      z-index: 200;
     }
 
+    /* ── TARJETA PRINCIPAL ── */
     .card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -133,29 +131,6 @@
       font-weight: 600;
     }
 
-    .btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      width: 100%;
-      padding: 18px 24px;
-      background: #fff;
-      border-radius: 16px;
-      text-decoration: none;
-      color: #111;
-      font-weight: 600;
-      font-size: .95rem;
-      transition: transform .18s, box-shadow .18s;
-      box-shadow: 0 6px 24px rgba(0,0,0,.35);
-      margin-bottom: 14px;
-    }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,0,0,.5); }
-    .btn:active { transform: translateY(0); }
-    .btn img { width: 26px; height: 26px; object-fit: contain; }
-    .btn-text { text-align: left; }
-    .btn-text small { display: block; font-size: .65rem; font-weight: 400; color: #666; }
-
     .tags {
       display: flex;
       justify-content: center;
@@ -171,102 +146,386 @@
       padding: 4px 12px;
     }
     .tag span { color: #34a853; }
-  /* ── Reemplaza el .btn que ya tienes ── */
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  padding: 18px 24px;
-  background: #fff;
-  border-radius: 16px;
-  text-decoration: none;
-  color: #111;
-  font-weight: 600;
-  font-size: .95rem;
-  margin-bottom: 14px;
-  position: relative;
-  z-index: 0;
-  transition: transform .18s, box-shadow .18s;
-  box-shadow:
-    0 0 18px rgba(52,168,83,.35),
-    0 0 40px rgba(52,168,83,.15),
-    0 6px 24px rgba(0,0,0,.35);
-  animation: glowPulse 2.5s ease-in-out infinite;
-}
 
-/* línea de flujo verde alrededor */
-.btn::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 18px;
-  padding: 2px;
-  background: conic-gradient(
-    from var(--angle, 0deg),
-    transparent 0%,
-    #34a853 15%,
-    #6fcf97 30%,
-    transparent 45%
-  );
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: rotateBorder 2.5s linear infinite;
-  z-index: -1;
-}
+    /* ── BOTÓN PRINCIPAL GLOW ── */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 18px 24px;
+      background: #fff;
+      border-radius: 16px;
+      text-decoration: none;
+      color: #111;
+      font-weight: 600;
+      font-size: .95rem;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 0;
+      cursor: pointer;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      transition: transform .18s, box-shadow .18s;
+      box-shadow:
+        0 0 18px rgba(52,168,83,.35),
+        0 0 40px rgba(52,168,83,.15),
+        0 6px 24px rgba(0,0,0,.35);
+      animation: glowPulse 2.5s ease-in-out infinite;
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 18px;
+      padding: 2px;
+      background: conic-gradient(
+        from var(--angle, 0deg),
+        transparent 0%, #34a853 15%, #6fcf97 30%, transparent 45%
+      );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: rotateBorder 2.5s linear infinite;
+      z-index: -1;
+    }
+    @property --angle {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+    @keyframes rotateBorder { to { --angle: 360deg; } }
+    @keyframes glowPulse {
+      0%, 100% {
+        box-shadow: 0 0 18px rgba(52,168,83,.35), 0 0 40px rgba(52,168,83,.15), 0 6px 24px rgba(0,0,0,.35);
+      }
+      50% {
+        box-shadow: 0 0 28px rgba(52,168,83,.6), 0 0 60px rgba(52,168,83,.25), 0 8px 32px rgba(0,0,0,.4);
+      }
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(52,168,83,.7), 0 0 70px rgba(52,168,83,.3), 0 12px 36px rgba(0,0,0,.5); }
+    .btn:active { transform: translateY(0); }
+    .btn img { width: 26px; height: 26px; object-fit: contain; }
+    .btn-text { text-align: left; }
+    .btn-text small { display: block; font-size: .65rem; font-weight: 400; color: #666; }
 
-@property --angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
+    /* ── FOOTER ── */
+    .site-footer {
+      margin-top: 32px;
+      text-align: center;
+      max-width: 480px;
+      width: 100%;
+      z-index: 1;
+    }
+    .footer-trust {
+      font-size: .78rem;
+      color: #34a853;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .footer-links a {
+      font-size: .73rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .18s;
+      cursor: pointer;
+    }
+    .footer-links a:hover { color: var(--gold); }
+    .footer-sep { color: rgba(228,166,79,.25); font-size: .73rem; }
+    .footer-copy { font-size: .67rem; color: #2e2b28; }
 
-@keyframes rotateBorder {
-  to { --angle: 360deg; }
-}
+    /* ── MODAL OVERLAY (wizard + legal) ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.88);
+      backdrop-filter: blur(7px);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
 
-@keyframes glowPulse {
-  0%, 100% {
-    box-shadow:
-      0 0 18px rgba(52,168,83,.35),
-      0 0 40px rgba(52,168,83,.15),
-      0 6px 24px rgba(0,0,0,.35);
-  }
-  50% {
-    box-shadow:
-      0 0 28px rgba(52,168,83,.6),
-      0 0 60px rgba(52,168,83,.25),
-      0 8px 32px rgba(0,0,0,.4);
-  }
-}
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px 32px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 40px 80px rgba(0,0,0,.7);
+      animation: rise .4s cubic-bezier(.22,1,.36,1) both;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
 
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 0 36px rgba(52,168,83,.7),
-    0 0 70px rgba(52,168,83,.3),
-    0 12px 36px rgba(0,0,0,.5);
-}
-.btn:active { transform: translateY(0); }</style>
+    /* Scroll suave en modal de texto legal */
+    .modal.legal-modal {
+      text-align: left;
+      padding: 32px 28px;
+    }
+
+    .btn-close {
+      position: absolute;
+      top: 16px; right: 18px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: color .18s;
+      z-index: 10;
+    }
+    .btn-close:hover { color: var(--text); }
+
+    /* ── WIZARD de pasos ── */
+    .step-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background .3s, transform .3s;
+    }
+    .dot.active { background: var(--gold); transform: scale(1.3); }
+    .dot.done   { background: #34a853; }
+
+    .step-label {
+      font-size: .72rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .step-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.7rem;
+      letter-spacing: .06em;
+      color: var(--text);
+      margin-bottom: 20px;
+      line-height: 1.1;
+    }
+    .step-img-wrap {
+      margin-bottom: 20px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 40px rgba(0,0,0,.5);
+    }
+    .step-img-wrap img {
+      width: 100%;
+      display: block;
+      max-height: 100%;
+      object-fit: cover;
+      object-position: top;
+      border: 15px solid var(--border);
+    }
+    .step-desc {
+      font-size: .88rem;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 28px;
+    }
+    .step-desc strong { color: var(--text); font-weight: 600; }
+
+    .btn-continue {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border: none;
+      border-radius: 14px;
+      color: #111;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: .95rem;
+      cursor: pointer;
+      transition: transform .18s, box-shadow .18s;
+      box-shadow: 0 6px 24px rgba(228,166,79,.35);
+    }
+    .btn-continue:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(228,166,79,.5); }
+    .btn-continue:active { transform: translateY(0); }
+
+    .btn-final {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 16px 24px;
+      background: #fff;
+      border: none;
+      border-radius: 14px;
+      color: #111;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: .95rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform .18s, box-shadow .18s;
+      box-shadow: 0 0 18px rgba(52,168,83,.4), 0 6px 24px rgba(0,0,0,.35);
+      position: relative;
+      z-index: 0;
+      animation: glowPulse 2.5s ease-in-out infinite;
+    }
+    .btn-final::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 16px;
+      background: conic-gradient(from var(--angle, 0deg), transparent 0%, #34a853 15%, #6fcf97 30%, transparent 45%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: rotateBorder 2.5s linear infinite;
+      z-index: -1;
+    }
+    .btn-final:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(52,168,83,.7), 0 12px 36px rgba(0,0,0,.5); }
+    .btn-final img { width: 24px; height: 24px; object-fit: contain; }
+
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    /* ── CONTENIDO LEGAL ── */
+    .legal-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .legal-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: rgba(228,166,79,.12);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .legal-header h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: .06em;
+      color: var(--gold);
+      line-height: 1.1;
+    }
+    .legal-header p {
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .legal-section {
+      margin-bottom: 22px;
+    }
+    .legal-section h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: .05em;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .legal-section p, .legal-section li {
+      font-size: .82rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .legal-section ul {
+      padding-left: 18px;
+      margin-top: 6px;
+    }
+    .legal-section li { margin-bottom: 4px; }
+    .legal-section strong { color: var(--text); }
+
+    .legal-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 18px 0;
+    }
+    .legal-date {
+      font-size: .72rem;
+      color: #3a3632;
+      text-align: center;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(228,166,79,.08);
+    }
+    /* ── DOWNLOAD HIGHLIGHT ANIMATION ── */
+    .download-highlight {
+      color: cyan;
+      text-decoration: underline;
+      text-decoration-color: cyan;
+      text-underline-offset: 4px;
+      text-decoration-thickness: 2px;
+      position: relative;
+      display: inline;
+      background-image: linear-gradient(90deg, cyan, #00ffcc, cyan);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shineText 2s linear infinite, underlinePulse 1.5s ease-in-out infinite;
+    }
+    .download-highlight::after {
+      content: "";
+      position: absolute;
+      left: 0; bottom: -3px;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, cyan, #00ffcc, #4285f4, cyan);
+      background-size: 200% auto;
+      animation: underlineSlide 2s linear infinite;
+      border-radius: 2px;
+    }
+    @keyframes shineText {
+      0%   { background-position: 200% center; }
+      100% { background-position: -200% center; }
+    }
+    @keyframes underlineSlide {
+      0%   { background-position: 200% center; }
+      100% { background-position: -200% center; }
+    }
+    @keyframes underlinePulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .65; }
+    }
+  </style>
 </head>
 <body>
 
   <div class="g-bar"></div>
 
+  <!-- TARJETA PRINCIPAL -->
   <div class="card">
     <img class="logo"
       src="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg"
       alt="James Barbershop"/>
-
     <h1>Barbershop James</h1>
     <div class="sub">Aplicación en Google Play Store</div>
-
     <div class="divider"></div>
-
     <div class="explain">
       <p>
         Estamos lanzando nuestra app de reservas y necesitamos personas que
@@ -277,15 +536,13 @@
       </p>
     </div>
 
-    <a class="btn"
-      href="https://play.google.com/apps/testing/jamesbarber.app.reservas?hl=es"
-      target="_blank">
+    <button class="btn" onclick="openWizard()">
       <img src="https://www.freepnglogos.com/uploads/play-store-logo-png/google-play-store-logo-png-transparent-png-logos-10.png" alt="Play Store"/>
       <div class="btn-text">
         <small>Descargar gratis en</small>
         <span>Google Play — Unirme a la prueba</span>
       </div>
-    </a>
+    </button>
 
     <div class="tags">
       <div class="tag"><span>✓</span> Gratis</div>
@@ -295,5 +552,325 @@
     </div>
   </div>
 
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <p class="footer-trust">🔒 Descarga segura desde Google Play — Enlace oficial</p>
+    <div class="footer-links">
+      <a onclick="openLegal('privacy')">Política de Privacidad</a>
+      <span class="footer-sep">·</span>
+      <a onclick="openLegal('terms')">Términos y Condiciones</a>
+    </div>
+    <p class="footer-copy">© 2026 Barbershop James. Todos los derechos reservados.</p>
+  </footer>
+
+  <!-- ── MODAL WIZARD ── -->
+  <div class="modal-overlay" id="modal-wizard">
+    <div class="modal">
+      <button class="btn-close" onclick="closeAll()">✕</button>
+      <div class="step-dots">
+        <div class="dot active" id="dot-1"></div>
+        <div class="dot" id="dot-2"></div>
+      </div>
+
+      <!-- Paso 1 -->
+      <div class="step-panel active" id="step-1">
+        <div class="step-label">Paso 1 de 2</div>
+        <div class="step-title">TE APARECERÁ ESTO</div>
+        <div class="step-img-wrap">
+          <img src="imagenbecome1.jpg" alt="Pantalla Become a tester"/>
+        </div>
+        <p class="step-desc">
+          Al abrir el enlace verás esta pantalla en inglés.<br/>
+          Solo presiona el botón azul que dice <br><strong>"Become a tester"</strong>.
+        </p>
+        <button class="btn-continue" onclick="goStep(2)">
+          Entendido — Continuar &nbsp;→
+        </button>
+      </div>
+
+      <!-- Paso 2 -->
+      <div class="step-panel" id="step-2">
+        <div class="step-label">Paso 2 de 2</div>
+        <div class="step-title">TE APARECERÁ</div>
+        <div class="step-title">¡Ya eres tester!</div>
+        <div class="step-img-wrap">
+          <img src="imagenyouaretester.jpg" alt="Pantalla You are a tester"/>
+        </div>
+        <p class="step-desc">
+          Aparecerá esta pantalla que dice <strong>"You are a tester"</strong>.<br/>
+       <br>   <span style="font-size: 165%; color: #fff;">Después presiona <br>'<span class="download-highlight">download it on Google Play</span>.' </span> 
+        </p>
+        <div class="step-img-wrap" style="margin-top:14px">
+          <img src="downloadplay.jpg" alt="Botón download it on Google Play"/>
+        </div>
+        <a class="btn-final"
+           href="https://play.google.com/apps/testing/jamesbarber.app.reservas?hl=es"
+           target="_blank"
+           onclick="closeAll()">
+          <img src="https://www.freepnglogos.com/uploads/play-store-logo-png/google-play-store-logo-png-transparent-png-logos-10.png" alt="Play Store"/>
+          Abrir Google Play — Unirme
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL POLÍTICA DE PRIVACIDAD ── -->
+  <div class="modal-overlay" id="modal-privacy">
+    <div class="modal legal-modal">
+      <button class="btn-close" onclick="closeAll()">&#x2715;</button>
+
+      <div class="legal-header">
+        <div class="legal-icon">&#x1F512;</div>
+        <div>
+          <h2>Política de Privacidad</h2>
+          <p>James Barbershop — App de Reservas</p>
+        </div>
+      </div>
+
+      <div class="legal-section">
+        <h3>1. Introducción y responsable</h3>
+        <p>Esta Política describe cómo <strong>James Barbershop</strong> recopila, utiliza, almacena y protege la información personal de los usuarios de nuestra aplicación móvil y sitio web de reservas.</p>
+        <p style="margin-top:8px">Al utilizar el Servicio, aceptas los términos aquí descritos.</p>
+        <ul style="margin-top:10px">
+          <li><strong>Responsable:</strong> James Barbershop</li>
+          <li><strong>País:</strong> Chile</li>
+          <li><strong>Contacto:</strong> +56 9 5452 7837 (WhatsApp)</li>
+          <li><strong>Dirección:</strong> Alejandro Fleming 9099, Chile</li>
+        </ul>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>2. Datos personales que recopilamos</h3>
+        <ul>
+          <li><strong>Nombre y Apellido</strong> — identificar al cliente (obligatorio)</li>
+          <li><strong>Fecha y hora de la reserva</strong> — gestionar el calendario (obligatorio)</li>
+          <li><strong>Servicios seleccionados</strong> — conocer las necesidades del cliente (opcional)</li>
+          <li><strong>Total del servicio ($)</strong> — registro interno del valor (opcional)</li>
+          <li><strong>Timestamp e ID de reserva</strong> — metadatos técnicos automáticos</li>
+        </ul>
+        <p style="margin-top:10px"><strong>No recopilamos:</strong> correo electrónico, contraseñas, teléfono del cliente, ubicación, datos bancarios ni tarjetas de crédito.</p>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>3. Finalidad del uso de los datos</h3>
+        <ul>
+          <li>Crear, modificar y cancelar citas en el calendario</li>
+          <li>Notificar al barbero vía ntfy.sh al realizarse o cancelarse una reserva</li>
+          <li>Redirigir al cliente a WhatsApp para confirmar su cita</li>
+          <li>Mostrar al cliente su historial en "Mis Reservas"</li>
+          <li>Limpieza automática de reservas con más de 1 año de antigüedad</li>
+        </ul>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>4. Almacenamiento local en el dispositivo</h3>
+        <p>La app Android guarda de forma local y privada mediante SharedPreferences: lista de reservas, nombre del usuario y código único de reserva. Permanecen solo en tu dispositivo y se eliminan desinstalando la app o desde <em>Ajustes → Apps</em>.</p>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>5. Almacenamiento en la nube</h3>
+        <p>Los datos se almacenan en <strong>Firebase Realtime Database</strong> (Google LLC) con cifrado HTTPS/TLS. La app también usa localStorage del navegador para reservas temporales sin conexión. Política de Firebase: firebase.google.com/support/privacy</p>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>6. Servicios de terceros</h3>
+        <ul>
+          <li><strong>Firebase (Google LLC)</strong> — Base de datos de reservas</li>
+          <li><strong>ntfy.sh</strong> — Notificaciones push al administrador</li>
+          <li><strong>WhatsApp (Meta)</strong> — Confirmación de reservas</li>
+          <li><strong>Google Fonts</strong> — Tipografías (puede registrar tu IP)</li>
+        </ul>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>7. Cancelación y eliminación de datos</h3>
+        <p>Al cancelar desde "Mis Reservas", la reserva se elimina de Firebase y del dispositivo, y se notifica al barbero. Para eliminar todos tus datos, contáctanos al <strong>+56 9 5452 7837</strong> indicando nombre y fecha de reserva. Las reservas con más de 1 año se eliminan automáticamente.</p>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>8. Derechos de los usuarios</h3>
+        <p>Conforme a la <strong>Ley N° 19.628</strong> de Chile tienes derecho a: acceso, rectificación, eliminación, portabilidad y oposición al tratamiento de tus datos. Contáctanos al <strong>+56 9 5452 7837</strong>.</p>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>9. Seguridad</h3>
+        <ul>
+          <li>Toda comunicación usa HTTPS/TLS</li>
+          <li>Panel de administración protegido con clave exclusiva</li>
+          <li>Sin contraseñas ni datos bancarios almacenados</li>
+          <li>Limpieza automática de datos con más de 1 año</li>
+        </ul>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>10. Menores de edad</h3>
+        <p>La app no está dirigida a menores de 18 años. Si detectamos datos de un menor, los eliminaremos de inmediato.</p>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>11. Transferencia internacional</h3>
+        <p>Al usar Firebase y ntfy.sh, los datos pueden procesarse fuera de Chile (incluido EE. UU.). Google garantiza protección mediante sus términos de servicio internacionales.</p>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>Resumen rápido</h3>
+        <ul>
+          <li>&#x2713; Datos usados solo para tu reserva</li>
+          <li>&#x2713; No vendemos tus datos a terceros</li>
+          <li>&#x2713; Sin publicidad ni tracking</li>
+          <li>&#x2713; Puedes eliminar tus datos en cualquier momento</li>
+          <li>&#x2713; Datos eliminados automáticamente tras 1 año</li>
+          <li>&#x2717; No almacenamos tarjetas ni datos bancarios</li>
+          <li>&#x2717; No creamos perfiles de usuario</li>
+          <li>&#x2717; No enviamos spam ni publicidad</li>
+        </ul>
+      </div>
+
+      <p class="legal-date">Última actualización: Mayo 2026 · Cumple con la Ley N° 19.628 de Chile y estándares de Google Play Store.<br/>© 2026 James Barbershop · Todos los derechos reservados.</p>
+    </div>
+  </div>
+
+  <!-- ── MODAL TÉRMINOS Y CONDICIONES ── -->
+  <div class="modal-overlay" id="modal-terms">
+    <div class="modal legal-modal">
+      <button class="btn-close" onclick="closeAll()">&#x2715;</button>
+
+      <div class="legal-header">
+        <div class="legal-icon">&#x1F4CB;</div>
+        <div>
+          <h2>Términos y Condiciones</h2>
+          <p>James Barbershop — App de Reservas</p>
+        </div>
+      </div>
+
+      <div class="legal-section">
+        <h3>1. Aceptación de los Términos</h3>
+        <p>Al utilizar el sistema de reservas de <strong>James Barbershop</strong>, aceptas estos términos y condiciones en su totalidad. Si no estás de acuerdo, por favor no utilices nuestros servicios.</p>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>2. Sistema de Reservas</h3>
+        <ul>
+          <li>Las reservas se realizan a través de la app, con confirmación vía WhatsApp.</li>
+          <li>El horario mostrado es tentativo hasta confirmación.</li>
+          <li>James Barbershop se reserva el derecho de modificar o cancelar reservas por fuerza mayor.</li>
+        </ul>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>3. Cancelaciones y Modificaciones</h3>
+        <ul>
+          <li>Cancelaciones tardías o no-presentación pueden resultar en restricción futura del servicio.</li>
+          <li>Para cancelar, usa la sección "Mis Reservas" o contáctanos directamente.</li>
+        </ul>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>4. Precios y Servicios</h3>
+        <ul>
+          <li>Los precios mostrados son referenciales y pueden variar según la complejidad del servicio.</li>
+          <li>El pago se realiza directamente en el local. No se procesa ningún pago a través de la plataforma.</li>
+          <li>Las promociones están sujetas a disponibilidad y términos específicos.</li>
+        </ul>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>5. Responsabilidades del Cliente</h3>
+        <ul>
+          <li>Proporcionar información verídica (nombre, contacto).</li>
+          <li>Llegar puntualmente. Retrasos mayores a <strong>15 minutos</strong> pueden cancelar la reserva.</li>
+          <li>Respetar las políticas del establecimiento.</li>
+        </ul>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>6. Limitación de Responsabilidad</h3>
+        <p>James Barbershop no se responsabiliza por:</p>
+        <ul>
+          <li>Fallas técnicas del sistema que impidan la confirmación de una reserva.</li>
+          <li>Pérdida de datos por causas de fuerza mayor.</li>
+          <li>Daños indirectos derivados del uso del servicio.</li>
+        </ul>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>7. Almacenamiento Local de Datos</h3>
+        <p>La aplicación guarda en el dispositivo del usuario, de forma local y privada:</p>
+        <ul>
+          <li>Datos de reservas realizadas (nombre, fecha, hora, servicios)</li>
+          <li>Nombre del usuario para facilitar búsquedas futuras</li>
+          <li>Código único de reserva generado para el dispositivo</li>
+        </ul>
+        <p style="margin-top:8px">Estos datos permanecen únicamente en el dispositivo y pueden eliminarse desinstalando la app o desde los ajustes del sistema.</p>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>8. Propiedad Intelectual</h3>
+        <p>Todo el contenido de este sitio y la app (logos, imágenes, textos, diseño) es propiedad de <strong>James Barbershop</strong>. Queda prohibida su reproducción sin autorización expresa.</p>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>9. Modificaciones</h3>
+        <p>Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios entrarán en vigor al publicarse en esta página.</p>
+      </div>
+      <div class="legal-divider"></div>
+
+      <div class="legal-section">
+        <h3>10. Contacto</h3>
+        <ul>
+          <li>&#x1F4F1; <strong>WhatsApp:</strong> +56 9 5452 7837</li>
+          <li>&#x1F4CD; <strong>Local:</strong> Alejandro Fleming 9099, Chile</li>
+        </ul>
+      </div>
+
+      <p class="legal-date">Última actualización: Mayo 2026<br/>© 2026 James Barbershop · Todos los derechos reservados.</p>
+    </div>
+  </div>
+
+  <script>
+    function openWizard() {
+      goStep(1);
+      document.getElementById('modal-wizard').classList.add('active');
+    }
+    function openLegal(type) {
+      closeAll();
+      document.getElementById('modal-' + type).classList.add('active');
+    }
+    function closeAll() {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+    }
+    function goStep(n) {
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.dot').forEach(d => { d.classList.remove('active', 'done'); });
+      document.getElementById('step-' + n).classList.add('active');
+      document.getElementById('dot-' + n).classList.add('active');
+      for (let i = 1; i < n; i++) document.getElementById('dot-' + i).classList.add('done');
+    }
+    // Cerrar al click fuera
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) closeAll();
+      });
+    });
+  </script>
 </body>
 </html>
