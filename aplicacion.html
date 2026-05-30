@@ -921,6 +921,17 @@
         if (e.target === this) closeAll();
       });
     });
+    // Scroll al botón continuar al abrir paso 1
+const origOpenWizard = openWizard;
+window.openWizard = function() {
+  origOpenWizard();
+  setTimeout(() => {
+    const btnContinuar = document.querySelector('#step-1 .btn-continue');
+    if (btnContinuar) {
+      btnContinuar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 400);
+}
   </script>
 </body>
 </html>
