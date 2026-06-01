@@ -6549,7 +6549,7 @@ function reservarHoraConNotificacion() {
     <input type="text" id="beta-nombre" placeholder="Tu nombre" autocomplete="off" />
     <br>
     <p style="color: lime;">Whatsapp:</p>
-<input maxlength="12" type="tel" id="beta-telefono" placeholder="12345678" autocomplete="off" value="+569" />
+<input maxlength="12" type="tel" minlength="12" id="beta-telefono" placeholder="12345678" autocomplete="off" value="+569" />
 
 <script>
 document.getElementById('beta-telefono').addEventListener('keydown', function(e) {
@@ -6574,12 +6574,38 @@ document.getElementById('beta-telefono').addEventListener('keypress', function(e
   }
 });
 </script>
-    <p id="beta-error">Por favor completa ambos campos.</p>
-    <button onclick="confirmarBeta()">Listo, entrar a la app ✅</button>
-  <button onclick="saltarBeta()" style="width:100%; padding:10px; margin-top:8px; background:transparent; color:#666; border:1px solid #2a2b30; border-radius:10px; font-size:0.9rem; cursor:pointer; font-family:'Poppins',sans-serif;">No gracias, prefiero no dejar mis datos</button></div>
+    <p id="beta-error" color="red">Por favor completa ambos campos.</p>
+    <button type="button" onclick="pedirConfirmacion()">Listo, entrar a la app ✅</button>
+  <button type="button" onclick="saltarBeta()" style="width:100%; padding:10px; margin-top:8px; background:transparent; color:#666; border:1px solid #2a2b30; border-radius:10px; font-size:0.9rem; cursor:pointer; font-family:'Poppins',sans-serif;">No gracias, prefiero no dejar mis datos</button></div>
 </div>
+<style>
+  @keyframes shakeBeta {
+    0%   { transform: translateX(0); }
+    20%  { transform: translateX(-8px); }
+    40%  { transform: translateX(8px); }
+    60%  { transform: translateX(-6px); }
+    80%  { transform: translateX(6px); }
+    100% { transform: translateX(0); }
+  }
+  @keyframes flashBeta {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+  }
+  #beta-error {
+    color: #ff4d4d;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin: 4px 0 10px;
+    padding: 8px 12px;
+    background: rgba(255, 77, 77, 0.1);
+    border: 1px solid rgba(255, 77, 77, 0.4);
+    border-radius: 8px;
+    animation: shakeBeta 0.4s ease, flashBeta 0.8s ease 2;
+  }
+</style>
 
 <script>
+
 (function(){
   if (!localStorage.getItem('beta_registrado')) {
     document.getElementById('beta-overlay').style.display = 'flex';
@@ -6605,6 +6631,21 @@ if (!nombre || telefono.replace(/\D/g, '').length < 10) {
   localStorage.setItem('beta_telefono', telefono);
 
   document.getElementById('beta-overlay').style.display = 'none';
+}    function pedirConfirmacion() {
+  const nombre   = document.getElementById('beta-nombre').value.trim();
+  const telefono = document.getElementById('beta-telefono').value.trim();
+  const error    = document.getElementById('beta-error');
+
+  if (!nombre || telefono.replace(/\D/g, '').length < 10) {
+    error.style.display = 'block';
+    return;
+  }
+  error.style.display = 'none';
+
+  const confirmado = confirm('¿Tu número de WhatsApp es ' + telefono + '? Asegúrate de que sea correcto para poder contactarte.');
+  if (confirmado) {
+    confirmarBeta();
+  }
 }
 </script>
 </body>
