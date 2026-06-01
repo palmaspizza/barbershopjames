@@ -375,7 +375,7 @@ async function notificarNuevaReserva(datosReserva) {
   <div style="font-size:11px; color:#888; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px;">
     Testers de hoy
   </div>
-  <div style="font-size:42px; font-weight:700; color:#e4a64f;" id="ptd-numero">0/20</div>
+  <div style="font-size:42px; font-weight:700; color:#e4a64f;" id="ptd-numero">0/13</div>
   <div style="margin:12px auto; background:#1e1f24; border-radius:999px; height:8px; max-width:260px; overflow:hidden;">
     <div id="ptd-barra" style="height:100%; width:0%; background:linear-gradient(90deg,#e4a64f,#ff6f00); border-radius:999px; transition:width .6s ease;"></div>
   </div>
@@ -4744,7 +4744,8 @@ function obtenerHorario(fechaStr) {
 }
 (function(){
   const NTFY_TOPIC = 'james-barber-shop-2026';
-  const MAX = 20;
+    const MAX = 13;   // se marca completo en 13
+  const TOPE = 15;
 
   function hoyKey(){
     var d = new Date();
@@ -4764,7 +4765,7 @@ function obtenerHorario(fechaStr) {
     var msg    = document.getElementById('ptd-msg');
     if (!panel) return;
     panel.style.display = n > 0 ? 'block' : 'none';
-    if (numero){ numero.textContent = n + '/20'; numero.style.color = n >= MAX ? '#33d17a' : '#e4a64f'; }
+    if (numero){ numero.textContent = n + '/' + MAX; numero.style.color = n >= MAX ? '#33d17a' : '#e4a64f'; }
     if (barra) barra.style.width = Math.min(100, (n / MAX) * 100) + '%';
     if (msg){
       if      (n === 0)       msg.textContent = 'Sé el primero en probar hoy 💈';
@@ -4785,23 +4786,35 @@ function obtenerHorario(fechaStr) {
       document.body.appendChild(el);
       setTimeout(function(){ el.style.opacity='1'; }, 100);
     }
-    el.textContent = n >= MAX ? '✅ ' + n + '/20 Completo' : '🧪 ' + n + '/20 testers hoy';
+    el.textContent = n >= MAX ? '✅ ' + n + '/' + MAX + ' Completo' : '🧪 ' + n + '/' + MAX + ' testers hoy';
     el.style.borderColor = n >= MAX ? '#33d17a' : '#e4a64f';
   }
 
-  async function notificarNtfy(n){
+async function notificarNtfy(n){
+    // Después del tope deja de notificar
+    if (n > TOPE) return;
+
     var titulo, cuerpo, tags, prio;
-    if (n === MAX - 1){
-      titulo = 'PENULTIMO CUPO - James Barbershop';
-      cuerpo = '⚡️⚠️ Solo queda 1 cupo! Ya van ' + n + '/' + MAX + ' testers hoy. Date prisa! ⏳🔥';
+    var betaNombre   = localStorage.getItem('beta_nombre')   || '?';
+    var betaTelefono = localStorage.getItem('beta_telefono') || '?';
+    var numeroLimpio = betaTelefono.replace(/\D/g, '');
+var infoBeta = '\n👤 ' + betaNombre + '\n📱 https://wa.me/' + numeroLimpio;
+
+if (n === MAX - 1){
+      titulo = 'ULTIMO CUPO - James Barbershop';
+      cuerpo = '⚡️⚠️ Este es el ULTIMO cupo! Ya van ' + n + '/' + MAX + ' testers hoy. ⏳🔥' + infoBeta;
       tags = 'warning,rotating_light'; prio = 'high';
-    } else if (n >= MAX){
+    } else if (n === MAX){
       titulo = 'CUPO COMPLETO - James Barbershop';
-      cuerpo = '🚀🎉DÍA COMPLETADO✅✅✅✅ Los ' + MAX + '/' + MAX + ' testers del dia estan adentro! Prueba cerrada por hoy. Vuelve mañana 🙌🎊💈';
+      cuerpo = '🚀🎉DÍA COMPLETADO✅✅✅✅ Los ' + MAX + '/' + MAX + ' testers del dia estan adentro! Prueba cerrada por hoy. Vuelve mañana 🙌🎊💈' + infoBeta;
       tags = 'tada,rocket,white_check_mark,100'; prio = 'urgent';
+    } else if (n > MAX && n <= TOPE){
+      titulo = 'MAS QUE SUPERADO - James Barbershop';
+      cuerpo = '🏆🔥 ¡MÁS QUE SUPERADO. EXCELENTE! Tester #' + n + ' de ' + TOPE + infoBeta;
+      tags = 'trophy,fire,100'; prio = 'urgent';
     } else {
       titulo = 'Tester #' + n + ' - James Barbershop';
-      cuerpo = '👤💈 Se unio el tester ' + n + '/' + MAX + ' de hoy. Vamos sumando! 💪';
+      cuerpo = '👤💈 Se unio el tester ' + n + '/' + MAX + ' de hoy. Vamos sumando! 💪' + infoBeta;
       tags = 'busts_in_silhouette,scissors'; prio = 'default';
     }
     try {
@@ -4827,7 +4840,7 @@ function obtenerHorario(fechaStr) {
     var ref = getRef();
     ref.transaction(function(actual){
       var n = actual || 0;
-      if (n >= MAX) return;
+      if (n >= TOPE) return;
       return n + 1;
     }, function(error, committed, snap){
       if (error){ console.warn('Error transacción testers:', error); return; }
@@ -6249,8 +6262,7 @@ function marcarHorasOcupadasPorDuracion() {
     }
   }
 </style>
-</body>
-</html>
+
 <script>
   (function(){
     let ctx;
@@ -6448,6 +6460,126 @@ function reservarHoraConNotificacion() {
   document.getElementById('mesSiguiente').addEventListener('click', () => {
     console.log('Mes siguiente');
   });
+</script>
+<!-- ============================================
+     MODAL ONBOARDING BETA - SOLO PRIMERA VEZ
+     ============================================ -->
+<style>
+  #beta-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 99999;
+    font-family: 'Poppins', sans-serif;
+  }
+  #beta-box {
+    background: #111317;
+    border: 1.5px solid #e4a64f;
+    border-radius: 18px;
+    padding: 32px 24px;
+    max-width: 340px;
+    width: 90%;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 30px rgba(228,166,79,0.15);
+    text-align: center;
+  }
+  #beta-box h2 {
+    margin: 0 0 10px;
+    font-size: 1.2rem;
+    color: #e4a64f;
+    font-family: 'Playfair Display', serif;
+  }
+  #beta-box p {
+    margin: 0 0 20px;
+    font-size: 0.93rem;
+    color: #aaa;
+    line-height: 1.6;
+  }
+  #beta-box input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #2a2b30;
+    border-radius: 10px;
+    font-size: 1rem;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+    background: #1a1b1f;
+    color: #f1f1f1;
+    outline: none;
+    transition: border 0.2s;
+    font-family: 'Poppins', sans-serif;
+  }
+  #beta-box input:focus { border-color: #e4a64f; }
+  #beta-box input::placeholder { color: #555; }
+  #beta-box button {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #e4a64f, #ff6f00);
+    color: #111;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: opacity 0.2s;
+  }
+  #beta-box button:hover { opacity: 0.88; }
+  #beta-error {
+    color: #ff4d4d;
+    font-size: 0.82rem;
+    margin: -6px 0 10px;
+    display: none;
+  }
+</style>
+
+<div id="beta-overlay" style="display:none;">
+  <div id="beta-box">
+    <h2>Testers = Probadores <br>de la aplicación</h2>
+<p>
+  <span style="color: #e4a64f;">Te escribiremos por WhatsApp cada día para recordarte entrar a la app.</span>
+  <span style="color: #f1f1f1;"> Necesitamos que entren al menos </span>
+  <span style="color: #33d17a;">12 personas por día</span>
+  <span style="color: #f1f1f1;"> para que ese día cuente — y así hasta completar </span>
+  <span style="color: #33d17a;">15 días.</span>
+  <span style="color: #f1f1f1;"> ¡Tu participación hace que esto funcione! 💈 </span>
+  <span style="color: orange;">Solo te pediremos estos datos esta vez.</span>
+</p>
+    <input type="text" id="beta-nombre" placeholder="Tu nombre" autocomplete="off" />
+    <br>
+    <p style="color: lime;">Whatsapp:</p>
+    <input type="tel" id="beta-telefono" placeholder="Tu WhatsApp (ej: +56912345678)" autocomplete="off" value="+569" />
+    <p id="beta-error">Por favor completa ambos campos.</p>
+    <button onclick="confirmarBeta()">Listo, entrar a la app ✅</button>
+  <button onclick="saltarBeta()" style="width:100%; padding:10px; margin-top:8px; background:transparent; color:#666; border:1px solid #2a2b30; border-radius:10px; font-size:0.9rem; cursor:pointer; font-family:'Poppins',sans-serif;">No gracias, prefiero no dejar mis datos</button></div>
+</div>
+
+<script>
+(function(){
+  if (!localStorage.getItem('beta_registrado')) {
+    document.getElementById('beta-overlay').style.display = 'flex';
+  }
+})();
+function saltarBeta() {
+  localStorage.setItem('beta_registrado', '1');
+  document.getElementById('beta-overlay').style.display = 'none';
+}
+function confirmarBeta() {
+  const nombre   = document.getElementById('beta-nombre').value.trim();
+  const telefono = document.getElementById('beta-telefono').value.trim();
+  const error    = document.getElementById('beta-error');
+
+if (!nombre || telefono.replace(/\D/g, '').length < 10) {
+    error.style.display = 'block';
+    return;
+  }
+  error.style.display = 'none';
+
+  localStorage.setItem('beta_registrado', '1');
+  localStorage.setItem('beta_nombre', nombre);
+  localStorage.setItem('beta_telefono', telefono);
+
+  document.getElementById('beta-overlay').style.display = 'none';
+}
 </script>
 </body>
 </html>
