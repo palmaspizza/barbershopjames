@@ -382,7 +382,9 @@ async function notificarNuevaReserva(datosReserva) {
   <div id="ptd-msg" style="font-size:13px; color:#888; margin-top:8px;">Sé el primero en probar hoy 💈</div>
 </div>
 
+<script>
 
+</script>
 
 <script>// ============================================
 // MODO DEMO PARA TESTERS
@@ -6547,7 +6549,31 @@ function reservarHoraConNotificacion() {
     <input type="text" id="beta-nombre" placeholder="Tu nombre" autocomplete="off" />
     <br>
     <p style="color: lime;">Whatsapp:</p>
-    <input type="tel" id="beta-telefono" placeholder="Tu WhatsApp (ej: +56912345678)" autocomplete="off" value="+569" />
+<input maxlength="12" type="tel" id="beta-telefono" placeholder="12345678" autocomplete="off" value="+569" />
+
+<script>
+document.getElementById('beta-telefono').addEventListener('keydown', function(e) {
+  const prefix = '+569';
+  if (this.value.length <= prefix.length && (e.key === 'Backspace' || e.key === 'Delete')) {
+    e.preventDefault();
+  }
+});
+document.getElementById('beta-telefono').addEventListener('input', function() {
+  const prefix = '+569';
+  if (!this.value.startsWith(prefix)) {
+    this.value = prefix;
+  }
+});
+document.getElementById('beta-telefono').addEventListener('focus', function() {
+  const len = this.value.length;
+  this.setSelectionRange(len, len);
+});
+document.getElementById('beta-telefono').addEventListener('keypress', function(e) {
+  if (!/[0-9]/.test(e.key)) {
+    e.preventDefault();
+  }
+});
+</script>
     <p id="beta-error">Por favor completa ambos campos.</p>
     <button onclick="confirmarBeta()">Listo, entrar a la app ✅</button>
   <button onclick="saltarBeta()" style="width:100%; padding:10px; margin-top:8px; background:transparent; color:#666; border:1px solid #2a2b30; border-radius:10px; font-size:0.9rem; cursor:pointer; font-family:'Poppins',sans-serif;">No gracias, prefiero no dejar mis datos</button></div>
