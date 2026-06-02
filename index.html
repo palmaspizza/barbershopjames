@@ -515,15 +515,16 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // Si ya interactuó hoy, mostrar solo el banner (no el contador)
     if (ultimaInteraccion === hoy) {
-        const banner = document.getElementById('banner-demo');
-        const contador = document.getElementById('contador-tester');
-        
-        if (banner) banner.style.display = 'block';
-        if (contador) contador.style.display = 'none';
-        
-        // Limpiar modo demo para permitir nueva interacción
-        localStorage.removeItem('modo_demo_activo');
-    } 
+    const banner = document.getElementById('banner-demo');
+    const contador = document.getElementById('contador-tester');
+    
+    if (banner) banner.style.display = 'block';
+    if (contador) contador.style.display = 'none';
+    
+    // Bloquear completamente el contador para hoy
+    localStorage.removeItem('modo_demo_activo');
+    window.arrancarContadorDemo = function(){ return; }; // ← ESTO ES LO NUEVO
+}
     // Si nunca ha elegido, mostrar banner normal
     else if (!yaEligio) {
         document.getElementById('banner-demo').style.display = 'block';
@@ -767,8 +768,10 @@ window.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('ultima_interaccion_demo', new Date().toDateString());
   };
 
+
   function finalizarContador(){
     clearInterval(tmr); tmr = null; estaActivo = false;
+    localStorage.setItem('ultima_interaccion_demo', new Date().toDateString());
     if (num){ num.textContent = '15'; num.style.color = '#33d17a'; }
     if (ring){ ring.style.stroke = '#33d17a'; ring.style.strokeDashoffset = '0'; }
     if (msg){ msg.style.color = '#33d17a'; msg.style.fontWeight = '600'; msg.textContent = '¡Listo! Presiona el botón para continuar'; }
@@ -4938,6 +4941,35 @@ if (n === MAX - 1){
   }
 
   window.registrarTesterDiario = function(){
+    var telefono = localStorage.getItem('beta_telefono') || '';
+    var telKey   = telefono.replace(/\D/g, '');
+    var hoy      = hoyKey();
+
+    if (!telKey) {
+      // No tiene teléfono registrado (saltó el formulario) → igual suma, sin bloqueo personal
+      _sumarTester();
+      return;
+    }
+
+    // Verificar en Firebase si este teléfono ya contó hoy
+    var refPersonal = firebase.database().ref('testers_personales/' + telKey + '/' + hoy);
+    refPersonal.once('value', function(snap){
+      if (snap.exists()) {
+        // Ya contó hoy → bloqueo silencioso, no suma ni notifica
+        console.log('Tester ya registrado hoy, bloqueado por Firebase.');
+        return;
+      }
+      // Primera vez hoy → marcar en Firebase y luego sumar
+      refPersonal.set({ timestamp: Date.now() }, function(err){
+        if (err) {
+          console.warn('Error guardando tester personal, se suma igual:', err);
+        }
+        _sumarTester();
+      });
+    });
+  };
+
+  function _sumarTester(){
     var ref = getRef();
     ref.transaction(function(actual){
       var n = actual || 0;
@@ -4948,7 +4980,7 @@ if (n === MAX - 1){
       if (!committed) return;
       notificarNtfy(snap.val());
     });
-  };
+  }
 
   if (document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', iniciarEscucha);
@@ -6714,23 +6746,61 @@ function saltarBeta() {
   localStorage.setItem('beta_registrado', '1');
   document.getElementById('beta-overlay').style.display = 'none';
 }
-function confirmarBeta() {
+async function confirmarBeta() {
   const nombre   = document.getElementById('beta-nombre').value.trim();
   const telefono = document.getElementById('beta-telefono').value.trim();
   const error    = document.getElementById('beta-error');
 
-if (!nombre || telefono.replace(/\D/g, '').length < 10) {
+  if (!nombre || telefono.replace(/\D/g, '').length < 10) {
     error.style.display = 'block';
     return;
   }
   error.style.display = 'none';
 
-  localStorage.setItem('beta_registrado', '1');
-  localStorage.setItem('beta_nombre', nombre);
-  localStorage.setItem('beta_telefono', telefono);
+  const hoy    = new Date().toISOString().split('T')[0];
+  const telKey = telefono.replace(/\D/g, '');
+  const refBeta = db.ref('beta_registros/' + telKey + '/' + hoy);
 
-  document.getElementById('beta-overlay').style.display = 'none';
-}    function pedirConfirmacion() {
+  try {
+    const snap = await refBeta.once('value');
+
+    // Guardar en localStorage SIEMPRE (registrado o no)
+    localStorage.setItem('beta_registrado', '1');
+    localStorage.setItem('beta_nombre', nombre);
+    localStorage.setItem('beta_telefono', telefono);
+    document.getElementById('beta-overlay').style.display = 'none';
+
+    if (snap.exists()) {
+      // Ya registró hoy — cerrar sin notificar ntfy
+      return;
+    }
+
+    // Primera vez hoy — guardar en Firebase y notificar
+    await refBeta.set({ nombre: nombre, timestamp: Date.now() });
+
+    fetch('https://ntfy.sh/' + NTFY_TOPIC, {
+      method: 'POST',
+      body: '🧑 Nuevo tester registrado\n👤 ' + nombre + '\n📱 ' + telefono + '\n📅 ' + hoy,
+      headers: {
+        'Title': 'Nuevo Tester - Barberia',
+        'Priority': 'default',
+        'Tags': 'wave'
+      }
+    }).catch(function(e) {
+      console.warn('ntfy falló (no crítico):', e);
+    });
+
+  } catch (err) {
+    // Si Firebase falla por red, igual cerramos el overlay para no bloquear al usuario
+    console.error('Error Firebase en confirmarBeta:', err);
+    localStorage.setItem('beta_registrado', '1');
+    localStorage.setItem('beta_nombre', nombre);
+    localStorage.setItem('beta_telefono', telefono);
+    document.getElementById('beta-overlay').style.display = 'none';
+  }
+}
+
+async function pedirConfirmacion() {
   const nombre   = document.getElementById('beta-nombre').value.trim();
   const telefono = document.getElementById('beta-telefono').value.trim();
   const error    = document.getElementById('beta-error');
@@ -6743,7 +6813,7 @@ if (!nombre || telefono.replace(/\D/g, '').length < 10) {
 
   const confirmado = confirm('¿Tu número de WhatsApp es ' + telefono + '? Asegúrate de que sea correcto para poder contactarte.');
   if (confirmado) {
-    confirmarBeta();
+    await confirmarBeta();
   }
 }
 </script>
