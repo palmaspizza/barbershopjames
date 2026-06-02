@@ -352,10 +352,109 @@ async function notificarNuevaReserva(datosReserva) {
 <!-- BANNER MODO DEMO - Solo visible si no es cliente real -->
 <div id="banner-demo" style=" margin:10px; padding:18px; background:#1a1b1f; border:1.5px solid #e4a64f; border-radius:14px; text-align:center;">
   <p style="color:#e4a64f; font-size:16px; font-weight:bold; margin-bottom:8px;">¿Eres tester de esta app?</p>
-  <p style="color:#aaa; font-size:13px; margin-bottom:14px;">Activa el Modo Demo para probar sin hacer reservas reales</p>
-  <button onclick="activarModoDemo()" style="background:linear-gradient(135deg,#e4a64f,#ff6f00); color:white; border:none; padding:12px 24px; border-radius:10px; font-size:22px; font-weight:bold; cursor:pointer; width:100%;">
-  <br>  PROBAR APLICACIÓN <br><br> (solo toma 15 segundos de tu tiempo)
+ <div id="aviso-probar" style="
+  max-width: 360px;
+  margin: 0 auto 12px auto;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, rgba(228,166,79,0.15), rgba(255,111,0,0.1));
+  border: 1.5px solid #e4a64f;
+  border-radius: 14px;
+  text-align: center;
+  animation: pulsarAviso 2s ease-in-out infinite;
+">
+  <p style="margin:0; font-family:'Poppins',sans-serif; font-size:0.88rem; line-height:1.6;">
+    <span style="font-size:1.1rem;">⚠️</span>
+    <span style="color:#e4a64f; font-weight:700;"> Para que tu participación cuente</span>
+    <span style="color:#f1f1f1;">, debes presionar </span>
+    <span style="color:#33d17a; font-weight:700;">"PROBAR APLICACIÓN"</span>
+    <span style="color:#f1f1f1;"> cada vez que entres.</span>
+    <br>
+    <span style="color:#aaa; font-size:0.82rem;">⏱️ Solo toma 10 segundos</span>
+  </p>
+</div>
+
+<style>
+
+@keyframes latirBtn {
+  0%,100% { transform: scale(1); box-shadow: 0 0 15px rgba(228,166,79,0.3); }
+  50%      { transform: scale(1.1); box-shadow: 0 0 35px rgba(255,111,0,0.8); }
+}
+@keyframes saltarIcono {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+
+.btn-probar-wrap {
+  position: relative;
+  width: 100%;
+  padding: 6px;
+}
+.btn-probar-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: conic-gradient(from 0deg, #e4a64f, #ff6f00, #fff7e6, #ff6f00, #e4a64f);
+  animation: girarAura 2s linear infinite;
+  z-index: 0;
+}
+.btn-probar-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  background: #111317;
+  border-radius: 15px;
+  z-index: 1;
+}
+.btn-probar {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #e4a64f, #ff6f00);
+  color: #111;
+  border: none;
+  border-radius: 14px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: 'Poppins', sans-serif;
+  animation: latirBtn 2s ease-in-out infinite;
+  transition: transform 0.1s ease;
+}
+.btn-probar:active {
+  transform: scale(0.97);
+}
+.btn-probar .icono {
+  display: inline-block;
+  margin-right: 8px;
+  animation: saltarIcono 2s ease-in-out infinite;
+}
+.btn-probar .sub {
+  display: block;
+  font-size: 0.73rem;
+  font-weight: 500;
+  color: rgba(0,0,0,0.55);
+  margin-top: 4px;
+  text-transform: none;
+  letter-spacing: 0.3px;
+}
+@keyframes pulsarAviso {
+  0%, 100% { box-shadow: 0 0 8px rgba(228,166,79,0.3); }
+  50%       { box-shadow: 0 0 22px rgba(228,166,79,0.7); }
+}
+
+
+</style>
+
+<div class="btn-probar-wrap">
+  <button onclick="activarModoDemo()" class="btn-probar">
+    <span class="icono">✂️</span>PROBAR APLICACIÓN
+    <span class="sub">solo toma 10 segundos de tu tiempo</span>
   </button>
+</div>
   <button hidden onclick="document.getElementById('banner-demo').style.display='none'" style="background:transparent; color:#666; border:none; padding:10px; font-size:13px; cursor:pointer; margin-top:6px; width:100%;">
     Soy cliente real, cerrar
   </button>
@@ -404,7 +503,7 @@ function activarModoDemo() {
         arrancarContadorDemo();
     }
 
-    mostrarToastCliente('✅ Modo Demo activado. Espera 15 segundos.');
+    mostrarToastCliente('✅ Modo Demo activado. Espera 10 segundos.');
 }
 // Mostrar banner solo si el usuario nunca eligió
 window.addEventListener('DOMContentLoaded', () => {
@@ -628,7 +727,7 @@ window.addEventListener('DOMContentLoaded', () => {
 </div>
 <script>
 (function(){
-  const TOTAL = 15;
+  const TOTAL = 10;
   const circ = 2 * Math.PI * 80;
   let seg = TOTAL;
   let tmr = null;
@@ -649,7 +748,7 @@ window.addEventListener('DOMContentLoaded', () => {
     clearInterval(tmr); tmr = null; estaActivo = false; scrollRealizado = false; seg = TOTAL;
     if (ring){ ring.style.stroke = '#e4a64f'; ring.style.strokeDashoffset = '0'; }
     if (num){ num.style.color = '#f1f1f1'; num.textContent = TOTAL; }
-    if (msg){ msg.style.color = '#aaa'; msg.style.fontSize = '15px'; msg.textContent = 'Mantén la app abierta un momento...'; }
+    if (msg){ msg.style.color = 'orange'; msg.style.fontSize = '15px'; msg.textContent = 'Mantén la app abierta un momento...'; }
     if (btn) btn.style.display = 'none';
     setOffset(TOTAL);
   }
@@ -6548,7 +6647,7 @@ function reservarHoraConNotificacion() {
 </p>
     <input type="text" id="beta-nombre" placeholder="Tu nombre" autocomplete="off" />
     <br>
-    <p style="color: lime;">Whatsapp:</p>
+    <p style="color: lime;">Whatsapp: (de este celular)</p>
 <input maxlength="12" type="tel" minlength="12" id="beta-telefono" placeholder="12345678" autocomplete="off" value="+569" />
 
 <script>
@@ -6576,7 +6675,7 @@ document.getElementById('beta-telefono').addEventListener('keypress', function(e
 </script>
     <p id="beta-error" color="red">Por favor completa ambos campos.</p>
     <button type="button" onclick="pedirConfirmacion()">Listo, entrar a la app ✅</button>
-  <button type="button" onclick="saltarBeta()" style="width:100%; padding:10px; margin-top:8px; background:transparent; color:#666; border:1px solid #2a2b30; border-radius:10px; font-size:0.9rem; cursor:pointer; font-family:'Poppins',sans-serif;">No gracias, prefiero no dejar mis datos</button></div>
+  </div>
 </div>
 <style>
   @keyframes shakeBeta {
