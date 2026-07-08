@@ -941,16 +941,20 @@
                             <div class="horario-box">
                                 <h4>Lunes a Sábado</h4>
                                 <div class="horas-tags" id="horario-semana-tags"></div>
-                                <button class="btn-editar-horario" onclick="editarHorario('semana')">Editar</button>
+                                <button class="btn-editar-horario" onclick="editarHorario('semana')">Editar HORARIO</button>
                             </div>
                             <div class="horario-box">
                                 <h4>Domingos</h4>
                                 <div class="horas-tags" id="horario-domingo-tags"></div>
-                                <button class="btn-editar-horario" onclick="editarHorario('domingo')">Editar</button>
-                            </div>
+                                <button class="btn-editar-horario" onclick="editarHorario('domingo')">Editar HORARIO</button>
+                        <br><br><br>    <button class="btn-accion" id="btn-toggle-domingos" onclick="toggleTodosDomingos()" style="width:100%;">
+                            🔒 Cerrar TODOS los domingos
+                        </button>    </div>
                         </div>
                     </div>
                     
+           
+
                     <div class="config-section">
                         <h3>Acciones globales</h3>
                         <div class="acciones-globales">
@@ -987,24 +991,29 @@
                         <!-- Se genera con JS -->
                     </div>
                     
-                    <!-- Panel de acciones del día seleccionado -->
-                    <div class="panel-dia" id="panel-dia" style="display: none;">
-                        <h3>Acciones para <span id="dia-seleccionado-texto"></span></h3>
-                        <div class="acciones-dia">
-                            <button class="btn-accion btn-cerrar-dia" id="btn-cerrar-dia" onclick="toggleDiaCerrado()">
-                                🔒 Cerrar día
-                            </button>
-                            <button class="btn-accion btn-abrir-dia" id="btn-abrir-dia" onclick="toggleDiaCerrado()">
-                                🔓 Abrir día
-                            </button>
-                            <button class="btn-accion btn-ver-horarios" onclick="editarHorarioEspecifico()">
-                                ⚙️ Horario especial
-                            </button>
-                        </div>
-                        
-                        <!-- Lista de reservas del día seleccionado -->
-                        <div id="reservas-dia-seleccionado" style="margin-top: 20px;">
-                            <!-- Se llena con JS -->
+                    <!-- Modal de reservas del día seleccionado -->
+                    <div class="modal-overlay" id="panel-dia">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Reservas <span id="dia-seleccionado-texto"></span></h3>
+                                <button class="btn-cerrar-modal" style="color: red; font-size: 330%;" onclick="cerrarPanelDia()">×</button>
+                            </div>
+                            <div class="acciones-dia">
+                                <button class="btn-accion btn-cerrar-dia" id="btn-cerrar-dia" onclick="toggleDiaCerrado()">
+                                    🔒 Cerrar día
+                                </button>
+                                <button class="btn-accion btn-abrir-dia" id="btn-abrir-dia" onclick="toggleDiaCerrado()">
+                                    🔓 Abrir día
+                                </button>
+                                <button class="btn-accion btn-ver-horarios" onclick="editarHorarioEspecifico()">
+                                    ⚙️ Horario especial
+                                </button>
+                            </div>
+
+                            <!-- Lista de reservas del día seleccionado -->
+                            <div id="reservas-dia-seleccionado" style="margin-top: 20px;">
+                                <!-- Se llena con JS -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1020,7 +1029,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Editar Horario</h3>
-                <button class="btn-cerrar-modal" onclick="cerrarModal()">×</button>
+                <button class="btn-cerrar-modal" style="color: red; font-size: 330%;"  onclick="cerrarModal()">×</button>
             </div>
             <p style="color: #888; margin-bottom: 15px;" id="modal-horario-subtitulo">
                 Selecciona las horas disponibles
@@ -1132,6 +1141,7 @@
         
         function inicializarPanel() {
             document.getElementById('fecha-hoy').textContent = formatearFechaLarga(new Date());
+            renderBotonDomingos();
             
             // Cargar datos de Firebase
             cargarDatos();
@@ -1161,6 +1171,7 @@
                 diasSemanaCerrados = snapshot.val() || [];
                 renderDiasSemanaConfig();
                 renderCalendario();
+                renderBotonDomingos();
             });
             
             db.ref('config/horarioSemana').on('value', snapshot => {
@@ -1330,7 +1341,7 @@
         
         function renderPanelDia() {
             const panel = document.getElementById('panel-dia');
-            panel.style.display = 'block';
+            panel.classList.add('active');
             
             const fecha = new Date(diaSeleccionado);
             const diaSemana = fecha.getDay();
@@ -1370,6 +1381,10 @@
             }
         }
         
+        function cerrarPanelDia() {
+            document.getElementById('panel-dia').classList.remove('active');
+        }
+
         function toggleDiaCerrado() {
             const esCerrado = diasCerrados.includes(diaSeleccionado);
             
@@ -1426,6 +1441,33 @@
             }
             
             db.ref('config/diasSemanaCerrados').set(nuevoArray);
+        }
+        
+        function toggleTodosDomingos() {
+            const estaCerrado = diasSemanaCerrados.includes(0);
+            const mensaje = estaCerrado
+                ? '¿Abrir TODOS los domingos?'
+                : '¿Cerrar TODOS los domingos?';
+            
+            if (!confirm(mensaje)) return;
+            
+            toggleDiaSemana(0);
+            mostrarToast(estaCerrado ? 'Domingos abiertos' : 'Domingos cerrados');
+        }
+        
+        function renderBotonDomingos() {
+            const btn = document.getElementById('btn-toggle-domingos');
+            if (!btn) return;
+            
+            const estaCerrado = diasSemanaCerrados.includes(0);
+            
+            if (estaCerrado) {
+                btn.textContent = '🔓 Abrir TODOS los domingos';
+                btn.style.background = 'var(--barber-green)';
+            } else {
+                btn.textContent = '🔒 Cerrar TODOS los domingos';
+                btn.style.background = 'var(--barber-red)';
+            }
         }
         
         // ============================================
@@ -1617,6 +1659,10 @@ async function notificarCancelacionAdmin(reserva) {
         // Cerrar modal al hacer click fuera
         document.getElementById('modal-horario').addEventListener('click', (e) => {
             if (e.target.id === 'modal-horario') cerrarModal();
+        });
+
+        document.getElementById('panel-dia').addEventListener('click', (e) => {
+            if (e.target.id === 'panel-dia') cerrarPanelDia();
         });
 
         // ============================================
