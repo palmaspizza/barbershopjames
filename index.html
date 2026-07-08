@@ -1708,8 +1708,17 @@ ocultarContadorTemporal();
       tiempoInput.value = formatoTiempo(tiempoTotal);
       const tiempoTotalHidden = document.getElementById("tiempoTotal");
       if (tiempoTotalHidden) tiempoTotalHidden.value = tiempoTotal;
+
+      actualizarVisibilidadHoras();
     });
   });
+
+  function actualizarVisibilidadHoras() {
+    const contenedorHorarios = document.getElementById("contenedorHorarios");
+    if (contenedorHorarios) {
+      contenedorHorarios.hidden = seleccionados.length === 0;
+    }
+  }
 
 
      function enviarMensajeWhatsApp() {
@@ -1756,8 +1765,10 @@ ocultarContadorTemporal();
 
 
 
+<div id="contenedorHorarios" hidden>
 <h3 style="color: #fff      ;">Selecciona la hora</h3>
                 <div id="horariosDisponibles"></div>
+</div>
             </div>
         </div>
 <script>
@@ -5283,6 +5294,7 @@ const reservasRefMostrar = firebase.database().ref("reservas");
         function abrirVentanaHorarios(fecha) {
             tituloVentana.textContent = `${fecha}`;
             horariosDisponibles.innerHTML = "";
+            actualizarVisibilidadHoras();
             const horasReservadas = reservasPorDia[fecha] || [];
            const diaSemana = new Date(fecha).getDay(); // 0 = Domingo
    
@@ -5562,7 +5574,101 @@ const ReservaSegura = {
     color: #fff; /* El color del texto en un gris más oscuro */
     cursor: not-allowed;
     pointer-events: none; /* Esto evita que se pueda hacer clic en el día */
-}</style>
+}
+</style>
+<style>
+#serviciosTitulo {
+  position: relative;
+  display: inline-block;
+  font-size: 2em;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 12px 30px;
+  margin: 20px auto;
+  color: #fff;
+  background: linear-gradient(90deg, #ff7a1a, #ffb867, #33d17a, #2089ff, #ff7a1a);
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradienteTexto 3s ease infinite, rebote 1.2s ease-in-out infinite;
+  text-shadow: 0 0 25px rgba(255,122,26,0.5);
+}
+
+/* Marco pulsante alrededor del título */
+#serviciosTitulo::before {
+  content: "";
+  position: absolute;
+  inset: -10px -20px;
+  border: 3px solid rgba(255,122,26,0.7);
+  border-radius: 16px;
+  animation: pulsoMarco 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Destello que recorre el título */
+#serviciosTitulo::after {
+  content: "✂️";
+  position: absolute;
+  top: -18px;
+  right: -10px;
+  font-size: 0.6em;
+  animation: girarTijera 2.5s linear infinite;
+  padding: 13%;
+}
+
+@keyframes gradienteTexto {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes rebote {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-6px) scale(1.05); }
+}
+
+@keyframes pulsoMarco {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255,122,26,0.6), 0 0 20px rgba(255,122,26,0.3);
+    opacity: 0.7;
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255,122,26,0.9), 0 0 45px rgba(255,122,26,0.6);
+    opacity: 1;
+  }
+}
+
+@keyframes girarTijera {
+  0%   { transform: rotate(0deg); }
+  50%  { transform: rotate(20deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@media (max-width: 480px) {
+  #serviciosTitulo { font-size: 1.4em; padding: 10px 18px; }
+}
+</style>
+
+
+<style>
+.servicio-btn {
+  border: 2px solid #a3ff00 !important;
+  animation: bordeLima 1.2s ease-in-out infinite;
+}
+
+@keyframes bordeLima {
+  0%, 100% {
+    border-color: #a3ff00;
+    box-shadow: 0 0 6px rgba(163,255,0,0.5);
+  }
+  50% {
+    border-color: #d4ff66;
+    box-shadow: 0 0 16px rgba(163,255,0,0.9);
+  }
+}
+</style>
 
     <style>
     :root{
