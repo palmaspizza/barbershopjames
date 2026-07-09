@@ -2723,45 +2723,72 @@ function cargarReservasPorIds(reservasLocales) {
     
     const idsGuardados = reservasLocales.map(r => r.reservaId);
     
-    // Limpiar listeners antiguos si existieran para evitar duplicidad de memoria
-    db.ref('reservas').off(); 
+    // 🔴 DEBUG: Ver qué fechas tenemos guardadas
+    console.log("Reservas locales:", reservasLocales.map(r => ({id: r.reservaId, fecha: r.fecha, hora: r.hora})));
 
-    // Escuchar toda la rama de reservas en tiempo real
-    db.ref('reservas').on('value', (snapshot) => {
-        reservasClienteActuales = [];
-        
-        snapshot.forEach(childSnapshot => {
-            // Si la reserva actual pertenece a los IDs guardados en este dispositivo
-            if (idsGuardados.includes(childSnapshot.key)) {
-                const data = childSnapshot.val();
-                let fechaFinal = data.fechaOriginal || data.fecha;
-                
-                // Corrección de fechas corruptas
-                if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaFinal) && data.timestamp) {
-                    const tsDate = new Date(data.timestamp);
-                    fechaFinal = `${tsDate.getFullYear()}-${String(tsDate.getMonth() + 1).padStart(2, '0')}-${String(tsDate.getDate()).padStart(2, '0')}`;
-                }
-                
-                reservasClienteActuales.push({
-                    id: childSnapshot.key,
+    const promises = idsGuardados.map(id => 
+        db.ref(`reservas/${id}`).once('value').then(snap => {
+            if (snap.exists()) {
+                const data = snap.val();
+                // 🔴 CRÍTICO: Asegurar que la fecha de Firebase se use tal cual
+                return { 
+                    id: snap.key, 
                     ...data,
-                    fecha: fechaFinal
-                });
+                    // Si Firebase devuelve timestamp, no usarlo como fecha
+                    fecha: data.fecha || data.fechaReserva || 'fecha-no-encontrada'
+                };
             }
-        });
+            return null;
+        })
+    );
+    
+    Promise.all(promises).then(reservas => {
+    reservasClienteActuales = reservas.filter(r => r !== null).map(r => {
+        // 🔴 PRIORIDAD: Usar fechaOriginal si existe (es la más confiable)
+        // Si no, usar fecha, pero validar que no esté corrupta
+        let fechaFinal = r.fechaOriginal || r.fecha;
+        
+        // Si la fecha parece corrupta (no es YYYY-MM-DD), intentar corregir
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaFinal)) {
+            console.warn("🟡 Fecha corrupta detectada:", fechaFinal, "para reserva", r.id);
+            
+            // Intentar extraer de timestamp si existe
+            if (r.timestamp) {
+                const tsDate = new Date(r.timestamp);
+                const a = tsDate.getFullYear();
+                const m = String(tsDate.getMonth() + 1).padStart(2, '0');
+                const d = String(tsDate.getDate()).padStart(2, '0');
+                fechaFinal = `${a}-${m}-${d}`;
+                console.log("🟡 Fecha reconstruida de timestamp:", fechaFinal);
+            }
+        }
+        
+        // Actualizar el objeto con la fecha corregida
+        return { ...r, fecha: fechaFinal };
+    });
+        
+        // 🔴 DEBUG: Ver qué fechas vienen de Firebase
+        console.log("Reservas desde Firebase:", reservasClienteActuales.map(r => ({id: r.id, fecha: r.fecha, hora: r.hora})));
 
-        // Ordenar cronológicamente
-        reservasClienteActuales.sort((a, b) => {
-            const fechaA = new Date(a.fecha + 'T' + a.hora);
-            const fechaB = new Date(b.fecha + 'T' + b.hora);
-            return fechaA - fechaB;
-        });
-
-        // Renderizar automáticamente con los cambios en tiempo real
+        // Limpiar localStorage de reservas que ya no existen
+        const idsValidos = reservasClienteActuales.map(r => r.id);
+        const reservasValidas = reservasLocales.filter(r => idsValidos.includes(r.reservaId));
+        localStorage.setItem('mis_reservas_jamesbarber', JSON.stringify(reservasValidas));
+        
         if (reservasClienteActuales.length === 0) {
             if (contenedor) contenedor.innerHTML = '';
             if (sinReservas) {
                 sinReservas.classList.remove('hidden');
+                sinReservas.innerHTML = `
+                    <span class="icono-vacio">📭</span>
+                    <p>No tienes reservas activas</p>
+                    <p style="font-size: 0.85rem; color: #666; margin-top: 10px;">
+                        Tus reservas anteriores ya no están disponibles
+                    </p>
+                    <button onclick="volverABuscar()" class="btn-reintentar">
+                        Buscar con otro nombre
+                    </button>
+                `;
             }
         } else {
             if (sinReservas) sinReservas.classList.add('hidden');
