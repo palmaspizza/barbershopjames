@@ -3097,11 +3097,7 @@ async function notificarCancelacion(reserva) {
         console.error('Error enviando notificación ntfy:', error);
     }
 
-    // ✅ NUEVO: Enviar WhatsApp de cancelación
-    const numeroDestino = "56954527837";
-    const mensajeWA = `❌ *RESERVA CANCELADA* ❌\n\n❌👤 Cliente: ${reserva.nombre}\n❌📅 Fecha: ${reserva.fecha}\n❌⏰ Hora: ${reserva.hora}\n❌💈 Servicios: ${reserva.servicios || 'Sin servicio'}\n❌💰 Total: ${reserva.total || 'No especificado'}`;
-    const urlWA = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensajeWA)}`;
-    location.href = urlWA;
+    
 }
 
 // ============================================
