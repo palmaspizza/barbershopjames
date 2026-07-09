@@ -1721,22 +1721,32 @@ ocultarContadorTemporal();
   }
 
 
-     function enviarMensajeWhatsApp() {
-            const nombre = document.getElementById("nombre")?.value.trim();
-            const fecha = fechaInput.value;
-            const hora = document.getElementById("hora").value;
-            if (!nombre || !fecha || !hora) {
-                alert("Faltan datos: asegúrate de ingresar nombre, fecha y hora");
-                return;
-            }
-            const numeroDestino = "56954527837";
-            const opciones = (opcionesInput?.value || "").trim()
-            const total = (totalInput?.value || "").trim();
-            const mensaje = `Hola, soy ${nombre}. Quiero reservar un ${opciones} para el día ${fecha} a las ${hora}.\nTotal: ${total}`;
-            const url = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`;
-            window.open(url, "_blank");
-        }
+   function enviarMensajeWhatsApp() {
+    const nombre = document.getElementById("nombre")?.value.trim();
+    const fecha = fechaInput.value;
+    const hora = document.getElementById("hora").value;
 
+    if (!nombre || !fecha || !hora) {
+        alert("Faltan datos: asegúrate de ingresar nombre, fecha y hora");
+        return;
+    }
+
+    // 1. Avisamos al cliente en pantalla
+    alert("¡Tu reserva ha sido agendada con éxito!");
+
+    // 2. Cerramos el modal de reserva (si usas la función estándar de tu archivo)
+    if (typeof cerrarModalReserva === "function") {
+        cerrarModalReserva();
+    } else {
+        // Si no tienes esa función, ocultamos el modal manualmente
+        const modal = document.getElementById("modalReserva");
+        if (modal) modal.style.display = "none";
+    }
+
+    // 3. Opcional: Limpiar el formulario para que quede listo para otra reserva
+    const nombreInput = document.getElementById("nombre");
+    if (nombreInput) nombreInput.value = "";
+}
 </script>
 
 <style>
