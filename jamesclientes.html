@@ -4454,6 +4454,12 @@ async function procesarCancelacionPorURL() {
 
         await db.ref(`reservas/${idACancelar}`).remove();
 
+        // Limpia también la copia local (localStorage), o la tarjeta queda "fantasma"
+        // en la sección "Mis Reservas" aunque ya no exista en Firebase.
+        if (typeof eliminarReservaLocal === 'function') {
+            eliminarReservaLocal(idACancelar);
+        }
+
         // Reutiliza el mismo aviso a James que ya dispara la cancelación manual
         if (typeof notificarCancelacion === 'function') {
             notificarCancelacion({ ...reserva, id: idACancelar });
