@@ -1215,8 +1215,7 @@
     const reservasHoy = [];
     
     Object.entries(reservas).forEach(([id, reserva]) => {
-        console.log(`Reserva ${id}: fecha=${reserva.fecha}, hoy=${hoy}, match=${reserva.fecha === hoy}`);
-        if (reserva && reserva.fecha === hoy) {
+        if (reserva && reserva.fecha && reserva.nombre && reserva.fecha === hoy) {
             reservasHoy.push({ id, ...reserva });
         }
     });
@@ -1236,7 +1235,7 @@
     let total = 0;
     reservasHoy.forEach(r => {
         if (r.total) {
-            const num = parseInt(r.total.replace(/[^0-9]/g, '')) || 0;
+            const num = parseInt(String(r.total).replace(/[^0-9]/g, '')) || 0;
             total += num;
         }
     });
