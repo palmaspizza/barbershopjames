@@ -860,6 +860,56 @@
         <div class="admin-header">
             <h1>💈 Panel de Administración</h1>
             <div class="header-actions"><!-- ============================================
+     ESTADO DEL ASISTENTE — indicador silencioso, sin popups
+     ============================================ -->
+<style>
+  .jbEstadoCard {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(51,209,122,0.08), rgba(51,209,122,0.02));
+    border: 1px solid rgba(51,209,122,0.25); border-radius: 12px;
+    padding: 14px 18px; margin-bottom: 4px;
+  }
+  .jbEstadoDot { width: 9px; height: 9px; border-radius: 50%; background: var(--barber-green, #33d17a); flex-shrink: 0; animation: jbEstadoPulse 2s ease-in-out infinite; }
+  @keyframes jbEstadoPulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  .jbEstadoTitulo { color: #cdeedb; font-size: 0.85rem; font-weight: 600; }
+  .jbEstadoStats { display: flex; gap: 18px; margin-left: auto; flex-wrap: wrap; }
+  .jbEstadoStat { text-align: center; }
+  .jbEstadoStat .num { color: #fff; font-size: 1.05rem; font-weight: 800; display: block; }
+  .jbEstadoStat .label { color: #8fa; font-size: 0.68rem; opacity: 0.8; }
+</style>
+<div class="jbEstadoCard">
+  <span class="jbEstadoDot"></span>
+  <span class="jbEstadoTitulo" id="jbEstadoTitulo">Asistente activo</span>
+  <div class="jbEstadoStats">
+    <div class="jbEstadoStat"><span class="num" id="jbEstadoConversacionesHoy">–</span><span class="label">conversaciones hoy</span></div>
+    <div class="jbEstadoStat"><span class="num" id="jbEstadoReservasSemana">–</span><span class="label">reservas del asistente esta semana</span></div>
+  </div>
+</div>
+<script>
+window.addEventListener('load', function(){
+  function jbEsHoy(ts){
+    if(!ts) return false;
+    const d = new Date(ts), hoy = new Date();
+    return d.getFullYear()===hoy.getFullYear() && d.getMonth()===hoy.getMonth() && d.getDate()===hoy.getDate();
+  }
+  db.ref('chats').on('value', snap => {
+    const chats = snap.val() || {};
+    const hoyCount = Object.values(chats).filter(c => jbEsHoy(c.ultimaActividad)).length;
+    const el = document.getElementById('jbEstadoConversacionesHoy');
+    if(el) el.textContent = hoyCount;
+  });
+  db.ref('reservas').on('value', snap => {
+    const reservas = snap.val() || {};
+    const haceUnaSemana = Date.now() - 7*24*60*60*1000;
+    const count = Object.values(reservas).filter(r => r.origen === 'chat' && r.timestamp && r.timestamp >= haceUnaSemana).length;
+    const el = document.getElementById('jbEstadoReservasSemana');
+    if(el) el.textContent = count;
+  });
+});
+</script>
+
+<!-- ============================================
      SECCIÓN GALERÍA - ADMIN
      ============================================ -->
 <!-- ============================================
@@ -891,6 +941,262 @@
             </div>
         </div>
         
+
+<!-- ============================================
+     PANEL DE CHATS EN VIVO - ADMIN PREMIUM
+     ============================================ -->
+<style>
+  .chats-card { grid-column: 1 / -1; }
+  #jbBuscadorChats {
+    width: 100%; background: var(--barber-black); border: 1px solid rgba(228,166,79,0.3);
+    border-radius: 8px; color: #fff; padding: 9px 12px; font-family: inherit; margin-bottom: 10px;
+    font-size: 0.85rem;
+  }
+  #lista-chats { max-height: 360px; overflow-y: auto; }
+  .chat-item {
+    display: flex; align-items: center; gap: 12px;
+    background: linear-gradient(145deg, #1e1f24, #16171b);
+    border-left: 4px solid var(--barber-orange);
+    padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; cursor: pointer;
+    transition: all .2s ease; position: relative;
+  }
+  .chat-item:hover { transform: translateX(4px); }
+  .chat-item.chat-humano { border-left-color: var(--barber-red); }
+  .chat-item.chat-sin-responder { border-left-color: #ffcc00; box-shadow: inset 0 0 0 1px rgba(255,204,0,0.25); }
+  .chat-item .chat-avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--barber-orange), #ff6f00);
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+  }
+  .chat-item .chat-info { flex: 1; min-width: 0; }
+  .chat-item .chat-info h4 { color: #fff; font-size: 0.9rem; margin-bottom: 2px; display:flex; align-items:center; gap:6px; }
+  .chat-item .chat-info p { color: #888; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+  .chat-pendiente-dot { width:7px; height:7px; border-radius:50%; background:#ffcc00; flex-shrink:0; }
+  .chat-badge {
+    font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 10px;
+    text-transform: uppercase; flex-shrink: 0;
+  }
+  .chat-badge.ia { background: rgba(51,209,122,0.2); color: var(--barber-green); }
+  .chat-badge.humano { background: rgba(255,59,63,0.2); color: var(--barber-red); }
+  .chat-item-acciones { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; align-items: stretch; }
+  .btn-atender {
+    background: var(--barber-orange); color: #16130a; border: none; padding: 6px 10px;
+    border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+  }
+  .btn-eliminar-chat {
+    background: rgba(255,77,77,0.12); color: var(--barber-red); border: 1px solid rgba(255,77,77,0.3);
+    padding: 5px 10px; border-radius: 6px; font-size: 0.72rem; cursor: pointer;
+  }
+  .sin-chats { text-align: center; color: #666; padding: 30px; font-style: italic; }
+  .btn-ver-antiguos {
+    display: block; margin: 6px auto 0; background: none; border: 1px dashed rgba(228,166,79,0.35);
+    color: #b89968; padding: 8px 14px; border-radius: 8px; font-size: 0.78rem; cursor: pointer; width: 100%;
+  }
+  #lista-chats-antiguos { display: none; margin-top: 10px; border-top: 1px dashed rgba(228,166,79,0.2); padding-top: 10px; }
+  #lista-chats-antiguos.mostrar { display: block; }
+
+  /* Modal de conversación */
+  #modal-chat .modal-content { max-width: 480px; display: flex; flex-direction: column; height: 70vh; }
+  #chat-mensajes { flex: 1; overflow-y: auto; padding: 10px 0; display: flex; flex-direction: column; gap: 8px; }
+  .msg-bubble { padding: 8px 12px; border-radius: 10px; font-size: 0.85rem; max-width: 80%; }
+  .msg-cliente { background: #2b2b2b; color: #fff; align-self: flex-start; border-radius: 10px 10px 10px 3px; }
+  .msg-ia { background: rgba(32,137,255,0.2); color: #cfe6ff; align-self: flex-end; border-radius: 10px 10px 3px 10px; }
+  .msg-james { background: linear-gradient(135deg, var(--barber-orange), #ff6f00); color: #16130a; align-self: flex-end; border-radius: 10px 10px 3px 10px; font-weight: 600; }
+  #chat-modal-footer { display: flex; gap: 8px; margin-top: 10px; }
+  #chat-input-james {
+    flex: 1; background: var(--barber-black); border: 1px solid rgba(228,166,79,0.3);
+    border-radius: 8px; color: #fff; padding: 10px; font-family: inherit;
+  }
+  #chat-modal-estado { display:flex; justify-content: space-between; align-items:center; margin-bottom: 8px; }
+  .btn-reactivar-ia { background: var(--barber-blue); color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+</style>
+
+<div class="card chats-card">
+  <h2>💬 Chats en vivo (Premium)</h2>
+  <input type="text" id="jbBuscadorChats" placeholder="🔍 Buscar por nombre...">
+  <div id="lista-chats">
+    <div class="sin-chats">No hay conversaciones todavía</div>
+  </div>
+  <button class="btn-ver-antiguos" id="btnVerAntiguos" style="display:none;" onclick="jbToggleAntiguos()">Ver conversaciones anteriores (0)</button>
+  <div id="lista-chats-antiguos"></div>
+</div>
+
+<!-- Modal de conversación individual -->
+<div class="modal-overlay" id="modal-chat">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="chat-modal-titulo">Conversación</h3>
+      <button class="btn-cerrar-modal" style="color:red; font-size:330%;" onclick="cerrarModalChat()">×</button>
+    </div>
+    <div style="display: none;" id="chat-modal-estado">
+      <span id="chat-modal-badge"  class="chat-badge ia">IA</span>
+      <button class="btn-reactivar-ia" onclick="reactivarIA()">🤖 Reactivar IA</button>
+    </div>
+    <div id="chat-mensajes"></div>
+    <div id="chat-modal-footer">
+      <input id="chat-input-james" type="text" placeholder="Escribe tu respuesta...">
+      <button class="btn-login" style="width:auto; padding:10px 18px;" onclick="enviarMensajeJames()">Enviar</button>
+    </div>
+    <p style="color:#666; font-size:0.75rem; margin-top:8px;">
+      Al escribir, la IA se pausa automáticamente para esta conversación. Se reactiva sola al cerrar este chat con la ✕.
+    </p>
+  </div>
+</div>
+
+<script>
+window.addEventListener('load', function(){
+  let chatsData = {};
+  let chatAbiertoId = null;
+  let mostrandoAntiguos = false;
+  let filtroBusqueda = '';
+  const HORAS_RECIENTE = 48; // chats con actividad dentro de este rango se muestran en la lista principal
+
+  db.ref('chats').on('value', snapshot => {
+    chatsData = snapshot.val() || {};
+    renderListaChats();
+    if (chatAbiertoId) renderMensajesChat(chatAbiertoId);
+  });
+
+  document.getElementById('jbBuscadorChats').addEventListener('input', function(e){
+    filtroBusqueda = e.target.value.trim().toLowerCase();
+    renderListaChats();
+  });
+
+  function nombreVisible(id, c){
+    return c.nombreCliente ? c.nombreCliente : ('Cliente ' + id.slice(-5));
+  }
+
+  function ultimoMensajeDe(c){
+    if(!c.mensajes) return null;
+    const arr = Object.values(c.mensajes).sort((a,b) => (b.ts||0) - (a.ts||0));
+    return arr.length ? arr[0].de : null;
+  }
+
+  function construirItem(id, c){
+    const atendidoPor = c.atendidoPor || 'IA';
+    const esHumano = atendidoPor === 'HUMANO';
+    // "Sin responder": el cliente escribió último y nadie (ni IA ni James) le contestó después
+    const sinResponder = ultimoMensajeDe(c) === 'cliente';
+    const nombre = nombreVisible(id, c);
+    return `
+      <div class="chat-item ${esHumano ? 'chat-humano' : ''} ${sinResponder ? 'chat-sin-responder' : ''}" onclick="abrirChat('${id}')">
+        <div class="chat-avatar">💈</div>
+        <div class="chat-info">
+          <h4>${sinResponder ? '<span class="chat-pendiente-dot"></span>' : ''}${nombre}</h4>
+          <p>${(c.ultimoMensaje || 'Sin mensajes').toString().slice(0,60)}</p>
+        </div>
+        <span class="chat-badge ${esHumano ? 'humano' : 'ia'}">${esHumano ? 'Humano' : 'IA'}</span>
+        <div class="chat-item-acciones" onclick="event.stopPropagation()">
+          <button class="btn-atender" onclick="abrirChat('${id}')">💬 Atender</button>
+          <button class="btn-eliminar-chat" onclick="eliminarChat('${id}','${nombre.replace(/'/g,"\\'")}')">🗑 Eliminar</button>
+        </div>
+      </div>`;
+  }
+
+  function renderListaChats(){
+    const cont = document.getElementById('lista-chats');
+    const contAntiguos = document.getElementById('lista-chats-antiguos');
+    const btnAntiguos = document.getElementById('btnVerAntiguos');
+    const ahora = Date.now();
+    const limiteMs = HORAS_RECIENTE * 60 * 60 * 1000;
+
+    let entradas = Object.entries(chatsData);
+    if (filtroBusqueda){
+      entradas = entradas.filter(([id, c]) => nombreVisible(id, c).toLowerCase().includes(filtroBusqueda));
+    }
+    entradas.sort((a,b) => (b[1].ultimaActividad||0) - (a[1].ultimaActividad||0));
+
+    const recientes = entradas.filter(([id, c]) => (ahora - (c.ultimaActividad||0)) <= limiteMs);
+    const antiguos   = entradas.filter(([id, c]) => (ahora - (c.ultimaActividad||0)) > limiteMs);
+
+    cont.innerHTML = recientes.length
+      ? recientes.map(([id, c]) => construirItem(id, c)).join('')
+      : `<div class="sin-chats">${filtroBusqueda ? 'Sin resultados para "'+filtroBusqueda+'"' : 'No hay conversaciones todavía'}</div>`;
+
+    if (antiguos.length){
+      btnAntiguos.style.display = 'block';
+      btnAntiguos.textContent = (mostrandoAntiguos ? 'Ocultar' : 'Ver') + ' conversaciones anteriores (' + antiguos.length + ')';
+      contAntiguos.innerHTML = antiguos.map(([id, c]) => construirItem(id, c)).join('');
+      contAntiguos.classList.toggle('mostrar', mostrandoAntiguos);
+    } else {
+      btnAntiguos.style.display = 'none';
+      contAntiguos.classList.remove('mostrar');
+      contAntiguos.innerHTML = '';
+    }
+  }
+
+  window.jbToggleAntiguos = function(){
+    mostrandoAntiguos = !mostrandoAntiguos;
+    renderListaChats();
+  };
+
+  window.eliminarChat = function(id, nombre){
+    if(!confirm('¿Eliminar la conversación con ' + nombre + '? Esto no se puede deshacer.')) return;
+    db.ref('chats/' + id).remove().then(() => {
+      mostrarToast('🗑 Conversación eliminada');
+      if (chatAbiertoId === id){ chatAbiertoId = null; document.getElementById('modal-chat').classList.remove('active'); }
+    });
+  };
+
+  window.abrirChat = function(id){
+    chatAbiertoId = id;
+    document.getElementById('modal-chat').classList.add('active');
+    document.getElementById('chat-modal-titulo').textContent = nombreVisible(id, chatsData[id] || {});
+    renderMensajesChat(id);
+  };
+
+  window.cerrarModalChat = function(){
+    // Reactivar la IA automáticamente al cerrar, sin que James tenga que apretar el botón
+    if (chatAbiertoId && chatsData[chatAbiertoId] && chatsData[chatAbiertoId].atendidoPor === 'HUMANO'){
+      db.ref('chats/' + chatAbiertoId).update({ atendidoPor: 'IA' });
+    }
+    document.getElementById('modal-chat').classList.remove('active');
+    chatAbiertoId = null;
+  };
+
+  function renderMensajesChat(id){
+    const c = chatsData[id];
+    if (!c) return;
+    const atendidoPor = c.atendidoPor || 'IA';
+    const badge = document.getElementById('chat-modal-badge');
+    badge.textContent = atendidoPor === 'HUMANO' ? 'Atendido por ti' : 'IA';
+    badge.className = 'chat-badge ' + (atendidoPor === 'HUMANO' ? 'humano' : 'ia');
+    document.getElementById('chat-modal-titulo').textContent = nombreVisible(id, c);
+
+    const mensajes = c.mensajes ? Object.values(c.mensajes).sort((a,b)=>a.ts-b.ts) : [];
+    const cont = document.getElementById('chat-mensajes');
+    cont.innerHTML = mensajes.map(m => {
+      const clase = m.de === 'cliente' ? 'msg-cliente' : (m.de === 'james' ? 'msg-james' : 'msg-ia');
+      return `<div class="msg-bubble ${clase}">${m.texto}</div>`;
+    }).join('');
+    cont.scrollTop = cont.scrollHeight;
+  }
+
+  window.enviarMensajeJames = function(){
+    if (!chatAbiertoId) return;
+    const input = document.getElementById('chat-input-james');
+    const texto = input.value.trim();
+    if (!texto) return;
+    input.value = '';
+
+    const ref = db.ref('chats/' + chatAbiertoId);
+    ref.child('mensajes').push({ de: 'james', texto, ts: Date.now() });
+    // Al escribir James, pasa automáticamente a modo HUMANO (la IA deja de responder)
+    ref.update({ atendidoPor: 'HUMANO', ultimaActividad: Date.now(), ultimoMensaje: texto });
+  };
+
+  document.getElementById('chat-input-james').addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); window.enviarMensajeJames(); }
+  });
+
+  window.reactivarIA = function(){
+    if (!chatAbiertoId) return;
+    db.ref('chats/' + chatAbiertoId).update({ atendidoPor: 'IA' });
+    mostrarToast('🤖 IA reactivada para esta conversación');
+  };
+});
+</script>
+
         <!-- Grid Principal -->
         <div class="admin-grid">
             
@@ -1076,7 +1382,7 @@
         let reservas = {};
         let diasCerrados = [];
         let diasSemanaCerrados = [];
-        let horarioSemana = ["11:00","12:00","13:00","14:00","16:00","17:00","18:00","19:00","20:00","21:30","03:59"];
+        let horarioSemana = ["11:00","12:00","13:00","14:00","16:00","17:00","18:00","19:00","20:00","21:30"];
         let horarioDomingo = ["11:00","12:00","13:00","14:00","16:00","17:00","18:00","19:00","20:00","21:30"];
         let horariosEspecificos = {};
         
@@ -1202,55 +1508,8 @@
         // ============================================
         // RENDERIZADO - RESERVAS DE HOY
         // ============================================
-    // ============================================
-// RECORDATORIO WHATSAPP (wa.me manual)
-// ============================================
-const SALUDOS_RECORDATORIO = ['Hola', '¡Qué tal', 'Buenas'];
-const CIERRES_RECORDATORIO = ['¡Te esperamos!', '¡Nos vemos!', 'Nos vemos pronto'];
-
-function pickRandom(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function formatearTelefonoWA(telefono) {
-    let limpio = String(telefono || '').replace(/\D/g, '');
-    if (!limpio.startsWith('56')) {
-        limpio = '56' + limpio.replace(/^0+/, '');
-    }
-    return limpio;
-}
-
-
-
-
-const URL_BASE_CLIENTES = 'https://barbershopjames.netlify.app/jamesclientes.html'; // ⚠️ CONFIRMA que esta es la URL real de jamesclientes.html
-
-function enviarRecordatorio(r) {
-    if (!r.telefono) {
-        mostrarToast('Esta reserva no tiene teléfono guardado', true);
-        return;
-    }
-    const saludo = pickRandom(SALUDOS_RECORDATORIO);
-    const cierre = pickRandom(CIERRES_RECORDATORIO);
-    const linkCancelar = `${URL_BASE_CLIENTES}?cancelar=${r.id}`;
-    const mensaje = `${saludo} ${r.nombre}! Te recuerdo tu hora para hoy a las ${r.hora} en Barbershop James.\n\n¿No puedes venir? Cancela aquí: ${linkCancelar}\n\n${cierre}`;
-    const numero = formatearTelefonoWA(r.telefono);
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
-    window.location.href = url;
-
-    db.ref('reservas/' + r.id).update({ recordatorioEnviado: true });
-}
-
-
-
-
-// ============================================
-// RECORDATORIO WHATSAPP (wa.me manual)
-// ============================================
-
-
-
-       function renderReservasHoy() {
+        
+        function renderReservasHoy() {
     const ahora = new Date();
     const hoy = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}`;
     
@@ -1262,8 +1521,7 @@ function enviarRecordatorio(r) {
     const reservasHoy = [];
     
     Object.entries(reservas).forEach(([id, reserva]) => {
-        console.log(`Reserva ${id}: fecha=${reserva.fecha}, hoy=${hoy}, match=${reserva.fecha === hoy}`);
-        if (reserva && reserva.fecha === hoy) {
+        if (reserva && reserva.fecha && reserva.nombre && reserva.fecha === hoy) {
             reservasHoy.push({ id, ...reserva });
         }
     });
@@ -1278,21 +1536,12 @@ function enviarRecordatorio(r) {
     const statPendientes = document.getElementById('stat-pendientes');
     
     if (statTotal) statTotal.textContent = reservasHoy.length;
-
-    // Pendientes = reservas de hoy SIN recordatorio enviado
-    const pendientes = reservasHoy.filter(r => !r.recordatorioEnviado).length;
-    if (statPendientes) statPendientes.textContent = pendientes;
-
-    if (pendientes > 0 && pendientes !== window._ultimoPendientesCount) {
-        const audio = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQoAAAAAAAAAAAA=');
-        audio.play().catch(() => {}); // catch: algunos navegadores bloquean autoplay sin interacción previa
-    }
-    window._ultimoPendientesCount = pendientes;
+    if (statPendientes) statPendientes.textContent = reservasHoy.length;
     
     let total = 0;
     reservasHoy.forEach(r => {
         if (r.total) {
-            const num = parseInt(r.total.replace(/[^0-9]/g, '')) || 0;
+            const num = parseInt(String(r.total).replace(/[^0-9]/g, '')) || 0;
             total += num;
         }
     });
@@ -1318,9 +1567,6 @@ function enviarRecordatorio(r) {
             </div>
             <div style="text-align:right;">
                 <div class="reserva-hora">${r.hora}</div>
-                <button class="btn-header" style="background:${r.recordatorioEnviado ? 'var(--barber-gray)' : 'var(--barber-green)'};margin-bottom:6px;" onclick='enviarRecordatorio(${JSON.stringify(r)})'>
-                    ${r.recordatorioEnviado ? '✅ Recordatorio enviado' : '📲 Enviar Recordatorio'}
-                </button>
                 <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Eliminar</button>
             </div>
         </div>
@@ -1423,7 +1669,7 @@ function enviarRecordatorio(r) {
             if (reservasDia.length === 0) {
                 container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Sin reservas para este día</p>';
             } else {
-               container.innerHTML = `
+                container.innerHTML = `
                     <h4 style="color: var(--barber-orange); margin-bottom: 10px;">Reservas:</h4>
                     ${reservasDia.map(r => `
                         <div class="reserva-item">
@@ -1433,7 +1679,6 @@ function enviarRecordatorio(r) {
                             </div>
                             <div style="text-align: right;">
                                 <div class="reserva-hora">${r.hora}</div>
-                                <button class="btn-header" style="background:var(--barber-green);margin-bottom:6px;" onclick='enviarRecordatorio(${JSON.stringify(r)})'>📲 Recordatorio</button>
                                 <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Eliminar</button>
                             </div>
                         </div>
