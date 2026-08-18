@@ -6901,7 +6901,74 @@ function reservarHoraConNotificacion() {
 
   // ── INPUT DE IDENTIFICACIÓN (widget conversacional) ─────────
   // Campo simple con autocomplete="name" — aparece dentro del chat
-  function jbMostrarInputIdentificacion() {
+  // ── INPUT CON CALLBACK (para flujos encadenados) ────────────
+  function jbMostrarInputIdentificacionConCallback(fn) {
+    jbBloquearInput();
+    const body = document.getElementById('jbChatBody');
+    const form = document.createElement('div');
+    form.style.cssText = 'display:flex;gap:8px;align-self:flex-start;max-width:96%;margin:4px 0 8px;';
+    const input = document.createElement('input');
+    input.type = 'text'; input.placeholder = 'Tu nombre...';
+    input.autocomplete = 'name'; input.className = 'jbNombreInput';
+    input.maxLength = 60; input.style.flex = '1';
+    input.oninput = () => { input.value = input.value.replace(/\d/g, ''); };
+    const btn = document.createElement('button');
+    btn.className = 'jbNombreInputBtn'; btn.textContent = '\u2192';
+    async function enviar() {
+      const val = input.value.trim();
+      if (val.length < 2) { input.style.borderColor = '#ff6b6b'; input.focus(); return; }
+      form.remove(); jbDesbloquearInput(); jbCliente(val);
+      await jbIdentificarCliente(val);
+      if (fn) fn();
+    }
+    btn.onclick = enviar;
+    input.onkeydown = e => { if (e.key === 'Enter') enviar(); };
+    form.appendChild(input); form.appendChild(btn);
+    body.appendChild(form); jbScrollBottom();
+    setTimeout(() => input.focus(), 100);
+  }
+
+    // ── REAGENDAR POR CHAT ──────────────────────────────────────
+  function jbBuscarYReagendarChat(reservasPreCargadas) {
+    let reservas = (reservasPreCargadas && reservasPreCargadas.length) ? reservasPreCargadas : [];
+    if (!reservas.length) {
+      try { reservas = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber') || '[]'); } catch(e){}
+    }
+    const ahora = new Date();
+    const proximas = reservas
+      .filter(r => new Date(r.fecha + 'T' + (r.hora || '23:59')) > ahora)
+      .sort((a, b) => new Date(a.fecha+'T'+a.hora) - new Date(b.fecha+'T'+b.hora));
+    if (!proximas.length) { jbBot('No encontré reservas activas para reagendar 🙏'); return; }
+    const r = proximas[0];
+    jbBot(
+      'Encontré tu reserva:<br><br>' +
+      '\u2702\uFE0F <b>' + (r.servicios || r.servicio || '\u2014') + '</b><br>' +
+      '\uD83D\uDCC5 ' + jbFormatFechaLegible(r.fecha) + ' a las <b>' + r.hora + '</b><br><br>' +
+      'Para reagendar cancelo esta y hacemos una nueva. \u00BFContinuo?'
+    );
+    setTimeout(() => {
+      jbMostrarOpciones([
+        { emoji:'\u2705', texto:'S\u00ED, reagendar', valor:'si', estilo:'green' },
+        { emoji:'\u274C', texto:'No, mantener',   valor:'no', estilo:'red'   }
+      ], valor => {
+        if (valor === 'si') {
+          const rid = r.reservaId || r.id;
+          if (rid && !String(rid).startsWith('local_')) db.ref('reservas/' + rid).remove().catch(() => {});
+          try {
+            let ls = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber') || '[]');
+            ls = ls.filter(x => (x.reservaId || x.id) !== rid);
+            localStorage.setItem('mis_reservas_jamesbarber', JSON.stringify(ls));
+          } catch(e){}
+          jbBot('\u2705 Cancelada. Ahora elige tu nueva hora \uD83D\uDC47');
+          setTimeout(() => jbIniciarFlujoReserva(), 600);
+        } else {
+          jbBot('Perfecto, tu reserva sigue en pie \uD83D\uDC4D \u00BFNecesitas algo m\u00E1s?');
+        }
+      });
+    }, 300);
+  }
+
+    function jbMostrarInputIdentificacion() {
     jbBloquearInput();
     const body = document.getElementById('jbChatBody');
     const form = document.createElement('div');
@@ -8235,40 +8302,89 @@ if(!jbResponderFAQ(texto)){
   }
 
   // Muestra las opciones de cancelar (por IA o abriendo Mis Reservas)
-  function jbBotCancelarOpciones(){
-    // Buscar si tiene reservas guardadas localmente
-    let tieneReservas = false;
+  async function jbBotCancelarOpciones(){
+    // 1. localStorage (rápido)
+    let reservasLocal = [];
     try {
-      const reservas = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber') || '[]');
       const ahora = new Date();
-      tieneReservas = reservas.some(r => {
-        const fReserva = new Date(r.fecha + 'T' + (r.hora || '23:59'));
-        return fReserva > ahora;
-      });
+      reservasLocal = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber') || '[]')
+        .filter(r => new Date(r.fecha + 'T' + (r.hora || '23:59')) > ahora);
     } catch(e){}
 
-    if(tieneReservas){
-      jbBot('Puedo ayudarte a cancelar tu reserva 😊<br><br>¿Cómo prefieres?');
-      setTimeout(()=>{
+    // 2. Firebase por clienteId (dispositivo cruzado)
+    let reservasFirebase = [];
+    if (jbSesionCliente && jbSesionCliente.clienteId && !jbSesionCliente.clienteId.startsWith('local_')) {
+      try {
+        const ahora = new Date();
+        const snap = await db.ref('reservas').orderByChild('clienteId').equalTo(jbSesionCliente.clienteId).once('value');
+        snap.forEach(ch => {
+          const r = ch.val();
+          if (r && new Date(r.fecha + 'T' + (r.hora || '23:59')) > ahora) reservasFirebase.push({ ...r, id: ch.key });
+        });
+      } catch(e){}
+    }
+
+    // 3. Firebase por nombre exacto (fallback)
+    if (reservasFirebase.length === 0 && jbSesionCliente && jbSesionCliente.nombreDisplay) {
+      try {
+        const ahora = new Date();
+        const snap = await db.ref('reservas').orderByChild('nombre').equalTo(jbSesionCliente.nombreDisplay).once('value');
+        snap.forEach(ch => {
+          const r = ch.val();
+          if (r && new Date(r.fecha + 'T' + (r.hora || '23:59')) > ahora) reservasFirebase.push({ ...r, id: ch.key });
+        });
+      } catch(e){}
+    }
+
+    // Combinar sin duplicados
+    const idsVistos = new Set(reservasLocal.map(r => r.reservaId || r.id).filter(Boolean));
+    reservasFirebase.forEach(r => { if (!idsVistos.has(r.id)) reservasLocal.push({ ...r, reservaId: r.id }); });
+
+    if (reservasLocal.length > 0) {
+      const txt = reservasLocal.length > 1
+        ? `Encontré <b>${reservasLocal.length} reservas</b> tuyas 😊 ¿Qué quieres hacer?`
+        : 'Encontré tu reserva 😊 ¿Qué quieres hacer?';
+      jbBot(txt);
+      setTimeout(() => {
         jbMostrarOpciones([
-          { emoji:'💬', texto:'Cancelar aquí por el chat', valor:'chat'  },
-          { emoji:'📋', texto:'Abrir Mis Reservas',        valor:'modal', estilo:'teal' }
+          { emoji:'❌', texto:'Cancelar una reserva',  valor:'cancelar', estilo:'red'  },
+          { emoji:'📅', texto:'Reagendar',              valor:'reagendar', estilo:'teal' },
+          { emoji:'📋', texto:'Ver todas mis reservas', valor:'modal'    }
         ], valor => {
-          if(valor === 'chat')  jbBuscarYCancelarReservaChat();
-          else                   jbAbrirModalMisReservas();
+          if (valor === 'cancelar')  jbBuscarYCancelarReservaChat(reservasLocal);
+          else if (valor === 'reagendar') jbBuscarYReagendarChat(reservasLocal);
+          else                       jbAbrirModalMisReservas();
         });
       }, 300);
     } else {
-      jbBot('No encuentro reservas activas para cancelar 🔍<br><br>Si reservaste desde otro dispositivo, usa la sección <b>Mis Reservas</b> más abajo. Si necesitas ayuda, escríbenos por WhatsApp.');
+      const n = jbSesionCliente ? jbSesionCliente.nombreDisplay.split(' ')[0] : '';
+      jbBot(
+        (n ? `${n}, no` : 'No') + ' encontré reservas activas a tu nombre 🔍<br><br>' +
+        '¿Puede ser que hayas reservado con otro nombre? Escríbelo y lo busco 👇'
+      );
+      // Ofrecer buscar con otro nombre
+      setTimeout(() => {
+        jbMostrarOpciones([
+          { emoji:'🔍', texto:'Buscar con otro nombre', valor:'otro' },
+          { emoji:'📋', texto:'Ver sección Mis Reservas', valor:'modal' }
+        ], valor => {
+          if (valor === 'otro') {
+            jbBot('¿Con qué nombre hiciste la reserva?');
+            jbMostrarInputIdentificacionConCallback(() => jbBotCancelarOpciones());
+          } else {
+            jbAbrirModalMisReservas();
+          }
+        });
+      }, 300);
     }
   }
 
-  // Busca la reserva más próxima del cliente y ofrece cancelarla por chat
-  function jbBuscarYCancelarReservaChat(){
-    let reservas = [];
-    try {
-      reservas = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber') || '[]');
-    } catch(e){}
+  // Busca la reserva más próxima. Acepta lista pre-cargada de Firebase o usa localStorage.
+  function jbBuscarYCancelarReservaChat(reservasPreCargadas){
+    let reservas = reservasPreCargadas && reservasPreCargadas.length ? reservasPreCargadas : [];
+    if (!reservas.length) {
+      try { reservas = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber') || '[]'); } catch(e){}
+    }
     const ahora = new Date();
     const proximas = reservas
       .filter(r => {
@@ -8495,16 +8611,119 @@ if(!jbResponderFAQ(texto)){
 
   function jbMostrarBienvenida(){
     jbMenuMostrado = true;
-    jbBot('👋 ¡Hola! Bienvenido a Barbería James. Soy tu asesor 24/7 🙌 ¿En qué te puedo ayudar hoy? Puedes preguntarme lo que quieras o usar los botones de abajo para reservar o contactarnos por WhatsApp.', false);
+    if (jbSesionCliente && jbSesionCliente.nombreDisplay) {
+      const n = jbSesionCliente.nombreDisplay.split(' ')[0];
+      jbBot('👋 ¡Hola de nuevo, <b>' + n + '</b>! ¿En qué te puedo ayudar hoy? 😊', false);
+    } else {
+      jbBot('👋 ¡Hola! Bienvenido a <b>Barbería James</b> ✂️<br><br>¿Cómo te llamas? Solo con tu nombre puedo atenderte, ver tus reservas y más 😊', false);
+      setTimeout(() => jbMostrarInputIdentificacion(), 500);
+    }
+  }
+
+  // Menú principal del bot — incluye opción de "mis cortes anteriores"
+  function jbMostrarMenuPrincipal() {
+    // Verificar si el cliente tiene cortes anteriores registrados
+    const clienteId = jbSesionCliente && jbSesionCliente.clienteId;
+    if (clienteId) {
+      db.ref('clientes/' + clienteId + '/cortes').limitToLast(1).once('value', snap => {
+        const tieneCortes = snap.numChildren() > 0;
+        const opciones = [
+          { emoji: '📅', texto: 'Reservar hora', valor: 'reservar', estilo: 'gold' }
+        ];
+        if (tieneCortes) {
+          opciones.push({ emoji: '✂️', texto: 'Repetir mi corte anterior', valor: 'mis_cortes', estilo: 'green' });
+        }
+        opciones.push({ emoji: '❓', texto: 'Otra consulta', valor: 'consulta', estilo: '' });
+        jbMostrarOpcionesMenu(opciones);
+      });
+    } else {
+      jbMostrarOpcionesMenu([
+        { emoji: '📅', texto: 'Reservar hora', valor: 'reservar', estilo: 'gold' },
+        { emoji: '❓', texto: 'Otra consulta', valor: 'consulta', estilo: '' }
+      ]);
+    }
+  }
+
+  function jbMostrarOpcionesMenu(opciones) {
+    jbMostrarOpciones(opciones, valor => {
+      if (valor === 'reservar') {
+        jbIniciarFlujoReserva();
+      } else if (valor === 'mis_cortes') {
+        jbMostrarCortesAnteriores();
+      } else {
+        jbBot('¡Claro! Pregúntame lo que necesites 😊');
+      }
+    });
+  }
+
+  // Muestra los cortes anteriores del cliente con foto y botón para reservar el mismo servicio
+  function jbMostrarCortesAnteriores() {
+    const clienteId = jbSesionCliente && jbSesionCliente.clienteId;
+    if (!clienteId) { jbBot('No encontré tu historial 😕 Puedo mostrártelo la próxima vez.'); return; }
+
+    jbBot('Un momento… buscando tus cortes anteriores ✂️');
+
+    db.ref('clientes/' + clienteId + '/cortes').orderByChild('ts').limitToLast(4).once('value', snap => {
+      const cortes = [];
+      snap.forEach(h => cortes.unshift({ id: h.key, ...h.val() }));
+
+      if (cortes.length === 0) {
+        jbBot('Todavía no tenemos fotos de tus cortes guardadas 😊 ¡La próxima vez que vengas, James las registrará!');
+        return;
+      }
+
+      jbBot('Aquí están tus últimos cortes 👇 Toca uno para reservar ese mismo servicio:');
+
+      const body = document.getElementById('jbChatBody');
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;align-self:flex-start;max-width:98%;margin:4px 0 8px;';
+
+      cortes.forEach(corte => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#1e1f24;border-radius:12px;padding:6px;cursor:pointer;border:1.5px solid rgba(228,166,79,0.25);width:100px;transition:border-color .2s;';
+        card.innerHTML = `
+          <img src="${corte.fotoUrl}" alt="corte" style="width:88px;height:88px;object-fit:cover;border-radius:8px;">
+          <p style="font-size:0.7rem;color:#e4a64f;margin-top:5px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${corte.servicio || '—'}</p>
+          <p style="font-size:0.65rem;color:#666;text-align:center;">${corte.fecha || ''}</p>`;
+        card.onmouseover = () => { card.style.borderColor = 'var(--jbGold)'; };
+        card.onmouseout = () => { card.style.borderColor = 'rgba(228,166,79,0.25)'; };
+        card.onclick = () => {
+          wrap.remove();
+          jbCliente('Quiero el mismo: ' + (corte.servicio || 'corte anterior'));
+          jbBot(`✅ Perfecto, te agendamos con el mismo servicio: <b>${corte.servicio || 'corte'}</b> 📅`);
+          // Iniciar flujo de reserva pre-cargando el servicio
+          setTimeout(() => {
+            if (typeof jbReserva !== 'undefined' || true) {
+              // Pasar el servicio al flujo de reserva
+              window._jbServicioPrecargado = corte.servicio;
+              jbIniciarFlujoReserva(corte.servicio);
+            }
+          }, 500);
+        };
+        wrap.appendChild(card);
+      });
+
+      body.appendChild(wrap);
+      jbScrollBottom();
+    });
   }
 
   window.jbPedirHora = function(){ jbIniciarFlujoReserva(); };
 
   window.jbAbrirCancelarDesdeBoton = function(){
     const panel = document.getElementById('jbChatPanel');
-    if(panel && !panel.classList.contains('jbOpen')){ panel.classList.add('jbOpen'); document.getElementById('jbUnreadDot').style.display='none'; jbMenuMostrado = true; }
+    if(panel && !panel.classList.contains('jbOpen')){
+      panel.classList.add('jbOpen');
+      document.getElementById('jbUnreadDot').style.display = 'none';
+    }
+    jbMenuMostrado = true;
     jbTerminarReserva();
-    jbBotCancelarOpciones();
+    if (!jbSesionCliente || !jbSesionCliente.nombreDisplay) {
+      jbBot('Para ver y cancelar tu reserva necesito saber quién eres 😊<br>¿Cómo te llamas?');
+      jbMostrarInputIdentificacionConCallback(() => jbBotCancelarOpciones());
+    } else {
+      jbBotCancelarOpciones();
+    }
   };
 
   // ============================================
@@ -8664,10 +8883,52 @@ REGLAS:
       jbRenderMensaje({ de:'ia', texto: texto.trim() });
     } catch(err){
       console.error('IA no disponible:', err);
-      jbFallbackFAQ(mensajeUsuario);
+      // La IA falló → marcar urgencia en Firebase y esperar 55s antes de responder
+      jbMarcarUrgenciaYEsperar(mensajeUsuario);
     } finally {
       document.getElementById('jbTyping').style.display = 'none';
     }
+  }
+
+  // ============================================================
+  // SISTEMA DE URGENCIA: espera 55s para que James responda
+  // Si no respondió en ese tiempo, el bot da el fallback.
+  // ============================================================
+  let jbTimerUrgencia = null;
+
+  function jbMarcarUrgenciaYEsperar(mensajeUsuario) {
+    // Marcar en Firebase que este chat necesita atención humana
+    jbChatRef.update({
+      requiereAtencion: true,
+      requiereAtencionTs: Date.now()
+    });
+
+    // Mostrar mensaje de espera al cliente (sin revelar que es IA ni que hubo error)
+    jbBot('Dame un momento, ya te atiendo 🙏');
+
+    // Cancelar timer anterior si existía
+    if (jbTimerUrgencia) clearTimeout(jbTimerUrgencia);
+
+    // Escuchar si James respondió en los próximos 55 segundos
+    let jamesRespondio = false;
+    const checkJames = jbChatRef.child('atendidoPor').on('value', snap => {
+      if (snap.val() === 'HUMANO') {
+        jamesRespondio = true;
+        if (jbTimerUrgencia) clearTimeout(jbTimerUrgencia);
+        jbChatRef.child('atendidoPor').off('value', checkJames);
+        // Limpiar la urgencia ya que James tomó el control
+        jbChatRef.update({ requiereAtencion: false });
+      }
+    });
+
+    jbTimerUrgencia = setTimeout(() => {
+      jbChatRef.child('atendidoPor').off('value', checkJames);
+      if (!jamesRespondio) {
+        // James no respondió → limpiar urgencia y dar fallback al cliente
+        jbChatRef.update({ requiereAtencion: false });
+        jbFallbackFAQ(mensajeUsuario);
+      }
+    }, 55000);
   }
 
  // ============================================================
@@ -9680,6 +9941,11 @@ function jbResponderFallbackInteligente(texto){
   // ----------------------------------------------------------
   // FALLBACK FINAL
   // ----------------------------------------------------------
+
+  // Marcar urgencia en Firebase — James recibirá alerta fuerte en la APK
+  if (typeof jbChatRef !== 'undefined') {
+    jbChatRef.update({ requiereAtencion: true, requiereAtencionTs: Date.now() });
+  }
 
   jbBot(
     `Mmm, no encontré esa información 🤔<br><br>` +
