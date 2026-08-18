@@ -963,6 +963,9 @@ window.addEventListener('load', function(){
   .chat-item:hover { transform: translateX(4px); }
   .chat-item.chat-humano { border-left-color: var(--barber-red); }
   .chat-item.chat-sin-responder { border-left-color: #ffcc00; box-shadow: inset 0 0 0 1px rgba(255,204,0,0.25); }
+  .chat-item.chat-urgente { border-left-color: #ff3b3f; box-shadow: 0 0 0 1px rgba(255,59,63,0.4), 0 0 12px rgba(255,59,63,0.2); animation: jbUrgenteFlash 1.2s ease-in-out infinite; }
+  @keyframes jbUrgenteFlash { 0%,100%{box-shadow:0 0 0 1px rgba(255,59,63,0.4);} 50%{box-shadow:0 0 14px rgba(255,59,63,0.5);} }
+  #jbFichaCliente { border-top: 1px solid rgba(228,166,79,0.15); margin-top: 10px; padding-top: 10px; }
   .chat-item .chat-avatar {
     width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
     background: linear-gradient(135deg, var(--barber-orange), #ff6f00);
@@ -1040,6 +1043,7 @@ window.addEventListener('load', function(){
     <p style="color:#666; font-size:0.75rem; margin-top:8px;">
       Al escribir, la IA se pausa automáticamente para esta conversación. Se reactiva sola al cerrar este chat con la ✕.
     </p>
+    <div id="jbFichaCliente"></div>
   </div>
 </div>
 
@@ -1072,17 +1076,67 @@ window.addEventListener('load', function(){
     return arr.length ? arr[0].de : null;
   }
 
+  // ── CLOUDINARY CONFIG ──────────────────────────────────────────
+  const CLD_CLOUD = 'dkszomv2f';
+  const CLD_PRESET = 'brbshopjames';
+
+  // ── SONIDO URGENCIA (más largo y fuerte que el normal) ─────────
+  // Se activa cuando requiereAtencion = true llega de un chat
+  let jbAudioUrgencia = null;
+  let jbChatsUrgentesYaAlertados = new Set();
+
+  function jbSonarUrgencia() {
+    try {
+      // Usamos el mismo click.mp3 pero en loop 3 veces para simular duración larga
+      let count = 0;
+      function reproducir() {
+        if (count >= 3) return;
+        count++;
+        const audio = new Audio('click.mp3');
+        audio.volume = 1.0;
+        audio.play().catch(()=>{});
+        audio.onended = reproducir;
+      }
+      reproducir();
+    } catch(e) {}
+  }
+
+  // Vigilar chats con requiereAtencion en tiempo real (además del listener principal)
+  db.ref('chats').on('value', snapTodo => {
+    const todos = snapTodo.val() || {};
+    Object.entries(todos).forEach(([cid, c]) => {
+      if (c.requiereAtencion && !jbChatsUrgentesYaAlertados.has(cid)) {
+        jbChatsUrgentesYaAlertados.add(cid);
+        jbSonarUrgencia();
+        // Resaltar visualmente en la lista
+        setTimeout(() => {
+          const el = document.querySelector(`[data-chat-urgente="${cid}"]`);
+          if (el) el.classList.add('chat-urgente');
+        }, 300);
+      }
+      if (!c.requiereAtencion) {
+        jbChatsUrgentesYaAlertados.delete(cid);
+      }
+    });
+  });
+
   function construirItem(id, c){
     const atendidoPor = c.atendidoPor || 'IA';
     const esHumano = atendidoPor === 'HUMANO';
-    // "Sin responder": el cliente escribió último y nadie (ni IA ni James) le contestó después
     const sinResponder = ultimoMensajeDe(c) === 'cliente';
+    const esUrgente = !!c.requiereAtencion;
     const nombre = nombreVisible(id, c);
+    // Avatar: usar avatarUrl de Firebase (DiceBear generado por el cliente web) o fallback emoji
+    const avatarUrl = c.avatarUrl || '';
+    const avatarHtml = avatarUrl
+      ? `<img src="${avatarUrl}" alt="${nombre}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid ${esUrgente ? '#ff3b3f' : 'var(--barber-orange)'}">`
+      : `<div class="chat-avatar" style="${esUrgente ? 'background:linear-gradient(135deg,#ff3b3f,#cc0000);' : ''}">💈</div>`;
     return `
-      <div class="chat-item ${esHumano ? 'chat-humano' : ''} ${sinResponder ? 'chat-sin-responder' : ''}" onclick="abrirChat('${id}')">
-        <div class="chat-avatar">💈</div>
+      <div class="chat-item ${esHumano ? 'chat-humano' : ''} ${sinResponder ? 'chat-sin-responder' : ''} ${esUrgente ? 'chat-urgente' : ''}"
+           data-chat-urgente="${id}" onclick="abrirChat('${id}')">
+        ${avatarHtml}
         <div class="chat-info">
-          <h4>${sinResponder ? '<span class="chat-pendiente-dot"></span>' : ''}${nombre}</h4>
+          <h4>${esUrgente ? '🔴 ' : (sinResponder ? '<span class="chat-pendiente-dot"></span>' : '')}${nombre}</h4>
           <p>${(c.ultimoMensaje || 'Sin mensajes').toString().slice(0,60)}</p>
         </div>
         <span class="chat-badge ${esHumano ? 'humano' : 'ia'}">${esHumano ? 'Humano' : 'IA'}</span>
@@ -1158,19 +1212,140 @@ window.addEventListener('load', function(){
     const c = chatsData[id];
     if (!c) return;
     const atendidoPor = c.atendidoPor || 'IA';
-    const badge = document.getElementById('chat-modal-badge');
-    badge.textContent = atendidoPor === 'HUMANO' ? 'Atendido por ti' : 'IA';
-    badge.className = 'chat-badge ' + (atendidoPor === 'HUMANO' ? 'humano' : 'ia');
-    document.getElementById('chat-modal-titulo').textContent = nombreVisible(id, c);
+    const nombre = nombreVisible(id, c);
+    const avatarUrl = c.avatarUrl || '';
 
+    // Badge estado IA/Humano
+    const badge = document.getElementById('chat-modal-badge');
+    if (badge) {
+      badge.textContent = atendidoPor === 'HUMANO' ? 'Atendido por ti' : 'IA';
+      badge.className = 'chat-badge ' + (atendidoPor === 'HUMANO' ? 'humano' : 'ia');
+    }
+    document.getElementById('chat-modal-estado').style.display = 'flex';
+
+    // Header: foto + nombre del cliente
+    const titulo = document.getElementById('chat-modal-titulo');
+    if (titulo) {
+      titulo.innerHTML = avatarUrl
+        ? `<img src="${avatarUrl}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--barber-orange);margin-right:8px;vertical-align:middle;">${nombre}`
+        : nombre;
+    }
+
+    // Historial de mensajes con burbujas correctas
     const mensajes = c.mensajes ? Object.values(c.mensajes).sort((a,b)=>a.ts-b.ts) : [];
     const cont = document.getElementById('chat-mensajes');
     cont.innerHTML = mensajes.map(m => {
-      const clase = m.de === 'cliente' ? 'msg-cliente' : (m.de === 'james' ? 'msg-james' : 'msg-ia');
-      return `<div class="msg-bubble ${clase}">${m.texto}</div>`;
+      const esCliente = m.de === 'cliente';
+      const esJames = m.de === 'james';
+      const clase = esCliente ? 'msg-cliente' : (esJames ? 'msg-james' : 'msg-ia');
+      const nombreMsg = esCliente ? nombre : (esJames ? '✂️ James' : '🤖 Asistente');
+      const horaStr = m.ts ? new Date(m.ts).toLocaleTimeString('es-CL', {hour:'2-digit',minute:'2-digit'}) : '';
+      const avatarMsgHtml = esCliente && avatarUrl
+        ? `<img src="${avatarUrl}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+        : '';
+      return `
+        <div style="display:flex;flex-direction:column;align-items:${esCliente ? 'flex-start' : 'flex-end'};gap:2px;">
+          <span style="font-size:0.7rem;color:#666;padding:0 6px;">${nombreMsg} ${horaStr}</span>
+          <div style="display:flex;align-items:flex-end;gap:6px;flex-direction:${esCliente ? 'row' : 'row-reverse'};">
+            ${avatarMsgHtml}
+            <div class="msg-bubble ${clase}">${m.texto}</div>
+          </div>
+        </div>`;
     }).join('');
     cont.scrollTop = cont.scrollHeight;
+
+    // Mostrar ficha del cliente con historial de cortes
+    jbRenderFichaCliente(id, c);
   }
+
+  // ── FICHA DEL CLIENTE CON CORTES ANTERIORES ──────────────────
+  function jbRenderFichaCliente(chatId, c) {
+    let fichaEl = document.getElementById('jbFichaCliente');
+    if (!fichaEl) return;
+
+    const clienteId = c.clienteId || null;
+    if (!clienteId) { fichaEl.innerHTML = '<p style="color:#666;font-size:0.8rem;">Sin ficha de cliente vinculada</p>'; return; }
+
+    db.ref('clientes/' + clienteId + '/cortes').orderByChild('ts').limitToLast(6).once('value', snap => {
+      const cortes = [];
+      snap.forEach(h => cortes.unshift({ id: h.key, ...h.val() }));
+
+      let html = `<p style="font-size:0.8rem;color:#aaa;margin-bottom:8px;">Últimos cortes de ${c.nombreCliente || 'cliente'}:</p>`;
+      if (cortes.length === 0) {
+        html += '<p style="font-size:0.78rem;color:#555;">Sin cortes registrados aún.</p>';
+      } else {
+        html += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
+        cortes.forEach(corte => {
+          html += `
+            <div style="background:#1e1f24;border-radius:10px;padding:6px;width:90px;cursor:pointer;border:1px solid rgba(228,166,79,0.2);"
+                 title="${corte.servicio || ''}" onclick="jbVerCorte('${corte.fotoUrl || ''}','${(corte.servicio||'').replace(/'/g,"\\'")}')">
+              <img src="${corte.fotoUrl || ''}" alt="corte" style="width:78px;height:78px;object-fit:cover;border-radius:8px;">
+              <p style="font-size:0.65rem;color:#e4a64f;margin-top:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${corte.servicio || '—'}</p>
+              <p style="font-size:0.6rem;color:#666;text-align:center;">${corte.fecha || ''}</p>
+            </div>`;
+        });
+        html += '</div>';
+      }
+
+      html += `
+        <input type="file" id="jbInputFotoCorte" accept="image/*" hidden>
+        <button onclick="jbIniciarSubidaCorte('${chatId}','${clienteId}')"
+          style="margin-top:10px;background:var(--barber-orange);color:#16130a;border:none;padding:8px 14px;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;width:100%;">
+          📷 Subir foto del corte de hoy
+        </button>`;
+
+      fichaEl.innerHTML = html;
+    });
+  }
+
+  window.jbVerCorte = function(url, servicio) {
+    if (!url) return;
+    const win = window.open('', '_blank', 'width=500,height=600');
+    win.document.write(`<body style="margin:0;background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;">
+      <p style="color:#e4a64f;font-family:sans-serif;margin-bottom:10px;">${servicio}</p>
+      <img src="${url}" style="max-width:100%;max-height:90vh;border-radius:12px;">
+    </body>`);
+  };
+
+  window.jbIniciarSubidaCorte = function(chatId, clienteId) {
+    const input = document.getElementById('jbInputFotoCorte');
+    if (!input) return;
+    input.onchange = async function() {
+      const file = input.files[0];
+      if (!file) return;
+      mostrarToast('Subiendo foto...');
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('upload_preset', CLD_PRESET);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLD_CLOUD}/image/upload`, { method:'POST', body: fd });
+        const data = await res.json();
+        const fotoUrl = data.secure_url;
+        if (!fotoUrl) throw new Error('Sin URL');
+
+        // Buscar el servicio de la última reserva de este cliente para vincularlo
+        const reservasSnap = await db.ref('reservas').orderByChild('clienteId').equalTo(clienteId).limitToLast(1).once('value');
+        let servicioUltimo = '';
+        reservasSnap.forEach(r => { servicioUltimo = r.val().servicios || r.val().servicio || ''; });
+
+        const fechaHoy = new Date().toLocaleDateString('es-CL');
+        await db.ref(`clientes/${clienteId}/cortes`).push({
+          fotoUrl,
+          servicio: servicioUltimo,
+          fecha: fechaHoy,
+          ts: Date.now(),
+          subidoPor: 'james'
+        });
+
+        mostrarToast('✅ Foto del corte guardada');
+        jbRenderFichaCliente(chatId, chatsData[chatId] || {});
+      } catch(e) {
+        mostrarToast('❌ Error subiendo foto: ' + e.message);
+      }
+      input.value = '';
+    };
+    input.click();
+  };
 
   window.enviarMensajeJames = function(){
     if (!chatAbiertoId) return;
@@ -1181,8 +1356,16 @@ window.addEventListener('load', function(){
 
     const ref = db.ref('chats/' + chatAbiertoId);
     ref.child('mensajes').push({ de: 'james', texto, ts: Date.now() });
-    // Al escribir James, pasa automáticamente a modo HUMANO (la IA deja de responder)
-    ref.update({ atendidoPor: 'HUMANO', ultimaActividad: Date.now(), ultimoMensaje: texto });
+    ref.update({
+      atendidoPor: 'HUMANO',
+      atendido_por_humano: true,
+      estado_bot: 'pausado',
+      requiereAtencion: false,
+      ultimaActividad: Date.now(),
+      ultimoMensaje: texto
+    });
+    // Limpiar urgencia en el set local
+    if (chatAbiertoId) jbChatsUrgentesYaAlertados.delete(chatAbiertoId);
   };
 
   document.getElementById('chat-input-james').addEventListener('keydown', function(e){
@@ -1191,7 +1374,7 @@ window.addEventListener('load', function(){
 
   window.reactivarIA = function(){
     if (!chatAbiertoId) return;
-    db.ref('chats/' + chatAbiertoId).update({ atendidoPor: 'IA' });
+    db.ref('chats/' + chatAbiertoId).update({ atendidoPor: 'IA', atendido_por_humano: false, estado_bot: 'activo' });
     mostrarToast('🤖 IA reactivada para esta conversación');
   };
 });
