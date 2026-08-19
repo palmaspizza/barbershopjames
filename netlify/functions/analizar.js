@@ -6,7 +6,7 @@ exports.handler = async function(event, context) {
   try {
     const bodyReq = JSON.parse(event.body);
     const imagenBase64 = bodyReq.imagen;
-    const apiKey = process.env.GEMINI_API_KEY; // La que guardaste en Netlify
+    const apiKey = process.env.JAMES_GEMINI_API_KEY; // La que guardaste en Netlify
 
     // Tu prompt exacto
     const prompt = `Analiza este comprobante bancario chileno y extrae los datos exactos. Si algún dato no es 100% legible, asigna esValido: false.`;
