@@ -1,1 +1,3802 @@
-_
+<!-- ============================================
+     ADMIN.HTML - PANEL DE CONTROL BARBERÍA
+     Versión: 1.0 | Completo y Funcional
+     ============================================ -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Barbería</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase 9.22.2 (misma versión que tu app original) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    
+    <style>
+        /* ============================================
+           VARIABLES CSS - TEMA BARBERÍA
+           ============================================ */
+        :root {
+            --barber-red: #ff3b3f;
+            --barber-blue: #2089ff;
+            --barber-white: #ffffff;
+            --barber-orange: #e4a64f;
+            --barber-black: #0b0b0d;
+            --barber-surface: #15161a;
+            --barber-green: #33d17a;
+            --barber-gray: #2b2b2b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--barber-black) 0%, #1a1a1e 100%);
+            color: var(--barber-white);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        /* ============================================
+           PANTALLA DE LOGIN
+           ============================================ */
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--barber-black) 0%, #1a1a1e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .login-box {
+            background: var(--barber-surface);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid var(--barber-orange);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(228,166,79,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .login-box h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--barber-orange);
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .login-box p {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+        
+        .pin-input {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .pin-input input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 1.5rem;
+            border: 2px solid var(--barber-orange);
+            border-radius: 10px;
+            background: var(--barber-black);
+            color: var(--barber-white);
+            font-weight: bold;
+        }
+        
+        .pin-input input:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(228,166,79,0.5);
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--barber-orange), #ff6f00);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255,111,0,0.4);
+        }
+        
+        .error-msg {
+            color: var(--barber-red);
+            margin-top: 15px;
+            display: none;
+        }
+        
+        /* ============================================
+           LAYOUT PRINCIPAL
+           ============================================ */
+        #admin-panel {
+            display: none;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--barber-orange);
+        }
+        
+        .admin-header h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--barber-orange);
+            font-size: 2rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-header {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-logout {
+            background: var(--barber-gray);
+            color: white;
+        }
+        
+        .btn-refresh {
+            background: var(--barber-blue);
+            color: white;
+        }
+        
+        /* ============================================
+           GRID PRINCIPAL
+           ============================================ */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 900px) {
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* ============================================
+           CARDS / SECCIONES
+           ============================================ */
+        .card {
+            background: var(--barber-surface);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(228,166,79,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+        
+        .card h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--barber-orange);
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card h2::before {
+            content: '';
+            width: 4px;
+            height: 25px;
+            background: linear-gradient(to bottom, var(--barber-orange), var(--barber-red));
+            border-radius: 2px;
+        }
+        
+        /* ============================================
+           STATS DEL DÍA
+           ============================================ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(145deg, #1e1f24, #16171b);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(228,166,79,0.3);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--barber-orange);
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        /* ============================================
+           LISTA DE RESERVAS HOY
+           ============================================ */
+        .reservas-hoy-lista {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .reserva-item {
+            background: linear-gradient(145deg, #1e1f24, #16171b);
+            border-left: 4px solid var(--barber-orange);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .reserva-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        
+        .reserva-info h4 {
+            color: var(--barber-white);
+            margin-bottom: 5px;
+        }
+        
+        .reserva-info p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .reserva-hora {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--barber-orange);
+        }
+        
+        .btn-eliminar {
+            background: var(--barber-red);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-eliminar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255,59,63,0.4);
+        }
+        
+        .sin-reservas {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            font-style: italic;
+        }
+        
+        /* ============================================
+           CALENDARIO ADMIN
+           ============================================ */
+        .calendario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendario-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-nav {
+            background: var(--barber-gray);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .mes-titulo {
+            font-family: 'Playfair Display', serif;
+            color: var(--barber-orange);
+            font-size: 1.3rem;
+        }
+        
+        .dias-semana {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--barber-orange);
+            font-size: 0.85rem;
+        }
+        
+        .calendario-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+        
+        .dia-celda {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #1e1f24, #16171b);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+        
+        .dia-celda:hover {
+            transform: scale(1.05);
+            border-color: var(--barber-orange);
+        }
+        
+        .dia-celda.pasado {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #1a1a1e;
+        }
+        
+        .dia-celda.cerrado {
+            background: rgba(255,59,63,0.2);
+            border-color: var(--barber-red);
+        }
+        
+        .dia-celda.cerrado::after {
+            content: '🔒';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 0.7rem;
+        }
+        
+        .dia-celda.hoy {
+            border-color: var(--barber-orange);
+            box-shadow: 0 0 15px rgba(228,166,79,0.3);
+        }
+        
+        .dia-celda.seleccionado {
+            background: var(--barber-orange);
+            color: var(--barber-black);
+            font-weight: bold;
+        }
+        
+        .dia-numero {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .dia-reservas {
+            font-size: 0.7rem;
+            color: var(--barber-orange);
+            margin-top: 2px;
+        }
+        
+        /* ============================================
+           PANEL DE ACCIONES DEL DÍA
+           ============================================ */
+        .panel-dia {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(228,166,79,0.2);
+        }
+        
+        .panel-dia h3 {
+            color: var(--barber-orange);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .acciones-dia {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-accion {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 140px;
+        }
+        
+        .btn-cerrar-dia {
+            background: var(--barber-red);
+            color: white;
+        }
+        
+        .btn-abrir-dia {
+            background: var(--barber-green);
+            color: white;
+        }
+        
+        .btn-ver-horarios {
+            background: var(--barber-blue);
+            color: white;
+        }
+        
+        /* ============================================
+           CONFIGURACIÓN RÁPIDA
+           ============================================ */
+        .config-section {
+            margin-bottom: 25px;
+        }
+        
+        .config-section h3 {
+            color: var(--barber-orange);
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        
+        .dias-semana-config {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .dia-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(145deg, #1e1f24, #16171b);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .dia-checkbox:hover {
+            border-color: var(--barber-orange);
+        }
+        
+        .dia-checkbox input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--barber-red);
+        }
+        
+        .dia-checkbox.checked {
+            background: rgba(255,59,63,0.2);
+            border-color: var(--barber-red);
+        }
+        
+        .dia-checkbox.checked span {
+            color: var(--barber-red);
+        }
+        
+        /* ============================================
+           HORARIOS
+           ============================================ */
+        .horario-config {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .horario-box {
+            background: linear-gradient(145deg, #1e1f24, #16171b);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(228,166,79,0.2);
+        }
+        
+        .horario-box h4 {
+            color: var(--barber-orange);
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+        
+        .horas-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .hora-tag {
+            background: rgba(228,166,79,0.2);
+            color: var(--barber-orange);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .btn-editar-horario {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--barber-gray);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        /* ============================================
+           MODAL DE EDICIÓN
+           ============================================ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--barber-surface);
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid var(--barber-orange);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            color: var(--barber-orange);
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .btn-cerrar-modal {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .horas-editables {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .hora-btn {
+            padding: 10px;
+            border: 2px solid var(--barber-orange);
+            background: transparent;
+            color: var(--barber-orange);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .hora-btn.activa {
+            background: var(--barber-orange);
+            color: var(--barber-black);
+        }
+        
+        .hora-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* ============================================
+           BOTONES DE ACCIÓN GLOBAL
+           ============================================ */
+        .acciones-globales {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-peligro {
+            background: linear-gradient(135deg, #8b0000, var(--barber-red));
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-peligro:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255,59,63,0.4);
+        }
+        
+        .btn-secundario {
+            background: var(--barber-gray);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        /* ============================================
+           NOTIFICACIONES TOAST
+           ============================================ */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--barber-surface);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            border-left: 4px solid var(--barber-green);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 9999;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.error {
+            border-left-color: var(--barber-red);
+        }
+        
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .reservas-hoy-lista {
+                max-height: 200px;
+            }
+
+            .horario-config {
+                grid-template-columns: 1fr;
+            }
+
+            .calendario-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .horas-editables {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .btn-header, .btn-nav, .btn-accion {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+
+            .card {
+                padding: 15px;
+            }
+        }
+    /* ============================================
+   CALENDARIO ADMIN - RESPONSIVE FIX
+   ============================================ */
+
+/* Ajuste para móviles - días más pequeños y compactos */
+@media (max-width: 600px) {
+    .dias-semana {
+        font-size: 0.7rem;
+        gap: 4px;
+    }
+    
+    .dias-semana div {
+        padding: 5px 2px;
+    }
+    
+    .calendario-grid {
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+    }
+    
+    .dia-celda {
+        min-height: 45px;
+        padding: 4px 2px;
+        font-size: 0.85rem;
+    }
+    
+    .dia-numero {
+        font-size: 0.9rem;
+    }
+    
+    .dia-reservas {
+        font-size: 0.6rem;
+        margin-top: 1px;
+    }
+    
+    /* Ajustar el badge de reservas si existe */
+    .badge-reservas {
+        font-size: 0.6rem;
+        min-width: 14px;
+        height: 14px;
+        padding: 0 2px;
+        top: 1px;
+        right: 1px;
+    }
+}/* Extra compacto para pantallas muy pequeñas */
+@media (max-width: 400px) {
+    .dias-semana {
+        font-size: 0.6rem;
+        gap: 2px;
+    }
+    
+    .calendario-grid {
+        gap: 2px;
+    }
+    
+    .dia-celda {
+        min-height: 38px;
+        padding: 2px 1px;
+        border-radius: 6px;
+    }
+    
+    .dia-numero {
+        font-size: 0.8rem;
+    }
+    
+    .dia-celda.cerrado::after {
+        font-size: 0.5rem;
+        bottom: 1px;
+        right: 1px;
+    }
+}</style>
+</head>
+<body>
+
+    <!-- ============================================
+         PANTALLA DE LOGIN
+    ============================================ -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h1>🔒 Panel de Control</h1>
+            <p>Ingresa tu clave de barbero</p>
+            
+            <div class="pin-input">
+                <input type="password" maxlength="1" data-index="0">
+                <input type="password" maxlength="1" data-index="1">
+                <input type="password" maxlength="1" data-index="2">
+                <input type="password" maxlength="1" data-index="3">
+            </div>
+            
+            <button class="btn-login" onclick="verificarLogin()">Ingresar</button>
+            <p class="error-msg" id="login-error">Clave incorrecta</p>
+        </div>
+    </div>
+
+    <!-- ============================================
+         PANEL ADMIN (oculto inicialmente)
+    ============================================ -->
+    <div id="admin-panel">
+        
+        <!-- Header -->
+        <div class="admin-header">
+            <h1>💈 Panel de Administración</h1>
+            <div class="header-actions"><!-- ============================================
+     ESTADO DEL ASISTENTE — indicador silencioso, sin popups
+     ============================================ -->
+<style>
+  .jbEstadoCard {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(51,209,122,0.08), rgba(51,209,122,0.02));
+    border: 1px solid rgba(51,209,122,0.25); border-radius: 12px;
+    padding: 14px 18px; margin-bottom: 4px;
+  }
+  .jbEstadoDot { width: 9px; height: 9px; border-radius: 50%; background: var(--barber-green, #33d17a); flex-shrink: 0; animation: jbEstadoPulse 2s ease-in-out infinite; }
+  @keyframes jbEstadoPulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  .jbEstadoTitulo { color: #cdeedb; font-size: 0.85rem; font-weight: 600; }
+  .jbEstadoStats { display: flex; gap: 18px; margin-left: auto; flex-wrap: wrap; }
+  .jbEstadoStat { text-align: center; }
+  .jbEstadoStat .num { color: #fff; font-size: 1.05rem; font-weight: 800; display: block; }
+  .jbEstadoStat .label { color: #8fa; font-size: 0.68rem; opacity: 0.8; }
+</style>
+<div class="jbEstadoCard">
+  <span class="jbEstadoDot"></span>
+  <span class="jbEstadoTitulo" id="jbEstadoTitulo">Asistente activo</span>
+  <div class="jbEstadoStats">
+    <div class="jbEstadoStat"><span class="num" id="jbEstadoConversacionesHoy">–</span><span class="label">conversaciones hoy</span></div>
+    <div class="jbEstadoStat"><span class="num" id="jbEstadoReservasSemana">–</span><span class="label">reservas del asistente esta semana</span></div>
+  </div>
+</div>
+<script>
+window.addEventListener('load', function(){
+  function jbEsHoy(ts){
+    if(!ts) return false;
+    const d = new Date(ts), hoy = new Date();
+    return d.getFullYear()===hoy.getFullYear() && d.getMonth()===hoy.getMonth() && d.getDate()===hoy.getDate();
+  }
+  db.ref('chats').on('value', snap => {
+    const chats = snap.val() || {};
+    const hoyCount = Object.values(chats).filter(c => jbEsHoy(c.ultimaActividad)).length;
+    const el = document.getElementById('jbEstadoConversacionesHoy');
+    if(el) el.textContent = hoyCount;
+  });
+  db.ref('reservas').on('value', snap => {
+    const reservas = snap.val() || {};
+    const haceUnaSemana = Date.now() - 7*24*60*60*1000;
+    const count = Object.values(reservas).filter(r => r.origen === 'chat' && r.timestamp && r.timestamp >= haceUnaSemana).length;
+    const el = document.getElementById('jbEstadoReservasSemana');
+    if(el) el.textContent = count;
+  });
+});
+</script>
+
+<!-- ============================================
+     SECCIÓN GALERÍA - ADMIN
+     ============================================ -->
+<!-- ============================================
+     SECCIÓN GALERÍA - ADMIN
+     ============================================ -->
+
+<!-- ============================================
+     ESTADÍSTICAS SIMPLES
+     ============================================ -->
+<div id="jbBannerSus" style="display:none;background:linear-gradient(135deg,rgba(51,209,122,0.12),rgba(51,209,122,0.04));border:1px solid rgba(51,209,122,0.3);border-radius:12px;padding:12px 18px;font-size:0.82rem;color:#cdeedb;margin-bottom:14px;align-items:center;gap:10px;">
+  ✅ Suscripción activa hasta <span id="jbBannerSusVence" style="font-weight:700;color:#33d17a;"></span>
+</div>
+<div class="card" id="card-estadisticas" style="margin-bottom:18px;">
+  <h2 style="color:var(--barber-orange);margin-bottom:16px;">📊 Estadísticas</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;">
+    <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
+      <span id="stat-reservas-hoy" style="display:block;font-size:2rem;font-weight:800;color:#fff;">–</span>
+      <span style="font-size:0.72rem;color:#888;">Reservas hoy</span>
+    </div>
+    <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
+      <span id="stat-reservas-semana" style="display:block;font-size:2rem;font-weight:800;color:#e4a64f;">–</span>
+      <span style="font-size:0.72rem;color:#888;">Esta semana</span>
+    </div>
+    <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
+      <span id="stat-reservas-mes" style="display:block;font-size:2rem;font-weight:800;color:#33d17a;">–</span>
+      <span style="font-size:0.72rem;color:#888;">Este mes</span>
+    </div>
+    <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
+      <span id="stat-ingresos-mes" style="display:block;font-size:1.3rem;font-weight:800;color:#29b6f6;">–</span>
+      <span style="font-size:0.72rem;color:#888;">Ingresos este mes</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    <div style="background:#12131A;border-radius:12px;padding:14px;border:1px solid rgba(228,166,79,0.15);">
+      <p style="font-size:0.75rem;color:#888;margin-bottom:8px;">✂️ Servicio más pedido</p>
+      <p id="stat-servicio-top" style="font-size:0.95rem;font-weight:700;color:#fff;">–</p>
+    </div>
+    <div style="background:#12131A;border-radius:12px;padding:14px;border:1px solid rgba(228,166,79,0.15);">
+      <p style="font-size:0.75rem;color:#888;margin-bottom:8px;">🕐 Hora más reservada</p>
+      <p id="stat-hora-top" style="font-size:0.95rem;font-weight:700;color:#fff;">–</p>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  function esFechaEnRango(fechaStr, desde, hasta){
+    if(!fechaStr) return false;
+    return fechaStr >= desde && fechaStr <= hasta;
+  }
+  function fechaStr(d){ return d.toISOString().slice(0,10); }
+
+  window.addEventListener('load', function(){
+    const hoy = new Date();
+    const hoyS = fechaStr(hoy);
+    const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - ((hoy.getDay()+6)%7));
+    const lunesS = fechaStr(lunes);
+    const mesS = hoyS.slice(0,7); // "YYYY-MM"
+
+    db.ref('reservas').on('value', snap => {
+      const reservas = snap.val() || {};
+      const lista = Object.values(reservas);
+
+      // Contadores
+      let resHoy=0, resSemana=0, resMes=0, ingresosMes=0;
+      const contServicios = {};
+      const contHoras = {};
+
+      lista.forEach(r => {
+        const f = r.fecha || '';
+        if(f === hoyS) resHoy++;
+        if(f >= lunesS && f <= hoyS) resSemana++;
+        if(f.startsWith(mesS)){
+          resMes++;
+          // Ingresos: extraer número del total guardado
+          const totalNum = parseInt((r.total||'').replace(/\D/g,'')) || 0;
+          ingresosMes += totalNum;
+          // Servicio más pedido
+          const srv = r.servicios || r.servicio || '';
+          srv.split('+').forEach(s => {
+            const k = s.trim();
+            if(k) contServicios[k] = (contServicios[k]||0)+1;
+          });
+          // Hora más reservada
+          const h = (r.hora||'').slice(0,5);
+          if(h) contHoras[h] = (contHoras[h]||0)+1;
+        }
+      });
+
+      const topServicio = Object.entries(contServicios).sort((a,b)=>b[1]-a[1])[0];
+      const topHora = Object.entries(contHoras).sort((a,b)=>b[1]-a[1])[0];
+
+      const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+      set('stat-reservas-hoy', resHoy);
+      set('stat-reservas-semana', resSemana);
+      set('stat-reservas-mes', resMes);
+      set('stat-ingresos-mes', ingresosMes>0 ? '$'+ingresosMes.toLocaleString('es-CL') : '–');
+      set('stat-servicio-top', topServicio ? `${topServicio[0]} (${topServicio[1]}×)` : '–');
+      set('stat-hora-top', topHora ? `${topHora[0]} (${topHora[1]}×)` : '–');
+    });
+  });
+})();
+</script>
+
+<div class="card galeria-card" hidden>
+    <h2>🖼️ PROMOCIONES</h2>
+    
+   <div class="upload-section">
+    <input type="file" id="input-imagen" accept="image/*" hidden>
+    
+    <!-- Botón mejorado para móvil y PC -->
+    <button class="btn-subir-imagen" type="button" id="btn-subir">
+        <span class="icono-upload">📷</span>
+        <span class="texto-upload">Sube tus promociones</span>
+    </button>
+    
+    <p class="upload-hint">Toca para elegir de galería o cámara</p>
+</div>
+    
+    <div class="galeria-grid" id="galeria-grid">
+        <div class="galeria-vacio" id="galeria-vacio">
+            <span class="icono-vacio">🖼️</span>
+            <p>No hay imágenes aún</p>
+            <span class="subtexto">Sube tu primer trabajo para mostrarlo</span>
+        </div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+
+<!-- ============================================
+     PANEL DE CHATS EN VIVO - ADMIN PREMIUM
+     ============================================ -->
+<style>
+  .chats-card { grid-column: 1 / -1; }
+  #jbBuscadorChats {
+    width: 100%; background: var(--barber-black); border: 1px solid rgba(228,166,79,0.3);
+    border-radius: 8px; color: #fff; padding: 9px 12px; font-family: inherit; margin-bottom: 10px;
+    font-size: 0.85rem;
+  }
+  #lista-chats { max-height: 360px; overflow-y: auto; }
+  .chat-item {
+    display: flex; align-items: center; gap: 12px;
+    background: linear-gradient(145deg, #1e1f24, #16171b);
+    border-left: 4px solid var(--barber-orange);
+    padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; cursor: pointer;
+    transition: all .2s ease; position: relative;
+  }
+  .chat-item:hover { transform: translateX(4px); }
+  .chat-item.chat-humano { border-left-color: var(--barber-red); }
+  .chat-item.chat-sin-responder { border-left-color: #ffcc00; box-shadow: inset 0 0 0 1px rgba(255,204,0,0.25); }
+  .chat-item.chat-urgente { border-left-color: #ff3b3f; box-shadow: 0 0 0 1px rgba(255,59,63,0.4), 0 0 12px rgba(255,59,63,0.2); animation: jbUrgenteFlash 1.2s ease-in-out infinite; }
+  @keyframes jbUrgenteFlash { 0%,100%{box-shadow:0 0 0 1px rgba(255,59,63,0.4);} 50%{box-shadow:0 0 14px rgba(255,59,63,0.5);} }
+  #jbFichaCliente { border-top: 1px solid rgba(228,166,79,0.15); margin-top: 10px; padding-top: 10px; }
+  .chat-item .chat-avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--barber-orange), #ff6f00);
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+  }
+  .chat-item .chat-info { flex: 1; min-width: 0; }
+  .chat-item .chat-info h4 { color: #fff; font-size: 0.9rem; margin-bottom: 2px; display:flex; align-items:center; gap:6px; }
+  .chat-item .chat-info p { color: #888; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+  .chat-pendiente-dot { width:7px; height:7px; border-radius:50%; background:#ffcc00; flex-shrink:0; }
+  .chat-badge {
+    font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 10px;
+    text-transform: uppercase; flex-shrink: 0;
+  }
+  .chat-badge.ia { background: rgba(51,209,122,0.2); color: var(--barber-green); }
+  .chat-badge.humano { background: rgba(255,59,63,0.2); color: var(--barber-red); }
+  .chat-item-acciones { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; align-items: stretch; }
+  .btn-atender {
+    background: var(--barber-orange); color: #16130a; border: none; padding: 6px 10px;
+    border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+  }
+  .btn-eliminar-chat {
+    background: rgba(255,77,77,0.12); color: var(--barber-red); border: 1px solid rgba(255,77,77,0.3);
+    padding: 5px 10px; border-radius: 6px; font-size: 0.72rem; cursor: pointer;
+  }
+  .sin-chats { text-align: center; color: #666; padding: 30px; font-style: italic; }
+  .btn-ver-antiguos {
+    display: block; margin: 6px auto 0; background: none; border: 1px dashed rgba(228,166,79,0.35);
+    color: #b89968; padding: 8px 14px; border-radius: 8px; font-size: 0.78rem; cursor: pointer; width: 100%;
+  }
+  #lista-chats-antiguos { display: none; margin-top: 10px; border-top: 1px dashed rgba(228,166,79,0.2); padding-top: 10px; }
+  #lista-chats-antiguos.mostrar { display: block; }
+
+  /* Modal de conversación */
+  #modal-chat .modal-content { max-width: 480px; display: flex; flex-direction: column; height: 70vh; }
+  #chat-mensajes { flex: 1; overflow-y: auto; padding: 10px 0; display: flex; flex-direction: column; gap: 8px; }
+  .msg-bubble { padding: 8px 12px; border-radius: 10px; font-size: 0.85rem; max-width: 80%; }
+  .msg-cliente { background: #2b2b2b; color: #fff; align-self: flex-start; border-radius: 10px 10px 10px 3px; }
+  .msg-ia { background: rgba(32,137,255,0.2); color: #cfe6ff; align-self: flex-end; border-radius: 10px 10px 3px 10px; }
+  .msg-james { background: linear-gradient(135deg, var(--barber-orange), #ff6f00); color: #16130a; align-self: flex-end; border-radius: 10px 10px 3px 10px; font-weight: 600; }
+  #chat-modal-footer { display: flex; gap: 8px; margin-top: 10px; }
+  #chat-input-james {
+    flex: 1; background: var(--barber-black); border: 1px solid rgba(228,166,79,0.3);
+    border-radius: 8px; color: #fff; padding: 10px; font-family: inherit;
+  }
+  #chat-modal-estado { display:flex; justify-content: space-between; align-items:center; margin-bottom: 8px; }
+  .btn-reactivar-ia { background: var(--barber-blue); color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+</style>
+
+<div class="card chats-card">
+  <h2>💬 Chats en vivo (Premium)</h2>
+  <input type="text" id="jbBuscadorChats" placeholder="🔍 Buscar por nombre...">
+  <div id="lista-chats">
+    <div class="sin-chats">No hay conversaciones todavía</div>
+  </div>
+  <button class="btn-ver-antiguos" id="btnVerAntiguos" style="display:none;" onclick="jbToggleAntiguos()">Ver conversaciones anteriores (0)</button>
+  <div id="lista-chats-antiguos"></div>
+</div>
+
+<!-- Modal de conversación individual -->
+<div class="modal-overlay" id="modal-chat">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="chat-modal-titulo">Conversación</h3>
+      <button class="btn-cerrar-modal" style="color:red; font-size:330%;" onclick="cerrarModalChat()">×</button>
+    </div>
+    <div style="display: none;" id="chat-modal-estado">
+      <span id="chat-modal-badge"  class="chat-badge ia">IA</span>
+      <button class="btn-reactivar-ia" onclick="reactivarIA()">🤖 Reactivar IA</button>
+    </div>
+    <div id="chat-mensajes"></div>
+    <div id="chat-modal-footer">
+      <input id="chat-input-james" type="text" placeholder="Escribe tu respuesta...">
+      <button class="btn-login" style="width:auto; padding:10px 18px;" onclick="enviarMensajeJames()">Enviar</button>
+    </div>
+    <p style="color:#666; font-size:0.75rem; margin-top:8px;">
+      Al escribir, la IA se pausa automáticamente para esta conversación. Se reactiva sola al cerrar este chat con la ✕.
+    </p>
+    <div id="jbFichaCliente"></div>
+  </div>
+</div>
+
+<script>
+window.addEventListener('load', function(){
+  let chatsData = {};
+  let chatAbiertoId = null;
+  let mostrandoAntiguos = false;
+  let filtroBusqueda = '';
+  const HORAS_RECIENTE = 48; // chats con actividad dentro de este rango se muestran en la lista principal
+
+  db.ref('chats').on('value', snapshot => {
+    chatsData = snapshot.val() || {};
+    renderListaChats();
+    if (chatAbiertoId) renderMensajesChat(chatAbiertoId);
+  });
+
+  document.getElementById('jbBuscadorChats').addEventListener('input', function(e){
+    filtroBusqueda = e.target.value.trim().toLowerCase();
+    renderListaChats();
+  });
+
+  function nombreVisible(id, c){
+    return c.nombreCliente ? c.nombreCliente : ('Cliente ' + id.slice(-5));
+  }
+
+  function ultimoMensajeDe(c){
+    if(!c.mensajes) return null;
+    const arr = Object.values(c.mensajes).sort((a,b) => (b.ts||0) - (a.ts||0));
+    return arr.length ? arr[0].de : null;
+  }
+
+  // ── CLOUDINARY CONFIG ──────────────────────────────────────────
+  const CLD_CLOUD = 'dkszomv2f';
+  const CLD_PRESET = 'brbshopjames';
+
+  // ── SONIDO URGENCIA (más largo y fuerte que el normal) ─────────
+  // Se activa cuando requiereAtencion = true llega de un chat
+  let jbAudioUrgencia = null;
+  let jbChatsUrgentesYaAlertados = new Set();
+
+  function jbSonarUrgencia() {
+    try {
+      // Usamos el mismo click.mp3 pero en loop 3 veces para simular duración larga
+      let count = 0;
+      function reproducir() {
+        if (count >= 3) return;
+        count++;
+        const audio = new Audio('click.mp3');
+        audio.volume = 1.0;
+        audio.play().catch(()=>{});
+        audio.onended = reproducir;
+      }
+      reproducir();
+    } catch(e) {}
+  }
+
+  // Vigilar chats con requiereAtencion en tiempo real (además del listener principal)
+  db.ref('chats').on('value', snapTodo => {
+    const todos = snapTodo.val() || {};
+    Object.entries(todos).forEach(([cid, c]) => {
+      if (c.requiereAtencion && !jbChatsUrgentesYaAlertados.has(cid)) {
+        jbChatsUrgentesYaAlertados.add(cid);
+        jbSonarUrgencia();
+        // Resaltar visualmente en la lista
+        setTimeout(() => {
+          const el = document.querySelector(`[data-chat-urgente="${cid}"]`);
+          if (el) el.classList.add('chat-urgente');
+        }, 300);
+      }
+      if (!c.requiereAtencion) {
+        jbChatsUrgentesYaAlertados.delete(cid);
+      }
+    });
+  });
+
+  function construirItem(id, c){
+    const atendidoPor = c.atendidoPor || 'IA';
+    const esHumano = atendidoPor === 'HUMANO';
+    const sinResponder = ultimoMensajeDe(c) === 'cliente';
+    const esUrgente = !!c.requiereAtencion;
+    const nombre = nombreVisible(id, c);
+    // Avatar: usar avatarUrl de Firebase (DiceBear generado por el cliente web) o fallback emoji
+    const avatarUrl = c.avatarUrl || '';
+    const avatarHtml = avatarUrl
+      ? `<img src="${avatarUrl}" alt="${nombre}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid ${esUrgente ? '#ff3b3f' : 'var(--barber-orange)'}">`
+      : `<div class="chat-avatar" style="${esUrgente ? 'background:linear-gradient(135deg,#ff3b3f,#cc0000);' : ''}">💈</div>`;
+    return `
+      <div class="chat-item ${esHumano ? 'chat-humano' : ''} ${sinResponder ? 'chat-sin-responder' : ''} ${esUrgente ? 'chat-urgente' : ''}"
+           data-chat-urgente="${id}" onclick="abrirChat('${id}')">
+        ${avatarHtml}
+        <div class="chat-info">
+          <h4>${esUrgente ? '🔴 ' : (sinResponder ? '<span class="chat-pendiente-dot"></span>' : '')}${nombre}</h4>
+          <p>${(c.ultimoMensaje || 'Sin mensajes').toString().slice(0,60)}</p>
+        </div>
+        <span class="chat-badge ${esHumano ? 'humano' : 'ia'}">${esHumano ? 'Humano' : 'IA'}</span>
+        <div class="chat-item-acciones" onclick="event.stopPropagation()">
+          <button class="btn-atender" onclick="abrirChat('${id}')">💬 Atender</button>
+          <button class="btn-eliminar-chat" onclick="eliminarChat('${id}','${nombre.replace(/'/g,"\\'")}')">🗑 Eliminar</button>
+        </div>
+      </div>`;
+  }
+
+  function renderListaChats(){
+    const cont = document.getElementById('lista-chats');
+    const contAntiguos = document.getElementById('lista-chats-antiguos');
+    const btnAntiguos = document.getElementById('btnVerAntiguos');
+    const ahora = Date.now();
+    const limiteMs = HORAS_RECIENTE * 60 * 60 * 1000;
+
+    let entradas = Object.entries(chatsData);
+    if (filtroBusqueda){
+      entradas = entradas.filter(([id, c]) => nombreVisible(id, c).toLowerCase().includes(filtroBusqueda));
+    }
+    entradas.sort((a,b) => (b[1].ultimaActividad||0) - (a[1].ultimaActividad||0));
+
+    const recientes = entradas.filter(([id, c]) => (ahora - (c.ultimaActividad||0)) <= limiteMs);
+    const antiguos   = entradas.filter(([id, c]) => (ahora - (c.ultimaActividad||0)) > limiteMs);
+
+    cont.innerHTML = recientes.length
+      ? recientes.map(([id, c]) => construirItem(id, c)).join('')
+      : `<div class="sin-chats">${filtroBusqueda ? 'Sin resultados para "'+filtroBusqueda+'"' : 'No hay conversaciones todavía'}</div>`;
+
+    if (antiguos.length){
+      btnAntiguos.style.display = 'block';
+      btnAntiguos.textContent = (mostrandoAntiguos ? 'Ocultar' : 'Ver') + ' conversaciones anteriores (' + antiguos.length + ')';
+      contAntiguos.innerHTML = antiguos.map(([id, c]) => construirItem(id, c)).join('');
+      contAntiguos.classList.toggle('mostrar', mostrandoAntiguos);
+    } else {
+      btnAntiguos.style.display = 'none';
+      contAntiguos.classList.remove('mostrar');
+      contAntiguos.innerHTML = '';
+    }
+  }
+
+  window.jbToggleAntiguos = function(){
+    mostrandoAntiguos = !mostrandoAntiguos;
+    renderListaChats();
+  };
+
+  window.eliminarChat = function(id, nombre){
+    if(!confirm('¿Eliminar la conversación con ' + nombre + '? Esto no se puede deshacer.')) return;
+    db.ref('chats/' + id).remove().then(() => {
+      mostrarToast('🗑 Conversación eliminada');
+      if (chatAbiertoId === id){ chatAbiertoId = null; document.getElementById('modal-chat').classList.remove('active'); }
+    });
+  };
+
+  window.abrirChat = function(id){
+    chatAbiertoId = id;
+    document.getElementById('modal-chat').classList.add('active');
+    document.getElementById('chat-modal-titulo').textContent = nombreVisible(id, chatsData[id] || {});
+    renderMensajesChat(id);
+  };
+
+  window.cerrarModalChat = function(){
+    // Reactivar la IA automáticamente al cerrar, sin que James tenga que apretar el botón
+    if (chatAbiertoId && chatsData[chatAbiertoId] && chatsData[chatAbiertoId].atendidoPor === 'HUMANO'){
+      db.ref('chats/' + chatAbiertoId).update({ atendidoPor: 'IA' });
+    }
+    document.getElementById('modal-chat').classList.remove('active');
+    chatAbiertoId = null;
+  };
+
+  function renderMensajesChat(id){
+    const c = chatsData[id];
+    if (!c) return;
+    const atendidoPor = c.atendidoPor || 'IA';
+    const nombre = nombreVisible(id, c);
+    const avatarUrl = c.avatarUrl || '';
+
+    // Badge estado IA/Humano
+    const badge = document.getElementById('chat-modal-badge');
+    if (badge) {
+      badge.textContent = atendidoPor === 'HUMANO' ? 'Atendido por ti' : 'IA';
+      badge.className = 'chat-badge ' + (atendidoPor === 'HUMANO' ? 'humano' : 'ia');
+    }
+    document.getElementById('chat-modal-estado').style.display = 'flex';
+
+    // Header: foto + nombre del cliente
+    const titulo = document.getElementById('chat-modal-titulo');
+    if (titulo) {
+      titulo.innerHTML = avatarUrl
+        ? `<img src="${avatarUrl}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--barber-orange);margin-right:8px;vertical-align:middle;">${nombre}`
+        : nombre;
+    }
+
+    // Historial de mensajes con burbujas correctas
+    const mensajes = c.mensajes ? Object.values(c.mensajes).sort((a,b)=>a.ts-b.ts) : [];
+    const cont = document.getElementById('chat-mensajes');
+    cont.innerHTML = mensajes.map(m => {
+      const esCliente = m.de === 'cliente';
+      const esJames = m.de === 'james';
+      const clase = esCliente ? 'msg-cliente' : (esJames ? 'msg-james' : 'msg-ia');
+      const nombreMsg = esCliente ? nombre : (esJames ? '✂️ James' : '🤖 Asistente');
+      const horaStr = m.ts ? new Date(m.ts).toLocaleTimeString('es-CL', {hour:'2-digit',minute:'2-digit'}) : '';
+      const avatarMsgHtml = esCliente && avatarUrl
+        ? `<img src="${avatarUrl}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+        : '';
+      return `
+        <div style="display:flex;flex-direction:column;align-items:${esCliente ? 'flex-start' : 'flex-end'};gap:2px;">
+          <span style="font-size:0.7rem;color:#666;padding:0 6px;">${nombreMsg} ${horaStr}</span>
+          <div style="display:flex;align-items:flex-end;gap:6px;flex-direction:${esCliente ? 'row' : 'row-reverse'};">
+            ${avatarMsgHtml}
+            <div class="msg-bubble ${clase}">${m.texto}</div>
+          </div>
+        </div>`;
+    }).join('');
+    cont.scrollTop = cont.scrollHeight;
+
+    // Mostrar ficha del cliente con historial de cortes
+    jbRenderFichaCliente(id, c);
+  }
+
+  // ── FICHA DEL CLIENTE CON CORTES ANTERIORES ──────────────────
+  function jbRenderFichaCliente(chatId, c) {
+    let fichaEl = document.getElementById('jbFichaCliente');
+    if (!fichaEl) return;
+
+    const clienteId = c.clienteId || null;
+    if (!clienteId) { fichaEl.innerHTML = '<p style="color:#666;font-size:0.8rem;">Sin ficha de cliente vinculada</p>'; return; }
+
+    db.ref('clientes/' + clienteId + '/cortes').orderByChild('ts').limitToLast(6).once('value', snap => {
+      const cortes = [];
+      snap.forEach(h => cortes.unshift({ id: h.key, ...h.val() }));
+
+      let html = `<p style="font-size:0.8rem;color:#aaa;margin-bottom:8px;">Últimos cortes de ${c.nombreCliente || 'cliente'}:</p>`;
+      if (cortes.length === 0) {
+        html += '<p style="font-size:0.78rem;color:#555;">Sin cortes registrados aún.</p>';
+      } else {
+        html += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
+        cortes.forEach(corte => {
+          html += `
+            <div style="background:#1e1f24;border-radius:10px;padding:6px;width:90px;cursor:pointer;border:1px solid rgba(228,166,79,0.2);"
+                 title="${corte.servicio || ''}" onclick="jbVerCorte('${corte.fotoUrl || ''}','${(corte.servicio||'').replace(/'/g,"\\'")}')">
+              <img src="${corte.fotoUrl || ''}" alt="corte" style="width:78px;height:78px;object-fit:cover;border-radius:8px;">
+              <p style="font-size:0.65rem;color:#e4a64f;margin-top:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${corte.servicio || '—'}</p>
+              <p style="font-size:0.6rem;color:#666;text-align:center;">${corte.fecha || ''}</p>
+            </div>`;
+        });
+        html += '</div>';
+      }
+
+      html += `
+        <input type="file" id="jbInputFotoCorte" accept="image/*" hidden>
+        <button onclick="jbIniciarSubidaCorte('${chatId}','${clienteId}')"
+          style="margin-top:10px;background:var(--barber-orange);color:#16130a;border:none;padding:8px 14px;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;width:100%;">
+          📷 Subir foto del corte de hoy
+        </button>`;
+
+      fichaEl.innerHTML = html;
+    });
+  }
+
+  window.jbVerCorte = function(url, servicio) {
+    if (!url) return;
+    jbAbrirFotoModal(url, servicio, '', '');
+  };
+
+  window.jbIniciarSubidaCorte = function(chatId, clienteId) {
+    const input = document.getElementById('jbInputFotoCorte');
+    if (!input) return;
+    input.onchange = async function() {
+      const file = input.files[0];
+      if (!file) return;
+      mostrarToast('Subiendo foto...');
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('upload_preset', CLD_PRESET);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLD_CLOUD}/image/upload`, { method:'POST', body: fd });
+        const data = await res.json();
+        const fotoUrl = data.secure_url;
+        if (!fotoUrl) throw new Error('Sin URL');
+
+        // Buscar el servicio de la última reserva de este cliente para vincularlo
+        const reservasSnap = await db.ref('reservas').orderByChild('clienteId').equalTo(clienteId).limitToLast(1).once('value');
+        let servicioUltimo = '';
+        reservasSnap.forEach(r => { servicioUltimo = r.val().servicios || r.val().servicio || ''; });
+
+        const fechaHoy = new Date().toLocaleDateString('es-CL');
+        await db.ref(`clientes/${clienteId}/cortes`).push({
+          fotoUrl,
+          servicio: servicioUltimo,
+          fecha: fechaHoy,
+          ts: Date.now(),
+          subidoPor: 'james'
+        });
+
+        mostrarToast('✅ Foto del corte guardada');
+        jbRenderFichaCliente(chatId, chatsData[chatId] || {});
+      } catch(e) {
+        mostrarToast('❌ Error subiendo foto: ' + e.message);
+      }
+      input.value = '';
+    };
+    input.click();
+  };
+
+  window.enviarMensajeJames = function(){
+    if (!chatAbiertoId) return;
+    const input = document.getElementById('chat-input-james');
+    const texto = input.value.trim();
+    if (!texto) return;
+    input.value = '';
+
+    const ref = db.ref('chats/' + chatAbiertoId);
+    ref.child('mensajes').push({ de: 'james', texto, ts: Date.now() });
+    ref.update({
+      atendidoPor: 'HUMANO',
+      atendido_por_humano: true,
+      estado_bot: 'pausado',
+      requiereAtencion: false,
+      ultimaActividad: Date.now(),
+      ultimoMensaje: texto
+    });
+    // Limpiar urgencia en el set local
+    if (chatAbiertoId) jbChatsUrgentesYaAlertados.delete(chatAbiertoId);
+  };
+
+  document.getElementById('chat-input-james').addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); window.enviarMensajeJames(); }
+  });
+
+  window.reactivarIA = function(){
+    if (!chatAbiertoId) return;
+    db.ref('chats/' + chatAbiertoId).update({ atendidoPor: 'IA', atendido_por_humano: false, estado_bot: 'activo' });
+    mostrarToast('🤖 IA reactivada para esta conversación');
+  };
+});
+</script>
+
+        <!-- Grid Principal -->
+        <div class="admin-grid">
+            
+            <!-- COLUMNA IZQUIERDA -->
+            <div class="columna-izquierda">
+                
+                <!-- STATS Y RESERVAS DE HOY -->
+                <div class="card">
+                    <h2>📋 Hoy - <span id="fecha-hoy"></span></h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-number" id="stat-total">0</div>
+                            <div class="stat-label">Reservas</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="stat-ingresos">$0</div>
+                            <div class="stat-label">Ingresos</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="stat-pendientes">0</div>
+                            <div class="stat-label">Pendientes</div>
+                        </div>
+                    </div>
+                    
+                    <div class="reservas-hoy-lista" id="reservas-hoy-lista">
+                        <div class="sin-reservas">No hay reservas para hoy</div>
+                    </div>
+                </div>
+                
+                <!-- CONFIGURACIÓN RÁPIDA -->
+                <div class="card" style="margin-top: 25px;">
+                    <h2>⚙️ Configuración Rápida</h2>
+                    
+                    <div hidden class="config-section">
+                        <h3>Días de descanso semanales</h3>
+                        <p style="color: #666; font-size: 0.85rem; margin-bottom: 10px;">
+                            Marca los días que la barbería SIEMPRE está cerrada
+                        </p>
+                        <div class="dias-semana-config" id="dias-semana-config">
+                            <!-- Se genera con JS -->
+                        </div>
+                    </div>
+                    
+                    <div class="config-section">
+                        <h3>Horarios de atención</h3>
+                        <div class="horario-config">
+                            <div class="horario-box">
+                                <h4>Lunes a Sábado</h4>
+                                <div class="horas-tags" id="horario-semana-tags"></div>
+                                <button class="btn-editar-horario" onclick="editarHorario('semana')">Editar HORARIO</button>
+                            </div>
+                            <div class="horario-box">
+                                <h4>Domingos</h4>
+                                <div class="horas-tags" id="horario-domingo-tags"></div>
+                                <button class="btn-editar-horario" onclick="editarHorario('domingo')">Editar HORARIO</button>
+                        <br><br><br>    <button class="btn-accion" id="btn-toggle-domingos" onclick="toggleTodosDomingos()" style="width:100%;">
+                            🔒 Cerrar TODOS los domingos
+                        </button>    </div>
+                        </div>
+                    </div>
+                    
+           
+
+                    <div class="config-section">
+                        <h3>Acciones globales</h3>
+                        <div class="acciones-globales">
+                            <button class="btn-peligro" onclick="borrarTodasReservas()">🗑️ Borrar TODAS las reservas</button>
+                            <button class="btn-secundario" onclick="borrarReservasAntiguas()">📜 Borrar reservas antiguas</button>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- COLUMNA DERECHA -->
+            <div class="columna-derecha">
+                
+                <!-- CALENDARIO -->
+                <div class="card">
+                    <h2>📅 Calendario de Reservas</h2>
+                    
+                    <div class="calendario-header">
+                        <div class="calendario-nav">
+                            <button class="btn-nav" onclick="cambiarMes(-1)">←</button>
+                            <button class="btn-nav" onclick="irAHoy()">Hoy</button>
+                            <button class="btn-nav" onclick="cambiarMes(1)">→</button>
+                        </div>
+                        <div class="mes-titulo" id="mes-titulo">Abril 2026</div>
+                    </div>
+                    
+                    <div class="dias-semana">
+                        <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div>
+                        <div>Jue</div><div>Vie</div><div>Sáb</div>
+                    </div>
+                    
+                    <div class="calendario-grid" id="calendario-grid">
+                        <!-- Se genera con JS -->
+                    </div>
+                    
+                    <!-- Modal de reservas del día seleccionado -->
+                    <div class="modal-overlay" id="panel-dia">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Reservas <span id="dia-seleccionado-texto"></span></h3>
+                                <button class="btn-cerrar-modal" style="color: red; font-size: 330%;" onclick="cerrarPanelDia()">×</button>
+                            </div>
+                            <div class="acciones-dia">
+                                <button class="btn-accion btn-cerrar-dia" id="btn-cerrar-dia" onclick="toggleDiaCerrado()">
+                                    🔒 Cerrar día
+                                </button>
+                                <button class="btn-accion btn-abrir-dia" id="btn-abrir-dia" onclick="toggleDiaCerrado()">
+                                    🔓 Abrir día
+                                </button>
+                                <button class="btn-accion btn-ver-horarios" onclick="editarHorarioEspecifico()">
+                                    ⚙️ Horario especial
+                                </button>
+                            </div>
+
+                            <!-- Lista de reservas del día seleccionado -->
+                            <div id="reservas-dia-seleccionado" style="margin-top: 20px;">
+                                <!-- Se llena con JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <!-- ============================================
+         MODAL DE EDICIÓN DE HORARIO
+    ============================================ -->
+    <div class="modal-overlay" id="modal-horario">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Horario</h3>
+                <button class="btn-cerrar-modal" style="color: red; font-size: 330%;"  onclick="cerrarModal()">×</button>
+            </div>
+            <p style="color: #888; margin-bottom: 15px;" id="modal-horario-subtitulo">
+                Selecciona las horas disponibles
+            </p>
+            <div class="horas-editables" id="horas-editables">
+                <!-- Se genera con JS -->
+            </div>
+            <button class="btn-login" onclick="guardarHorario()" style="margin-top: 20px;">
+                Guardar Cambios
+            </button>
+        </div>
+    </div>
+    
+    <!-- Toast de notificaciones -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // CONFIGURACIÓN FIREBASE (misma que tu app)
+        // ============================================
+       const firebaseConfig = {
+  apiKey: "AIzaSyBHLlV9HDfa1v-Uz4YVcbt3vQGByhNFYus",
+  authDomain: "jeisonstyle-1530f.firebaseapp.com",
+  databaseURL: "https://jeisonstyle-1530f-default-rtdb.firebaseio.com",
+  projectId: "jeisonstyle-1530f",
+  storageBucket: "jeisonstyle-1530f.firebasestorage.app",
+  messagingSenderId: "40159402096",
+  appId: "1:40159402096:web:d54b2d9a2dd990c1203cb5",
+  measurementId: "G-3RGRBSQ9QG"
+};
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
+        const CLAVE_ADMIN = '3331'; // ← CAMBIA ESTO POR TU CLAVE
+        let fechaActual = new Date();
+        let diaSeleccionado = null;
+        let tipoHorarioEditando = null;
+        
+        // Datos en memoria
+        let reservas = {};
+        let diasCerrados = [];
+        let diasSemanaCerrados = [];
+        let horarioSemana = ["11:00","12:00","13:00","14:00","16:00","17:00","18:00","19:00","20:00","21:30"];
+        let horarioDomingo = ["11:00","12:00","13:00","14:00","16:00","17:00","18:00","19:00","20:00","21:30"];
+        let horariosEspecificos = {};
+        
+        const nombresMeses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+        const nombresDias = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+        
+        // ============================================
+        // LOGIN
+        // ============================================
+        
+        // Auto-focus en inputs de PIN
+        document.querySelectorAll('.pin-input input').forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value && index < 3) {
+                    e.target.nextElementSibling.focus();
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    e.target.previousElementSibling.focus();
+                }
+                if (e.key === 'Enter') verificarLogin();
+            });
+        });
+        
+        function verificarLogin() {
+            const inputs = document.querySelectorAll('.pin-input input');
+            const claveIngresada = Array.from(inputs).map(i => i.value).join('');
+            
+            if (claveIngresada === CLAVE_ADMIN) {
+                sessionStorage.setItem('adminAuth', 'true');
+                mostrarPanel();
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+                inputs.forEach(i => {
+                    i.value = '';
+                    i.style.borderColor = 'var(--barber-red)';
+                });
+                inputs[0].focus();
+            }
+        }
+        
+        function mostrarPanel() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            inicializarPanel();
+        }
+        
+        function logout() {
+            sessionStorage.removeItem('adminAuth');
+            location.reload();
+        }
+        
+        // Verificar si ya está logueado
+        if (sessionStorage.getItem('adminAuth')) {
+            mostrarPanel();
+        }
+        
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        
+        function inicializarPanel() {
+            document.getElementById('fecha-hoy').textContent = formatearFechaLarga(new Date());
+            renderBotonDomingos();
+            
+            // Cargar datos de Firebase
+            cargarDatos();
+            
+            // Escuchar cambios en tiempo real
+            db.ref('reservas').on('value', snapshot => {
+    reservas = {};
+    snapshot.forEach(child => {
+        if (child.val()) {
+            reservas[child.key] = child.val();
+        }
+    });
+    renderReservasHoy();
+    renderCalendario();
+    if (diaSeleccionado) renderPanelDia();
+}, error => {
+    console.error('Error Firebase:', error);
+});
+            
+            db.ref('diasCerrados').on('value', snapshot => {
+                const data = snapshot.val() || {};
+                diasCerrados = Object.values(data).map(d => d.fecha);
+                renderCalendario();
+            });
+            
+            db.ref('config/diasSemanaCerrados').on('value', snapshot => {
+                diasSemanaCerrados = snapshot.val() || [];
+                renderDiasSemanaConfig();
+                renderCalendario();
+                renderBotonDomingos();
+            });
+            
+            db.ref('config/horarioSemana').on('value', snapshot => {
+                if (snapshot.val()) horarioSemana = snapshot.val();
+                renderHorarioTags('semana');
+            });
+            
+            db.ref('config/horarioDomingo').on('value', snapshot => {
+                if (snapshot.val()) horarioDomingo = snapshot.val();
+                renderHorarioTags('domingo');
+            });
+            
+            db.ref('config/horariosEspecificos').on('value', snapshot => {
+                horariosEspecificos = snapshot.val() || {};
+            });
+        }
+        
+        function cargarDatos() {
+            mostrarToast('Datos actualizados');
+        }
+        
+        function actualizarTodo() {
+            renderReservasHoy();
+            renderCalendario();
+            if (diaSeleccionado) renderPanelDia();
+        }
+        
+        // ============================================
+        // RENDERIZADO - RESERVAS DE HOY
+        // ============================================
+        
+        function renderReservasHoy() {
+    const ahora = new Date();
+    const hoy = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}`;
+    
+    console.log("=== DEBUG ===");
+    console.log("Fecha hoy:", hoy);
+    console.log("Total reservas en memoria:", Object.keys(reservas).length);
+    console.log("Reservas:", JSON.stringify(reservas));
+    
+    const reservasHoy = [];
+    
+    Object.entries(reservas).forEach(([id, reserva]) => {
+        if (reserva && reserva.fecha && reserva.nombre && reserva.fecha === hoy) {
+            reservasHoy.push({ id, ...reserva });
+        }
+    });
+    
+    console.log("Reservas de hoy encontradas:", reservasHoy.length);
+    
+    reservasHoy.sort((a, b) => (a.hora || '').localeCompare(b.hora || ''));
+    
+    // Actualizar stats
+    const statTotal = document.getElementById('stat-total');
+    const statIngresos = document.getElementById('stat-ingresos');
+    const statPendientes = document.getElementById('stat-pendientes');
+    
+    if (statTotal) statTotal.textContent = reservasHoy.length;
+    if (statPendientes) statPendientes.textContent = reservasHoy.length;
+    
+    let total = 0;
+    reservasHoy.forEach(r => {
+        if (r.total) {
+            const num = parseInt(String(r.total).replace(/[^0-9]/g, '')) || 0;
+            total += num;
+        }
+    });
+    if (statIngresos) statIngresos.textContent = '$' + total.toLocaleString('es-CL');
+    
+    const container = document.getElementById('reservas-hoy-lista');
+    if (!container) {
+        console.error("No se encontró #reservas-hoy-lista");
+        return;
+    }
+    
+    if (reservasHoy.length === 0) {
+        container.innerHTML = '<div class="sin-reservas">No hay reservas para hoy (' + hoy + ')</div>';
+        return;
+    }
+    
+    const ahoraN = new Date();
+    container.innerHTML = reservasHoy.map(r => {
+        const [hh, mm] = (r.hora || '00:00').split(':').map(Number);
+        const horaR = new Date(); horaR.setHours(hh, mm, 0, 0);
+        const yaPaso = ahoraN >= horaR;
+        const tieneFoto = !!r.fotoCorte;
+        const clienteId = r.clienteId || null;
+        const btnFoto = yaPaso ? (tieneFoto
+            ? `<div style="display:flex;gap:6px;align-items:center;margin-top:6px;">
+                 <img src="${r.fotoCorte}" onclick="jbAbrirFotoModal('${r.fotoCorte}','${(r.servicios||'').replace(/'/g,"\\'")}','${r.id}','${clienteId||''}')"
+                      style="width:36px;height:36px;object-fit:cover;border-radius:6px;cursor:pointer;border:1.5px solid var(--barber-orange);" title="Ver foto corte">
+                 <span style="font-size:0.7rem;color:#e4a64f;">✅ Foto subida</span>
+               </div>`
+            : `<button onclick="jbSubirFotoDesdeReserva('${r.id}','${clienteId||''}','${(r.servicios||'').replace(/'/g,"\\'")}')"
+                 style="margin-top:6px;background:var(--barber-orange);color:#16130a;border:none;padding:5px 10px;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">
+                 📷 Subir foto
+               </button>`)
+            : '';
+        return `
+        <div class="reserva-item">
+            <div class="reserva-info">
+                <h4>${r.nombre || 'Sin nombre'}</h4>
+                <p>${r.servicios || 'Sin servicio'}</p>
+                ${r.total ? `<p style="color:var(--barber-green);font-weight:600;">${r.total}</p>` : ''}
+                ${btnFoto}
+            </div>
+            <div style="text-align:right;">
+                <div class="reserva-hora">${r.hora}</div>
+                <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Eliminar</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+        
+        // ============================================
+        // RENDERIZADO - CALENDARIO
+        // ============================================
+        
+        function renderCalendario() {
+            const año = fechaActual.getFullYear();
+            const mes = fechaActual.getMonth();
+            
+            document.getElementById('mes-titulo').textContent = `${nombresMeses[mes]} ${año}`;
+            
+            const primerDia = new Date(año, mes, 1).getDay();
+            const diasEnMes = new Date(año, mes + 1, 0).getDate();
+            const hoy = new Date();
+            
+            let html = '';
+            
+            for (let i = 0; i < primerDia; i++) {
+                html += '<div></div>';
+            }
+            
+            for (let dia = 1; dia <= diasEnMes; dia++) {
+                const fecha = new Date(año, mes, dia);
+                const fechaStr = formatearFecha(fecha);
+                const esPasado = fecha < new Date(hoy.setHours(0,0,0,0));
+                const diaSemana = fecha.getDay();
+                const esHoy = fecha.toDateString() === new Date().toDateString();
+                
+                const esDiaSemanaCerrado = diasSemanaCerrados.includes(diaSemana);
+                const esDiaEspecificoCerrado = diasCerrados.includes(fechaStr);
+                const estaCerrado = esDiaSemanaCerrado || esDiaEspecificoCerrado;
+                
+                const numReservas = Object.values(reservas).filter(r => r.fecha === fechaStr).length;
+                
+                let clases = 'dia-celda';
+                if (esPasado) clases += ' pasado';
+                if (estaCerrado) clases += ' cerrado';
+                if (esHoy) clases += ' hoy';
+                if (diaSeleccionado === fechaStr) clases += ' seleccionado';
+                
+                html += `
+                    <div class="${clases}" onclick="seleccionarDia('${fechaStr}', ${esPasado})">
+                        <div class="dia-numero">${dia}</div>
+                        ${numReservas > 0 && !estaCerrado ? `<div class="dia-reservas">${numReservas} res.</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            document.getElementById('calendario-grid').innerHTML = html;
+        }
+        
+        function cambiarMes(delta) {
+            fechaActual.setMonth(fechaActual.getMonth() + delta);
+            renderCalendario();
+        }
+        
+        function irAHoy() {
+            fechaActual = new Date();
+            renderCalendario();
+        }
+        
+        function seleccionarDia(fechaStr, esPasado) {
+            // Permitir seleccionar ayer (para subir fotos de cortes del día anterior)
+            // pero no días anteriores a ayer
+            if (esPasado) {
+                const ayer = new Date();
+                ayer.setDate(ayer.getDate() - 1);
+                const ayerStr = `${ayer.getFullYear()}-${String(ayer.getMonth()+1).padStart(2,'0')}-${String(ayer.getDate()).padStart(2,'0')}`;
+                if (fechaStr < ayerStr) return; // permite ayer y hoy
+            }
+            diaSeleccionado = fechaStr;
+            renderCalendario();
+            renderPanelDia();
+        }
+        
+        // ============================================
+        // PANEL DE DÍA SELECCIONADO
+        // ============================================
+        
+        function renderPanelDia() {
+            const panel = document.getElementById('panel-dia');
+            panel.classList.add('active');
+            
+            const fecha = new Date(diaSeleccionado);
+            const diaSemana = fecha.getDay();
+            const esDiaSemanaCerrado = diasSemanaCerrados.includes(diaSemana);
+            const esDiaEspecificoCerrado = diasCerrados.includes(diaSeleccionado);
+            const estaCerrado = esDiaSemanaCerrado || esDiaEspecificoCerrado;
+            
+            document.getElementById('dia-seleccionado-texto').textContent = 
+                `${nombresDias[diaSemana]} ${diaSeleccionado}`;
+            
+            document.getElementById('btn-cerrar-dia').style.display = estaCerrado ? 'none' : 'block';
+            document.getElementById('btn-abrir-dia').style.display = estaCerrado ? 'block' : 'none';
+            
+            const reservasDia = Object.entries(reservas)
+                .filter(([id, r]) => r.fecha === diaSeleccionado)
+                .map(([id, r]) => ({ id, ...r }))
+                .sort((a, b) => a.hora.localeCompare(b.hora));
+            
+            const container = document.getElementById('reservas-dia-seleccionado');
+            const ahora = new Date();
+            const ahoraStr = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}`;
+
+            if (reservasDia.length === 0) {
+                container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Sin reservas para este día</p>';
+            } else {
+                container.innerHTML = `
+                    <h4 style="color: var(--barber-orange); margin-bottom: 10px;">Reservas:</h4>
+                    ${reservasDia.map(r => {
+                        // Mostrar btn foto si: la hora ya pasó (hoy) o es día de ayer
+                        const [hh, mm] = (r.hora || '00:00').split(':').map(Number);
+                        const horaReserva = new Date(ahora);
+                        horaReserva.setHours(hh, mm, 0, 0);
+                        const yaPaso = diaSeleccionado < ahoraStr || (diaSeleccionado === ahoraStr && ahora >= horaReserva);
+                        const tieneFoto = !!r.fotoCorte;
+                        const clienteId = r.clienteId || null;
+                        const btnFoto = yaPaso ? (tieneFoto
+                            ? `<div style="display:flex;gap:6px;justify-content:flex-end;margin-top:6px;">
+                                 <img src="${r.fotoCorte}" onclick="jbAbrirFotoModal('${r.fotoCorte}','${(r.servicios||'').replace(/'/g,"\\'")}','${r.id}','${clienteId||''}')"
+                                      style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer;border:1.5px solid var(--barber-orange);" title="Ver foto">
+                                 <button onclick="jbBorrarFotoCorte('${r.id}','${clienteId||''}','${r.fotoCorte}')"
+                                   style="background:#2a1010;color:#ff6b6b;border:1px solid #ff6b6b;padding:4px 8px;border-radius:6px;font-size:0.7rem;cursor:pointer;">🗑 Borrar foto</button>
+                               </div>`
+                            : `<button onclick="jbSubirFotoDesdeReserva('${r.id}','${clienteId||''}','${(r.servicios||'').replace(/'/g,"\\'")}')"
+                                 style="margin-top:6px;background:var(--barber-orange);color:#16130a;border:none;padding:6px 10px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;width:100%;">
+                                 📷 Subir foto del corte
+                               </button>`)
+                            : '';
+                        return `
+                        <div class="reserva-item">
+                            <div class="reserva-info">
+                                <h4>${r.nombre}</h4>
+                                <p>${r.servicios || 'Sin servicio'}</p>
+                                ${r.total ? `<p style="color:var(--barber-green);font-weight:600;">${r.total}</p>` : ''}
+                                ${btnFoto}
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="reserva-hora">${r.hora}</div>
+                                <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Eliminar</button>
+                            </div>
+                        </div>`;
+                    }).join('')}`;
+            }
+        }
+
+        // Modal interno para ver foto del corte (sin abrir nueva ventana)
+        function jbAbrirFotoModal(url, servicio, reservaId, clienteId) {
+            let modal = document.getElementById('jbFotoModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'jbFotoModal';
+                modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;';
+                modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+                document.body.appendChild(modal);
+            }
+            modal.innerHTML = `
+                <div style="max-width:480px;width:100%;background:#111;border-radius:16px;overflow:hidden;box-shadow:0 0 40px rgba(228,166,79,0.2);">
+                    <div style="background:#1a1a1f;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="color:#e4a64f;font-weight:700;">✂️ ${servicio || 'Corte'}</span>
+                        <button onclick="document.getElementById('jbFotoModal').remove()"
+                          style="background:none;border:none;color:#888;font-size:1.3rem;cursor:pointer;">✕</button>
+                    </div>
+                    <img src="${url}" style="width:100%;max-height:60vh;object-fit:cover;">
+                    <div style="padding:12px 16px;display:flex;gap:8px;">
+                        <button onclick="jbBorrarFotoCorte('${reservaId}','${clienteId}','${url}');document.getElementById('jbFotoModal').remove();"
+                          style="flex:1;background:#2a1010;color:#ff6b6b;border:1px solid #ff6b6b;padding:10px;border-radius:8px;cursor:pointer;font-weight:600;">🗑 Borrar foto</button>
+                        <button onclick="document.getElementById('jbFotoModal').remove()"
+                          style="flex:1;background:#1e1f24;color:#aaa;border:1px solid #333;padding:10px;border-radius:8px;cursor:pointer;">Cerrar</button>
+                    </div>
+                </div>`;
+            modal.style.display = 'flex';
+        }
+
+        // Subir foto desde la lista de reservas del día
+        async function jbSubirFotoDesdeReserva(reservaId, clienteId, servicio) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async function() {
+                const file = input.files[0];
+                if (!file) return;
+                mostrarToast('Subiendo foto...');
+                try {
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    fd.append('upload_preset', CLD_PRESET);
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLD_CLOUD}/image/upload`, { method:'POST', body: fd });
+                    const data = await res.json();
+                    const fotoUrl = data.secure_url;
+                    if (!fotoUrl) throw new Error('Sin URL');
+
+                    // Guardar en la reserva
+                    await db.ref('reservas/' + reservaId).update({ fotoCorte: fotoUrl });
+
+                    // Guardar también en la ficha del cliente si tiene clienteId
+                    if (clienteId) {
+                        const fechaHoy = new Date().toLocaleDateString('es-CL');
+                        await db.ref('clientes/' + clienteId + '/cortes').push({
+                            fotoUrl, servicio, fecha: fechaHoy, ts: Date.now(), reservaId
+                        });
+                        // Actualizar avatarUrl del cliente con este último corte
+                        await db.ref('clientes/' + clienteId).update({ avatarUrl: fotoUrl });
+                        await db.ref('chats').orderByChild('clienteId').equalTo(clienteId).once('value', snap => {
+                            snap.forEach(ch => ch.ref.update({ avatarUrl: fotoUrl }));
+                        });
+                    }
+
+                    mostrarToast('✅ Foto guardada');
+                    renderPanelDia();
+                    renderReservasHoy();
+                } catch(e) {
+                    mostrarToast('❌ Error: ' + e.message);
+                }
+            };
+            input.click();
+        }
+
+        // Borrar foto del corte de una reserva
+        async function jbBorrarFotoCorte(reservaId, clienteId, fotoUrl) {
+            if (!confirm('¿Borrar esta foto del corte?')) return;
+            try {
+                await db.ref('reservas/' + reservaId).update({ fotoCorte: null });
+                // Si el avatar del cliente era esta foto, volver a DiceBear
+                if (clienteId) {
+                    const snap = await db.ref('clientes/' + clienteId).once('value');
+                    const cliente = snap.val() || {};
+                    if (cliente.avatarUrl === fotoUrl) {
+                        const nombreNorm = (cliente.nombreNorm || cliente.nombre || '').toLowerCase();
+                        const avatarFallback = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(nombreNorm)}&backgroundColor=E4A64F&radius=50`;
+                        await db.ref('clientes/' + clienteId).update({ avatarUrl: avatarFallback });
+                        await db.ref('chats').orderByChild('clienteId').equalTo(clienteId).once('value', snap2 => {
+                            snap2.forEach(ch => ch.ref.update({ avatarUrl: avatarFallback }));
+                        });
+                    }
+                    // Borrar de la colección de cortes del cliente
+                    const cortesSnap = await db.ref('clientes/' + clienteId + '/cortes').once('value');
+                    cortesSnap.forEach(c => {
+                        if (c.val().fotoUrl === fotoUrl) c.ref.remove();
+                    });
+                }
+                mostrarToast('🗑 Foto eliminada');
+                renderPanelDia();
+                renderReservasHoy();
+            } catch(e) {
+                mostrarToast('❌ Error al borrar: ' + e.message);
+            }
+        }
+        
+        function cerrarPanelDia() {
+            document.getElementById('panel-dia').classList.remove('active');
+        }
+
+        function toggleDiaCerrado() {
+            const esCerrado = diasCerrados.includes(diaSeleccionado);
+            
+            if (esCerrado) {
+                db.ref('diasCerrados').once('value', snapshot => {
+                    snapshot.forEach(child => {
+                        if (child.val().fecha === diaSeleccionado) {
+                            child.ref.remove();
+                        }
+                    });
+                });
+                mostrarToast('Día abierto correctamente');
+            } else {
+                db.ref('diasCerrados').push({ fecha: diaSeleccionado });
+                mostrarToast('Día cerrado correctamente');
+            }
+        }
+        
+        // ============================================
+        // CONFIGURACIÓN - DÍAS DE SEMANA
+        // ============================================
+        
+        function renderDiasSemanaConfig() {
+            const container = document.getElementById('dias-semana-config');
+            const dias = [
+                { num: 1, nombre: 'Lunes' },
+                { num: 2, nombre: 'Martes' },
+                { num: 3, nombre: 'Miércoles' },
+                { num: 4, nombre: 'Jueves' },
+                { num: 5, nombre: 'Viernes' },
+                { num: 6, nombre: 'Sábado' },
+                { num: 0, nombre: 'Domingo' }
+            ];
+            
+            container.innerHTML = dias.map(d => {
+                const checked = diasSemanaCerrados.includes(d.num);
+                return `
+                    <label class="dia-checkbox ${checked ? 'checked' : ''}" onclick="toggleDiaSemana(${d.num})">
+                        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleDiaSemana(${d.num})">
+                        <span>${d.nombre}</span>
+                    </label>
+                `;
+            }).join('');
+        }
+        
+        function toggleDiaSemana(diaNum) {
+            const index = diasSemanaCerrados.indexOf(diaNum);
+            let nuevoArray = [...diasSemanaCerrados];
+            
+            if (index > -1) {
+                nuevoArray.splice(index, 1);
+            } else {
+                nuevoArray.push(diaNum);
+            }
+            
+            db.ref('config/diasSemanaCerrados').set(nuevoArray);
+        }
+        
+        function toggleTodosDomingos() {
+            const estaCerrado = diasSemanaCerrados.includes(0);
+            const mensaje = estaCerrado
+                ? '¿Abrir TODOS los domingos?'
+                : '¿Cerrar TODOS los domingos?';
+            
+            if (!confirm(mensaje)) return;
+            
+            toggleDiaSemana(0);
+            mostrarToast(estaCerrado ? 'Domingos abiertos' : 'Domingos cerrados');
+        }
+        
+        function renderBotonDomingos() {
+            const btn = document.getElementById('btn-toggle-domingos');
+            if (!btn) return;
+            
+            const estaCerrado = diasSemanaCerrados.includes(0);
+            
+            if (estaCerrado) {
+                btn.textContent = '🔓 Abrir TODOS los domingos';
+                btn.style.background = 'var(--barber-green)';
+            } else {
+                btn.textContent = '🔒 Cerrar TODOS los domingos';
+                btn.style.background = 'var(--barber-red)';
+            }
+        }
+        
+        // ============================================
+        // CONFIGURACIÓN - HORARIOS
+        // ============================================
+        
+        function renderHorarioTags(tipo) {
+            const horario = tipo === 'semana' ? horarioSemana : horarioDomingo;
+            const container = document.getElementById(`horario-${tipo}-tags`);
+            container.innerHTML = horario.map(h => `<span class="hora-tag">${h}</span>`).join('');
+        }
+        
+        function editarHorario(tipo) {
+            tipoHorarioEditando = tipo;
+            const horario = tipo === 'semana' ? horarioSemana : horarioDomingo;
+            
+            document.getElementById('modal-horario-subtitulo').textContent = 
+                tipo === 'semana' ? 'Horario de Lunes a Sábado' : 'Horario de Domingos';
+            
+            const horasDisponibles = [];
+            for (let h = 9; h <= 22; h++) {
+                horasDisponibles.push(`${h.toString().padStart(2,'0')}:00`);
+                if (h < 22) horasDisponibles.push(`${h.toString().padStart(2,'0')}:30`);
+            }
+            
+            const container = document.getElementById('horas-editables');
+            container.innerHTML = horasDisponibles.map(hora => {
+                const activa = horario.includes(hora);
+                return `<button class="hora-btn ${activa ? 'activa' : ''}" onclick="toggleHora('${hora}')">${hora}</button>`;
+            }).join('');
+            
+            document.getElementById('modal-horario').classList.add('active');
+        }
+        
+        function editarHorarioEspecifico() {
+            tipoHorarioEditando = diaSeleccionado;
+            const horarioDefault = obtenerHorarioDefault(diaSeleccionado);
+            const horarioActual = horariosEspecificos[diaSeleccionado] || horarioDefault;
+            
+            document.getElementById('modal-horario-subtitulo').textContent = 
+                `Horario especial para ${diaSeleccionado}`;
+            
+            const horasDisponibles = [];
+            for (let h = 9; h <= 22; h++) {
+                horasDisponibles.push(`${h.toString().padStart(2,'0')}:00`);
+                if (h < 22) horasDisponibles.push(`${h.toString().padStart(2,'0')}:30`);
+            }
+            
+            const container = document.getElementById('horas-editables');
+            container.innerHTML = horasDisponibles.map(hora => {
+                const activa = horarioActual.includes(hora);
+                return `<button class="hora-btn ${activa ? 'activa' : ''}" onclick="toggleHora('${hora}')">${hora}</button>`;
+            }).join('');
+            
+            document.getElementById('modal-horario').classList.add('active');
+        }
+        
+        function toggleHora(hora) {
+            event.target.classList.toggle('activa');
+        }
+        
+        function guardarHorario() {
+            const horasActivas = Array.from(document.querySelectorAll('.hora-btn.activa'))
+                .map(btn => btn.textContent);
+            
+            if (tipoHorarioEditando === 'semana') {
+                db.ref('config/horarioSemana').set(horasActivas);
+            } else if (tipoHorarioEditando === 'domingo') {
+                db.ref('config/horarioDomingo').set(horasActivas);
+            } else {
+                if (horasActivas.length === 0) {
+                    db.ref(`config/horariosEspecificos/${tipoHorarioEditando}`).remove();
+                } else {
+                    db.ref(`config/horariosEspecificos/${tipoHorarioEditando}`).set(horasActivas);
+                }
+            }
+            
+            cerrarModal();
+            mostrarToast('Horario guardado');
+        }
+        
+        function cerrarModal() {
+            document.getElementById('modal-horario').classList.remove('active');
+        }
+        
+        function obtenerHorarioDefault(fechaStr) {
+            const fecha = new Date(fechaStr);
+            const diaSemana = fecha.getDay();
+            return diaSemana === 0 ? horarioDomingo : horarioSemana;
+        }
+        
+        // ============================================
+        // ACCIONES GLOBALES
+        // ============================================
+        
+       function eliminarReserva(id) {
+    if (!confirm('¿Eliminar esta reserva?')) return;
+    
+    // Obtener datos de la reserva antes de borrar
+    db.ref(`reservas/${id}`).once('value', snapshot => {
+        const reserva = snapshot.val();
+        
+        db.ref(`reservas/${id}`).remove().then(() => {
+            mostrarToast('Reserva eliminada');
+            
+            // Notificar al servidor ntfy con etiqueta de admin
+            if (reserva) {
+                notificarCancelacionAdmin(reserva);
+            }
+        });
+    });
+}
+
+async function notificarCancelacionAdmin(reserva) {
+    const NTFY_TOPIC = 'james-barber-shop-2026';
+    
+    const mensaje = `❌🔧 CANCELADA POR ADMIN 🔧❌
+❌👤 ${reserva.nombre || 'Sin nombre'}❌
+❌📅 ${reserva.fecha} a las ${reserva.hora}❌
+❌💈 ${reserva.servicios || 'Sin servicio'}❌
+❌💰 ${reserva.total || 'No especificado'}❌`;
+
+    try {
+        await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+            method: 'POST',
+            body: mensaje,
+            headers: {
+                'Title': 'Admin elimino reserva',
+                'Priority': 'default',  // Menos urgente que una cancelación de cliente
+                'Tags': 'scissors,x'
+            }
+        });
+    } catch (error) {
+        console.error('Error ntfy admin:', error);
+    }
+}
+        
+        function borrarTodasReservas() {
+            if (!confirm('⚠️ ¿ESTÁS SEGURO?\n\nEsto eliminará TODAS las reservas permanentemente.')) return;
+            if (!confirm('Doble confirmación: ¿Realmente quieres borrar todo?')) return;
+            
+            db.ref('reservas').remove();
+            mostrarToast('Todas las reservas eliminadas');
+        }
+        
+        function borrarReservasAntiguas() {
+            const hoy = formatearFecha(new Date());
+            const confirmar = confirm(`¿Borrar reservas anteriores a ${hoy}?`);
+            if (!confirmar) return;
+            
+            db.ref('reservas').once('value', snapshot => {
+                let count = 0;
+                snapshot.forEach(child => {
+                    if (child.val().fecha < hoy) {
+                        child.ref.remove();
+                        count++;
+                    }
+                });
+                mostrarToast(`${count} reservas antiguas eliminadas`);
+            });
+        }
+        
+        // ============================================
+        // UTILIDADES
+        // ============================================
+        
+        function formatearFecha(fecha) {
+    // Usar toLocaleDateString para respetar zona horaria local (Chile)
+    const a = fecha.getFullYear();
+    const m = String(fecha.getMonth() + 1).padStart(2, '0');
+    const d = String(fecha.getDate()).padStart(2, '0');
+    return `${a}-${m}-${d}`;
+}
+        
+        function formatearFechaLarga(fecha) {
+            return `${nombresDias[fecha.getDay()]} ${fecha.getDate()} de ${nombresMeses[fecha.getMonth()]}`;
+        }
+        
+        function mostrarToast(mensaje, esError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.className = esError ? 'toast error show' : 'toast show';
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Cerrar modal al hacer click fuera
+        document.getElementById('modal-horario').addEventListener('click', (e) => {
+            if (e.target.id === 'modal-horario') cerrarModal();
+        });
+
+        document.getElementById('panel-dia').addEventListener('click', (e) => {
+            if (e.target.id === 'panel-dia') cerrarPanelDia();
+        });
+
+        // ============================================
+// GALERÍA - ADMIN (con subida y eliminación)
+// ============================================
+// ============================================
+// GALERÍA - ADMIN (CORREGIDO PARA MÓVIL Y PC)
+// ============================================
+
+const inputImagen = document.getElementById('input-imagen');
+const galeriaGrid = document.getElementById('galeria-grid');
+const btnSubir = document.getElementById('btn-subir');
+
+// ✅ CLICK EN BOTÓN - Funciona en PC y móvil
+btnSubir.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Simular click en el input file
+    inputImagen.click();
+});
+
+// ✅ También para touch en móviles
+btnSubir.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    inputImagen.click();
+});
+
+// Escuchar cuando el usuario selecciona archivo
+inputImagen.addEventListener('change', subirImagen);
+
+// Escuchar galería en tiempo real
+db.ref('galeria').on('value', snapshot => {
+    const imagenes = snapshot.val() || {};
+    renderGaleriaAdmin(imagenes);
+});
+
+function subirImagen(e) {
+    const archivo = e.target.files[0];
+    
+    // Limpiar el input para permitir subir la misma imagen otra vez
+    e.target.value = '';
+    
+    if (!archivo) {
+        console.log('No se seleccionó archivo');
+        return;
+    }
+    
+    // Validaciones
+    if (!archivo.type.startsWith('image/')) {
+        mostrarToast('❌ Solo se permiten imágenes (JPG, PNG, WEBP)', true);
+        return;
+    }
+    
+    if (archivo.size > 5 * 1024 * 1024) {
+        mostrarToast('❌ La imagen no debe superar 5MB', true);
+        return;
+    }
+
+    mostrarToast('⏳ Procesando imagen...');
+
+    // Leer y comprimir
+    const reader = new FileReader();
+    
+    reader.onerror = function() {
+        mostrarToast('❌ Error al leer la imagen', true);
+    };
+    
+    reader.onload = function(event) {
+        const img = new Image();
+        
+        img.onerror = function() {
+            mostrarToast('❌ Error al procesar la imagen', true);
+        };
+        
+        img.onload = function() {
+            // Comprimir
+            const canvas = document.createElement('canvas');
+            const MAX = 1200; // Aumentado un poco para mejor calidad
+            let w = img.width, h = img.height;
+
+            if (w > h) { 
+                if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } 
+            } else { 
+                if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } 
+            }
+
+            canvas.width = w;
+            canvas.height = h;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+
+            const urlComprimida = canvas.toDataURL('image/jpeg', 0.8);
+
+            const nuevaImagen = {
+                url: urlComprimida,
+                fecha: new Date().toISOString(),
+                nombre: archivo.name,
+                sizeOriginal: (archivo.size / 1024).toFixed(1) + 'KB',
+                sizeComprimido: (urlComprimida.length / 1024).toFixed(1) + 'KB'
+            };
+
+            db.ref('galeria').push(nuevaImagen)
+                .then(() => {
+                    mostrarToast('✅ Imagen subida correctamente');
+                })
+                .catch((err) => {
+                    console.error('Error Firebase:', err);
+                    mostrarToast('❌ Error al guardar: ' + err.message, true);
+                });
+        };
+        
+        img.src = event.target.result;
+    };
+    
+    reader.readAsDataURL(archivo);
+}
+
+function renderGaleriaAdmin(imagenes) {
+    const keys = Object.keys(imagenes);
+    
+    if (keys.length === 0) {
+        galeriaGrid.innerHTML = `
+            <div class="galeria-vacio" id="galeria-vacio">
+                <span class="icono-vacio">🖼️</span>
+                <p>No hay imágenes aún</p>
+                <span class="subtexto">Sube tu primer trabajo para mostrarlo</span>
+            </div>
+        `;
+        return;
+    }
+    
+    const ordenadas = keys
+        .map(key => ({ key, ...imagenes[key] }))
+        .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    
+    galeriaGrid.innerHTML = ordenadas.map(img => `
+        <div class="galeria-item">
+            <img src="${img.url}" alt="Trabajo de barbería" loading="lazy">
+            <div class="galeria-overlay">
+                <div class="galeria-fecha">${formatearFechaImg(img.fecha)}</div>
+                <button class="btn-eliminar-img" onclick="eliminarImagen('${img.key}')">
+                    🗑️ Eliminar
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ============================================
+// GALERÍA - FUNCIONES MEJORADAS
+// ============================================
+
+function eliminarImagen(key) {
+    // Confirmación con estilo mejorado
+    if (!confirm('🗑️ ¿Eliminar esta imagen permanentemente?\n\nEsta acción no se puede deshacer.')) {
+        return;
+    }
+
+    // Mostrar feedback visual inmediato
+    mostrarToast('🗑️ Eliminando imagen...');
+
+    db.ref('galeria/' + key).remove()
+        .then(() => {
+            mostrarToast('✅ Imagen eliminada correctamente');
+            
+            // Opcional: reproducir sonido de confirmación
+            if (typeof playTone === 'function') {
+                playTone(440, 0.15, 0.3); // Sonido de éxito
+            }
+        })
+        .catch((error) => {
+            console.error('Error al eliminar:', error);
+            mostrarToast('❌ Error al eliminar la imagen', true);
+            
+            // Opcional: sonido de error
+            if (typeof playTone === 'function') {
+                playTone(200, 0.3, 0.3); // Sonido de error
+            }
+        });
+}
+
+// Función para eliminar múltiples imágenes (opcional - útil para limpieza)
+function eliminarTodasLasImagenes() {
+    if (!confirm('⚠️ ¿ESTÁS SEGURO?\n\nEsto eliminará TODAS las imágenes de la galería permanentemente.')) {
+        return;
+    }
+    
+    if (!confirm('🔴 Doble confirmación: ¿Realmente quieres borrar TODAS las imágenes?')) {
+        return;
+    }
+
+    mostrarToast('🗑️ Eliminando todas las imágenes...');
+
+    db.ref('galeria').remove()
+        .then(() => {
+            mostrarToast('✅ Todas las imágenes han sido eliminadas');
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            mostrarToast('❌ Error al eliminar imágenes', true);
+        });
+}
+function formatearFechaImg(fechaISO) {
+    const f = new Date(fechaISO);
+    return `${f.getDate()}/${f.getMonth() + 1}/${f.getFullYear()}`;
+}
+    </script><style>/* ============================================
+   GALERÍA - ADMIN
+   ============================================ */
+
+.galeria-card {
+    margin-bottom: 25px;
+    grid-column: 1 / -1;
+}
+
+.upload-section {
+    text-align: center;
+    padding: 30px 20px;
+    background: linear-gradient(145deg, #1e1f24, #16171b);
+    border-radius: 12px;
+    border: 2px dashed rgba(228, 166, 79, 0.3);
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+}
+
+.upload-section:hover {
+    border-color: var(--barber-orange);
+    background: linear-gradient(145deg, #24252a, #1a1b20);
+}
+
+.btn-subir-imagen {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, var(--barber-orange), #ff6f00);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(255, 111, 0, 0.35);
+}
+
+.btn-subir-imagen:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(255, 111, 0, 0.5);
+}
+
+.icono-upload {
+    font-size: 1.4rem;
+}
+
+.upload-hint {
+    margin-top: 12px;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.galeria-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.galeria-vacio {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: #555;
+}
+
+.icono-vacio {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.subtexto {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.galeria-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #1e1f24, #16171b);
+    border: 1px solid rgba(228, 166, 79, 0.2);
+    transition: all 0.3s ease;
+    aspect-ratio: 4/3;
+}
+
+.galeria-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(228, 166, 79, 0.15);
+    border-color: rgba(228, 166, 79, 0.4);
+}
+
+.galeria-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.galeria-item:hover img {
+    transform: scale(1.05);
+}
+
+.galeria-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(11, 11, 13, 0.9) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 15px;
+}
+
+.galeria-item:hover .galeria-overlay {
+    opacity: 1;
+}
+
+.galeria-fecha {
+    color: var(--barber-orange);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.btn-eliminar-img {
+    padding: 8px 16px;
+    background: var(--barber-red);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-eliminar-img:hover {
+    background: #ff5555;
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .galeria-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .galeria-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .galeria-item {
+        aspect-ratio: 1;
+    }
+}
+/* ============================================
+   GALERÍA - ADMIN (BOTÓN SIEMPRE VISIBLE)
+   ============================================ */
+
+.galeria-card {
+    margin-bottom: 25px;
+    grid-column: 1 / -1;
+}
+
+.upload-section {
+    text-align: center;
+    padding: 30px 20px;
+    background: linear-gradient(145deg, #1e1f24, #16171b);
+    border-radius: 12px;
+    border: 2px dashed rgba(228, 166, 79, 0.3);
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+}
+
+.upload-section:hover {
+    border-color: var(--barber-orange);
+    background: linear-gradient(145deg, #24252a, #1a1b20);
+}
+
+.btn-subir-imagen {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, var(--barber-orange), #ff6f00);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(255, 111, 0, 0.35);
+}
+
+.btn-subir-imagen:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(255, 111, 0, 0.5);
+}
+
+.icono-upload {
+    font-size: 1.4rem;
+}
+
+.upload-hint {
+    margin-top: 12px;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.galeria-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.galeria-vacio {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: #555;
+}
+
+.icono-vacio {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.subtexto {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.galeria-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #1e1f24, #16171b);
+    border: 1px solid rgba(228, 166, 79, 0.2);
+    transition: all 0.3s ease;
+    aspect-ratio: 4/3;
+}
+
+.galeria-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(228, 166, 79, 0.15);
+    border-color: rgba(228, 166, 79, 0.4);
+}
+
+.galeria-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.galeria-item:hover img {
+    transform: scale(1.05);
+}
+
+/* OVERLAY SIEMPRE VISIBLE - MODIFICACIÓN CLAVE */
+.galeria-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(11, 11, 13, 0.95) 0%, rgba(11, 11, 13, 0.7) 40%, transparent 100%);
+    opacity: 1; /* SIEMPRE VISIBLE - cambiado de 0 a 1 */
+    transition: opacity 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 15px;
+}
+
+/* Ya no necesitamos el hover para mostrar el overlay */
+.galeria-item:hover .galeria-overlay {
+    opacity: 1;
+    background: linear-gradient(to top, rgba(11, 11, 13, 0.98) 0%, rgba(11, 11, 13, 0.85) 50%, transparent 100%);
+}
+
+.galeria-fecha {
+    color: var(--barber-orange);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+/* BOTÓN ELIMINAR SIEMPRE VISIBLE - MODIFICACIÓN CLAVE */
+.btn-eliminar-img {
+    padding: 10px 16px;
+    background: var(--barber-red);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(255, 59, 63, 0.4);
+    opacity: 1; /* SIEMPRE VISIBLE */
+    transform: translateY(0); /* SIEMPRE EN POSICIÓN VISIBLE */
+}
+
+/* Efecto hover mejorado */
+.btn-eliminar-img:hover {
+    background: #ff5555;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 59, 63, 0.6);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Efecto active (clic) */
+.btn-eliminar-img:active {
+    transform: scale(0.98) translateY(0);
+}
+
+/* Icono de eliminar */
+.btn-eliminar-img::before {
+    content: '🗑️';
+    font-size: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .galeria-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .btn-eliminar-img {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .galeria-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .galeria-item {
+        aspect-ratio: 1;
+    }
+    
+    .galeria-overlay {
+        padding: 10px;
+        background: linear-gradient(to top, rgba(11, 11, 13, 0.98) 0%, rgba(11, 11, 13, 0.8) 60%, transparent 100%);
+    }
+    
+    .btn-eliminar-img {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+    
+    .galeria-fecha {
+        font-size: 0.7rem;
+        margin-bottom: 5px;
+    }
+}
+</style>
+<script>
+   function subirImagen(e) {
+    const archivo = e.target.files[0];
+    if (!archivo) return;
+
+    if (!archivo.type.startsWith('image/')) {
+        mostrarToast('Solo se permiten imágenes', true);
+        return;
+    }
+
+    if (archivo.size > 5 * 1024 * 1024) {
+        mostrarToast('La imagen no debe superar 5MB', true);
+        return;
+    }
+
+    mostrarToast('Subiendo imagen...');
+
+    // Comprimir la imagen antes de subir
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+        img.src = event.target.result;
+    };
+
+    img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const MAX = 800;
+        let w = img.width, h = img.height;
+
+        if (w > h) { if (w > MAX) { h = h * MAX / w; w = MAX; } }
+        else        { if (h > MAX) { w = w * MAX / h; h = MAX; } }
+
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+        const urlComprimida = canvas.toDataURL('image/jpeg', 0.7);
+
+        const nuevaImagen = {
+            url: urlComprimida,
+            fecha: new Date().toISOString(),
+            nombre: archivo.name
+        };
+
+        db.ref('galeria').push(nuevaImagen)
+            .then(() => {
+                mostrarToast('✅ Imagen subida correctamente');
+                inputImagen.value = '';
+            })
+            .catch((err) => {
+                console.error(err);
+                mostrarToast('Error al subir imagen', true);
+            });
+    };
+
+    reader.readAsDataURL(archivo);
+}
+</script>
+
+
+<!-- Overlay de suscripción (se muestra encima de todo si no está pagado) -->
+<div id="jbSuscripcionOverlay">
+  <div class="jbSusCard" id="jbSusContenido">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+  <div class="jbSusTitulo" style="margin-bottom:0;">🔐 Suscripción requerida</div>
+  <button id="jbSusBtnCerrar" onclick="jbCerrarSusOverlay()" style="display:none;background:none;border:none;color:#f92828c9;font-size:1.4rem;cursor:pointer;line-height:1;">✕</button>
+</div>
+    <p class="jbSusSubtitulo">
+      Para usar el panel de Barbería James necesitas una suscripción activa.<br>
+      Realiza la transferencia y sube el comprobante para activarla al instante.
+    </p>
+
+  <style>
+.jbDatosFila{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+.jbDatosFila:last-child{border-bottom:none;}
+.jbDatosLabel{font-size:0.75rem;color:#888;width:110px;flex-shrink:0;}
+.jbDatosValor{font-size:0.85rem;color:#fff;font-weight:600;flex:1;}
+.jbBtnCopiar{background:rgba(228,166,79,0.12);border:1px solid rgba(228,166,79,0.3);color:#E4A64F;border-radius:6px;padding:4px 9px;font-size:0.72rem;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.jbBtnCopiar:active{background:rgba(228,166,79,0.3);}
+.jbBtnCopiarTodo{width:100%;padding:11px;background:rgba(228,166,79,0.1);border:1px solid rgba(228,166,79,0.35);color:#E4A64F;border-radius:10px;font-size:0.82rem;font-weight:700;cursor:pointer;margin-top:12px;transition:all .2s;}
+.jbBtnCopiarTodo:active{background:rgba(228,166,79,0.25);}
+.jbBtnBanco{width:100%;padding:12px;background:linear-gradient(135deg,#1a3a5c,#0f2a45);border:1px solid rgba(41,182,246,0.4);color:#29B6F6;border-radius:10px;font-size:0.85rem;font-weight:700;cursor:pointer;margin-top:8px;transition:all .2s;}
+.jbBtnBanco:active{background:#0f2a45;}
+.jbToastCopy{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e1f28;border:1px solid rgba(228,166,79,0.4);color:#E4A64F;padding:10px 20px;border-radius:10px;font-size:0.82rem;font-weight:600;opacity:0;transition:all .25s;z-index:9999999;pointer-events:none;}
+.jbToastCopy.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+#jbSuscripcionOverlay {
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(8,9,12,0.96);
+  z-index:999999;
+  align-items:center;
+  justify-content:center;
+  font-family:'Poppins',sans-serif;
+}
+#jbSuscripcionOverlay.activo { display:flex; }
+.jbSusCard {
+  background:#13141C;
+  border:1px solid rgba(228,166,79,0.25);
+  border-radius:20px;
+  padding:32px 28px;
+  max-width:420px;
+  width:92%;
+  box-shadow:0 0 60px rgba(228,166,79,0.08);
+  position:relative;
+}
+.jbSusTitulo {
+  font-size:1.3rem;font-weight:800;
+  color:#E4A64F;text-align:center;
+  margin-bottom:6px;
+}
+.jbSusSubtitulo {
+  font-size:0.82rem;color:#888;
+  text-align:center;margin-bottom:24px;
+  line-height:1.5;
+}
+.jbSusInfoPago {
+  background:#0E0F16;
+  border:1px solid rgba(228,166,79,0.15);
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:20px;
+  font-size:0.82rem;
+  line-height:2;
+  color:#ccc;
+}
+.jbSusInfoPago b { color:#E4A64F; }
+.jbSusUploadArea {
+  border:2px dashed rgba(228,166,79,0.3);
+  border-radius:14px;
+  padding:28px 16px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .2s;
+  margin-bottom:16px;
+  background:#0C0D14;
+}
+.jbSusUploadArea:hover { border-color:#E4A64F; background:#12131A; }
+.jbSusUploadArea.con-imagen { border-color:#33d17a; border-style:solid; }
+.jbSusUploadIcon { font-size:2.2rem; margin-bottom:8px; }
+.jbSusUploadTexto { font-size:0.85rem; color:#888; }
+.jbSusUploadTexto b { color:#E4A64F; }
+#jbSusPreview {
+  width:100%;max-height:180px;
+  object-fit:contain;
+  border-radius:10px;
+  margin-bottom:12px;
+  display:none;
+  border:1px solid rgba(228,166,79,0.2);
+}
+.jbSusBtn {
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,#E4A64F,#C8843A);
+  color:#16130A;font-weight:800;
+  font-size:0.95rem;border:none;
+  border-radius:12px;cursor:pointer;
+  transition:opacity .2s;
+  font-family:'Poppins',sans-serif;
+}
+.jbSusBtn:disabled { opacity:0.5;cursor:not-allowed; }
+.jbSusEstado {
+  text-align:center;margin-top:14px;
+  font-size:0.82rem;color:#888;
+  min-height:22px;
+}
+.jbSusEstado.error { color:#ff6b6b; }
+.jbSusEstado.ok    { color:#33d17a; }
+
+/* Modal de éxito */
+.jbSusExito {
+  text-align:center;padding:10px 0;
+}
+.jbSusExitoIcon {
+  font-size:4rem;
+  animation:jbSusBounce .5s cubic-bezier(.36,.07,.19,.97) both;
+}
+@keyframes jbSusBounce {
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.35);}
+}
+.jbSusExitoTitulo {
+  font-size:1.4rem;font-weight:800;
+  color:#33d17a;margin:12px 0 6px;
+}
+.jbSusExitoSub { font-size:0.85rem;color:#888; }
+
+/* Banner en el panel cuando ya está pagado */
+#jbBannerSus {
+  display:none;
+  background:linear-gradient(135deg,rgba(51,209,122,0.12),rgba(51,209,122,0.04));
+  border:1px solid rgba(51,209,122,0.3);
+  border-radius:12px;
+  padding:12px 18px;
+  font-size:0.82rem;
+  color:#cdeedb;
+  margin-bottom:14px;
+  align-items:center;
+  gap:10px;
+}
+#jbBannerSus span { font-weight:700; color:#33d17a; }
+#jbSusLoader {
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(8,9,12,0.97);
+  z-index:9999999;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  font-family:'Poppins',sans-serif;
+}
+#jbSusLoader.activo { display:flex; }
+
+.jbLoaderOrb {
+  width:110px;height:110px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, #E4A64F, #8B4A00);
+  box-shadow:0 0 60px rgba(228,166,79,0.5), 0 0 120px rgba(228,166,79,0.2);
+  animation:jbOrbPulse 1.8s ease-in-out infinite;
+  position:relative;
+  margin-bottom:32px;
+}
+.jbLoaderOrb::after {
+  content:'🔍';
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.4rem;
+  animation:jbOrbSpin 3s linear infinite;
+}
+@keyframes jbOrbPulse {
+  0%,100%{transform:scale(1);box-shadow:0 0 60px rgba(228,166,79,0.5);}
+  50%{transform:scale(1.12);box-shadow:0 0 90px rgba(228,166,79,0.8),0 0 160px rgba(228,166,79,0.3);}
+}
+@keyframes jbOrbSpin {
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
+}
+
+.jbLoaderTitulo {
+  font-size:1.2rem;font-weight:800;
+  color:#E4A64F;margin-bottom:8px;
+  text-align:center;
+}
+.jbLoaderSubtitulo {
+  font-size:0.8rem;color:#666;
+  margin-bottom:32px;text-align:center;
+}
+
+.jbLoaderPasos {
+  display:flex;flex-direction:column;gap:12px;
+  width:280px;margin-bottom:32px;
+}
+.jbLoaderPaso {
+  display:flex;align-items:center;gap:12px;
+  background:#13141C;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:10px;padding:10px 14px;
+  font-size:0.8rem;color:#555;
+  transition:all .4s;
+}
+.jbLoaderPaso.activo {
+  color:#fff;
+  border-color:rgba(228,166,79,0.4);
+  background:#1a1b24;
+}
+.jbLoaderPaso.listo {
+  color:#33d17a;
+  border-color:rgba(51,209,122,0.3);
+  background:#0d1a12;
+}
+.jbLoaderPasoIcono {
+  font-size:1.1rem;width:24px;text-align:center;flex-shrink:0;
+}
+.jbLoaderPasoSpinner {
+  width:16px;height:16px;
+  border:2px solid rgba(228,166,79,0.2);
+  border-top-color:#E4A64F;
+  border-radius:50%;
+  animation:jbSpinLoop .7s linear infinite;
+  flex-shrink:0;display:none;
+}
+.jbLoaderPaso.activo .jbLoaderPasoSpinner { display:block; }
+.jbLoaderPaso.activo .jbLoaderPasoIcono { display:none; }
+.jbLoaderPaso.listo .jbLoaderPasoSpinner { display:none; }
+@keyframes jbSpinLoop { to{transform:rotate(360deg);} }
+
+.jbLoaderBarra {
+  width:280px;height:4px;
+  background:rgba(255,255,255,0.06);
+  border-radius:99px;overflow:hidden;
+  margin-bottom:20px;
+}
+.jbLoaderBarraFill {
+  height:100%;width:0%;
+  background:linear-gradient(90deg,#8B4A00,#E4A64F,#FFD166);
+  border-radius:99px;
+  transition:width .6s ease;
+  box-shadow:0 0 10px rgba(228,166,79,0.6);
+}
+
+.jbLoaderMensaje {
+  font-size:0.75rem;color:#555;
+  text-align:center;
+  min-height:20px;
+  transition:all .3s;
+}
+
+.jbLoaderParticulas {
+  position:absolute;inset:0;pointer-events:none;overflow:hidden;
+}
+.jbLoaderParticula {
+  position:absolute;
+  width:3px;height:3px;
+  background:#E4A64F;
+  border-radius:50%;
+  animation:jbParticulaFloat linear infinite;
+  opacity:0;
+}
+@keyframes jbParticulaFloat {
+  0%{transform:translateY(100vh) translateX(0);opacity:0;}
+  10%{opacity:0.6;}
+  90%{opacity:0.3;}
+  100%{transform:translateY(-100px) translateX(40px);opacity:0;}
+}
+
+</style>
+<div id="jbSusLoader">
+  <div class="jbLoaderParticulas" id="jbLoaderParticulas"></div>
+  <div class="jbLoaderOrb"></div>
+  <div class="jbLoaderTitulo">Verificando comprobante</div>
+  <div class="jbLoaderSubtitulo">La IA está analizando tu transferencia</div>
+  <div class="jbLoaderPasos">
+    <div class="jbLoaderPaso" id="jbPaso1">
+      <span class="jbLoaderPasoIcono">📄</span>
+      <div class="jbLoaderPasoSpinner"></div>
+      <span>Leyendo imagen</span>
+    </div>
+    <div class="jbLoaderPaso" id="jbPaso2">
+      <span class="jbLoaderPasoIcono">🔍</span>
+      <div class="jbLoaderPasoSpinner"></div>
+      <span>Extrayendo datos bancarios</span>
+    </div>
+    <div class="jbLoaderPaso" id="jbPaso3">
+      <span class="jbLoaderPasoIcono">💰</span>
+      <div class="jbLoaderPasoSpinner"></div>
+      <span>Verificando monto</span>
+    </div>
+    <div class="jbLoaderPaso" id="jbPaso4">
+      <span class="jbLoaderPasoIcono">🏦</span>
+      <div class="jbLoaderPasoSpinner"></div>
+      <span>Confirmando destinatario</span>
+    </div>
+    <div class="jbLoaderPaso" id="jbPaso5">
+      <span class="jbLoaderPasoIcono">🔐</span>
+      <div class="jbLoaderPasoSpinner"></div>
+      <span>Validando número de operación</span>
+    </div>
+  </div>
+  <div class="jbLoaderBarra">
+    <div class="jbLoaderBarraFill" id="jbLoaderBarraFill"></div>
+  </div>
+  <div class="jbLoaderMensaje" id="jbLoaderMensaje">Iniciando análisis...</div>
+</div>
+<div class="jbSusInfoPago" style="padding:14px 16px;">
+  <div class="jbDatosFila">
+    <span class="jbDatosLabel">💰 Monto</span>
+    <span class="jbDatosValor">$20.000</span>
+    <button class="jbBtnCopiar" onclick="jbCopiar('20000',this)">Copiar</button>
+  </div>
+  <div class="jbDatosFila">
+    <span class="jbDatosLabel">👤 Nombre</span>
+    <span class="jbDatosValor">Diego Francisco Palma</span>
+  </div>
+  <div class="jbDatosFila">
+    <span class="jbDatosLabel">🪪 RUT</span>
+    <span class="jbDatosValor">22.141.143-9</span>
+    <button class="jbBtnCopiar" onclick="jbCopiar('22.141.143-9',this)">Copiar</button>
+  </div>
+  <div class="jbDatosFila">
+    <span class="jbDatosLabel">🏦 Banco</span>
+    <span class="jbDatosValor">BancoEstado</span>
+  </div>
+  <div class="jbDatosFila">
+    <span class="jbDatosLabel">💳 Tipo</span>
+    <span class="jbDatosValor">CuentaRUT</span>
+  </div>
+  <div class="jbDatosFila">
+    <span class="jbDatosLabel">🔢 N° Cuenta</span>
+    <span class="jbDatosValor">22141143</span>
+    <button class="jbBtnCopiar" onclick="jbCopiar('22141143',this)">Copiar</button>
+  </div>
+
+  <button class="jbBtnCopiarTodo" onclick="jbCopiarTodo()">
+    📋 Copiar todos los datos
+  </button>
+  <button class="jbBtnBanco" onclick="jbAbrirAppBanco()">
+    🏦 Abrir App de Banco
+  </button>
+</div>
+
+<div class="jbToastCopy" id="jbToastCopy">¡Copiado!</div>
+
+<script>
+function jbCopiar(texto, btn) {
+  navigator.clipboard.writeText(texto).then(() => {
+    const t = document.getElementById('jbToastCopy');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+    if (btn) { const orig = btn.textContent; btn.textContent = '✅'; setTimeout(() => btn.textContent = orig, 2000); }
+  });
+}
+
+function jbCopiarTodo() {
+  const texto =
+    `Transferencia Barbería James\n` +
+    `Monto: $20.000\n` +
+    `Nombre: Diego Francisco Palma\n` +
+    `RUT: 22.141.143-9\n` +
+    `Banco: BancoEstado\n` +
+    `Tipo de cuenta: CuentaRUT\n` +
+    `N° de cuenta: 22141143`;
+  jbCopiar(texto);
+  const btn = document.querySelector('.jbBtnCopiarTodo');
+  if (btn) { btn.textContent = '✅ ¡Datos copiados!'; setTimeout(() => btn.textContent = '📋 Copiar todos los datos', 2500); }
+}
+
+function jbAbrirAppBanco() {
+  // Intentar abrir apps bancarias por deep link
+  const deepLinks = [
+    { nombre: 'BancoEstado', url: 'bancoestado://' },
+    { nombre: 'Santander',   url: 'santander://' },
+    { nombre: 'BCI',         url: 'bci://' },
+    { nombre: 'Scotiabank',  url: 'scotiabank://' },
+    { nombre: 'Falabella',   url: 'falabella://' },
+    { nombre: 'Mercado Pago',url: 'mercadopago://' },
+  ];
+
+  // Crear modal con opciones
+  let modal = document.getElementById('jbBancoModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'jbBancoModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999999;display:flex;align-items:flex-end;justify-content:center;padding-bottom:20px;';
+    modal.onclick = e => { if(e.target===modal) modal.remove(); };
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div style="background:#13141C;border-radius:20px 20px 16px 16px;padding:24px;width:92%;max-width:400px;border:1px solid rgba(228,166,79,0.2);">
+      <p style="color:#888;font-size:0.75rem;text-align:center;margin-bottom:16px;">Selecciona tu banco</p>
+      ${deepLinks.map(b => `
+        <button onclick="jbIntentarDeepLink('${b.url}')"
+          style="width:100%;padding:13px;margin-bottom:8px;background:#1a1b24;border:1px solid rgba(255,255,255,0.08);color:#fff;border-radius:10px;font-size:0.88rem;font-weight:600;cursor:pointer;text-align:left;">
+          🏦 ${b.nombre}
+        </button>`).join('')}
+      <button onclick="document.getElementById('jbBancoModal').remove()"
+        style="width:100%;padding:11px;margin-top:4px;background:none;border:1px solid rgba(255,255,255,0.1);color:#666;border-radius:10px;font-size:0.82rem;cursor:pointer;">
+        Cancelar
+      </button>
+    </div>`;
+}
+
+function jbIntentarDeepLink(url) {
+  document.getElementById('jbBancoModal')?.remove();
+  window.location.href = url;
+  // Si el deep link falla (app no instalada), no pasa nada — el browser simplemente no navega
+}
+</script>
+    <img id="jbSusPreview" alt="Vista previa del comprobante">
+
+    <div class="jbSusUploadArea" id="jbSusUploadArea" onclick="document.getElementById('jbSusInput').click()">
+      <div class="jbSusUploadIcon">📄</div>
+      <div class="jbSusUploadTexto">
+        <b>Toca aquí para subir el comprobante</b><br>
+        Captura de pantalla o foto de la transferencia
+      </div>
+    </div>
+    <input type="file" id="jbSusInput" accept="image/*" hidden>
+
+    <button class="jbSusBtn" id="jbSusBtn" onclick="jbVerificarComprobante()" disabled>
+      🔍 Verificar con IA
+    </button>
+    <p class="jbSusEstado" id="jbSusEstado"></p>
+  </div>
+</div>
+
+
+
+<script>
+// ============================================
+// CONFIG — AJUSTA AQUÍ SI CAMBIA ALGO
+// ============================================
+const JB_GEMINI_KEY    = 'AQ.Ab8RN6ID_FfGLOFe_VV9svVPDDQWJYsAzU2RsRGhRYjEmIR7eg';
+const JB_CLD_CLOUD_SUS = 'dkszomv2f';
+const JB_CLD_PRESET_SUS= 'brbshopjames';
+const JB_MONTO_MIN     = 20000;
+const JB_DESTINATARIO  = 'diego francisco palma';
+const JB_RUT           = '22.141.143-9';
+const JB_BANCO_DEST    = 'bancoestado';
+const JB_RTDB_PATH     = 'configuracion/suscripcion';
+
+// ============================================
+// ESTADO: VERIFICAR SI YA ESTÁ PAGADO
+// ============================================
+(function jbChequearSuscripcion(){
+  // Esperar a que Firebase esté listo
+  const intervalo = setInterval(() => {
+    if (typeof db === 'undefined') return;
+    clearInterval(intervalo);
+
+    db.ref(JB_RTDB_PATH).on('value', snap => {
+      const sus = snap.val() || {};
+      const ahora = Date.now();
+      const pagadoHasta = sus.paidUntil || 0;
+      const activo = sus.isPaid === true && pagadoHasta > ahora;
+
+if (activo) {
+  document.getElementById('jbSuscripcionOverlay').classList.remove('activo');
+  const banner = document.getElementById('jbBannerSus');
+  banner.style.display = 'flex';
+  const vence = new Date(pagadoHasta);
+  document.getElementById('jbBannerSusVence').textContent =
+    vence.toLocaleDateString('es-CL', {day:'numeric',month:'long',year:'numeric'});
+} else {
+  // Calcular días vencido
+  const diasVencido = pagadoHasta > 0
+    ? Math.floor((Date.now() - pagadoHasta) / (1000 * 60 * 60 * 24))
+    : 999;
+
+  if (diasVencido <= 5) {
+    // Banner amarillo, panel libre
+    const banner = document.getElementById('jbBannerSus');
+    banner.style.display = 'flex';
+    banner.style.background = 'linear-gradient(135deg,rgba(255,204,0,0.12),rgba(255,204,0,0.04))';
+    banner.style.borderColor = 'rgba(255,204,0,0.4)';
+    banner.style.color = '#FFD166';
+    document.getElementById('jbBannerSusVence').textContent =
+      `⚠️ Suscripción vencida — ${5 - diasVencido} día(s) restantes para renovar`;
+// Mostrar botón de cerrar en el overlay durante período de gracia
+document.getElementById('jbSusBtnCerrar').style.display = 'block';
+  } else if (diasVencido <= 10) {
+    // Modal que se puede cerrar
+    const ya = sessionStorage.getItem('jbSusRecordar_' + Math.floor(Date.now()/3600000));
+    if (!ya) {
+      setTimeout(() => {
+        if (confirm(
+          `⚠️ Tu suscripción venció hace ${diasVencido} días.\n\n` +
+          `Te quedan ${10 - diasVencido} día(s) antes de que el panel se bloquee.\n\n` +
+          `¿Ir a renovar ahora?`
+        )) {
+          document.getElementById('jbSuscripcionOverlay').classList.add('activo');
+        } else {
+          sessionStorage.setItem('jbSusRecordar_' + Math.floor(Date.now()/3600000), '1');
+        }
+      }, 1500);
+    }
+
+  } else {
+    // Bloqueante total
+    document.getElementById('jbSuscripcionOverlay').classList.add('activo');
+  }
+}
+    });
+  }, 300);
+})();
+
+// ============================================
+// PREVIEW DE IMAGEN
+// ============================================
+let jbSusImagenBase64 = null;
+let jbSusImagenFile   = null;
+
+document.getElementById('jbSusInput').addEventListener('change', function(){
+  const file = this.files[0];
+  if (!file) return;
+  jbSusImagenFile = file;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    jbSusImagenBase64 = e.target.result; // "data:image/...;base64,..."
+    const preview = document.getElementById('jbSusPreview');
+    preview.src = jbSusImagenBase64;
+    preview.style.display = 'block';
+    document.getElementById('jbSusUploadArea').classList.add('con-imagen');
+    document.getElementById('jbSusUploadArea').querySelector('.jbSusUploadTexto').innerHTML =
+      '<b style="color:#33d17a;">✅ Imagen lista</b><br><span style="font-size:0.75rem;">Toca para cambiarla</span>';
+    document.getElementById('jbSusBtn').disabled = false;
+    jbSusSetEstado('');
+  };
+  reader.readAsDataURL(file);
+});
+
+// ============================================
+// PASO 1: SUBIR A CLOUDINARY (TEMPORAL)
+// ============================================
+async function jbSusSubirCloudinary(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', JB_CLD_PRESET_SUS);
+  // Carpeta temporal con TTL semántico — se borra manualmente tras análisis
+  fd.append('folder', 'comprobantes_temp');
+
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${JB_CLD_CLOUD_SUS}/image/upload`, {
+    method: 'POST', body: fd
+  });
+  if (!res.ok) throw new Error('Error subiendo imagen a Cloudinary');
+  const data = await res.json();
+  return { url: data.secure_url, publicId: data.public_id };
+}
+
+// ============================================
+// PASO 2: BORRAR DE CLOUDINARY
+// ============================================
+async function jbSusBorrarCloudinary(publicId) {
+  // Borrado unsigned no está permitido por Cloudinary (requiere firma del servidor).
+  // Solución: usar un preset de auto-borrado a los 5 minutos configurado en el
+  // dashboard de Cloudinary (Eager transformations → Delete after: 5 min).
+  // O simplemente dejar que expire — la imagen es temporal y sin datos sensibles extras.
+  // Registramos el publicId en RTDB para borrado manual si fuera necesario.
+  try {
+    await db.ref('configuracion/comprobantes_temp_ids').push({
+      publicId, ts: Date.now()
+    });
+  } catch(e) { /* no crítico */ }
+}
+
+// ============================================
+// PASO 3: ANALIZAR CON GEMINI 3.6 FLASH
+// ============================================
+async function jbSusAnalizarConGemini(imageUrl) {
+  const prompt = `Analiza este comprobante bancario chileno y extrae los datos exactos. Si algún dato no es 100% legible, asigna esValido: false.`;
+
+  const body = {
+    contents: [{
+      parts: [
+        { text: prompt },
+        { inline_data: { mime_type: 'image/jpeg', data: jbSusImagenBase64.split(',')[1] } }
+      ]
+    }],
+    safetySettings: [
+      { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+    ],
+    generationConfig: {
+      temperature: 0,
+      maxOutputTokens: 2048, // Aumentado para evitar que corte el JSON
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: 'OBJECT',
+        properties: {
+          esValido: { type: 'BOOLEAN' },
+          monto: { type: 'NUMBER' },
+          fecha: { type: 'STRING' },
+          numeroOperacion: { type: 'STRING' },
+          banco: { type: 'STRING' },
+          destinatario: { type: 'STRING' },
+          rut: { type: 'STRING' },
+          confianza: { type: 'STRING', enum: ['alta', 'media', 'baja'] }
+        },
+        required: ['esValido', 'monto', 'fecha', 'numeroOperacion', 'banco', 'destinatario', 'rut', 'confianza']
+      }
+    }
+  };
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${JB_GEMINI_KEY}`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error('Gemini API error: ' + (err.error?.message || res.status));
+  }
+
+  const data = await res.json();
+  const texto = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+  if (!texto) {
+    const finishReason = data.candidates?.[0]?.finishReason;
+    throw new Error(`Gemini no devolvió texto. Razón de término: ${finishReason || 'Desconocida'}`);
+  }
+
+  return JSON.parse(texto.trim());
+}
+
+// ============================================
+// PASO 4: VALIDAR Y GUARDAR EN FIREBASE RTDB
+// ============================================
+async function jbSusValidarYGuardar(analisis) {
+  const errores = [];
+
+  if (!analisis.esValido)
+    errores.push('La imagen no parece ser un comprobante de transferencia válido.');
+
+  if (analisis.confianza === 'baja')
+    errores.push('La imagen no es lo suficientemente clara para verificarla. Intenta con una captura más nítida.');
+
+  if (analisis.monto < JB_MONTO_MIN)
+    errores.push(`El monto es insuficiente. Se requieren $${JB_MONTO_MIN.toLocaleString('es-CL')} y el comprobante muestra $${(analisis.monto||0).toLocaleString('es-CL')}.`);
+
+  const bancoOk = (analisis.banco || '').toLowerCase().includes(JB_BANCO_DEST);
+  if (!bancoOk)
+    errores.push(`El banco del destinatario no corresponde. Debe ser BancoEstado.`);
+
+  const destOk = (analisis.destinatario || '').toLowerCase().includes('diego') &&
+                 (analisis.destinatario || '').toLowerCase().includes('palma');
+  if (!destOk)
+    errores.push(`El destinatario no coincide. Verifica que transferiste a Diego Francisco Palma.`);
+
+  if (!analisis.numeroOperacion || analisis.numeroOperacion.trim() === '')
+    errores.push('No se pudo leer el número de operación del comprobante.');
+
+  if (errores.length > 0) throw new Error(errores.join('\n'));
+
+  // Verificar duplicado en Firebase RTDB
+  const snap = await db.ref(JB_RTDB_PATH + '/usedComprobantes').once('value');
+  const usados = snap.val() || {};
+  const yaUsado = Object.values(usados).includes(analisis.numeroOperacion.trim());
+  if (yaUsado)
+    throw new Error('Este comprobante ya fue utilizado anteriormente.');
+
+  // Todo OK → actualizar suscripción
+  const ahora = Date.now();
+  const paidUntil = ahora + (30 * 24 * 60 * 60 * 1000); // +30 días
+
+  const updates = {};
+  updates[JB_RTDB_PATH + '/isPaid']    = true;
+  updates[JB_RTDB_PATH + '/paidUntil'] = paidUntil;
+  updates[JB_RTDB_PATH + '/ultimoPago'] = {
+    fecha: analisis.fecha,
+    monto: analisis.monto,
+    numeroOperacion: analisis.numeroOperacion.trim(),
+    ts: ahora
+  };
+
+  // Agregar número de operación al array de usados
+  await db.ref(JB_RTDB_PATH + '/usedComprobantes').push(analisis.numeroOperacion.trim());
+  await db.ref().update(updates);
+
+  return paidUntil;
+}
+
+// ============================================
+// FLUJO PRINCIPAL
+// ============================================
+async function jbVerificarComprobante() {
+  if (!jbSusImagenBase64 || !jbSusImagenFile) return;
+
+  const btn = document.getElementById('jbSusBtn');
+  btn.disabled = true;
+
+  try {
+    // 1. Subir a Cloudinary para tener URL pública
+jbSusSetEstado('🤖 Leyendo comprobante...');
+await new Promise(r => setTimeout(r, 400));
+jbSusSetEstado('🔍 Verificando monto y datos...');
+const analisis = await jbSusAnalizarConGemini();
+
+    // 4. Validar y guardar
+    jbSusSetEstado('✅ Verificando datos...');
+    const paidUntil = await jbSusValidarYGuardar(analisis);
+
+    // 5. Éxito
+    jbSusMostrarExito(paidUntil);
+
+  } catch (err) {
+    console.error('Error verificación:', err);
+    jbSusSetEstado(err.message || 'Error al verificar. Intenta de nuevo.', true);
+    btn.disabled = false;
+  }
+}
+
+// ============================================
+// UI HELPERS
+// ============================================
+function jbSusSetEstado(msg, esError = false) {
+  const el = document.getElementById('jbSusEstado');
+  el.textContent = msg;
+  el.className = 'jbSusEstado' + (esError ? ' error' : (msg.startsWith('✅') ? ' ok' : ''));
+}
+
+function jbSusMostrarExito(paidUntil) {
+  const card = document.getElementById('jbSusContenido');
+  const vence = new Date(paidUntil).toLocaleDateString('es-CL', {
+    day:'numeric', month:'long', year:'numeric'
+  });
+  card.innerHTML = `
+    <div class="jbSusExito">
+      <div class="jbSusExitoIcon">✅</div>
+      <div class="jbSusExitoTitulo">¡Suscripción activada!</div>
+      <p class="jbSusExitoSub">Tu panel está activo hasta el <b style="color:#E4A64F;">${vence}</b></p>
+      <p class="jbSusExitoSub" style="margin-top:8px;font-size:0.75rem;">El panel se abrirá automáticamente en 3 segundos...</p>
+    </div>`;
+  setTimeout(() => {
+    document.getElementById('jbSuscripcionOverlay').classList.remove('activo');
+  }, 3000);
+}
+function jbCerrarSusOverlay() {
+  document.getElementById('jbSuscripcionOverlay').classList.remove('activo');
+  sessionStorage.setItem('jbSusRecordar_' + Math.floor(Date.now()/3600000), '1');
+}
+</script>
+</body>
+</html>
