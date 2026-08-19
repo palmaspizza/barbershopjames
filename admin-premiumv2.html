@@ -3158,7 +3158,7 @@ function formatearFechaImg(fechaISO) {
 .jbSusBtn:disabled { opacity:0.5;cursor:not-allowed; }
 .jbSusEstado {
   text-align:center;margin-top:14px;
-  font-size:0.82rem;color:#888;
+  font-size:2rem;color:#888;
   min-height:22px;
 }
 .jbSusEstado.error { color:#ff6b6b; }
@@ -3474,7 +3474,7 @@ function jbIntentarDeepLink(url) {
     <input type="file" id="jbSusInput" accept="image/*" hidden>
 
     <button class="jbSusBtn" id="jbSusBtn" onclick="jbVerificarComprobante()" disabled>
-      🔍 Verificar con IA
+      🔍 Verificar comprobante
     </button>
     <p class="jbSusEstado" id="jbSusEstado"></p>
   </div>
@@ -3486,7 +3486,7 @@ function jbIntentarDeepLink(url) {
 // ============================================
 // CONFIG — AJUSTA AQUÍ SI CAMBIA ALGO
 // ============================================
-const JB_GEMINI_KEY    = 'AQ.Ab8RN6ID_FfGLOFe_VV9svVPDDQWJYsAzU2RsRGhRYjEmIR7eg';
+const JB_GEMINI_KEY    = 'AQ.Ab8RN6LVF7TtLINb0su1hXRZESbE_FRHuOlGnlK3zB9blYQ47A';
 const JB_CLD_CLOUD_SUS = 'dkszomv2f';
 const JB_CLD_PRESET_SUS= 'brbshopjames';
 const JB_MONTO_MIN     = 20000;
@@ -3749,10 +3749,9 @@ async function jbVerificarComprobante() {
 
   try {
     // 1. Subir a Cloudinary para tener URL pública
-jbSusSetEstado('🤖 Leyendo comprobante...');
-await new Promise(r => setTimeout(r, 400));
-jbSusSetEstado('🔍 Verificando monto y datos...');
-const analisis = await jbSusAnalizarConGemini();
+    jbLoaderMostrar();
+    const analisis = await jbSusAnalizarConGemini();
+    jbLoaderOcultar();
 
     // 4. Validar y guardar
     jbSusSetEstado('✅ Verificando datos...');
@@ -3762,9 +3761,83 @@ const analisis = await jbSusAnalizarConGemini();
     jbSusMostrarExito(paidUntil);
 
   } catch (err) {
+    jbLoaderOcultar();
     console.error('Error verificación:', err);
     jbSusSetEstado(err.message || 'Error al verificar. Intenta de nuevo.', true);
     btn.disabled = false;
+  }
+}
+
+
+
+const JB_LOADER_MENSAJES = [
+  'Procesando imagen con visión artificial...',
+  'Identificando campos del comprobante...',
+  'Comparando datos con registros bancarios...',
+  'Verificando autenticidad del documento...',
+  'Comprobando número de operación único...',
+  'Aplicando validaciones de seguridad...',
+  'Casi listo...'
+];
+
+let jbLoaderInterval = null;
+let jbLoaderMensajeIdx = 0;
+
+function jbLoaderMostrar() {
+  document.getElementById('jbSusLoader').classList.add('activo');
+  jbLoaderBarraFill(0);
+  ['jbPaso1','jbPaso2','jbPaso3','jbPaso4','jbPaso5'].forEach(id => {
+    document.getElementById(id).className = 'jbLoaderPaso';
+  });
+  jbLoaderMensajeIdx = 0;
+  document.getElementById('jbLoaderMensaje').textContent = JB_LOADER_MENSAJES[0];
+  jbLoaderGenerarParticulas();
+
+  // Secuencia de pasos animados
+  setTimeout(() => jbLoaderActivarPaso('jbPaso1'), 200);
+  setTimeout(() => { jbLoaderListoPaso('jbPaso1'); jbLoaderActivarPaso('jbPaso2'); jbLoaderBarraFill(20); }, 3000);
+  setTimeout(() => { jbLoaderListoPaso('jbPaso2'); jbLoaderActivarPaso('jbPaso3'); jbLoaderBarraFill(40); }, 6500);
+  setTimeout(() => { jbLoaderListoPaso('jbPaso3'); jbLoaderActivarPaso('jbPaso4'); jbLoaderBarraFill(60); }, 9900);
+  setTimeout(() => { jbLoaderListoPaso('jbPaso4'); jbLoaderActivarPaso('jbPaso5'); jbLoaderBarraFill(80); }, 12000);
+
+  jbLoaderInterval = setInterval(() => {
+    jbLoaderMensajeIdx = (jbLoaderMensajeIdx + 1) % JB_LOADER_MENSAJES.length;
+    document.getElementById('jbLoaderMensaje').textContent = JB_LOADER_MENSAJES[jbLoaderMensajeIdx];
+  }, 1100);
+}
+
+function jbLoaderOcultar() {
+  jbLoaderListoPaso('jbPaso5');
+  jbLoaderBarraFill(100);
+  clearInterval(jbLoaderInterval);
+  setTimeout(() => {
+    document.getElementById('jbSusLoader').classList.remove('activo');
+  }, 600);
+}
+
+function jbLoaderActivarPaso(id) {
+  document.getElementById(id).classList.add('activo');
+}
+function jbLoaderListoPaso(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('activo');
+  el.classList.add('listo');
+  el.querySelector('.jbLoaderPasoIcono').textContent = '✅';
+}
+function jbLoaderBarraFill(pct) {
+  document.getElementById('jbLoaderBarraFill').style.width = pct + '%';
+}
+function jbLoaderGenerarParticulas() {
+  const cont = document.getElementById('jbLoaderParticulas');
+  cont.innerHTML = '';
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'jbLoaderParticula';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (3 + Math.random() * 5) + 's';
+    p.style.animationDelay = (Math.random() * 4) + 's';
+    p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
+    cont.appendChild(p);
   }
 }
 
