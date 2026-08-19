@@ -3319,7 +3319,69 @@ function formatearFechaImg(fechaISO) {
   90%{opacity:0.3;}
   100%{transform:translateY(-100px) translateX(40px);opacity:0;}
 }
-
+/* ── RESPONSIVE MÓVIL SUSCRIPCIÓN ── */
+@media (max-width: 600px) {
+  #jbSuscripcionOverlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px;
+  }
+  .jbSusCard {
+    width: 100%;
+    max-width: 100%;
+    padding: 20px 16px;
+    margin: 0 auto 40px;
+    box-sizing: border-box;
+  }
+  .jbSusTitulo {
+    font-size: 1.1rem;
+  }
+  .jbSusSubtitulo {
+    font-size: 0.78rem;
+  }
+  .jbDatosFila {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .jbDatosLabel {
+    width: 85px;
+    font-size: 0.7rem;
+  }
+  .jbDatosValor {
+    font-size: 0.8rem;
+  }
+  .jbBtnCopiar {
+    font-size: 0.68rem;
+    padding: 4px 7px;
+  }
+  #jbSusPreview {
+    max-height: 140px;
+  }
+  .jbSusBtn {
+    padding: 12px;
+    font-size: 0.88rem;
+  }
+  .jbLoaderPasos {
+    width: 100%;
+    padding: 0 8px;
+    box-sizing: border-box;
+  }
+  .jbLoaderBarra {
+    width: 90%;
+  }
+  .jbLoaderOrb {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+  }
+  .jbLoaderOrb::after {
+    font-size: 1.8rem;
+  }
+  .jbLoaderTitulo {
+    font-size: 1rem;
+  }
+}
 </style>
 <div id="jbSusLoader">
   <div class="jbLoaderParticulas" id="jbLoaderParticulas"></div>
