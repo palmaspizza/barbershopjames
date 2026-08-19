@@ -915,6 +915,105 @@ window.addEventListener('load', function(){
 <!-- ============================================
      SECCIÓN GALERÍA - ADMIN
      ============================================ -->
+
+<!-- ============================================
+     ESTADÍSTICAS SIMPLES
+     ============================================ -->
+<div id="jbBannerSus" style="display:none;background:linear-gradient(135deg,rgba(51,209,122,0.12),rgba(51,209,122,0.04));border:1px solid rgba(51,209,122,0.3);border-radius:12px;padding:12px 18px;font-size:0.82rem;color:#cdeedb;margin-bottom:14px;align-items:center;gap:10px;">
+  ✅ Suscripción activa hasta <span id="jbBannerSusVence" style="font-weight:700;color:#33d17a;"></span>
+</div>
+<div class="card" id="card-estadisticas" style="margin-bottom:18px;">
+  <h2 style="color:var(--barber-orange);margin-bottom:16px;">📊 Estadísticas</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;">
+    <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
+      <span id="stat-reservas-hoy" style="display:block;font-size:2rem;font-weight:800;color:#fff;">–</span>
+      <span style="font-size:0.72rem;color:#888;">Reservas hoy</span>
+    </div>
+    <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
+      <span id="stat-reservas-semana" style="display:block;font-size:2rem;font-weight:800;color:#e4a64f;">–</span>
+      <span style="font-size:0.72rem;color:#888;">Esta semana</span>
+    </div>
+    <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
+      <span id="stat-reservas-mes" style="display:block;font-size:2rem;font-weight:800;color:#33d17a;">–</span>
+      <span style="font-size:0.72rem;color:#888;">Este mes</span>
+    </div>
+    <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
+      <span id="stat-ingresos-mes" style="display:block;font-size:1.3rem;font-weight:800;color:#29b6f6;">–</span>
+      <span style="font-size:0.72rem;color:#888;">Ingresos este mes</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    <div style="background:#12131A;border-radius:12px;padding:14px;border:1px solid rgba(228,166,79,0.15);">
+      <p style="font-size:0.75rem;color:#888;margin-bottom:8px;">✂️ Servicio más pedido</p>
+      <p id="stat-servicio-top" style="font-size:0.95rem;font-weight:700;color:#fff;">–</p>
+    </div>
+    <div style="background:#12131A;border-radius:12px;padding:14px;border:1px solid rgba(228,166,79,0.15);">
+      <p style="font-size:0.75rem;color:#888;margin-bottom:8px;">🕐 Hora más reservada</p>
+      <p id="stat-hora-top" style="font-size:0.95rem;font-weight:700;color:#fff;">–</p>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  function esFechaEnRango(fechaStr, desde, hasta){
+    if(!fechaStr) return false;
+    return fechaStr >= desde && fechaStr <= hasta;
+  }
+  function fechaStr(d){ return d.toISOString().slice(0,10); }
+
+  window.addEventListener('load', function(){
+    const hoy = new Date();
+    const hoyS = fechaStr(hoy);
+    const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - ((hoy.getDay()+6)%7));
+    const lunesS = fechaStr(lunes);
+    const mesS = hoyS.slice(0,7); // "YYYY-MM"
+
+    db.ref('reservas').on('value', snap => {
+      const reservas = snap.val() || {};
+      const lista = Object.values(reservas);
+
+      // Contadores
+      let resHoy=0, resSemana=0, resMes=0, ingresosMes=0;
+      const contServicios = {};
+      const contHoras = {};
+
+      lista.forEach(r => {
+        const f = r.fecha || '';
+        if(f === hoyS) resHoy++;
+        if(f >= lunesS && f <= hoyS) resSemana++;
+        if(f.startsWith(mesS)){
+          resMes++;
+          // Ingresos: extraer número del total guardado
+          const totalNum = parseInt((r.total||'').replace(/\D/g,'')) || 0;
+          ingresosMes += totalNum;
+          // Servicio más pedido
+          const srv = r.servicios || r.servicio || '';
+          srv.split('+').forEach(s => {
+            const k = s.trim();
+            if(k) contServicios[k] = (contServicios[k]||0)+1;
+          });
+          // Hora más reservada
+          const h = (r.hora||'').slice(0,5);
+          if(h) contHoras[h] = (contHoras[h]||0)+1;
+        }
+      });
+
+      const topServicio = Object.entries(contServicios).sort((a,b)=>b[1]-a[1])[0];
+      const topHora = Object.entries(contHoras).sort((a,b)=>b[1]-a[1])[0];
+
+      const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+      set('stat-reservas-hoy', resHoy);
+      set('stat-reservas-semana', resSemana);
+      set('stat-reservas-mes', resMes);
+      set('stat-ingresos-mes', ingresosMes>0 ? '$'+ingresosMes.toLocaleString('es-CL') : '–');
+      set('stat-servicio-top', topServicio ? `${topServicio[0]} (${topServicio[1]}×)` : '–');
+      set('stat-hora-top', topHora ? `${topHora[0]} (${topHora[1]}×)` : '–');
+    });
+  });
+})();
+</script>
+
 <div class="card galeria-card" hidden>
     <h2>🖼️ PROMOCIONES</h2>
     
@@ -1300,11 +1399,7 @@ window.addEventListener('load', function(){
 
   window.jbVerCorte = function(url, servicio) {
     if (!url) return;
-    const win = window.open('', '_blank', 'width=500,height=600');
-    win.document.write(`<body style="margin:0;background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;">
-      <p style="color:#e4a64f;font-family:sans-serif;margin-bottom:10px;">${servicio}</p>
-      <img src="${url}" style="max-width:100%;max-height:90vh;border-radius:12px;">
-    </body>`);
+    jbAbrirFotoModal(url, servicio, '', '');
   };
 
   window.jbIniciarSubidaCorte = function(chatId, clienteId) {
@@ -1741,19 +1836,38 @@ window.addEventListener('load', function(){
         return;
     }
     
-    container.innerHTML = reservasHoy.map(r => `
+    const ahoraN = new Date();
+    container.innerHTML = reservasHoy.map(r => {
+        const [hh, mm] = (r.hora || '00:00').split(':').map(Number);
+        const horaR = new Date(); horaR.setHours(hh, mm, 0, 0);
+        const yaPaso = ahoraN >= horaR;
+        const tieneFoto = !!r.fotoCorte;
+        const clienteId = r.clienteId || null;
+        const btnFoto = yaPaso ? (tieneFoto
+            ? `<div style="display:flex;gap:6px;align-items:center;margin-top:6px;">
+                 <img src="${r.fotoCorte}" onclick="jbAbrirFotoModal('${r.fotoCorte}','${(r.servicios||'').replace(/'/g,"\\'")}','${r.id}','${clienteId||''}')"
+                      style="width:36px;height:36px;object-fit:cover;border-radius:6px;cursor:pointer;border:1.5px solid var(--barber-orange);" title="Ver foto corte">
+                 <span style="font-size:0.7rem;color:#e4a64f;">✅ Foto subida</span>
+               </div>`
+            : `<button onclick="jbSubirFotoDesdeReserva('${r.id}','${clienteId||''}','${(r.servicios||'').replace(/'/g,"\\'")}')"
+                 style="margin-top:6px;background:var(--barber-orange);color:#16130a;border:none;padding:5px 10px;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">
+                 📷 Subir foto
+               </button>`)
+            : '';
+        return `
         <div class="reserva-item">
             <div class="reserva-info">
                 <h4>${r.nombre || 'Sin nombre'}</h4>
                 <p>${r.servicios || 'Sin servicio'}</p>
                 ${r.total ? `<p style="color:var(--barber-green);font-weight:600;">${r.total}</p>` : ''}
+                ${btnFoto}
             </div>
             <div style="text-align:right;">
                 <div class="reserva-hora">${r.hora}</div>
                 <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Eliminar</button>
             </div>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 }
         
         // ============================================
@@ -1817,7 +1931,14 @@ window.addEventListener('load', function(){
         }
         
         function seleccionarDia(fechaStr, esPasado) {
-            if (esPasado) return;
+            // Permitir seleccionar ayer (para subir fotos de cortes del día anterior)
+            // pero no días anteriores a ayer
+            if (esPasado) {
+                const ayer = new Date();
+                ayer.setDate(ayer.getDate() - 1);
+                const ayerStr = `${ayer.getFullYear()}-${String(ayer.getMonth()+1).padStart(2,'0')}-${String(ayer.getDate()).padStart(2,'0')}`;
+                if (fechaStr < ayerStr) return; // permite ayer y hoy
+            }
             diaSeleccionado = fechaStr;
             renderCalendario();
             renderPanelDia();
@@ -1849,23 +1970,151 @@ window.addEventListener('load', function(){
                 .sort((a, b) => a.hora.localeCompare(b.hora));
             
             const container = document.getElementById('reservas-dia-seleccionado');
+            const ahora = new Date();
+            const ahoraStr = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}`;
+
             if (reservasDia.length === 0) {
                 container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">Sin reservas para este día</p>';
             } else {
                 container.innerHTML = `
                     <h4 style="color: var(--barber-orange); margin-bottom: 10px;">Reservas:</h4>
-                    ${reservasDia.map(r => `
+                    ${reservasDia.map(r => {
+                        // Mostrar btn foto si: la hora ya pasó (hoy) o es día de ayer
+                        const [hh, mm] = (r.hora || '00:00').split(':').map(Number);
+                        const horaReserva = new Date(ahora);
+                        horaReserva.setHours(hh, mm, 0, 0);
+                        const yaPaso = diaSeleccionado < ahoraStr || (diaSeleccionado === ahoraStr && ahora >= horaReserva);
+                        const tieneFoto = !!r.fotoCorte;
+                        const clienteId = r.clienteId || null;
+                        const btnFoto = yaPaso ? (tieneFoto
+                            ? `<div style="display:flex;gap:6px;justify-content:flex-end;margin-top:6px;">
+                                 <img src="${r.fotoCorte}" onclick="jbAbrirFotoModal('${r.fotoCorte}','${(r.servicios||'').replace(/'/g,"\\'")}','${r.id}','${clienteId||''}')"
+                                      style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer;border:1.5px solid var(--barber-orange);" title="Ver foto">
+                                 <button onclick="jbBorrarFotoCorte('${r.id}','${clienteId||''}','${r.fotoCorte}')"
+                                   style="background:#2a1010;color:#ff6b6b;border:1px solid #ff6b6b;padding:4px 8px;border-radius:6px;font-size:0.7rem;cursor:pointer;">🗑 Borrar foto</button>
+                               </div>`
+                            : `<button onclick="jbSubirFotoDesdeReserva('${r.id}','${clienteId||''}','${(r.servicios||'').replace(/'/g,"\\'")}')"
+                                 style="margin-top:6px;background:var(--barber-orange);color:#16130a;border:none;padding:6px 10px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;width:100%;">
+                                 📷 Subir foto del corte
+                               </button>`)
+                            : '';
+                        return `
                         <div class="reserva-item">
                             <div class="reserva-info">
                                 <h4>${r.nombre}</h4>
                                 <p>${r.servicios || 'Sin servicio'}</p>
+                                ${r.total ? `<p style="color:var(--barber-green);font-weight:600;">${r.total}</p>` : ''}
+                                ${btnFoto}
                             </div>
                             <div style="text-align: right;">
                                 <div class="reserva-hora">${r.hora}</div>
                                 <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Eliminar</button>
                             </div>
-                        </div>
-                    `).join('')}`;
+                        </div>`;
+                    }).join('')}`;
+            }
+        }
+
+        // Modal interno para ver foto del corte (sin abrir nueva ventana)
+        function jbAbrirFotoModal(url, servicio, reservaId, clienteId) {
+            let modal = document.getElementById('jbFotoModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'jbFotoModal';
+                modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;';
+                modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+                document.body.appendChild(modal);
+            }
+            modal.innerHTML = `
+                <div style="max-width:480px;width:100%;background:#111;border-radius:16px;overflow:hidden;box-shadow:0 0 40px rgba(228,166,79,0.2);">
+                    <div style="background:#1a1a1f;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="color:#e4a64f;font-weight:700;">✂️ ${servicio || 'Corte'}</span>
+                        <button onclick="document.getElementById('jbFotoModal').remove()"
+                          style="background:none;border:none;color:#888;font-size:1.3rem;cursor:pointer;">✕</button>
+                    </div>
+                    <img src="${url}" style="width:100%;max-height:60vh;object-fit:cover;">
+                    <div style="padding:12px 16px;display:flex;gap:8px;">
+                        <button onclick="jbBorrarFotoCorte('${reservaId}','${clienteId}','${url}');document.getElementById('jbFotoModal').remove();"
+                          style="flex:1;background:#2a1010;color:#ff6b6b;border:1px solid #ff6b6b;padding:10px;border-radius:8px;cursor:pointer;font-weight:600;">🗑 Borrar foto</button>
+                        <button onclick="document.getElementById('jbFotoModal').remove()"
+                          style="flex:1;background:#1e1f24;color:#aaa;border:1px solid #333;padding:10px;border-radius:8px;cursor:pointer;">Cerrar</button>
+                    </div>
+                </div>`;
+            modal.style.display = 'flex';
+        }
+
+        // Subir foto desde la lista de reservas del día
+        async function jbSubirFotoDesdeReserva(reservaId, clienteId, servicio) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async function() {
+                const file = input.files[0];
+                if (!file) return;
+                mostrarToast('Subiendo foto...');
+                try {
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    fd.append('upload_preset', CLD_PRESET);
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLD_CLOUD}/image/upload`, { method:'POST', body: fd });
+                    const data = await res.json();
+                    const fotoUrl = data.secure_url;
+                    if (!fotoUrl) throw new Error('Sin URL');
+
+                    // Guardar en la reserva
+                    await db.ref('reservas/' + reservaId).update({ fotoCorte: fotoUrl });
+
+                    // Guardar también en la ficha del cliente si tiene clienteId
+                    if (clienteId) {
+                        const fechaHoy = new Date().toLocaleDateString('es-CL');
+                        await db.ref('clientes/' + clienteId + '/cortes').push({
+                            fotoUrl, servicio, fecha: fechaHoy, ts: Date.now(), reservaId
+                        });
+                        // Actualizar avatarUrl del cliente con este último corte
+                        await db.ref('clientes/' + clienteId).update({ avatarUrl: fotoUrl });
+                        await db.ref('chats').orderByChild('clienteId').equalTo(clienteId).once('value', snap => {
+                            snap.forEach(ch => ch.ref.update({ avatarUrl: fotoUrl }));
+                        });
+                    }
+
+                    mostrarToast('✅ Foto guardada');
+                    renderPanelDia();
+                    renderReservasHoy();
+                } catch(e) {
+                    mostrarToast('❌ Error: ' + e.message);
+                }
+            };
+            input.click();
+        }
+
+        // Borrar foto del corte de una reserva
+        async function jbBorrarFotoCorte(reservaId, clienteId, fotoUrl) {
+            if (!confirm('¿Borrar esta foto del corte?')) return;
+            try {
+                await db.ref('reservas/' + reservaId).update({ fotoCorte: null });
+                // Si el avatar del cliente era esta foto, volver a DiceBear
+                if (clienteId) {
+                    const snap = await db.ref('clientes/' + clienteId).once('value');
+                    const cliente = snap.val() || {};
+                    if (cliente.avatarUrl === fotoUrl) {
+                        const nombreNorm = (cliente.nombreNorm || cliente.nombre || '').toLowerCase();
+                        const avatarFallback = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(nombreNorm)}&backgroundColor=E4A64F&radius=50`;
+                        await db.ref('clientes/' + clienteId).update({ avatarUrl: avatarFallback });
+                        await db.ref('chats').orderByChild('clienteId').equalTo(clienteId).once('value', snap2 => {
+                            snap2.forEach(ch => ch.ref.update({ avatarUrl: avatarFallback }));
+                        });
+                    }
+                    // Borrar de la colección de cortes del cliente
+                    const cortesSnap = await db.ref('clientes/' + clienteId + '/cortes').once('value');
+                    cortesSnap.forEach(c => {
+                        if (c.val().fotoUrl === fotoUrl) c.ref.remove();
+                    });
+                }
+                mostrarToast('🗑 Foto eliminada');
+                renderPanelDia();
+                renderReservasHoy();
+            } catch(e) {
+                mostrarToast('❌ Error al borrar: ' + e.message);
             }
         }
         
@@ -2803,6 +3052,595 @@ function formatearFechaImg(fechaISO) {
     };
 
     reader.readAsDataURL(archivo);
+}
+</script>
+
+<!-- ============================================
+     SISTEMA DE SUSCRIPCIÓN — VERIFICACIÓN IA
+     ============================================ -->
+<style>
+#jbSuscripcionOverlay {
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(8,9,12,0.96);
+  z-index:999999;
+  align-items:center;
+  justify-content:center;
+  font-family:'Poppins',sans-serif;
+}
+#jbSuscripcionOverlay.activo { display:flex; }
+.jbSusCard {
+  background:#13141C;
+  border:1px solid rgba(228,166,79,0.25);
+  border-radius:20px;
+  padding:32px 28px;
+  max-width:420px;
+  width:92%;
+  box-shadow:0 0 60px rgba(228,166,79,0.08);
+  position:relative;
+}
+.jbSusTitulo {
+  font-size:1.3rem;font-weight:800;
+  color:#E4A64F;text-align:center;
+  margin-bottom:6px;
+}
+.jbSusSubtitulo {
+  font-size:0.82rem;color:#888;
+  text-align:center;margin-bottom:24px;
+  line-height:1.5;
+}
+.jbSusInfoPago {
+  background:#0E0F16;
+  border:1px solid rgba(228,166,79,0.15);
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:20px;
+  font-size:0.82rem;
+  line-height:2;
+  color:#ccc;
+}
+.jbSusInfoPago b { color:#E4A64F; }
+.jbSusUploadArea {
+  border:2px dashed rgba(228,166,79,0.3);
+  border-radius:14px;
+  padding:28px 16px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .2s;
+  margin-bottom:16px;
+  background:#0C0D14;
+}
+.jbSusUploadArea:hover { border-color:#E4A64F; background:#12131A; }
+.jbSusUploadArea.con-imagen { border-color:#33d17a; border-style:solid; }
+.jbSusUploadIcon { font-size:2.2rem; margin-bottom:8px; }
+.jbSusUploadTexto { font-size:0.85rem; color:#888; }
+.jbSusUploadTexto b { color:#E4A64F; }
+#jbSusPreview {
+  width:100%;max-height:180px;
+  object-fit:contain;
+  border-radius:10px;
+  margin-bottom:12px;
+  display:none;
+  border:1px solid rgba(228,166,79,0.2);
+}
+.jbSusBtn {
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,#E4A64F,#C8843A);
+  color:#16130A;font-weight:800;
+  font-size:0.95rem;border:none;
+  border-radius:12px;cursor:pointer;
+  transition:opacity .2s;
+  font-family:'Poppins',sans-serif;
+}
+.jbSusBtn:disabled { opacity:0.5;cursor:not-allowed; }
+.jbSusEstado {
+  text-align:center;margin-top:14px;
+  font-size:0.82rem;color:#888;
+  min-height:22px;
+}
+.jbSusEstado.error { color:#ff6b6b; }
+.jbSusEstado.ok    { color:#33d17a; }
+
+/* Modal de éxito */
+.jbSusExito {
+  text-align:center;padding:10px 0;
+}
+.jbSusExitoIcon {
+  font-size:4rem;
+  animation:jbSusBounce .5s cubic-bezier(.36,.07,.19,.97) both;
+}
+@keyframes jbSusBounce {
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.35);}
+}
+.jbSusExitoTitulo {
+  font-size:1.4rem;font-weight:800;
+  color:#33d17a;margin:12px 0 6px;
+}
+.jbSusExitoSub { font-size:0.85rem;color:#888; }
+
+/* Banner en el panel cuando ya está pagado */
+#jbBannerSus {
+  display:none;
+  background:linear-gradient(135deg,rgba(51,209,122,0.12),rgba(51,209,122,0.04));
+  border:1px solid rgba(51,209,122,0.3);
+  border-radius:12px;
+  padding:12px 18px;
+  font-size:0.82rem;
+  color:#cdeedb;
+  margin-bottom:14px;
+  align-items:center;
+  gap:10px;
+}
+#jbBannerSus span { font-weight:700; color:#33d17a; }
+</style>
+
+<!-- Overlay de suscripción (se muestra encima de todo si no está pagado) -->
+<div id="jbSuscripcionOverlay">
+  <div class="jbSusCard" id="jbSusContenido">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+  <div class="jbSusTitulo" style="margin-bottom:0;">🔐 Suscripción requerida</div>
+  <button id="jbSusBtnCerrar" onclick="jbCerrarSusOverlay()" style="display:none;background:none;border:none;color:#f92828c9;font-size:1.4rem;cursor:pointer;line-height:1;">✕</button>
+</div>
+    <p class="jbSusSubtitulo">
+      Para usar el panel de Barbería James necesitas una suscripción activa.<br>
+      Realiza la transferencia y sube el comprobante para activarla al instante.
+    </p>
+
+  <style>
+.jbDatosFila{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+.jbDatosFila:last-child{border-bottom:none;}
+.jbDatosLabel{font-size:0.75rem;color:#888;width:110px;flex-shrink:0;}
+.jbDatosValor{font-size:0.85rem;color:#fff;font-weight:600;flex:1;}
+.jbBtnCopiar{background:rgba(228,166,79,0.12);border:1px solid rgba(228,166,79,0.3);color:#E4A64F;border-radius:6px;padding:4px 9px;font-size:0.72rem;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.jbBtnCopiar:active{background:rgba(228,166,79,0.3);}
+.jbBtnCopiarTodo{width:100%;padding:11px;background:rgba(228,166,79,0.1);border:1px solid rgba(228,166,79,0.35);color:#E4A64F;border-radius:10px;font-size:0.82rem;font-weight:700;cursor:pointer;margin-top:12px;transition:all .2s;}
+.jbBtnCopiarTodo:active{background:rgba(228,166,79,0.25);}
+.jbBtnBanco{width:100%;padding:12px;background:linear-gradient(135deg,#1a3a5c,#0f2a45);border:1px solid rgba(41,182,246,0.4);color:#29B6F6;border-radius:10px;font-size:0.85rem;font-weight:700;cursor:pointer;margin-top:8px;transition:all .2s;}
+.jbBtnBanco:active{background:#0f2a45;}
+.jbToastCopy{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e1f28;border:1px solid rgba(228,166,79,0.4);color:#E4A64F;padding:10px 20px;border-radius:10px;font-size:0.82rem;font-weight:600;opacity:0;transition:all .25s;z-index:9999999;pointer-events:none;}
+.jbToastCopy.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+
+<div class="jbSusInfoPago" style="padding:14px 16px;">
+  <div class="jbDatosFila">
+    <span class="jbDatosLabel">💰 Monto</span>
+    <span class="jbDatosValor">$20.000</span>
+    <button class="jbBtnCopiar" onclick="jbCopiar('20000',this)">Copiar</button>
+  </div>
+  <div class="jbDatosFila">
+    <span class="jbDatosLabel">👤 Nombre</span>
+    <span class="jbDatosValor">Diego Francisco Palma</span>
+  </div>
+  <div class="jbDatosFila">
+    <span class="jbDatosLabel">🪪 RUT</span>
+    <span class="jbDatosValor">22.141.143-9</span>
+    <button class="jbBtnCopiar" onclick="jbCopiar('22.141.143-9',this)">Copiar</button>
+  </div>
+  <div class="jbDatosFila">
+    <span class="jbDatosLabel">🏦 Banco</span>
+    <span class="jbDatosValor">BancoEstado</span>
+  </div>
+  <div class="jbDatosFila">
+    <span class="jbDatosLabel">💳 Tipo</span>
+    <span class="jbDatosValor">CuentaRUT</span>
+  </div>
+  <div class="jbDatosFila">
+    <span class="jbDatosLabel">🔢 N° Cuenta</span>
+    <span class="jbDatosValor">22141143</span>
+    <button class="jbBtnCopiar" onclick="jbCopiar('22141143',this)">Copiar</button>
+  </div>
+
+  <button class="jbBtnCopiarTodo" onclick="jbCopiarTodo()">
+    📋 Copiar todos los datos
+  </button>
+  <button class="jbBtnBanco" onclick="jbAbrirAppBanco()">
+    🏦 Abrir App de Banco
+  </button>
+</div>
+
+<div class="jbToastCopy" id="jbToastCopy">¡Copiado!</div>
+
+<script>
+function jbCopiar(texto, btn) {
+  navigator.clipboard.writeText(texto).then(() => {
+    const t = document.getElementById('jbToastCopy');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+    if (btn) { const orig = btn.textContent; btn.textContent = '✅'; setTimeout(() => btn.textContent = orig, 2000); }
+  });
+}
+
+function jbCopiarTodo() {
+  const texto =
+    `Transferencia Barbería James\n` +
+    `Monto: $20.000\n` +
+    `Nombre: Diego Francisco Palma\n` +
+    `RUT: 22.141.143-9\n` +
+    `Banco: BancoEstado\n` +
+    `Tipo de cuenta: CuentaRUT\n` +
+    `N° de cuenta: 22141143`;
+  jbCopiar(texto);
+  const btn = document.querySelector('.jbBtnCopiarTodo');
+  if (btn) { btn.textContent = '✅ ¡Datos copiados!'; setTimeout(() => btn.textContent = '📋 Copiar todos los datos', 2500); }
+}
+
+function jbAbrirAppBanco() {
+  // Intentar abrir apps bancarias por deep link
+  const deepLinks = [
+    { nombre: 'BancoEstado', url: 'bancoestado://' },
+    { nombre: 'Santander',   url: 'santander://' },
+    { nombre: 'BCI',         url: 'bci://' },
+    { nombre: 'Scotiabank',  url: 'scotiabank://' },
+    { nombre: 'Falabella',   url: 'falabella://' },
+    { nombre: 'Mercado Pago',url: 'mercadopago://' },
+  ];
+
+  // Crear modal con opciones
+  let modal = document.getElementById('jbBancoModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'jbBancoModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999999;display:flex;align-items:flex-end;justify-content:center;padding-bottom:20px;';
+    modal.onclick = e => { if(e.target===modal) modal.remove(); };
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div style="background:#13141C;border-radius:20px 20px 16px 16px;padding:24px;width:92%;max-width:400px;border:1px solid rgba(228,166,79,0.2);">
+      <p style="color:#888;font-size:0.75rem;text-align:center;margin-bottom:16px;">Selecciona tu banco</p>
+      ${deepLinks.map(b => `
+        <button onclick="jbIntentarDeepLink('${b.url}')"
+          style="width:100%;padding:13px;margin-bottom:8px;background:#1a1b24;border:1px solid rgba(255,255,255,0.08);color:#fff;border-radius:10px;font-size:0.88rem;font-weight:600;cursor:pointer;text-align:left;">
+          🏦 ${b.nombre}
+        </button>`).join('')}
+      <button onclick="document.getElementById('jbBancoModal').remove()"
+        style="width:100%;padding:11px;margin-top:4px;background:none;border:1px solid rgba(255,255,255,0.1);color:#666;border-radius:10px;font-size:0.82rem;cursor:pointer;">
+        Cancelar
+      </button>
+    </div>`;
+}
+
+function jbIntentarDeepLink(url) {
+  document.getElementById('jbBancoModal')?.remove();
+  window.location.href = url;
+  // Si el deep link falla (app no instalada), no pasa nada — el browser simplemente no navega
+}
+</script>
+    <img id="jbSusPreview" alt="Vista previa del comprobante">
+
+    <div class="jbSusUploadArea" id="jbSusUploadArea" onclick="document.getElementById('jbSusInput').click()">
+      <div class="jbSusUploadIcon">📄</div>
+      <div class="jbSusUploadTexto">
+        <b>Toca aquí para subir el comprobante</b><br>
+        Captura de pantalla o foto de la transferencia
+      </div>
+    </div>
+    <input type="file" id="jbSusInput" accept="image/*" hidden>
+
+    <button class="jbSusBtn" id="jbSusBtn" onclick="jbVerificarComprobante()" disabled>
+      🔍 Verificar con IA
+    </button>
+    <p class="jbSusEstado" id="jbSusEstado"></p>
+  </div>
+</div>
+
+<!-- Banner de suscripción activa (visible dentro del panel) -->
+<div id="jbBannerSus">
+  ✅ Suscripción activa hasta <span id="jbBannerSusVence"></span>
+</div>
+
+<script>
+// ============================================
+// CONFIG — AJUSTA AQUÍ SI CAMBIA ALGO
+// ============================================
+const JB_GEMINI_KEY    = 'AQ.Ab8RN6IaRxjgBIDfNdp5CaRDCuxfwwWBUr2isULreDiJB69fIg';
+const JB_CLD_CLOUD_SUS = 'dkszomv2f';
+const JB_CLD_PRESET_SUS= 'brbshopjames';
+const JB_MONTO_MIN     = 20000;
+const JB_DESTINATARIO  = 'diego francisco palma';
+const JB_RUT           = '22.141.143-9';
+const JB_BANCO_DEST    = 'bancoestado';
+const JB_RTDB_PATH     = 'configuracion/suscripcion';
+
+// ============================================
+// ESTADO: VERIFICAR SI YA ESTÁ PAGADO
+// ============================================
+(function jbChequearSuscripcion(){
+  // Esperar a que Firebase esté listo
+  const intervalo = setInterval(() => {
+    if (typeof db === 'undefined') return;
+    clearInterval(intervalo);
+
+    db.ref(JB_RTDB_PATH).on('value', snap => {
+      const sus = snap.val() || {};
+      const ahora = Date.now();
+      const pagadoHasta = sus.paidUntil || 0;
+      const activo = sus.isPaid === true && pagadoHasta > ahora;
+
+if (activo) {
+  document.getElementById('jbSuscripcionOverlay').classList.remove('activo');
+  const banner = document.getElementById('jbBannerSus');
+  banner.style.display = 'flex';
+  const vence = new Date(pagadoHasta);
+  document.getElementById('jbBannerSusVence').textContent =
+    vence.toLocaleDateString('es-CL', {day:'numeric',month:'long',year:'numeric'});
+} else {
+  // Calcular días vencido
+  const diasVencido = pagadoHasta > 0
+    ? Math.floor((Date.now() - pagadoHasta) / (1000 * 60 * 60 * 24))
+    : 999;
+
+  if (diasVencido <= 5) {
+    // Banner amarillo, panel libre
+    const banner = document.getElementById('jbBannerSus');
+    banner.style.display = 'flex';
+    banner.style.background = 'linear-gradient(135deg,rgba(255,204,0,0.12),rgba(255,204,0,0.04))';
+    banner.style.borderColor = 'rgba(255,204,0,0.4)';
+    banner.style.color = '#FFD166';
+    document.getElementById('jbBannerSusVence').textContent =
+      `⚠️ Suscripción vencida — ${5 - diasVencido} día(s) restantes para renovar`;
+// Mostrar botón de cerrar en el overlay durante período de gracia
+document.getElementById('jbSusBtnCerrar').style.display = 'block';
+  } else if (diasVencido <= 10) {
+    // Modal que se puede cerrar
+    const ya = sessionStorage.getItem('jbSusRecordar_' + Math.floor(Date.now()/3600000));
+    if (!ya) {
+      setTimeout(() => {
+        if (confirm(
+          `⚠️ Tu suscripción venció hace ${diasVencido} días.\n\n` +
+          `Te quedan ${10 - diasVencido} día(s) antes de que el panel se bloquee.\n\n` +
+          `¿Ir a renovar ahora?`
+        )) {
+          document.getElementById('jbSuscripcionOverlay').classList.add('activo');
+        } else {
+          sessionStorage.setItem('jbSusRecordar_' + Math.floor(Date.now()/3600000), '1');
+        }
+      }, 1500);
+    }
+
+  } else {
+    // Bloqueante total
+    document.getElementById('jbSuscripcionOverlay').classList.add('activo');
+  }
+}
+    });
+  }, 300);
+})();
+
+// ============================================
+// PREVIEW DE IMAGEN
+// ============================================
+let jbSusImagenBase64 = null;
+let jbSusImagenFile   = null;
+
+document.getElementById('jbSusInput').addEventListener('change', function(){
+  const file = this.files[0];
+  if (!file) return;
+  jbSusImagenFile = file;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    jbSusImagenBase64 = e.target.result; // "data:image/...;base64,..."
+    const preview = document.getElementById('jbSusPreview');
+    preview.src = jbSusImagenBase64;
+    preview.style.display = 'block';
+    document.getElementById('jbSusUploadArea').classList.add('con-imagen');
+    document.getElementById('jbSusUploadArea').querySelector('.jbSusUploadTexto').innerHTML =
+      '<b style="color:#33d17a;">✅ Imagen lista</b><br><span style="font-size:0.75rem;">Toca para cambiarla</span>';
+    document.getElementById('jbSusBtn').disabled = false;
+    jbSusSetEstado('');
+  };
+  reader.readAsDataURL(file);
+});
+
+// ============================================
+// PASO 1: SUBIR A CLOUDINARY (TEMPORAL)
+// ============================================
+async function jbSusSubirCloudinary(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', JB_CLD_PRESET_SUS);
+  // Carpeta temporal con TTL semántico — se borra manualmente tras análisis
+  fd.append('folder', 'comprobantes_temp');
+
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${JB_CLD_CLOUD_SUS}/image/upload`, {
+    method: 'POST', body: fd
+  });
+  if (!res.ok) throw new Error('Error subiendo imagen a Cloudinary');
+  const data = await res.json();
+  return { url: data.secure_url, publicId: data.public_id };
+}
+
+// ============================================
+// PASO 2: BORRAR DE CLOUDINARY
+// ============================================
+async function jbSusBorrarCloudinary(publicId) {
+  // Borrado unsigned no está permitido por Cloudinary (requiere firma del servidor).
+  // Solución: usar un preset de auto-borrado a los 5 minutos configurado en el
+  // dashboard de Cloudinary (Eager transformations → Delete after: 5 min).
+  // O simplemente dejar que expire — la imagen es temporal y sin datos sensibles extras.
+  // Registramos el publicId en RTDB para borrado manual si fuera necesario.
+  try {
+    await db.ref('configuracion/comprobantes_temp_ids').push({
+      publicId, ts: Date.now()
+    });
+  } catch(e) { /* no crítico */ }
+}
+
+// ============================================
+// PASO 3: ANALIZAR CON GEMINI 3.6 FLASH
+// ============================================
+async function jbSusAnalizarConGemini(imageUrl) {
+  const prompt = `Analiza este comprobante bancario chileno y extrae los datos exactos. Si algún dato no es 100% legible, asigna esValido: false.`;
+
+  const body = {
+    contents: [{
+      parts: [
+        { text: prompt },
+        { inline_data: { mime_type: 'image/jpeg', data: jbSusImagenBase64.split(',')[1] } }
+      ]
+    }],
+    safetySettings: [
+      { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+    ],
+    generationConfig: {
+      temperature: 0,
+      maxOutputTokens: 2048, // Aumentado para evitar que corte el JSON
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: 'OBJECT',
+        properties: {
+          esValido: { type: 'BOOLEAN' },
+          monto: { type: 'NUMBER' },
+          fecha: { type: 'STRING' },
+          numeroOperacion: { type: 'STRING' },
+          banco: { type: 'STRING' },
+          destinatario: { type: 'STRING' },
+          rut: { type: 'STRING' },
+          confianza: { type: 'STRING', enum: ['alta', 'media', 'baja'] }
+        },
+        required: ['esValido', 'monto', 'fecha', 'numeroOperacion', 'banco', 'destinatario', 'rut', 'confianza']
+      }
+    }
+  };
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${JB_GEMINI_KEY}`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error('Gemini API error: ' + (err.error?.message || res.status));
+  }
+
+  const data = await res.json();
+  const texto = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+  if (!texto) {
+    const finishReason = data.candidates?.[0]?.finishReason;
+    throw new Error(`Gemini no devolvió texto. Razón de término: ${finishReason || 'Desconocida'}`);
+  }
+
+  return JSON.parse(texto.trim());
+}
+
+// ============================================
+// PASO 4: VALIDAR Y GUARDAR EN FIREBASE RTDB
+// ============================================
+async function jbSusValidarYGuardar(analisis) {
+  const errores = [];
+
+  if (!analisis.esValido)
+    errores.push('La imagen no parece ser un comprobante de transferencia válido.');
+
+  if (analisis.confianza === 'baja')
+    errores.push('La imagen no es lo suficientemente clara para verificarla. Intenta con una captura más nítida.');
+
+  if (analisis.monto < JB_MONTO_MIN)
+    errores.push(`El monto es insuficiente. Se requieren $${JB_MONTO_MIN.toLocaleString('es-CL')} y el comprobante muestra $${(analisis.monto||0).toLocaleString('es-CL')}.`);
+
+  const bancoOk = (analisis.banco || '').toLowerCase().includes(JB_BANCO_DEST);
+  if (!bancoOk)
+    errores.push(`El banco del destinatario no corresponde. Debe ser BancoEstado.`);
+
+  const destOk = (analisis.destinatario || '').toLowerCase().includes('diego') &&
+                 (analisis.destinatario || '').toLowerCase().includes('palma');
+  if (!destOk)
+    errores.push(`El destinatario no coincide. Verifica que transferiste a Diego Francisco Palma.`);
+
+  if (!analisis.numeroOperacion || analisis.numeroOperacion.trim() === '')
+    errores.push('No se pudo leer el número de operación del comprobante.');
+
+  if (errores.length > 0) throw new Error(errores.join('\n'));
+
+  // Verificar duplicado en Firebase RTDB
+  const snap = await db.ref(JB_RTDB_PATH + '/usedComprobantes').once('value');
+  const usados = snap.val() || {};
+  const yaUsado = Object.values(usados).includes(analisis.numeroOperacion.trim());
+  if (yaUsado)
+    throw new Error('Este comprobante ya fue utilizado anteriormente.');
+
+  // Todo OK → actualizar suscripción
+  const ahora = Date.now();
+  const paidUntil = ahora + (30 * 24 * 60 * 60 * 1000); // +30 días
+
+  const updates = {};
+  updates[JB_RTDB_PATH + '/isPaid']    = true;
+  updates[JB_RTDB_PATH + '/paidUntil'] = paidUntil;
+  updates[JB_RTDB_PATH + '/ultimoPago'] = {
+    fecha: analisis.fecha,
+    monto: analisis.monto,
+    numeroOperacion: analisis.numeroOperacion.trim(),
+    ts: ahora
+  };
+
+  // Agregar número de operación al array de usados
+  await db.ref(JB_RTDB_PATH + '/usedComprobantes').push(analisis.numeroOperacion.trim());
+  await db.ref().update(updates);
+
+  return paidUntil;
+}
+
+// ============================================
+// FLUJO PRINCIPAL
+// ============================================
+async function jbVerificarComprobante() {
+  if (!jbSusImagenBase64 || !jbSusImagenFile) return;
+
+  const btn = document.getElementById('jbSusBtn');
+  btn.disabled = true;
+
+  try {
+    // 1. Subir a Cloudinary para tener URL pública
+jbSusSetEstado('🤖 Escaneando comprobante con IA...');
+const analisis = await jbSusAnalizarConGemini();
+
+    // 4. Validar y guardar
+    jbSusSetEstado('✅ Verificando datos...');
+    const paidUntil = await jbSusValidarYGuardar(analisis);
+
+    // 5. Éxito
+    jbSusMostrarExito(paidUntil);
+
+  } catch (err) {
+    console.error('Error verificación:', err);
+    jbSusSetEstado(err.message || 'Error al verificar. Intenta de nuevo.', true);
+    btn.disabled = false;
+  }
+}
+
+// ============================================
+// UI HELPERS
+// ============================================
+function jbSusSetEstado(msg, esError = false) {
+  const el = document.getElementById('jbSusEstado');
+  el.textContent = msg;
+  el.className = 'jbSusEstado' + (esError ? ' error' : (msg.startsWith('✅') ? ' ok' : ''));
+}
+
+function jbSusMostrarExito(paidUntil) {
+  const card = document.getElementById('jbSusContenido');
+  const vence = new Date(paidUntil).toLocaleDateString('es-CL', {
+    day:'numeric', month:'long', year:'numeric'
+  });
+  card.innerHTML = `
+    <div class="jbSusExito">
+      <div class="jbSusExitoIcon">✅</div>
+      <div class="jbSusExitoTitulo">¡Suscripción activada!</div>
+      <p class="jbSusExitoSub">Tu panel está activo hasta el <b style="color:#E4A64F;">${vence}</b></p>
+      <p class="jbSusExitoSub" style="margin-top:8px;font-size:0.75rem;">El panel se abrirá automáticamente en 3 segundos...</p>
+    </div>`;
+  setTimeout(() => {
+    document.getElementById('jbSuscripcionOverlay').classList.remove('activo');
+  }, 3000);
+}
+function jbCerrarSusOverlay() {
+  document.getElementById('jbSuscripcionOverlay').classList.remove('activo');
+  sessionStorage.setItem('jbSusRecordar_' + Math.floor(Date.now()/3600000), '1');
 }
 </script>
 </body>
