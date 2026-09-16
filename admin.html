@@ -388,7 +388,6 @@
         
         .dia-celda.pasado {
             opacity: 0.4;
-            cursor: not-allowed;
             background: #1a1a1e;
         }
         
@@ -1328,7 +1327,6 @@
         }
         
         function seleccionarDia(fechaStr, esPasado) {
-            if (esPasado) return;
             diaSeleccionado = fechaStr;
             renderCalendario();
             renderPanelDia();
