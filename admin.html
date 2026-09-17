@@ -1257,13 +1257,38 @@
                 <h4>${r.nombre || 'Sin nombre'}</h4>
                 <p>${r.servicios || 'Sin servicio'}</p>
                 ${r.total ? `<p style="color:var(--barber-green);font-weight:600;">${r.total}</p>` : ''}
+                ${r.telefono ? `<p style="color:#aaa;font-size:0.85rem;">📱 ${r.telefono}</p>` : ''}
             </div>
             <div style="text-align:right;">
                 <div class="reserva-hora">${r.hora}</div>
+                ${generarBotonWhatsapp(r)}
                 <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Eliminar</button>
             </div>
         </div>
     `).join('');
+}
+
+// ============================================
+// BOTÓN DE CONTACTO DIRECTO POR WHATSAPP
+// ============================================
+function generarBotonWhatsapp(reserva) {
+    if (!reserva || !reserva.telefono) return '';
+
+    // Sanitizar el número: dejar solo dígitos (wa.me no acepta '+', espacios ni guiones)
+    const numeroLimpio = String(reserva.telefono).replace(/[^\d]/g, '');
+    if (!numeroLimpio) return '';
+
+    const mensaje = encodeURIComponent(
+        `Hola ${reserva.nombre || ''}, te escribimos de Barbería James sobre tu reserva del ${reserva.fecha || ''} a las ${reserva.hora || ''}.`
+    );
+    const url = `https://wa.me/${numeroLimpio}?text=${mensaje}`;
+
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer"
+                style="display:inline-flex;align-items:center;gap:6px;margin:6px 0;padding:6px 12px;
+                       background:#25D366;color:#fff;border-radius:20px;font-size:0.85rem;font-weight:600;
+                       text-decoration:none;box-shadow:0 2px 6px rgba(37,211,102,0.35);">
+                💬 WhatsApp
+             </a>`;
 }
         
         // ============================================
@@ -1368,9 +1393,11 @@
                             <div class="reserva-info">
                                 <h4>${r.nombre}</h4>
                                 <p>${r.servicios || 'Sin servicio'}</p>
+                                ${r.telefono ? `<p style="color:#aaa;font-size:0.85rem;">📱 ${r.telefono}</p>` : ''}
                             </div>
                             <div style="text-align: right;">
                                 <div class="reserva-hora">${r.hora}</div>
+                                ${generarBotonWhatsapp(r)}
                                 <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Eliminar</button>
                             </div>
                         </div>
