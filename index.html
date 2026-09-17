@@ -3424,6 +3424,21 @@ function ocultarBotonBorrar() {
 
             <p style="text-shadow: #000 1px 1px 3px;"  >Se te redireccionará a <span style="text-shadow: #000 1px 1px 3px;  color: green;">WhatsApp</span></p>
             <input type="text" type="name" placeholder="Escribe tu Nombre y Apellido" id="nombre">
+
+            <!-- NÚMERO DE WHATSAPP -->
+            <input type="tel" placeholder="Tu número de WhatsApp (ej: +56 9 1234 5678)" id="telefono" autocomplete="tel" inputmode="tel">
+
+            <!-- CONSENTIMIENTO DE CONTACTO POR WHATSAPP - Checkbox -->
+            <div class="terminos-container" style="margin: 15px 0; text-align: left; padding: 12px; background: rgba(20,20,22,0.6); border-radius: 10px; border: 1px solid rgba(228,166,79,0.3);">
+                <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #f1f1f1; font-size: 0.95rem; line-height: 1.4;">
+                    <input type="checkbox" id="aceptaContactoWhatsapp" style="margin-top: 3px; width: 18px; height: 18px; accent-color: #e4a64f; cursor: pointer;">
+                    <span>
+                        Acepto proporcionar mi número de WhatsApp para que la barbería pueda contactarme ante cualquier imprevisto relacionado con mi reserva (cambios de horario, cancelaciones, confirmaciones, etc.)
+                    </span>
+                </label>
+                <p id="errorContacto" style="color: #ff3b3f; font-size: 0.85rem; margin: 8px 0 0 28px; display: none;">⚠️ Debes ingresar tu WhatsApp y aceptar el contacto para continuar</p>
+            </div>
+
             <!-- TÉRMINOS Y CONDICIONES - Checkbox -->
 <br><br><script>
     // Función que se ejecuta al aceptar los términos
@@ -3963,7 +3978,7 @@ button[onclick*="abrirCalendario"]:hover {
   font-size: 120% !important;
   padding: 5px;
 }
-#nombre{
+#nombre, #telefono{
   background-color: #fff;
   color: black;
 }
@@ -4038,7 +4053,7 @@ button[onclick*="abrirCalendario"]:hover {
   text-align: left;
 }
 
-#nombre {
+#nombre, #telefono {
   width: 100%;
   padding: 12px 16px;
   font-size: 16px;
@@ -4048,14 +4063,15 @@ button[onclick*="abrirCalendario"]:hover {
   color: #fff;
   box-shadow: 0 0 10px rgba(255, 165, 0, 0.2);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  margin-top: 10px;
 }
 
-#nombre::placeholder {
+#nombre::placeholder, #telefono::placeholder {
   color: #ccc;
   font-style: italic;
 }
 
-#nombre:focus {
+#nombre:focus, #telefono:focus {
   outline: none;
   border-color: #ff6f00;
   box-shadow: 0 0 15px rgba(255, 111, 0, 0.4);
@@ -4937,7 +4953,21 @@ async function reservarHora() {
     }
     
     if (errorTerminos) errorTerminos.style.display = "none";
-    
+
+    // ✅ VALIDACIÓN DE TELÉFONO Y CONSENTIMIENTO DE CONTACTO POR WHATSAPP
+    const telefonoInput = document.getElementById("telefono");
+    const checkboxContacto = document.getElementById("aceptaContactoWhatsapp");
+    const errorContacto = document.getElementById("errorContacto");
+    const telefonoValor = telefonoInput ? telefonoInput.value.trim() : "";
+
+    if (!telefonoValor || !checkboxContacto || !checkboxContacto.checked) {
+        if (errorContacto) errorContacto.style.display = "block";
+        mostrarToastCliente("⚠️ Ingresa tu WhatsApp y acepta ser contactado", true);
+        return;
+    }
+
+    if (errorContacto) errorContacto.style.display = "none";
+
     // 🔴 CRÍTICO: Usar el valor del input directamente, SIN crear objeto Date
    // 🔴 CRÍTICO: CAPTURAR EL VALOR EXACTO DEL INPUT - ESTE ES EL ÚNICO VALOR VÁLIDO
 const fechaInputElement = document.getElementById("fecha");
@@ -4957,6 +4987,9 @@ const total = document.getElementById("eltotal")?.value || "";
         alert("Completa todos los campos: nombre, fecha y hora");
         return;
     }
+
+    // Guardar el teléfono normalizado (solo dígitos, con +) para usarlo luego en wa.me
+    const telefono = telefonoValor;
 
     // Validar formato de fecha
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaInputValor)) {
@@ -4986,6 +5019,8 @@ const total = document.getElementById("eltotal")?.value || "";
                 hora: hora,
                 servicios: servicios,
                 total: total,
+                telefono: telefono,
+                acepta_contacto_whatsapp: true,
                 timestamp: firebase.database.ServerValue.TIMESTAMP  // Usar timestamp del servidor
             };
 
