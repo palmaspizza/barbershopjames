@@ -92,12 +92,12 @@
   <div class="jbBannerRow">
     <div class="jbBannerCard jbBannerChat" onclick="jbAbrirChatDesdeBanner()">
       <div class="jbBannerBadge">24/7</div>
-      <div class="jbBannerIcon">Reserva fácil</div>
+      <div class="jbBannerIcon">Reserva aquí</div>
       <h3>Reserva en 1 minuto</h3>
       <p>Cuéntanos qué necesitas y te ayudamos a agendar al tiro, a cualquier hora del día.</p>
       <span class="jbBannerCta">Empezar ahora →</span>
     </div><br><br><br><br><br>
-    <div class="jbBannerCard jbBannerManual" onclick="document.getElementById('cuadroCalendario').scrollIntoView({behavior:'smooth',block:'center'})">
+    <div hidden class="jbBannerCard jbBannerManual" onclick="document.getElementById('cuadroCalendario').scrollIntoView({behavior:'smooth',block:'center'})">
       <div class="jbBannerIcon">🗓️</div>
       <h3>Elige tú mismo</h3>
       <p>Prefieres ver el calendario y escoger el día y la hora con tus propios ojos.</p>
@@ -561,7 +561,9 @@ async function notificarNuevaReserva(datosReserva) {
 }
 
 </style>
-
+<div style="display: none !important;" hidden>//=======================================//=======================================
+  <div class="leyenda-calendario"> //=======================================  ============================================ 
+    
 
  <h3 style="font-size: 170%;" >Selecciona un día</h3>
      
@@ -586,6 +588,7 @@ async function notificarNuevaReserva(datosReserva) {
             </div>       <h1 id="tituloMes" style="margin: 0; color: orange !important;"></h1><br>
 </div>   <div class="dias-semana"></div>
 <div id="cuadroCalendario"></div>
+</div>
     <script>
 document.getElementById('solicitar').addEventListener('click', async () => {
   try {
@@ -1828,6 +1831,8 @@ ocultarContadorTemporal();
 </div>
             </div>
         </div>
+
+        
 <script>
               function verbotonesdecierre(){
                 document.getElementById("botonescierraxdiv").style.display = 'block';
