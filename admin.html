@@ -142,6 +142,12 @@
             margin: 0 auto;
         }
         
+        #panel-secreto {
+            display: none;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
         .admin-header {
             display: flex;
             justify-content: space-between;
@@ -249,10 +255,21 @@
             color: var(--barber-orange);
         }
         
-        .stat-label {
-            font-size: 0.85rem;
-            color: #888;
-            margin-top: 5px;
+
+        .jb-metricas-exp {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .jb-metrica-linea {
+            background: linear-gradient(145deg, #1e1f24, #16171b);
+            border: 1px solid rgba(228,166,79,0.3);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin: 0;
+            color: #ddd;
+            font-size: 0.9rem;
+            line-height: 1.4;
         }
         
         /* ============================================
@@ -895,7 +912,15 @@
             
             <!-- COLUMNA IZQUIERDA -->
             <div class="columna-izquierda">
-                
+                      <!-- EXPERIENCIA DE RESERVA (solo métricas positivas) -->
+                <div style="border: 3px solid lime;" class="card" style="margin-top: 25px;">
+                    <h2 style="color: lime;">✨ Experiencia de Reserva</h2>
+                    <div class="jb-metricas-exp">
+                        <p style="border: 3px solid lime;" class="jb-metrica-linea" id="m-facilidad">⚡ Sin datos aún</p>
+                        <p style="border: 3px solid lime;" class="jb-metrica-linea" id="m-tiempo">⏱ Sin datos aún</p>
+                        <p style="border: 3px solid lime;" class="jb-metrica-linea" id="m-preferencia">📅 Sin datos aún</p>
+                    </div>
+                </div>
                 <!-- STATS Y RESERVAS DE HOY -->
                 <div class="card">
                     <h2>📋 Hoy - <span id="fecha-hoy"></span></h2>
@@ -919,6 +944,8 @@
                         <div class="sin-reservas">No hay reservas para hoy</div>
                     </div>
                 </div>
+
+          
                 
                 <!-- CONFIGURACIÓN RÁPIDA -->
                 <div class="card" style="margin-top: 25px;">
@@ -1020,7 +1047,21 @@
             </div>
         </div>
     </div>
-    
+        <!-- ============================================
+         PANEL SECRETO (oculto — solo con la clave secreta)
+    ============================================ -->
+    <div id="panel-secreto">
+        <div class="admin-header">
+            <h1>🕵️ Seguimiento de Clientes</h1>
+            <div class="header-actions">
+                <button class="btn-logout" onclick="logout()">Salir</button>
+            </div>
+        </div>
+        <p style="color:#888;margin:10px 0 20px;">
+            Clientes que reportaron que algo les costó al reservar. Contáctalos para saber más.
+        </p>
+        <div id="panel-secreto-lista"></div>
+    </div>
     <!-- ============================================
          MODAL DE EDICIÓN DE HORARIO
     ============================================ -->
@@ -1067,6 +1108,7 @@
         // VARIABLES GLOBALES
         // ============================================
         const CLAVE_ADMIN = '3331'; // ← CAMBIA ESTO POR TU CLAVE
+        const CLAVE_SECRETA = '1111'; // ← acceso oculto de seguimiento de clientes. Cámbiala también.
         let fechaActual = new Date();
         let diaSeleccionado = null;
         let tipoHorarioEditando = null;
@@ -1108,6 +1150,9 @@
             if (claveIngresada === CLAVE_ADMIN) {
                 sessionStorage.setItem('adminAuth', 'true');
                 mostrarPanel();
+            } else if (claveIngresada === CLAVE_SECRETA) {
+                sessionStorage.setItem('adminAuthSecreto', 'true');
+                mostrarPanelSecreto();
             } else {
                 document.getElementById('login-error').style.display = 'block';
                 inputs.forEach(i => {
@@ -1123,15 +1168,24 @@
             document.getElementById('admin-panel').style.display = 'block';
             inicializarPanel();
         }
+
+        function mostrarPanelSecreto() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('panel-secreto').style.display = 'block';
+            cargarPanelSecreto();
+        }
         
         function logout() {
             sessionStorage.removeItem('adminAuth');
+            sessionStorage.removeItem('adminAuthSecreto');
             location.reload();
         }
         
         // Verificar si ya está logueado
         if (sessionStorage.getItem('adminAuth')) {
             mostrarPanel();
+        } else if (sessionStorage.getItem('adminAuthSecreto')) {
+            mostrarPanelSecreto();
         }
         
         // ============================================
@@ -1156,9 +1210,78 @@
     renderReservasHoy();
     renderCalendario();
     if (diaSeleccionado) renderPanelDia();
+    jbActualizarMetricaReservasMes();
 }, error => {
     console.error('Error Firebase:', error);
 });
+
+            // ============================================
+            // MÉTRICAS DE EXPERIENCIA (solo datos positivos)
+            // ============================================
+            let jbExpFacilidadCount = 0;
+            let jbExpDificultadCount = 0;
+            let jbExpTiempos = [];
+
+            function jbRenderMetricaFacilidad(){
+                const el = document.getElementById('m-facilidad');
+                if(!el) return;
+                const total = jbExpFacilidadCount + jbExpDificultadCount;
+                el.textContent = total > 0
+                    ? `⚡ ${jbExpFacilidadCount} de ${total} clientes dicen que reservar fue rápido`
+                    : '⚡ Sin datos aún';
+            }
+
+            function jbRenderMetricaTiempo(){
+                const el = document.getElementById('m-tiempo');
+                if(!el) return;
+                if(jbExpTiempos.length > 0){
+                    const promedioSeg = Math.round(
+                        jbExpTiempos.reduce((a,b) => a+b, 0) / jbExpTiempos.length / 1000
+                    );
+                    el.textContent = `⏱ Un cliente promedio demora: ${promedioSeg} segundos en reservar`;
+                } else {
+                    el.textContent = '⏱ Sin datos aún';
+                }
+            }
+
+            function jbActualizarMetricaReservasMes(){
+                const el = document.getElementById('m-preferencia');
+                if(!el) return;
+                const ahora = new Date();
+                const mesActual = ahora.getMonth();
+                const anioActual = ahora.getFullYear();
+                let contador = 0;
+                Object.values(reservas || {}).forEach(r => {
+                    if(!r || !r.fecha) return;
+                    const partes = String(r.fecha).split('-');
+                    if(partes.length < 2) return;
+                    const anio = parseInt(partes[0], 10);
+                    const mes = parseInt(partes[1], 10) - 1;
+                    if(anio === anioActual && mes === mesActual) contador++;
+                });
+                el.textContent = contador > 0
+                    ? `📅 Reservas este mes: ${contador}`
+                    : '📅 Sin datos aún';
+            }
+
+            db.ref('metricas_experiencia/facilidad').on('value', snap => {
+                jbExpFacilidadCount = snap.numChildren();
+                jbRenderMetricaFacilidad();
+            });
+
+            db.ref('metricas_experiencia/dificultad').on('value', snap => {
+                jbExpDificultadCount = snap.numChildren();
+                jbRenderMetricaFacilidad();
+            });
+
+            db.ref('metricas_experiencia/tiempos').on('value', snap => {
+                jbExpTiempos = [];
+                snap.forEach(child => {
+                    const v = child.val();
+                    if(v && typeof v.tiempoMs === 'number') jbExpTiempos.push(v.tiempoMs);
+                });
+                jbRenderMetricaTiempo();
+            });
             
             db.ref('diasCerrados').on('value', snapshot => {
                 const data = snapshot.val() || {};
@@ -1291,6 +1414,132 @@ function generarBotonWhatsapp(reserva) {
              </a>`;
 }
         
+// ============================================
+// PANEL SECRETO — CLIENTES CON DIFICULTADES
+// ============================================
+
+const JB_TEXTO_DIFICULTAD = {
+    servicio: 'elegir el servicio',
+    fecha:    'encontrar la fecha',
+    hora:     'elegir la hora',
+    otro:     'algún otro paso de la reserva'
+};
+
+async function cargarPanelSecreto() {
+    const cont = document.getElementById('panel-secreto-lista');
+    cont.innerHTML = '<p style="color:#888;">Cargando reportes...</p>';
+
+    try {
+        const [snapDificultad, snapClientes, snapReservas] = await Promise.all([
+            db.ref('metricas_experiencia/dificultad').once('value'),
+            db.ref('clientes').once('value'),
+            db.ref('reservas').once('value')
+        ]);
+
+        const clientesData = snapClientes.val() || {};
+        const reservasData = snapReservas.val() || {};
+
+        // Agrupar reportes de dificultad por clienteId
+        const porCliente = {};
+        snapDificultad.forEach(child => {
+            const rep = child.val();
+            if (!rep || !rep.clienteId) return;
+            if (!porCliente[rep.clienteId]) porCliente[rep.clienteId] = [];
+            porCliente[rep.clienteId].push(rep);
+        });
+
+        const clienteIds = Object.keys(porCliente);
+
+        if (clienteIds.length === 0) {
+            cont.innerHTML = '<p style="color:#888;">No hay reportes de dificultad por ahora 🎉</p>';
+            return;
+        }
+
+        // Ordenar clientes por el reporte más reciente primero
+        clienteIds.sort((a, b) => {
+            const ultA = Math.max(...porCliente[a].map(r => r.ts || 0));
+            const ultB = Math.max(...porCliente[b].map(r => r.ts || 0));
+            return ultB - ultA;
+        });
+
+        cont.innerHTML = clienteIds.map(clienteId => {
+            const reportes = porCliente[clienteId].sort((a, b) => (b.ts || 0) - (a.ts || 0));
+            const cliente = clientesData[clienteId] || {};
+            const nombre = cliente.nombreDisplay || 'Cliente sin nombre';
+            const telefonoCliente = cliente.telefono || '';
+
+            const filasReportes = reportes.map(rep => {
+                const reserva = reservasData[rep.reservaId] || {};
+                const fecha = reserva.fecha || '—';
+                const hora = reserva.hora || '—';
+                const servicios = reserva.servicios || '—';
+                const total = reserva.total || '—';
+                const telReserva = reserva.telefono || '';
+                const dificultadTexto = JB_TEXTO_DIFICULTAD[rep.dificultad] || rep.dificultad || '—';
+                const fechaReporte = rep.ts ? new Date(rep.ts).toLocaleString('es-CL') : '—';
+
+                return `
+                    <div style="background:#1a1b1f;border-radius:10px;padding:12px 14px;margin-bottom:10px;
+                        border-left:3px solid var(--barber-red);">
+                        <p style="margin:0 0 4px;color:#ff8a8a;font-weight:600;font-size:0.88rem;">
+                            😕 Le costó: ${dificultadTexto}
+                        </p>
+                        <p style="margin:0;color:#aaa;font-size:0.8rem;">Reportado: ${fechaReporte}</p>
+                        <p style="margin:6px 0 0;color:#ccc;font-size:0.85rem;">📅 ${fecha} — 🕐 ${hora}</p>
+                        <p style="margin:2px 0 0;color:#ccc;font-size:0.85rem;">✂️ ${servicios} · 💰 ${total}</p>
+                        ${telReserva ? `<p style="margin:2px 0 0;color:#aaa;font-size:0.8rem;">📱 ${telReserva}</p>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            const telefonoFinal = telefonoCliente || (reservasData[reportes[0].reservaId] || {}).telefono || '';
+            const ultimoReporte = reportes[0];
+
+            return `
+                <div class="card" style="margin-bottom:20px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+                        <h3 style="margin:0;color:var(--barber-orange);font-size:1.05rem;">👤 ${nombre}</h3>
+                        <span style="background:rgba(255,59,63,0.15);color:#ff8a8a;padding:4px 10px;
+                            border-radius:20px;font-size:0.78rem;font-weight:600;">
+                            ${reportes.length} reporte${reportes.length > 1 ? 's' : ''}
+                        </span>
+                    </div>
+                    ${filasReportes}
+                    ${generarBotonWhatsappExperiencia(nombre, telefonoFinal, ultimoReporte.dificultad)}
+                </div>
+            `;
+        }).join('');
+
+    } catch (err) {
+        console.error('Error cargando panel secreto:', err);
+        cont.innerHTML = '<p style="color:#ff7a7a;">Error al cargar los datos. Revisa la consola.</p>';
+    }
+}
+
+function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
+    if (!telefono) {
+        return '<p style="color:#888;font-size:0.8rem;margin-top:10px;">Sin número de contacto guardado</p>';
+    }
+    const numeroLimpio = String(telefono).replace(/[^\d]/g, '');
+    if (!numeroLimpio) {
+        return '<p style="color:#888;font-size:0.8rem;margin-top:10px;">Sin número de contacto guardado</p>';
+    }
+
+    const dificultadTexto = JB_TEXTO_DIFICULTAD[codigoDificultad] || 'ese paso de la reserva';
+    const mensaje = encodeURIComponent(
+        `Hola ${nombre || ''} \u{1F44B}, soy el desarrollador de la web de Barbería James. ` +
+        `Vi que te costó ${dificultadTexto} al reservar — ¿qué fue exactamente? \u{1F64F}\n\n` +
+        `_Ayúdanos a mejorar tu experiencia la próxima vez_`
+    );
+    const url = `https://wa.me/${numeroLimpio}?text=${mensaje}`;
+
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer"
+                style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:8px 14px;
+                       background:#25D366;color:#fff;border-radius:20px;font-size:0.85rem;font-weight:600;
+                       text-decoration:none;box-shadow:0 2px 6px rgba(37,211,102,0.35);">
+                💬 Preguntarle qué le costó
+             </a>`;
+}
         // ============================================
         // RENDERIZADO - CALENDARIO
         // ============================================
