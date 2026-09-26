@@ -843,7 +843,87 @@
         bottom: 1px;
         right: 1px;
     }
-}</style>
+}
+
+
+
+
+@keyframes aparecerConPulso {
+    0% {
+        opacity: 1;
+        transform: translateY(15px);
+        box-shadow: 0 0 0 rgba(0, 255, 0, 0);
+        border-top: 4px solid green;
+    }
+    25% {
+        opacity: 2;
+        transform: translateY(20px);
+        box-shadow: 0 0 22px rgba(0, 255, 0, 0.35); /* Destello verde llamativo */
+        border-top: 4px solid lime;
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(15px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+        0% {
+        opacity: 1;
+        transform: translateY(15px);
+        box-shadow: 0 0 0 rgba(0, 255, 0, 0);
+        border-top: 4px solid orange;
+    }
+    75% {
+        opacity: 2;
+        transform: translateY(20px);
+        box-shadow: 0 0 22px rgba(255, 145, 0, 0.35); /* Destello verde llamativo */
+        border-top: 4px solid orangered;
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(15px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border-top: 4px solid red;
+    }
+}
+
+@keyframes aparecerConPulsometrica {
+    0% {
+       background-image: linear-gradient(to bottom, lime, darkgreen);
+    }
+    25% {
+         background-image: linear-gradient(to bottom, darkgreen, lime);
+    }
+    50% {
+        background-image: linear-gradient(to bottom, var(--barber-orange), var(--barber-red));
+
+    }
+        0% {
+            background-image: linear-gradient(to bottom, lime, darkgreen);
+    }
+    75% {
+         
+        background-image: linear-gradient(to bottom, var(--barber-orange), var(--barber-red));
+
+    }
+    100% {
+               
+
+
+    }
+}
+
+.tarjeta-animada {
+    animation: aparecerConPulso 5.9s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+.jb-metrica-linea{
+    animation: aparecerConPulsometrica 5.9s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    
+}
+</style>
+
+
+
+
 </head>
 <body>
 
@@ -906,21 +986,27 @@
 </div>
             </div>
         </div>
-        
+ <style>
+
+ </style>       
         <!-- Grid Principal -->
         <div class="admin-grid">
             
             <!-- COLUMNA IZQUIERDA -->
             <div class="columna-izquierda">
-                      <!-- EXPERIENCIA DE RESERVA (solo métricas positivas) -->
-                <div style="border: 3px solid lime;" class="card" style="margin-top: 25px;">
-                    <h2 style="color: lime;">✨ Experiencia de Reserva</h2>
-                    <div class="jb-metricas-exp">
-                        <p style="border: 3px solid lime;" class="jb-metrica-linea" id="m-facilidad">⚡ Sin datos aún</p>
-                        <p style="border: 3px solid lime;" class="jb-metrica-linea" id="m-tiempo">⏱ Sin datos aún</p>
-                        <p style="border: 3px solid lime;" class="jb-metrica-linea" id="m-preferencia">📅 Sin datos aún</p>
-                    </div>
-                </div>
+<!-- EXPERIENCIA DE RESERVA (solo métricas positivas) -->
+<div class="card tarjeta-animada" style="margin-top: 25px; background: #161618;  border-radius: 8px; padding: 20px; color: #fff;">
+    <h2 style="font-family: 'Playfair Display', serif; color: var(--barber-orange); margin-bottom: 15px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+        🤖 RESULTADOS NUEVO SISTEMA
+    </h2> 
+    <img src="bannerasesor.png" alt="" style="width: 100%; border-radius: 8px; margin-bottom: 15px;">
+    
+    <div class="jb-metricas-exp" style="display: flex; flex-direction: column; gap: 10px;">
+        <p class="jb-metrica-linea" id="m-facilidad" style="background-color: #222226;  background-size: 4px 100%; background-repeat: no-repeat; padding: 12px 16px 12px 20px; border-radius: 6px; margin: 0; font-size: 0.95rem; color: #e5e7eb;">⚡ Sin datos aún</p>
+        <p class="jb-metrica-linea" id="m-tiempo" style="background-color: #222226;  background-size: 4px 100%; background-repeat: no-repeat; padding: 12px 16px 12px 20px; border-radius: 6px; margin: 0; font-size: 0.95rem; color: #e5e7eb;">⏱ Sin datos aún</p>
+        <p class="jb-metrica-linea" id="m-preferencia" style="background-color: #222226;  background-size: 4px 100%; background-repeat: no-repeat; padding: 12px 16px 12px 20px; border-radius: 6px; margin: 0; font-size: 0.95rem; color: #e5e7eb;">📅 Sin datos aún</p>
+    </div>
+</div><br><br>
                 <!-- STATS Y RESERVAS DE HOY -->
                 <div class="card">
                     <h2>📋 Hoy - <span id="fecha-hoy"></span></h2>
