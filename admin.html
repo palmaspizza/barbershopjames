@@ -1300,23 +1300,22 @@
 }, error => {
     console.error('Error Firebase:', error);
 });
+// ============================================
+// MÉTRICAS DE EXPERIENCIA (solo datos positivos)
+// ============================================
+let jbExpFacilidadCount = 0;
+let jbExpDificultadCount = 0;
+let jbExpTiempos = [];
 
-            // ============================================
-            // MÉTRICAS DE EXPERIENCIA (solo datos positivos)
-            // ============================================
-            let jbExpFacilidadCount = 0;
-            let jbExpDificultadCount = 0;
-            let jbExpTiempos = [];
-
-            function jbRenderMetricaFacilidad(){
-                const el = document.getElementById('m-facilidad');
-                if(!el) return;
-                const total = jbExpFacilidadCount + jbExpDificultadCount;
-                el.textContent = total > 0
-                    ? `⚡ ${jbExpFacilidadCount} de ${total} clientes dicen que reservar fue rápido`
-                    : '⚡ Sin datos aún';
-            }
-
+function jbRenderMetricaFacilidad(){
+    const el = document.getElementById('m-facilidad');
+    if(!el) return;
+    const total = jbExpFacilidadCount + jbExpDificultadCount;
+    
+    el.innerHTML = total > 0
+        ? `⚡ <span style="font-size: 1.1em; background: rgba(230, 81, 0, 0.15); color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #fff;">${jbExpFacilidadCount} de ${total}</span> clientes dicen que reservar fue rápido`
+        : '⚡ Sin datos aún';
+}
             function jbRenderMetricaTiempo(){
                 const el = document.getElementById('m-tiempo');
                 if(!el) return;
@@ -1324,9 +1323,9 @@
                     const promedioSeg = Math.round(
                         jbExpTiempos.reduce((a,b) => a+b, 0) / jbExpTiempos.length / 1000
                     );
-                    el.textContent = `⏱ Un cliente promedio demora: ${promedioSeg} segundos en reservar`;
+                    el.innerHTML = `⏱ Un cliente promedio demora: <span style="font-size: 1.1em; background: rgba(230, 81, 0, 0.15); color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #fff; ">${promedioSeg}</span> segundos en reservar`;
                 } else {
-                    el.textContent = '⏱ Sin datos aún';
+                    el.innerHTML = '⏱ Sin datos aún';
                 }
             }
 
@@ -1345,8 +1344,8 @@
                     const mes = parseInt(partes[1], 10) - 1;
                     if(anio === anioActual && mes === mesActual) contador++;
                 });
-                el.textContent = contador > 0
-                    ? `📅 Reservas este mes: ${contador}`
+                el.innerHTML = contador > 0
+                    ? `📅 Reservas este mes: <span style="font-size: 1.1em; background: rgba(230, 81, 0, 0.15); color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #fff; ">${contador}</span>    `
                     : '📅 Sin datos aún';
             }
 
