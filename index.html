@@ -4606,6 +4606,7 @@ const firebaseConfig = {
 };
 
 
+        window._jbInicioFlujoReserva = null;
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const reservasRef = db.ref("reservas");
@@ -9545,6 +9546,24 @@ bloqueoTomado = true;
       }
 
       jbBot(`✅ ¡Listo, ${jbReserva.nombre}! Tu hora quedó confirmada para el <b>${jbFormatFechaLegible(jbReserva.fecha)}</b> a las <b>${jbReserva.hora}</b>. ¡Te esperamos en Barbería James! 💈`);
+
+      // Métrica: tiempo total del flujo de reserva
+      try {
+        const tiempoMs = Date.now() - (window._jbInicioFlujoReserva || Date.now());
+        if (jbSesionCliente && jbSesionCliente.clienteId) {
+          db.ref('metricas_experiencia/tiempos').push({
+            clienteId: jbSesionCliente.clienteId,
+            reservaId: ref.key,
+            tiempoMs: tiempoMs,
+            ts: Date.now()
+          }).catch(() => {});
+        }
+        window._jbInicioFlujoReserva = null;
+      } catch(e) {}
+
+      // Modal de experiencia post-reserva (decide internamente si corresponde mostrarlo)
+      jbMostrarModalExperiencia(ref.key);
+
       jbTerminarReserva();
       // Botones post-confirmación
       setTimeout(() => {
@@ -9614,6 +9633,132 @@ finally {
    window._jbConfirmandoReserva = false;
 
 }
+  }
+  // Decide si corresponde mostrar el modal de experiencia, según el
+  // historial guardado en metricas_experiencia/estado/<clienteId>
+  async function jbMostrarModalExperiencia(reservaId){
+    try {
+      const clienteId = jbSesionCliente && jbSesionCliente.clienteId;
+      if(!clienteId) return; // sin clienteId no se muestra nada
+
+      const snap = await db.ref('metricas_experiencia/estado/' + clienteId).once('value');
+      const estado = snap.val() || { intento: 0, esperar: 0, detenido: false, ultimaRespuesta: null };
+
+      if(estado.detenido) return; // ya se decidió no volver a preguntar
+
+      if((estado.esperar || 0) > 0){
+        // Todavía no toca: es una de las reservas que se deben "saltar"
+        db.ref('metricas_experiencia/estado/' + clienteId).update({
+          esperar: estado.esperar - 1,
+          actualizado: Date.now()
+        }).catch(() => {});
+        return;
+      }
+
+      const intentoPrevio = estado.intento || 0; // 0 = primera vez, 1 = segunda, 2 = última
+
+      setTimeout(() => {
+        jbAbrirModalExperiencia(clienteId, reservaId, intentoPrevio);
+      }, 2000);
+
+    } catch(e){ console.error('Error preparando modal de experiencia:', e); }
+  }
+
+  // Dibuja el modal y guarda la respuesta + el nuevo estado del cliente
+  function jbAbrirModalExperiencia(clienteId, reservaId, intentoPrevio){
+    const overlay = document.createElement('div');
+    overlay.id = 'jbModalExperiencia';
+    overlay.style.cssText = `
+      position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:999999;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Poppins',sans-serif; padding:20px;
+    `;
+
+    const estiloBtnDif = `width:100%;margin-bottom:12px;background:rgba(255,255,255,0.06);
+      border:1.5px solid rgba(255,255,255,0.18);color:#eee;padding:15px;border-radius:12px;
+      font-weight:600;font-size:0.95rem;cursor:pointer;font-family:inherit;text-align:left;padding-left:18px;`;
+
+    function cerrar(){
+      if(overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }
+
+    function guardarRapido(){
+      db.ref('metricas_experiencia/facilidad').push({
+        clienteId: clienteId, valor: 'rapido', ts: Date.now(), reservaId: reservaId
+      }).catch(() => {});
+      db.ref('metricas_experiencia/estado/' + clienteId).set({
+        intento: intentoPrevio + 1,
+        esperar: 0,
+        detenido: true, // "fue rápido" => nunca más se le pregunta
+        ultimaRespuesta: 'rapido',
+        actualizado: Date.now()
+      }).catch(() => {});
+      cerrar();
+    }
+
+    function guardarDificultad(valor){
+      db.ref('metricas_experiencia/dificultad').push({
+        clienteId: clienteId, dificultad: valor, ts: Date.now(), reservaId: reservaId
+      }).catch(() => {});
+
+      let nuevoEstado;
+      if(intentoPrevio === 0){
+        // Primera vez que dice "me costó algo" -> preguntar en su siguiente reserva
+        nuevoEstado = { intento: 1, esperar: 0, detenido: false, ultimaRespuesta: 'dificultad', actualizado: Date.now() };
+      } else if(intentoPrevio === 1){
+        // Segunda vez -> saltar 2 reservas y preguntar una última vez
+        nuevoEstado = { intento: 2, esperar: 2, detenido: false, ultimaRespuesta: 'dificultad', actualizado: Date.now() };
+      } else {
+        // Era la última vez -> pase lo que pase, no preguntar más
+        nuevoEstado = { intento: 3, esperar: 0, detenido: true, ultimaRespuesta: 'dificultad', actualizado: Date.now() };
+      }
+      db.ref('metricas_experiencia/estado/' + clienteId).set(nuevoEstado).catch(() => {});
+      cerrar();
+    }
+
+    function pantallaFacilidad(){
+      overlay.innerHTML = `
+        <div style="position:relative;background:#15161a;border-radius:20px;border:1px solid rgba(228,166,79,0.35);
+          max-width:420px;width:100%;padding:34px 24px;box-shadow:0 25px 80px rgba(0,0,0,0.85);text-align:center;">
+          <button id="jbExpCerrar" style="position:absolute;top:8px;right:10px;background:none;border:none;
+            color:#555;font-size:0.8rem;cursor:pointer;padding:4px;line-height:1;opacity:0.5;">×</button>
+          <div style="font-size:2.2rem;margin-bottom:10px;">💈</div>
+          <h3 style="margin:0 0 8px;color:#e4a64f;font-size:1.15rem;font-weight:700;">¿Cómo fue reservar hoy?</h3>
+          <p style="margin:0 0 22px;color:#bbb;font-size:0.85rem;">Tu opinión nos ayuda a mejorar</p>
+          <button id="jbExpRapido" style="width:100%;margin-bottom:12px;background:linear-gradient(135deg,#e4a64f,#ff6f00);
+            border:none;border-radius:12px;color:#16130a;padding:16px;font-weight:700;font-size:1rem;cursor:pointer;
+            font-family:inherit;">⚡ Fue rápido</button>
+          <button id="jbExpCosto" style="width:100%;background:rgba(255,255,255,0.06);
+            border:1.5px solid rgba(255,255,255,0.18);color:#eee;padding:16px;border-radius:12px;
+            font-weight:700;font-size:1rem;cursor:pointer;font-family:inherit;">🤔 Me costó algo</button>
+        </div>
+      `;
+      overlay.querySelector('#jbExpCerrar').onclick = cerrar;
+      overlay.querySelector('#jbExpRapido').onclick = guardarRapido;
+      overlay.querySelector('#jbExpCosto').onclick = pantallaDificultad;
+    }
+
+    function pantallaDificultad(){
+      overlay.innerHTML = `
+        <div style="position:relative;background:#15161a;border-radius:20px;border:1px solid rgba(228,166,79,0.35);
+          max-width:420px;width:100%;padding:34px 24px;box-shadow:0 25px 80px rgba(0,0,0,0.85);text-align:center;">
+          <button id="jbExpCerrar2" style="position:absolute;top:8px;right:10px;background:none;border:none;
+            color:#555;font-size:0.8rem;cursor:pointer;padding:4px;line-height:1;opacity:0.5;">×</button>
+          <h3 style="margin:0 0 20px;color:#e4a64f;font-size:1.05rem;font-weight:700;">¿Qué parte te costó más?</h3>
+          <button data-v="servicio" class="jbExpDif" style="${estiloBtnDif}">📋 Elegir el servicio</button>
+          <button data-v="fecha" class="jbExpDif" style="${estiloBtnDif}">📅 Encontrar la fecha</button>
+          <button data-v="hora" class="jbExpDif" style="${estiloBtnDif}">🕐 Elegir la hora</button>
+          <button data-v="otro" class="jbExpDif" style="${estiloBtnDif}margin-bottom:0;">🤷 Otra cosa</button>
+        </div>
+      `;
+      overlay.querySelector('#jbExpCerrar2').onclick = cerrar;
+      overlay.querySelectorAll('.jbExpDif').forEach(btn => {
+        btn.onclick = () => guardarDificultad(btn.getAttribute('data-v'));
+      });
+    }
+
+    pantallaFacilidad();
+    document.body.appendChild(overlay);
   }
 async function jbLiberarBloqueoReserva(r){
 
@@ -11534,6 +11679,7 @@ function jbResponderFallbackInteligente(texto){
   // Si el cliente ya está identificado (localStorage) → va directo a la reserva.
   // Si no → saludo + pedido de nombre primero.
   window.jbAbrirChatDesdeBanner = function(){
+    window._jbInicioFlujoReserva = Date.now();
     const panel = document.getElementById('jbChatPanel');
     if(panel && !panel.classList.contains('jbOpen')) panel.classList.add('jbOpen');
     document.getElementById('jbUnreadDot').style.display = 'none';
