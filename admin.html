@@ -1111,10 +1111,10 @@
                                 <button class="btn-cerrar-modal" style="color: red; font-size: 330%;" onclick="cerrarPanelDia()">×</button>
                             </div>
                             <div class="acciones-dia">
-                                <button class="btn-accion btn-cerrar-dia" id="btn-cerrar-dia" onclick="toggleDiaCerrado()">
+                                <button class="btn-accion btn-cerrar-dia" id="btn-cerrar-dia" onclick="toggleDiaCerrado();actualizarPagina()">
                                     🔒 Cerrar día
                                 </button>
-                                <button class="btn-accion btn-abrir-dia" id="btn-abrir-dia" onclick="toggleDiaCerrado()">
+                                <button class="btn-accion btn-abrir-dia" id="btn-abrir-dia" onclick="toggleDiaCerrado();actualizarPagina()">
                                     🔓 Abrir día
                                 </button>
                                 <button class="btn-accion btn-ver-horarios" onclick="editarHorarioEspecifico()">
@@ -1827,7 +1827,10 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
                 btn.style.background = 'var(--barber-red)';
             }
         }
-        
+        function actualizarPagina() {
+    location.reload();
+}
+
         // ============================================
         // CONFIGURACIÓN - HORARIOS
         // ============================================
