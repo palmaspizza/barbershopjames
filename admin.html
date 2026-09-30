@@ -950,7 +950,7 @@
     <!-- ============================================
          PANEL ADMIN (oculto inicialmente)
     ============================================ -->
-    <div id="admin-panel">
+   <div id="admin-panel">
         
         <!-- Header -->
         <div class="admin-header">
@@ -961,6 +961,162 @@
 <!-- ============================================
      SECCIÓN GALERÍA - ADMIN
      ============================================ -->
+     <!-- ============================================
+     ESTADO DEL ASISTENTE — indicador silencioso, sin popups
+     ============================================ -->
+<style>
+  .jbEstadoCard {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap; position: absolute;
+    background: linear-gradient(135deg, rgba(51,209,122,0.08), rgba(51,209,122,0.02));
+    border: 1px solid rgba(51,209,122,0.25); border-radius: 12px;
+    height: 48px; font-size: 0.85rem; color: #cdeedb; width: 100%;
+    padding: 14px 18px; margin-bottom: 4px;
+    
+    
+  }
+  .jbEstadoDot { width: 9px; height: 9px; border-radius: 50%; background: var(--barber-green, #33d17a); flex-shrink: 0; animation: jbEstadoPulse 2s ease-in-out infinite; }
+  @keyframes jbEstadoPulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+   @keyframes jbEstadoPulseBlue { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  .jbEstadoTitulo { color: #cdeedb; font-size: 0.85rem; font-weight: 600; }
+  .jbEstadoStats { display: flex; gap: 18px; margin-left: auto; flex-wrap: wrap; }
+  .jbEstadoStat { text-align: center; }
+  .jbEstadoStat .num { color: #fff; font-size: 1.05rem; font-weight: 800; display: block; }
+  .jbEstadoStat .label { color: #8fa; font-size: 0.68rem; opacity: 0.8; }
+</style>
+<div class="jbEstadoCard">
+  <span class="jbEstadoDot"></span>
+  <span class="jbEstadoTitulo" id="jbEstadoTitulo">Asistente activo</span>
+  <div class="jbEstadoStats">
+    <div class="jbEstadoStat"><span class="num" id=""></span></div>
+  </div>
+</div>
+<script>
+window.addEventListener('load', function(){
+  function jbEsHoy(ts){
+    if(!ts) return false;
+    const d = new Date(ts), hoy = new Date();
+    return d.getFullYear()===hoy.getFullYear() && d.getMonth()===hoy.getMonth() && d.getDate()===hoy.getDate();
+  }
+  db.ref('chats').on('value', snap => {
+    const chats = snap.val() || {};
+    const hoyCount = Object.values(chats).filter(c => jbEsHoy(c.ultimaActividad)).length;
+    const el = document.getElementById('jbEstadoConversacionesHoy');
+    if(el) el.textContent = hoyCount;
+  });
+  db.ref('reservas').on('value', snap => {
+    const reservas = snap.val() || {};
+    const haceUnaSemana = Date.now() - 7*24*60*60*1000;
+    const count = Object.values(reservas).filter(r => r.origen === 'chat' && r.timestamp && r.timestamp >= haceUnaSemana).length;
+    const el = document.getElementById('jbEstadoReservasSemana');
+    if(el) el.textContent = count;
+  });
+});
+</script>
+
+<!-- ============================================
+     SECCIÓN GALERÍA - ADMIN
+     ============================================ -->
+<!-- ============================================
+     SECCIÓN GALERÍA - ADMIN
+     ============================================ -->
+
+<!-- ============================================
+     ESTADÍSTICAS SIMPLES
+     ============================================ -->
+
+<div class="card" id="card-estadisticas" style="margin-bottom:18px; border: 4px solid #29b6f6; "><br><br><br><br>    <div class="jbEstadoStat" ><span class="num" id="jbEstadoReservasSemana">–</span><span class="label">reservas del asistente esta semana</span></div>
+<br><br><br><br>
+  <h2 style="color:var(--barber-orange);margin-bottom:16px;">📊 Estadísticas</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;">
+    <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
+      <span id="stat-reservas-hoy" style="display:block;font-size:2rem;font-weight:800;color:#fff;">–</span>
+      <span style="font-size:0.72rem;color:#888;">Reservas hoy</span>
+    </div>
+    <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
+      <span id="stat-reservas-semana" style="display:block;font-size:2rem;font-weight:800;color:#e4a64f;">–</span>
+      <span style="font-size:0.72rem;color:#888;">Esta semana</span>
+    </div>
+    <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
+      <span id="stat-reservas-mes" style="display:block;font-size:2rem;font-weight:800;color:#33d17a;">–</span>
+      <span style="font-size:0.72rem;color:#888;">Este mes</span>
+    </div>
+    <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
+      <span id="stat-ingresos-mes" style="display:block;font-size:1.3rem;font-weight:800;color:#29b6f6;">–</span>
+      <span style="font-size:0.72rem;color:#888;">Ingresos este mes</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    <div style="background:#12131A;border-radius:12px;padding:14px;border:1px solid rgba(228,166,79,0.15);">
+      <p style="font-size:0.75rem;color:#888;margin-bottom:8px;">✂️ Servicio más pedido</p>
+      <p id="stat-servicio-top" style="font-size:0.95rem;font-weight:700;color:#fff;">–</p>
+    </div>
+    <div style="background:#12131A;border-radius:12px;padding:14px;border:1px solid rgba(228,166,79,0.15);">
+      <p style="font-size:0.75rem;color:#888;margin-bottom:8px;">🕐 Hora más reservada</p>
+      <p id="stat-hora-top" style="font-size:0.95rem;font-weight:700;color:#fff;">–</p>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  function esFechaEnRango(fechaStr, desde, hasta){
+    if(!fechaStr) return false;
+    return fechaStr >= desde && fechaStr <= hasta;
+  }
+  function fechaStr(d){ return d.toISOString().slice(0,10); }
+
+  window.addEventListener('load', function(){
+    const hoy = new Date();
+    const hoyS = fechaStr(hoy);
+    const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - ((hoy.getDay()+6)%7));
+    const lunesS = fechaStr(lunes);
+    const mesS = hoyS.slice(0,7); // "YYYY-MM"
+
+    db.ref('reservas').on('value', snap => {
+      const reservas = snap.val() || {};
+      const lista = Object.values(reservas);
+
+      // Contadores
+      let resHoy=0, resSemana=0, resMes=0, ingresosMes=0;
+      const contServicios = {};
+      const contHoras = {};
+
+      lista.forEach(r => {
+        const f = r.fecha || '';
+        if(f === hoyS) resHoy++;
+        if(f >= lunesS && f <= hoyS) resSemana++;
+        if(f.startsWith(mesS)){
+          resMes++;
+          // Ingresos: extraer número del total guardado
+          const totalNum = parseInt((r.total||'').replace(/\D/g,'')) || 0;
+          ingresosMes += totalNum;
+          // Servicio más pedido
+          const srv = r.servicios || r.servicio || '';
+          srv.split('+').forEach(s => {
+            const k = s.trim();
+            if(k) contServicios[k] = (contServicios[k]||0)+1;
+          });
+          // Hora más reservada
+          const h = (r.hora||'').slice(0,5);
+          if(h) contHoras[h] = (contHoras[h]||0)+1;
+        }
+      });
+
+      const topServicio = Object.entries(contServicios).sort((a,b)=>b[1]-a[1])[0];
+      const topHora = Object.entries(contHoras).sort((a,b)=>b[1]-a[1])[0];
+
+      const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+      set('stat-reservas-hoy', resHoy);
+      set('stat-reservas-semana', resSemana);
+      set('stat-reservas-mes', resMes);
+      set('stat-ingresos-mes', ingresosMes>0 ? '$'+ingresosMes.toLocaleString('es-CL') : '–');
+      set('stat-servicio-top', topServicio ? `${topServicio[0]} (${topServicio[1]}×)` : '–');
+      set('stat-hora-top', topHora ? `${topHora[0]} (${topHora[1]}×)` : '–');
+    });
+  });
+})();
+</script>
 <div class="card galeria-card" hidden>
     <h2>🖼️ PROMOCIONES</h2>
     
@@ -1059,21 +1215,14 @@
                                 <h4>Domingos</h4>
                                 <div class="horas-tags" id="horario-domingo-tags"></div>
                                 <button class="btn-editar-horario" onclick="editarHorario('domingo')">Editar HORARIO</button>
-                        <br><br><br>    <button class="btn-accion" id="btn-toggle-domingos" onclick="toggleTodosDomingos()" style="width:100%;">
-                            🔒 Cerrar TODOS los domingos
-                        </button>    </div>
+                        <br><br><br>    <button class="btn-accion" id="btn-toggle-domingos" onclick="toggleTodosDomingos()" style="width:100%;background:var(--barber-red);color:#fff;">
+    🔒 Cerrar TODOS los domingos
+</button>    </div>
                         </div>
                     </div>
                     
            
 
-                    <div class="config-section">
-                        <h3>Acciones globales</h3>
-                        <div class="acciones-globales">
-                            <button class="btn-peligro" onclick="borrarTodasReservas()">🗑️ Borrar TODAS las reservas</button>
-                            <button class="btn-secundario" onclick="borrarReservasAntiguas()">📜 Borrar reservas antiguas</button>
-                        </div>
-                    </div>
                 </div>
                 
             </div>
@@ -1095,8 +1244,8 @@
                     </div>
                     
                     <div class="dias-semana">
-                        <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div>
-                        <div>Jue</div><div>Vie</div><div>Sáb</div>
+                        <div>Sáb</div><div>Dóm</div><div>Lun</div><div>Mar</div>
+                        <div>Mié</div><div>Jue</div><div>Vie</div>
                     </div>
                     
                     <div class="calendario-grid" id="calendario-grid">
@@ -1798,7 +1947,13 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
                 nuevoArray.push(diaNum);
             }
             
+            // Actualizar el array local ANTES de escribir en Firebase
+            // para que renderBotonDomingos y renderDiasSemanaConfig lean el estado nuevo
+            diasSemanaCerrados = nuevoArray;
             db.ref('config/diasSemanaCerrados').set(nuevoArray);
+            renderDiasSemanaConfig();
+            renderBotonDomingos();
+            renderCalendario();
         }
         
         function toggleTodosDomingos() {
@@ -1813,19 +1968,13 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
             mostrarToast(estaCerrado ? 'Domingos abiertos' : 'Domingos cerrados');
         }
         
-        function renderBotonDomingos() {
+                       function renderBotonDomingos() {
             const btn = document.getElementById('btn-toggle-domingos');
             if (!btn) return;
-            
             const estaCerrado = diasSemanaCerrados.includes(0);
-            
-            if (estaCerrado) {
-                btn.textContent = '🔓 Abrir TODOS los domingos';
-                btn.style.background = 'var(--barber-green)';
-            } else {
-                btn.textContent = '🔒 Cerrar TODOS los domingos';
-                btn.style.background = 'var(--barber-red)';
-            }
+            btn.textContent = estaCerrado ? '🔓 Abrir TODOS los domingos' : '🔒 Cerrar TODOS los domingos';
+            btn.style.setProperty('background', estaCerrado ? 'var(--barber-green)' : 'var(--barber-red)', 'important');
+            btn.style.setProperty('color', '#fff', 'important');
         }
         function actualizarPagina() {
     location.reload();
