@@ -75,10 +75,10 @@
   .jbBannerCard.jbBannerChat { border-color: rgba(228,166,79,0.5); background: linear-gradient(160deg, #23200f, #17140a); }
   .jbBannerBadge {
     position: absolute; top: -9px; right: 14px; background: linear-gradient(135deg, #e4a64f, #ff6f00);
-    color: #16130a; font-size: 1.6rem; font-weight: 800; padding: 3px 9px; border-radius: 20px;
+    color: #16130a; font-size: 1.3rem; font-weight: 800; padding: 3px 9px; border-radius: 20px;
     letter-spacing: 0.03em;
   }
-  .jbBannerIcon { font-size: 1.6rem; margin-bottom: 6px; }
+  .jbBannerIcon { font-size: 1.3rem; margin-bottom: 6px; }
   .jbBannerCard h3 { color: #f1c887; font-size: 1rem; margin: 0 0 6px; font-family: 'Poppins', sans-serif; }
   .jbBannerCard p { color: #b9b9b9; font-size: 0.8rem; line-height: 1.4; margin: 0 0 10px; }
   .jbBannerCta { color: #e4a64f; font-size: 0.8rem; font-weight: 700; }
@@ -871,6 +871,14 @@ function mostrar(){
         #btnCerrarVentana {
             background-color: #bbb;
             color: #333;
+        }
+        #aceptospan{
+          background: green;
+          border-radius: 5%;
+          color: #fff;
+          padding: 10px;
+          margin: 20px;
+          margin-bottom: 40px !important;
         }
     </style>
     <button onclick="desactiwar();ocultarbotonesdecierre()" hidden id="desactivarBloqueoDias">✅ Desactivar bloqueo</button>
@@ -2172,7 +2180,7 @@ firebase.auth().onAuthStateChanged((user) => {
     font-family: 'Playfair Display', serif;
     color: #e4a64f;
     text-align: center;
-    font-size: 1.6rem;
+    font-size: 1.3rem;
     margin-bottom: 25px;
     display: flex;
     align-items: center;
@@ -3689,6 +3697,7 @@ button {
   border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
+
 }
 
 
@@ -6495,8 +6504,9 @@ function reservarHoraConNotificacion() {
   }
   .jbBubble {
     background: #1e1f24; color: #f1f1f1; padding: 10px 14px; border-radius: 12px 12px 12px 4px;
-    font-size: 0.85rem; line-height: 1.5; max-width: 85%; align-self: flex-start;
+    font-size: 1.4rem; line-height: 1.3; max-width: 85%; align-self: flex-start;
     word-break: break-word;
+    margin-bottom: 45%;
   }
   .jbBubble.jbCliente {
     background: linear-gradient(135deg, #e4a64f, #ff6f00); color: #16130a;
@@ -6532,16 +6542,16 @@ function reservarHoraConNotificacion() {
 
   /* ── Confirmación de teléfono ── */
   .jbTelConfirmRow { display:flex; gap:8px; width:98%; max-width:380px; margin:2px 0 8px; }
-  .jbTelConfirmRow button { flex:1; padding:14px; border-radius:12px; font-size:0.92rem; font-weight:800; cursor:pointer; }
+  .jbTelConfirmRow button { flex:1; padding:14px; border-radius:12px; font-size:1.4rem; font-weight:800; cursor:pointer; }
 
   /* Botones de horas disponibles - los únicos botones en el flujo */
   .jbHorasGrid {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-self: flex-start; max-width: 95%;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-self: flex-start; max-width: 95%; margin-top: -30%;
   }
   .jbHoraBtn {
     background: linear-gradient(135deg, rgba(32,137,255,0.18), rgba(32,137,255,0.08));
-    border: 1.5px solid rgba(32,137,255,0.7); color: #7ec8ff;
-    padding: 10px 10px; border-radius: 10px; text-align: center; font-size: 0.85rem;
+    border: 1.5px solid rgba(32,137,255,0.7); color: lime;
+    padding: 10px 10px; border-radius: 10px; text-align: center; font-size: 1.3rem;
     cursor: pointer; font-family: inherit; font-weight: 700; transition: all .18s ease;
     box-shadow: 0 2px 8px rgba(32,137,255,0.15); letter-spacing: 0.03em;
   }
@@ -6710,7 +6720,7 @@ function reservarHoraConNotificacion() {
   /* ── BOTÓN RESERVAR HORA — destacado con otro color ── */
   .jbQuickBtn.jbBtnReservar {
     background: linear-gradient(135deg, #2dd4bf, #0ea5e9);
-    border: none; color: #fff; font-weight: 700; font-size: 0.82rem;
+    border: none; color: #fff; font-weight: 700; font-size: 1.3rem;
     padding: 9px 16px; border-radius: 22px;
     box-shadow: 0 3px 14px rgba(14,165,233,0.38);
     animation: jbReservarPulse 2.6s ease-in-out infinite;
@@ -6730,7 +6740,7 @@ function reservarHoraConNotificacion() {
   /* ── BADGE en la pantalla de horas: botón "cambiar fecha" ── */
   .jbCambiarFechaLink {
     background: rgba(228,166,79,0.08); border: 1.5px solid rgba(228,166,79,0.35);
-    color: #e4a64f; font-size: 0.82rem; font-weight: 700;
+    color: #e4a64f; font-size: 1.3rem; font-weight: 700;
     cursor: pointer; font-family: inherit; text-decoration: none;
     align-self: stretch; width: 100%; padding: 10px 12px; border-radius: 10px;
     text-align: center; transition: all .18s ease; margin-top: 2px;
@@ -7170,7 +7180,7 @@ function jbRestaurarInterfazReserva(){
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.textContent = '🔄 Empezar de nuevo';
-    btn.style.cssText = 'background:transparent;color:#aaa;border:1px solid #444;border-radius:12px;padding:9px 14px;font-size:0.82rem;font-weight:600;cursor:pointer;';
+    btn.style.cssText = 'background:transparent;color:#aaa;border:1px solid #444;border-radius:12px;padding:9px 14px;font-size:1.3rem;font-weight:600;cursor:pointer;';
     btn.onclick = () => jbCancelacionExterna(null, { limpiarChat: true });
     fila.appendChild(btn);
     body.appendChild(fila);
@@ -7937,7 +7947,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
         btnX.style.cssText = `
           background:rgba(255,59,63,0.18);border:1px solid rgba(255,59,63,0.5);
           color:#ff7a7a;border-radius:7px;padding:3px 9px;cursor:pointer;
-          font-size:0.82rem;font-weight:700;font-family:inherit;transition:all .15s;
+          font-size:1.3rem;font-weight:700;font-family:inherit;transition:all .15s;
         `;
         btnX.onmouseover = () => { btnX.style.background='rgba(255,59,63,0.35)'; btnX.style.color='#fff'; };
         btnX.onmouseout  = () => { btnX.style.background='rgba(255,59,63,0.18)'; btnX.style.color='#ff7a7a'; };
@@ -8837,7 +8847,7 @@ function jbPreguntarWhatsapp(){
     row.style.cssText = 'display:flex;gap:8px;align-self:flex-start;width:98%;max-width:380px;margin:2px 0 8px;';
 
     const btnOk = document.createElement('button');
-    btnOk.style.cssText = 'flex:1;padding:14px;background:linear-gradient(135deg,#e4a64f,#d4903a);color:#16130a;border:none;border-radius:12px;font-size:0.92rem;font-weight:800;cursor:pointer;';
+    btnOk.style.cssText = 'flex:1;padding:14px;background:linear-gradient(135deg,#e4a64f,#d4903a);color:#16130a;border:none;border-radius:12px;font-size:1.4rem;font-weight:800;cursor:pointer;';
     btnOk.textContent = '✅ Confirmar';
     btnOk.onclick = ()=>{
       row.remove();
@@ -8849,7 +8859,7 @@ function jbPreguntarWhatsapp(){
     };
 
     const btnCambiar = document.createElement('button');
-    btnCambiar.style.cssText = 'flex:1;padding:14px;background:#1a1a2e;color:#e4a64f;border:1.5px solid rgba(228,166,79,0.4);border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;';
+    btnCambiar.style.cssText = 'flex:1;padding:14px;background:#1a1a2e;color:#e4a64f;border:1.5px solid rgba(228,166,79,0.4);border-radius:12px;font-size:1.4rem;font-weight:700;cursor:pointer;';
     btnCambiar.textContent = '✏️ Cambiar';
     // "Cambiar" cae directamente al formulario editable de abajo,
     // saltándonos el atajo (pasamos forzarFormulario = true).
@@ -8905,7 +8915,7 @@ function jbMostrarFormularioWhatsapp(){
     align-items:flex-start;
     gap:9px;
     color:#ddd;
-    font-size:0.82rem;
+    font-size:1.3rem;
     line-height:1.4;
     cursor:pointer;
   `;
@@ -8913,18 +8923,19 @@ function jbMostrarFormularioWhatsapp(){
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.style.cssText = `
-    margin-top:3px;
-    width:18px;
-    height:18px;
+  color: #fff;  
+  margin-top:3px;
+    width:28px;
+    height:28px;
     flex:none;
-    accent-color:#e4a64f;
+    accent-color: limegreen;
     cursor:pointer;
   `;
 
   const textoConsentimiento = document.createElement('span');
-  textoConsentimiento.textContent =
-    'Acepto proporcionar mi número de WhatsApp para que la barbería pueda contactarme ante cualquier imprevisto relacionado con mi reserva y enviarme el recordatorio de mi hora.';
-
+  textoConsentimiento.innerHTML =
+    '<span id="aceptospan">Acepto</span> <br> <br>proporcionar mi número de WhatsApp para que la barbería pueda contactarme ante cualquier imprevisto relacionado con mi reserva y enviarme el recordatorio de mi hora.';
+  textoConsentimiento.style.cssText = 'font-size: 0.98rem;'
   consentimientoWrap.appendChild(checkbox);
   consentimientoWrap.appendChild(textoConsentimiento);
 
@@ -8932,8 +8943,7 @@ function jbMostrarFormularioWhatsapp(){
   error.style.cssText = `
     display:none;
     color:#ff6b6b;
-    font-size:0.82rem;
-    line-height:1.3;
+
   `;
 
   const btn = document.createElement('button');
@@ -9040,14 +9050,14 @@ function jbMostrarFormularioWhatsapp(){
           <span style="font-size:1.2rem;">✂️</span>
           <div>
             <div style="font-size:0.72rem;color:#888;">Servicio</div>
-            <div style="font-size:0.92rem;font-weight:700;color:#f1f1f1;">${serviciosTexto}</div>
+            <div style="font-size:1.4rem;font-weight:700;color:#f1f1f1;">${serviciosTexto}</div>
           </div>
         </div>
         <div style="display:flex;gap:10px;align-items:center;">
           <span style="font-size:1.2rem;">📅</span>
           <div>
             <div style="font-size:0.72rem;color:#888;">Fecha</div>
-            <div style="font-size:0.92rem;font-weight:700;color:#f1f1f1;">${jbFormatFechaLegible(jbReserva.fecha)}</div>
+            <div style="font-size:1.4rem;font-weight:700;color:#f1f1f1;">${jbFormatFechaLegible(jbReserva.fecha)}</div>
           </div>
         </div>
         <div style="display:flex;gap:10px;align-items:center;">
@@ -9058,7 +9068,7 @@ function jbMostrarFormularioWhatsapp(){
           </div>
         </div>
         <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:8px;display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:0.82rem;color:#888;">Total</span>
+          <span style="font-size:1.3rem;color:#888;">Total</span>
           <span style="font-size:1.0rem;font-weight:800;color:#e4a64f;">$${total.toLocaleString('es-CL')}</span>
         </div>
       </div>
@@ -10116,16 +10126,16 @@ async function jbLiberarBloqueoReserva(r){
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
             <div>
               <div style="color:#e4a64f;font-weight:700;font-size:0.9rem;margin-bottom:6px;">${r.nombre||'—'}</div>
-              <div style="color:#ccc;font-size:0.82rem;margin-bottom:3px;">✂️ ${r.servicios||r.servicio||'—'}</div>
-              <div style="color:#ccc;font-size:0.82rem;margin-bottom:3px;">📅 ${jbFormatFechaLegible(r.fecha)} — ${r.hora}</div>
-              <div style="color:#ccc;font-size:0.82rem;">💰 ${r.total||'—'}</div>
+              <div style="color:#ccc;font-size:1.3rem;margin-bottom:3px;">✂️ ${r.servicios||r.servicio||'—'}</div>
+              <div style="color:#ccc;font-size:1.3rem;margin-bottom:3px;">📅 ${jbFormatFechaLegible(r.fecha)} — ${r.hora}</div>
+              <div style="color:#ccc;font-size:1.3rem;">💰 ${r.total||'—'}</div>
             </div>
           </div>
           <button onclick="jbCancelarDesdeModal('${r.reservaId}')" style="
             margin-top:12px;width:100%;background:rgba(255,59,63,0.12);
             border:1.5px solid rgba(255,59,63,0.55);color:#ff7a7a;
             padding:9px;border-radius:9px;cursor:pointer;font-family:inherit;
-            font-weight:600;font-size:0.82rem;transition:all .18s;
+            font-weight:600;font-size:1.3rem;transition:all .18s;
           " onmouseover="this.style.background='rgba(255,59,63,0.28)'"
             onmouseout="this.style.background='rgba(255,59,63,0.12)'">
             🗑 Cancelar esta reserva
