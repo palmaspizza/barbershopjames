@@ -1244,8 +1244,8 @@ window.addEventListener('load', function(){
                     </div>
                     
                     <div class="dias-semana">
-                        <div>Sáb</div><div>Dóm</div><div>Lun</div><div>Mar</div>
-                        <div>Mié</div><div>Jue</div><div>Vie</div>
+                        <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div>
+                        <div>Jue</div><div>Vie</div><div>Sáb</div>
                     </div>
                     
                     <div class="calendario-grid" id="calendario-grid">
@@ -1972,9 +1972,9 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
             const btn = document.getElementById('btn-toggle-domingos');
             if (!btn) return;
             const estaCerrado = diasSemanaCerrados.includes(0);
-            btn.textContent = estaCerrado ? '🔓 Abrir TODOS los domingos' : '🔒 Cerrar TODOS los domingos';
+            btn.textContent = estaCerrado ? '🔓 ¿Abrir TODOS los domingos?' : '🔒 ¿Cerrar TODOS los domingos?';
             btn.style.setProperty('background', estaCerrado ? 'var(--barber-green)' : 'var(--barber-red)', 'important');
-            btn.style.setProperty('color', '#fff', 'important');
+            btn.style.setProperty('color', '#000', 'important');
         }
         function actualizarPagina() {
     location.reload();
