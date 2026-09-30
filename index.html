@@ -2117,9 +2117,7 @@ firebase.auth().onAuthStateChanged((user) => {
     <!-- Estado sin reservas: solo la opción de reservar hora -->
     <div class="mis-reservas-vacio hidden" id="misReservasVacio">
         <p class="mis-reservas-vacio-texto">No tienes reservas activas</p>
-        <button type="button" class="btn-reservar-hora-vacio" onclick="reservarHoraDesdeMisReservas()">
-            📅 Reservar hora
-        </button>
+   
     </div>
 
     <!-- Lista de reservas (inicialmente oculta) -->
@@ -6506,7 +6504,7 @@ function reservarHoraConNotificacion() {
     background: #1e1f24; color: #f1f1f1; padding: 10px 14px; border-radius: 12px 12px 12px 4px;
     font-size: 1.4rem; line-height: 1.3; max-width: 85%; align-self: flex-start;
     word-break: break-word;
-    margin-bottom: 45%;
+    margin-bottom: 5%;
   }
   .jbBubble.jbCliente {
     background: linear-gradient(135deg, #e4a64f, #ff6f00); color: #16130a;
@@ -6546,7 +6544,7 @@ function reservarHoraConNotificacion() {
 
   /* Botones de horas disponibles - los únicos botones en el flujo */
   .jbHorasGrid {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-self: flex-start; max-width: 95%; margin-top: -30%;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-self: flex-start; max-width: 95%;
   }
   .jbHoraBtn {
     background: linear-gradient(135deg, rgba(32,137,255,0.18), rgba(32,137,255,0.08));
@@ -8322,12 +8320,12 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     row.style.cssText = 'display:flex;flex-direction:column;gap:8px;width:98%;max-width:420px;align-self:flex-start;margin:0 0 8px;';
 
     const btnConf = document.createElement('button');
-    btnConf.style.cssText = 'width:100%;padding:16px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:14px;font-size:1rem;font-weight:800;cursor:pointer;letter-spacing:0.01em;';
+    btnConf.style.cssText = 'width:100%;padding:16px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:14px;font-size:1.6rem;font-weight:800;cursor:pointer;letter-spacing:0.01em;';
     btnConf.textContent = '✅ Confirmar reserva';
     btnConf.onclick = ()=>{ if(window._jbConfirmandoReserva) return; row.remove(); jbDesbloquearInput(); jbConfirmarReserva(); };
 
     const btnCambiar = document.createElement('button');
-    btnCambiar.style.cssText = 'width:100%;padding:13px;background:transparent;color:#888;border:1px solid #333;border-radius:14px;font-size:0.87rem;font-weight:600;cursor:pointer;';
+    btnCambiar.style.cssText = 'width:100%;padding:13px;background:transparent;color:gold;border:1px solid gold;border-radius:14px;font-size:1.3rem;font-weight:600;cursor:pointer;';
     btnCambiar.textContent = '✏️ Cambiar algo';
     btnCambiar.onclick = ()=>{ row.remove(); jbDesbloquearInput(); jbPreguntarQueCambiar(); };
 
