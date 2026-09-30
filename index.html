@@ -398,7 +398,7 @@ async function notificarNuevaReserva(datosReserva) {
      GALERÍA DE TRABAJOS - CLIENTES
      ============================================ -->
 
-</script><div class="galeria-clientes" id="galeria-clientes" hidden>
+</script><div class="galeria-clientes" id="galeria-clientes" >
     <h3 class="titulo-galeria"> Nuestras promos</h3>
     <div class="galeria-grid-clientes" id="galeria-grid-clientes">
         <!-- Se carga dinámicamente -->
@@ -4870,18 +4870,20 @@ const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.leng
 const diasDeLaSemanaBloqueados = [];
 
 function cerrarDiaDeLaSemana(dia) {
-    if (!diasDeLaSemanaBloqueados.includes(dia)) {
-        diasDeLaSemanaBloqueados.push(dia);
+    if (!diasSemanaCerrados.includes(dia)) {
+        diasSemanaCerrados.push(dia);
     }
-    generarCuadroCalendario();
+    db.ref('config/diasSemanaCerrados').set(diasSemanaCerrados);
+    renderBotonDomingos();
+    renderCalendario();
 }
 
 function habilitarDiaDeLaSemana(dia) {
-    const indice = diasDeLaSemanaBloqueados.indexOf(dia);
-    if (indice > -1) {
-        diasDeLaSemanaBloqueados.splice(indice, 1);
-    }
-    generarCuadroCalendario();
+    const idx = diasSemanaCerrados.indexOf(dia);
+    if (idx > -1) diasSemanaCerrados.splice(idx, 1);
+    db.ref('config/diasSemanaCerrados').set(diasSemanaCerrados);
+    renderBotonDomingos();
+    renderCalendario();
 }
         function actualizarBarraMes() {
             const mes = fechaActualCalendario.getMonth();
