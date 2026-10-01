@@ -1012,6 +1012,7 @@ window.addEventListener('load', function(){
     if(el) el.textContent = count;
   });
 });
+
 </script>
 
 <!-- ============================================
@@ -1066,12 +1067,20 @@ window.addEventListener('load', function(){
   }
   function fechaStr(d){ return d.toISOString().slice(0,10); }
 
-  window.addEventListener('load', function(){
-    const hoy = new Date();
-    const hoyS = fechaStr(hoy);
-    const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - ((hoy.getDay()+6)%7));
-    const lunesS = fechaStr(lunes);
-    const mesS = hoyS.slice(0,7); // "YYYY-MM"
+ window.addEventListener('load', function(){
+    // Forzar fecha actual exacta en zona horaria de Chile (Santiago)
+    const hoyS = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
+    
+    // Parsear la fecha local de Chile sin desfase UTC
+    const [year, month, day] = hoyS.split('-').map(Number);
+    const hoy = new Date(year, month - 1, day);
+    
+    // Calcular el lunes de esta semana en hora local
+    const lunes = new Date(hoy); 
+    lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7));
+    const lunesS = `${lunes.getFullYear()}-${String(lunes.getMonth() + 1).padStart(2, '0')}-${String(lunes.getDate()).padStart(2, '0')}`;
+    
+    const mesS = hoyS.slice(0, 7); // "YYYY-MM"
 
     db.ref('reservas').on('value', snap => {
       const reservas = snap.val() || {};
@@ -1979,7 +1988,14 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
         function actualizarPagina() {
     location.reload();
 }
-
+firebase.database().ref('config/reloadSignal').on('value', snap => {
+    if (!snap.val()) return;
+    const KEY = 'lastReloadSignal';
+    const ultimo = localStorage.getItem(KEY);
+    if (String(snap.val()) === ultimo) return;
+    localStorage.setItem(KEY, String(snap.val()));
+    setTimeout(() => location.reload(), 800);
+});
         // ============================================
         // CONFIGURACIÓN - HORARIOS
         // ============================================
@@ -2826,6 +2842,7 @@ function formatearFechaImg(fechaISO) {
 
     reader.readAsDataURL(archivo);
 }
+
 </script>
 </body>
 </html>
