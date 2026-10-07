@@ -11357,5 +11357,29 @@ window.addEventListener('load', function() {
 }
 
 </style>
+<script>
+(function () {
+  var PAGINA = 'bot'; // ← en calendario.html pon: 'calendario'
+  var FB_URL = 'https://jeisonstyle-1530f-default-rtdb.firebaseio.com/config/asistente.json';
+
+  function hoy() {
+    return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
+  }
+  function revisar() {
+    fetch(FB_URL, { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (l) {
+        if (!l) return;
+        var botOn = !(l.activo === false || (l.vencimiento && hoy() > l.vencimiento));
+        if ((botOn ? 'bot' : 'calendario') !== PAGINA) location.reload();
+      })
+      .catch(function () {});
+  }
+  setInterval(revisar, 60000);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) revisar();
+  });
+})();
+</script>
 </body>
 </html>
