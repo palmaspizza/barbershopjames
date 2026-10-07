@@ -1394,6 +1394,12 @@ window.addEventListener('load', function(){
         <div class="jbCtl" id="jbCtl">
             <div>
                 <div class="jbCtl-t">Control del bot</div>
+                <div class="jbCont">
+  <div class="jbCont-lbl">Entradas al panel del barbero</div>
+  <div class="jbCont-num" id="jbContNum">–</div>
+  <div class="jbCont-live"><i></i>En vivo</div>
+  <button type="button" class="jbCont-btn" id="jbContExcl"></button>
+</div>
                 <div class="jbCtl-s" id="jbCtlEstado">Cargando…</div>
                 <div class="jbCtl-d" id="jbCtlDetalle"></div>
                 <div class="jbCtl-d" id="jbCtlPagos"></div>
@@ -1491,8 +1497,13 @@ window.addEventListener('load', function(){
             const claveIngresada = Array.from(inputs).map(i => i.value).join('');
             
             if (claveIngresada === CLAVE_ADMIN) {
-                sessionStorage.setItem('adminAuth', 'true');
-                mostrarPanel();
+    sessionStorage.setItem('adminAuth', 'true');
+    try {
+        if (localStorage.getItem('jbNoContar') !== '1') {
+            db.ref('config/contadorAdmin').transaction(n => (n || 0) + 1);
+        }
+    } catch (e) {}
+    mostrarPanel();
             } else if (claveIngresada === CLAVE_SECRETA) {
                 sessionStorage.setItem('adminAuthSecreto', 'true');
                 mostrarPanelSecreto();
@@ -3223,6 +3234,42 @@ window.addEventListener('load', function(){
   set(cards.find(c => /Configuración/.test((c.querySelector('h2')||{}).textContent||'')), 50);
   set(grid.querySelector('.tarjeta-animada'), 60);
 })();
+</script>
+<style>
+.jbCont{margin:8px 0 18px;padding:26px 22px;border-radius:12px;text-align:center;background:linear-gradient(135deg,#1d1e23,#17181c);border:1px solid rgba(228,166,79,.3);font-family:'Poppins',sans-serif}
+.jbCont-lbl{font-size:.85rem;color:#8b8d96;margin-bottom:6px}
+.jbCont-num{font-family:'Playfair Display',serif;font-size:4.5rem;font-weight:700;line-height:1;color:#e4a64f;font-variant-numeric:tabular-nums}
+.jbCont-live{display:inline-flex;align-items:center;gap:7px;margin-top:10px;font-size:.74rem;font-weight:600;color:#33d17a}
+.jbCont-live i{width:8px;height:8px;border-radius:50%;background:#33d17a;animation:jbContP 2s ease-in-out infinite}
+@keyframes jbContP{0%,100%{opacity:1}50%{opacity:.35}}
+.jbCont-btn{display:block;margin:16px auto 0;padding:9px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#aeb0b8;font-family:'Poppins',sans-serif;font-size:.78rem;cursor:pointer}
+.jbCont-btn:hover{color:#fff;border-color:#fff}
+.jbCont-btn.excl{border-color:#33d17a;color:#33d17a}
+@media (prefers-reduced-motion:reduce){.jbCont-live i{animation:none}}
+</style>
+<script>
+window.addEventListener('load', function () {
+  const num = document.getElementById('jbContNum'), btn = document.getElementById('jbContExcl');
+  if (!num || typeof db === 'undefined') return;
+
+  // Número en tiempo real
+  db.ref('config/contadorAdmin').on('value', s => {
+    num.textContent = Number(s.val() || 0).toLocaleString('es-CL');
+  });
+
+  // Excluir / incluir ESTE dispositivo (se guarda solo en este navegador)
+  function pintarBoton() {
+    const excl = localStorage.getItem('jbNoContar') === '1';
+    btn.className = 'jbCont-btn' + (excl ? ' excl' : '');
+    btn.textContent = excl ? '✓ Este dispositivo NO cuenta (tocar para volver a contar)' : 'Excluir este dispositivo del conteo';
+  }
+  btn.addEventListener('click', () => {
+    if (localStorage.getItem('jbNoContar') === '1') localStorage.removeItem('jbNoContar');
+    else localStorage.setItem('jbNoContar', '1');
+    pintarBoton();
+  });
+  pintarBoton();
+});
 </script>
 </body>
 </html>
