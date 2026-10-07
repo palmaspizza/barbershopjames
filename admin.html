@@ -963,6 +963,10 @@
 .jbLicChip-btn{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;text-decoration:none;font-size:.72rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#e4a64f,#ff3b3f)}
 .jbLicChip-btn svg{width:13px;height:13px}
 .jbLicSlot[data-lic="chip"]{display:flex;justify-content:center}
+.jbLicSlot[data-lic="mini"]{display:flex;align-items:center;white-space:nowrap}
+.jbLicMini{font-size:.76rem;font-weight:600;color:#aeb0b8}
+.jbLicMini.porvencer{color:#e4a64f}
+.jbLicSlot[data-lic="mini"] .jbLicChip-btn{padding:6px 14px;font-size:.76rem}
 #jbEstadoCard.jbLic-off{background:linear-gradient(135deg,rgba(255,59,63,.10),rgba(255,59,63,.02));border-color:rgba(255,59,63,.35)}
 #jbEstadoCard.jbLic-off .jbEstadoTitulo{color:#ffd9da}
 #jbEstadoCard.jbLic-off .jbEstadoDot{background:#ff3b3f;animation:none}
@@ -1047,7 +1051,7 @@
   <span class="jbEstadoDot"></span>
   <span class="jbEstadoTitulo" id="jbEstadoTitulo">Asistente activo</span>
   <div class="jbEstadoStats">
-    <div class="jbLicSlot" data-lic="chip"></div>
+    <div class="jbLicSlot" data-lic="mini"></div>
   </div>
 </div>
 <script>
@@ -3011,6 +3015,11 @@ function formatearFechaImg(fechaISO) {
       </div>
     </div>`;
   }
+  function htmlMini(l, c){
+    const off = c.estado === 'vencido' || c.estado === 'suspendido';
+    if (off) return ``;
+    return `<span class="jbLicMini ${c.estado}">${textoDias(c.dias)}</span>`;
+  }
   function htmlChip(l, c){
     const off = c.estado === 'vencido' || c.estado === 'suspendido';
     const txt = off ? (c.estado === 'vencido' ? 'Cuota vencida · asistente desactivado' : 'Asistente desactivado') : `Asistente activo · ${textoDias(c.dias)}`;
@@ -3022,7 +3031,7 @@ function formatearFechaImg(fechaISO) {
     if (!lic) return;
     const c = calcular(lic);
     document.querySelectorAll('.jbLicSlot').forEach(el => {
-      el.innerHTML = el.dataset.lic === 'full' ? htmlFull(lic, c) : el.dataset.lic === 'preview' ? htmlPreview(lic, c) : htmlChip(lic, c);
+      el.innerHTML = el.dataset.lic === 'full' ? htmlFull(lic, c) : el.dataset.lic === 'preview' ? htmlPreview(lic, c) : el.dataset.lic === 'mini' ? htmlMini(lic, c) : htmlChip(lic, c);
     });
     // Barra superior "Asistente activo"
     const off = c.estado === 'vencido' || c.estado === 'suspendido';
@@ -3111,29 +3120,6 @@ window.addEventListener('load', function(){
   });
 });
 </script>
-<script>
-(function () {
-  var PAGINA = 'bot'; // ← en calendario.html pon: 'calendario'
-  var FB_URL = 'https://jeisonstyle-1530f-default-rtdb.firebaseio.com/config/asistente.json';
 
-  function hoy() {
-    return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
-  }
-  function revisar() {
-    fetch(FB_URL, { cache: 'no-store' })
-      .then(function (r) { return r.json(); })
-      .then(function (l) {
-        if (!l) return;
-        var botOn = !(l.activo === false || (l.vencimiento && hoy() > l.vencimiento));
-        if ((botOn ? 'bot' : 'calendario') !== PAGINA) location.reload();
-      })
-      .catch(function () {});
-  }
-  setInterval(revisar, 60000);
-  document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) revisar();
-  });
-})();
-</script>
 </body>
 </html>
