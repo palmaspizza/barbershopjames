@@ -987,6 +987,29 @@
 .jbCal-p b{color:#fff}
 @media (max-width:560px){.jbCal{flex-direction:column;align-items:stretch;text-align:center}.jbCal-img{align-self:center}}
 </style>
+<style>
+/* Layout por prioridad: las columnas se aplanan y cada módulo se ordena con "order" */
+.admin-grid{align-items:start}
+.columna-izquierda,.columna-derecha{display:contents}
+#jbLicPanel{grid-column:1/-1}
+#jbLicPanel .jbLic{margin-top:0}
+#jbLicPanel[data-nivel="2"] .jbLic{box-shadow:0 0 26px rgba(228,166,79,.22)}
+#jbLicPanel[data-nivel="3"] .jbLic{box-shadow:0 0 34px rgba(255,59,63,.25)}
+.jbEstadoCard{position:static!important;height:auto!important;min-height:48px;margin-bottom:18px}
+.jbLicSlot[data-lic="box"]{display:block}
+.jbBoxTxt{font-size:.72rem;font-weight:700;color:#33d17a}.jbBoxTxt.porvencer{color:#e4a64f}.jbBoxTxt.off{color:#ff3b3f}
+/* Aviso de pago al entrar */
+.jbMod{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.78);backdrop-filter:blur(4px);font-family:'Poppins',sans-serif}
+.jbMod-box{--c:#e4a64f;width:100%;max-width:400px;padding:28px 24px 22px;border-radius:16px;text-align:center;background:linear-gradient(160deg,#1d1e23,#121318);border:1px solid var(--c);box-shadow:0 0 44px rgba(0,0,0,.6),0 0 30px color-mix(in srgb,var(--c) 30%,transparent);color:#e5e7eb}
+.jbMod-box.off{--c:#ff3b3f}
+.jbMod-ico{font-size:2.2rem;margin-bottom:8px}
+.jbMod-box h3{font-family:'Playfair Display',serif;font-size:1.45rem;color:var(--c);margin-bottom:10px}
+.jbMod-box p{font-size:.92rem;line-height:1.55;color:#cfd0d6;margin-bottom:16px}
+.jbMod-dato{display:flex;justify-content:space-around;gap:10px;padding:12px;border-radius:10px;background:#0e0f13;border:1px solid rgba(255,255,255,.07);margin-bottom:16px}
+.jbMod-dato small{display:block;font-size:.7rem;color:#8b8d96}.jbMod-dato b{font-size:1rem;color:#fff}
+.jbMod-later{margin-top:10px;width:100%;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#aeb0b8;font-family:'Poppins',sans-serif;font-size:.88rem;cursor:pointer}
+.jbMod-later:hover{color:#fff;border-color:#fff}.jbMod-later:focus-visible{outline:2px solid #fff;outline-offset:3px}
+</style>
 </head>
 <body>
 
@@ -1089,9 +1112,7 @@ window.addEventListener('load', function(){
      ESTADÍSTICAS SIMPLES
      ============================================ -->
 
-<div class="card" id="card-estadisticas" style="margin-bottom:18px; border: 4px solid #29b6f6; "><br><br><br><br><div class="jbLicSlot" data-lic="chip" style="margin-bottom:14px"></div>    <div class="jbEstadoStat" ><span class="num" id="jbEstadoReservasSemana">–</span><span class="label">reservas del asistente esta semana</span></div>
-<br><br><br><br>
-  <h2 style="color:var(--barber-orange);margin-bottom:16px;">📊 Estadísticas</h2>
+<div class="card" id="card-estadisticas" style="border:1px solid rgba(228,166,79,.2);"><h2 style="color:var(--barber-orange);margin-bottom:16px;">📊 Estadísticas</h2>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;">
     <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
       <span id="stat-reservas-hoy" style="display:block;font-size:2rem;font-weight:800;color:#fff;">–</span>
@@ -1108,6 +1129,11 @@ window.addEventListener('load', function(){
     <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
       <span id="stat-ingresos-mes" style="display:block;font-size:1.3rem;font-weight:800;color:#29b6f6;">–</span>
       <span style="font-size:0.72rem;color:#888;">Ingresos este mes</span>
+    </div>
+    <div style="background:#12131A;border-radius:12px;padding:14px;text-align:center;border:1px solid rgba(228,166,79,0.15);">
+      <span id="jbEstadoReservasSemana" style="display:block;font-size:2rem;font-weight:800;color:#e4a64f;">–</span>
+      <span style="font-size:0.72rem;color:#888;">Reservas del asistente esta semana</span>
+      <div class="jbLicSlot" data-lic="box" style="margin-top:6px"></div>
     </div>
   </div>
 
@@ -1222,6 +1248,7 @@ window.addEventListener('load', function(){
             
             <!-- COLUMNA IZQUIERDA -->
             <div class="columna-izquierda">
+<div id="jbLicPanel" data-nivel="0"><div class="jbLicSlot" data-lic="full"></div><div class="jbLicSlot" data-lic="preview"></div></div>
 <!-- EXPERIENCIA DE RESERVA (solo métricas positivas) -->
 <div class="card tarjeta-animada" style="margin-top: 25px; background: #1D1E22;  border-radius: 8px; padding: 20px; color: #fff;">
     <h2 style="font-family: 'Playfair Display', serif; color: var(--barber-orange); margin-bottom: 15px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
@@ -1234,8 +1261,6 @@ window.addEventListener('load', function(){
         <p class="jb-metrica-linea" id="m-tiempo" style="background-color: #222226;  background-size: 4px 100%; background-repeat: no-repeat; padding: 12px 16px 12px 20px; border-radius: 6px; margin: 0; font-size: 0.95rem; color: #e5e7eb;">⏱ Sin datos aún</p>
         <p class="jb-metrica-linea" id="m-preferencia" style="background-color: #222226;  background-size: 4px 100%; background-repeat: no-repeat; padding: 12px 16px 12px 20px; border-radius: 6px; margin: 0; font-size: 0.95rem; color: #e5e7eb;">📅 Sin datos aún</p>
     </div>
-    <div class="jbLicSlot" data-lic="full"></div>
-    <div class="jbLicSlot" data-lic="preview"></div>
 </div><br><br>
                 <!-- STATS Y RESERVAS DE HOY -->
                 <div class="card">
@@ -1371,8 +1396,9 @@ window.addEventListener('load', function(){
                 <div class="jbCtl-t">Control del bot</div>
                 <div class="jbCtl-s" id="jbCtlEstado">Cargando…</div>
                 <div class="jbCtl-d" id="jbCtlDetalle"></div>
+                <div class="jbCtl-d" id="jbCtlPagos"></div>
             </div>
-            <button class="jbCtl-btn" id="jbCtlBtn" disabled>…</button>
+            <div class="jbCtl-acts" style="display:flex;gap:10px;flex-wrap:wrap"><button class="jbCtl-btn" id="jbCtlBtn" disabled>…</button><button class="jbCtl-btn" id="jbCtlPago" style="background:linear-gradient(135deg,#e4a64f,#ff5a2a)">Registrar pago (+30 días)</button></div>
         </div>
         <p style="color:#888;margin:10px 0 20px;">
             Clientes que reportaron que algo les costó al reservar. Contáctalos para saber más.
@@ -2946,8 +2972,10 @@ function formatearFechaImg(fechaISO) {
     const t = new Date(y, m-1, d).toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
     return t.charAt(0).toUpperCase() + t.slice(1);
   }
-  function waLink(l){
-    const msg = `Hola Palma, quiero reactivar el bot de ${NOMBRE_NEGOCIO} por ${money(l.monto)}. ¿Cómo realizo el pago?`;
+  function waLink(l, tipo){
+    const msg = tipo === 'pagar'
+      ? `Hola Palma, quiero pagar la cuota de ${money(l.monto)} del bot de ${NOMBRE_NEGOCIO}. ¿Cómo realizo el pago?`
+      : `Hola Palma, quiero reactivar el bot de ${NOMBRE_NEGOCIO} por ${money(l.monto)}. ¿Cómo realizo el pago?`;
     return `https://wa.me/${WHATSAPP_PALMA}?text=${encodeURIComponent(msg)}`;
   }
   function calcular(l){
@@ -2987,7 +3015,7 @@ function formatearFechaImg(fechaISO) {
       <div class="jbLic-bar"><span style="width:${pct}%"></span></div>
       <div class="jbLic-meta">${off ? 'Venció el' : 'Próximo pago:'} <b>${fechaLarga(l.vencimiento)}</b></div>
       ${alerta}${boton}
-      <div class="jbLic-foot"><span>Soporte y desarrollo</span><b>Palma Codes</b></div>
+      <div class="jbLic-foot"><span>${l.ultimoPago ? 'Último pago: ' + l.ultimoPago : 'Soporte y desarrollo'}</span><b>Palma Codes</b></div>
     </div>`;
   }
   function htmlPreview(l, c){
@@ -3020,6 +3048,34 @@ function formatearFechaImg(fechaISO) {
     if (off) return ``;
     return `<span class="jbLicMini ${c.estado}">${textoDias(c.dias)}</span>`;
   }
+  function htmlBox(l, c){
+    const off = c.estado === 'vencido' || c.estado === 'suspendido';
+    return `<span class="jbBoxTxt ${off ? 'off' : c.estado}">${off ? 'Asistente desactivado' : textoDias(c.dias)}</span>`;
+  }
+  function mostrarAviso(l, c){
+    if (document.getElementById('jbMod')) return;
+    const off = c.estado === 'vencido' || c.estado === 'suspendido';
+    const titulo = off ? 'El bot está desactivado' : c.dias === 0 ? 'Tu cuota vence hoy' : c.dias === 1 ? 'Tu cuota vence mañana' : `Tu cuota vence en ${c.dias} días`;
+    const texto = off
+      ? 'Tus clientes ya están reservando con el calendario de siempre. Pide la reactivación para volver al asistente automático.'
+      : `Para que el asistente siga atendiendo a tus clientes, paga la cuota antes del <b>${fechaLarga(l.vencimiento)}</b>.`;
+    const m = document.createElement('div');
+    m.className = 'jbMod'; m.id = 'jbMod';
+    m.setAttribute('role','dialog'); m.setAttribute('aria-modal','true'); m.setAttribute('aria-labelledby','jbModT');
+    m.innerHTML = `<div class="jbMod-box ${off ? 'off' : ''}">
+      <div class="jbMod-ico">${off ? '⛔' : '🔔'}</div>
+      <h3 id="jbModT">${titulo}</h3><p>${texto}</p>
+      <div class="jbMod-dato"><div><small>Cuota</small><b>${money(l.monto)}</b></div><div><small>${off ? 'Venció' : 'Vence'}</small><b>${l.vencimiento.split('-').reverse().join('-')}</b></div></div>
+      <a class="jbLic-btn" style="margin-top:0" href="${waLink(l, off ? 'reactivar' : 'pagar')}" target="_blank" rel="noopener">${WA_ICON}${off ? 'Pedir reactivación' : 'Pagar con Palma Codes'}</a>
+      <button type="button" class="jbMod-later">Entendido</button></div>`;
+    document.body.appendChild(m);
+    const cerrar = () => { m.remove(); document.removeEventListener('keydown', esc); };
+    const esc = e => { if (e.key === 'Escape') cerrar(); };
+    m.querySelector('.jbMod-later').addEventListener('click', cerrar);
+    document.addEventListener('keydown', esc);
+    m.querySelector('.jbLic-btn').focus();
+  }
+  let avisoMostrado = false;
   function htmlChip(l, c){
     const off = c.estado === 'vencido' || c.estado === 'suspendido';
     const txt = off ? (c.estado === 'vencido' ? 'Cuota vencida · asistente desactivado' : 'Asistente desactivado') : `Asistente activo · ${textoDias(c.dias)}`;
@@ -3031,8 +3087,21 @@ function formatearFechaImg(fechaISO) {
     if (!lic) return;
     const c = calcular(lic);
     document.querySelectorAll('.jbLicSlot').forEach(el => {
-      el.innerHTML = el.dataset.lic === 'full' ? htmlFull(lic, c) : el.dataset.lic === 'preview' ? htmlPreview(lic, c) : el.dataset.lic === 'mini' ? htmlMini(lic, c) : htmlChip(lic, c);
+      el.innerHTML = el.dataset.lic === 'full' ? htmlFull(lic, c) : el.dataset.lic === 'preview' ? htmlPreview(lic, c) : el.dataset.lic === 'mini' ? htmlMini(lic, c) : el.dataset.lic === 'box' ? htmlBox(lic, c) : htmlChip(lic, c);
     });
+    // Prioridad del módulo de pago: sube a medida que se acerca el vencimiento
+    const offP = c.estado === 'vencido' || c.estado === 'suspendido';
+    const nivel = (offP || c.dias <= 3) ? 3 : c.dias <= 5 ? 2 : c.dias <= 10 ? 1 : 0;
+    const panel = document.getElementById('jbLicPanel');
+    if (panel){ panel.style.order = [45, 25, 5, 0][nivel]; panel.dataset.nivel = nivel; }
+    // Aviso al entrar (cada vez que carga el panel del barbero) desde 5 días antes
+    if (nivel >= 2 && !avisoMostrado){
+      const espera = setInterval(() => {
+        const ap = document.getElementById('admin-panel');
+        if (ap && ap.style.display === 'block'){ clearInterval(espera); mostrarAviso(lic, calcular(lic)); }
+      }, 500);
+      avisoMostrado = true;
+    }
     // Barra superior "Asistente activo"
     const off = c.estado === 'vencido' || c.estado === 'suspendido';
     const card = document.getElementById('jbEstadoCard');
@@ -3055,7 +3124,8 @@ function formatearFechaImg(fechaISO) {
         activo: v.activo !== false,
         vencimiento: /^\d{4}-\d{2}-\d{2}$/.test(v.vencimiento || '') ? v.vencimiento : DEFAULTS.vencimiento,
         monto: Number(v.monto) || DEFAULTS.monto,
-        periodoDias: Number(v.periodoDias) || DEFAULTS.periodoDias
+        periodoDias: Number(v.periodoDias) || DEFAULTS.periodoDias,
+        ultimoPago: v.ultimoPago || ''
       };
       render();
     }, e => console.error('Licencia:', e));
@@ -3105,6 +3175,23 @@ window.addEventListener('load', function(){
   }
   ref.on('value', s => { data = s.val() || { activo:true, vencimiento:'2026-10-17' }; render(); });
 
+  const pagoBtn = document.getElementById('jbCtlPago'), listaPagos = document.getElementById('jbCtlPagos');
+  db.ref('config/asistente_pagos').limitToLast(3).on('value', s => {
+    const v = Object.values(s.val() || {}).reverse();
+    listaPagos.textContent = v.length ? 'Últimos pagos: ' + v.map(x => `${x.fecha} ($${Number(x.monto).toLocaleString('es-CL')})`).join(' · ') : 'Sin pagos registrados';
+  });
+  pagoBtn.addEventListener('click', async function(){
+    try{
+      const venc = (data && data.vencimiento) || hoyCL(), monto = (data && data.monto) || 20000;
+      const base = dias(hoyCL(), venc) >= 0 ? venc : hoyCL();   // si paga antes, no pierde días
+      const nuevo = masDias(base, 30);
+      if(!confirm(`Registrar pago de $${Number(monto).toLocaleString('es-CL')}.\nNuevo vencimiento: ${nuevo}\n¿Confirmar?`)) return;
+      pagoBtn.disabled = true;
+      await ref.update({ activo:true, vencimiento:nuevo, ultimoPago:hoyCL() });
+      await db.ref('config/asistente_pagos').push({ fecha:hoyCL(), monto:monto, vencimiento:nuevo });
+    }catch(e){ alert('No se pudo guardar: ' + e.message); }
+    pagoBtn.disabled = false;
+  });
   btn.addEventListener('click', async function(){
     try{
       if(btn.dataset.accion === 'apagar'){
@@ -3121,5 +3208,21 @@ window.addEventListener('load', function(){
 });
 </script>
 
+<script>
+/* Orden de módulos: Hoy → Calendario → (Pago, según urgencia) → Estadísticas → Config → Resultados */
+(function(){
+  const grid = document.querySelector('.admin-grid'); if(!grid) return;
+  const est = document.getElementById('card-estadisticas');
+  if (est) grid.appendChild(est);
+  grid.querySelectorAll(':scope > br, .columna-izquierda > br, .columna-derecha > br').forEach(b => b.remove());
+  const cards = [...grid.querySelectorAll('.card')];
+  const set = (el, o) => { if(el){ el.style.order = o; el.style.margin = '0'; } };
+  set(cards.find(c => c.querySelector('#fecha-hoy')), 10);
+  set(cards.find(c => c.querySelector('.calendario-header')), 30);
+  set(est, 40);
+  set(cards.find(c => /Configuración/.test((c.querySelector('h2')||{}).textContent||'')), 50);
+  set(grid.querySelector('.tarjeta-animada'), 60);
+})();
+</script>
 </body>
 </html>
