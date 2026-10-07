@@ -924,6 +924,65 @@
 
 
 
+<style>
+/* ============================================
+   LICENCIA DEL ASISTENTE — Palma Codes
+   ============================================ */
+.jbLic{--lic-c:#33d17a;--lic-bg:rgba(51,209,122,.10);position:relative;margin-top:14px;padding:18px 20px 16px 22px;border-radius:10px;background:linear-gradient(135deg,#1d1e23 0%,#17181c 100%);border:1px solid rgba(228,166,79,.22);overflow:hidden;font-family:'Poppins',sans-serif;color:#e5e7eb}
+.jbLic::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--lic-c)}
+.jbLic--porvencer{--lic-c:#e4a64f;--lic-bg:rgba(228,166,79,.12)}
+.jbLic--vencido,.jbLic--suspendido{--lic-c:#ff3b3f;--lic-bg:rgba(255,59,63,.12);border-color:rgba(255,59,63,.45);box-shadow:0 0 28px rgba(255,59,63,.12)}
+.jbLic-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.jbLic-title{font-family:'Playfair Display',serif;font-weight:700;font-size:1.05rem;color:var(--barber-orange,#e4a64f)}
+.jbLic-pill{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;background:var(--lic-bg);border:1px solid var(--lic-c);color:var(--lic-c);font-size:.78rem;font-weight:700;letter-spacing:.02em}
+.jbLic-dot{width:8px;height:8px;border-radius:50%;background:var(--lic-c);flex-shrink:0}
+.jbLic--activo .jbLic-dot,.jbLic--porvencer .jbLic-dot{animation:jbLicPulse 2s ease-in-out infinite}
+@keyframes jbLicPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.jbLic-body{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.jbLic-amount small,.jbLic-count small{display:block;font-size:.74rem;color:#8b8d96;margin-bottom:2px}
+.jbLic-amount strong{font-size:1.9rem;font-weight:700;color:#fff;line-height:1.1;font-variant-numeric:tabular-nums}
+.jbLic-count{text-align:right}
+.jbLic-count strong{font-size:1.9rem;font-weight:700;line-height:1.1;color:var(--lic-c);font-variant-numeric:tabular-nums}
+.jbLic-bar{height:6px;border-radius:999px;background:rgba(255,255,255,.07);margin:14px 0 10px;overflow:hidden}
+.jbLic-bar span{display:block;height:100%;border-radius:999px;background:var(--lic-c);transition:width .8s ease}
+.jbLic-meta{font-size:.82rem;color:#aeb0b8}
+.jbLic-meta b{color:#fff;font-weight:600}
+.jbLic-alert{margin-top:14px;padding:12px 14px;border-radius:8px;background:var(--lic-bg);border:1px solid rgba(255,59,63,.35);font-size:.84rem;line-height:1.5;color:#ffd9da}
+.jbLic-btn{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;padding:13px 18px;border-radius:10px;border:none;cursor:pointer;text-decoration:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:.95rem;color:#fff;background:linear-gradient(135deg,#e4a64f 0%,#ff5a2a 55%,#ff3b3f 100%);box-shadow:0 8px 22px rgba(255,90,42,.28);transition:transform .15s ease,box-shadow .15s ease}
+.jbLic-btn:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(255,90,42,.4)}
+.jbLic-btn:focus-visible,.jbLicChip-btn:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.jbLic-btn svg{width:20px;height:20px;flex-shrink:0}
+.jbLic-foot{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);font-size:.72rem;color:#6f717a;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.jbLic-foot b{color:var(--barber-orange,#e4a64f);font-weight:600}
+/* chip compacto */
+.jbLicChip{--lic-c:#33d17a;--lic-bg:rgba(51,209,122,.12);display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;padding:6px 8px 6px 12px;border-radius:999px;background:var(--lic-bg);border:1px solid var(--lic-c);color:#fff;font-size:.74rem;font-weight:600;font-family:'Poppins',sans-serif}
+.jbLicChip--porvencer{--lic-c:#e4a64f;--lic-bg:rgba(228,166,79,.14)}
+.jbLicChip--vencido,.jbLicChip--suspendido{--lic-c:#ff3b3f;--lic-bg:rgba(255,59,63,.14)}
+.jbLicChip .jbLic-dot{width:7px;height:7px}
+.jbLicChip:not(:has(.jbLicChip-btn)){padding-right:12px}
+.jbLicChip-btn{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;text-decoration:none;font-size:.72rem;font-weight:700;color:#fff;background:linear-gradient(135deg,#e4a64f,#ff3b3f)}
+.jbLicChip-btn svg{width:13px;height:13px}
+.jbLicSlot[data-lic="chip"]{display:flex;justify-content:center}
+#jbEstadoCard.jbLic-off{background:linear-gradient(135deg,rgba(255,59,63,.10),rgba(255,59,63,.02));border-color:rgba(255,59,63,.35)}
+#jbEstadoCard.jbLic-off .jbEstadoTitulo{color:#ffd9da}
+#jbEstadoCard.jbLic-off .jbEstadoDot{background:#ff3b3f;animation:none}
+#jbEstadoCard.jbLic-warn .jbEstadoDot{background:#e4a64f}
+@media (prefers-reduced-motion:reduce){.jbLic-dot,.jbEstadoDot{animation:none!important}.jbLic-bar span,.jbLic-btn{transition:none}}
+@media (max-width:480px){.jbLic-amount strong,.jbLic-count strong{font-size:1.5rem}}
+</style>
+
+<style>
+/* Aviso "volvió al calendario" (solo con bot apagado o cuota vencida) */
+.jbCal{margin-top:14px;padding:18px 20px 18px 22px;border-radius:10px;background:linear-gradient(135deg,#1d1e23,#17181c);border:1px solid rgba(228,166,79,.35);font-family:'Poppins',sans-serif;color:#e5e7eb;display:flex;gap:20px;align-items:center;position:relative;overflow:hidden}
+.jbCal::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(to bottom,#e4a64f,#ff3b3f)}
+.jbCal-img{flex:0 0 180px;width:180px;aspect-ratio:1/1;border-radius:12px;border:2px solid #e4a64f;overflow:hidden;background:#121318;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.jbCal-img img,.jbCal-img svg{width:100%;height:100%;object-fit:cover;display:block}
+.jbCal-txt{flex:1;min-width:0}
+.jbCal-t{font-family:'Playfair Display',serif;font-weight:700;font-size:1.15rem;color:var(--barber-orange,#e4a64f);margin-bottom:8px}
+.jbCal-p{font-size:.9rem;line-height:1.55;color:#cfd0d6;margin:0}
+.jbCal-p b{color:#fff}
+@media (max-width:560px){.jbCal{flex-direction:column;align-items:stretch;text-align:center}.jbCal-img{align-self:center}}
+</style>
 </head>
 <body>
 
@@ -984,11 +1043,11 @@
   .jbEstadoStat .num { color: #fff; font-size: 1.05rem; font-weight: 800; display: block; }
   .jbEstadoStat .label { color: #8fa; font-size: 0.68rem; opacity: 0.8; }
 </style>
-<div class="jbEstadoCard">
+<div class="jbEstadoCard" id="jbEstadoCard">
   <span class="jbEstadoDot"></span>
   <span class="jbEstadoTitulo" id="jbEstadoTitulo">Asistente activo</span>
   <div class="jbEstadoStats">
-    <div class="jbEstadoStat"><span class="num" id=""></span></div>
+    <div class="jbLicSlot" data-lic="chip"></div>
   </div>
 </div>
 <script>
@@ -1026,7 +1085,7 @@ window.addEventListener('load', function(){
      ESTADÍSTICAS SIMPLES
      ============================================ -->
 
-<div class="card" id="card-estadisticas" style="margin-bottom:18px; border: 4px solid #29b6f6; "><br><br><br><br>    <div class="jbEstadoStat" ><span class="num" id="jbEstadoReservasSemana">–</span><span class="label">reservas del asistente esta semana</span></div>
+<div class="card" id="card-estadisticas" style="margin-bottom:18px; border: 4px solid #29b6f6; "><br><br><br><br><div class="jbLicSlot" data-lic="chip" style="margin-bottom:14px"></div>    <div class="jbEstadoStat" ><span class="num" id="jbEstadoReservasSemana">–</span><span class="label">reservas del asistente esta semana</span></div>
 <br><br><br><br>
   <h2 style="color:var(--barber-orange);margin-bottom:16px;">📊 Estadísticas</h2>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;">
@@ -1171,6 +1230,8 @@ window.addEventListener('load', function(){
         <p class="jb-metrica-linea" id="m-tiempo" style="background-color: #222226;  background-size: 4px 100%; background-repeat: no-repeat; padding: 12px 16px 12px 20px; border-radius: 6px; margin: 0; font-size: 0.95rem; color: #e5e7eb;">⏱ Sin datos aún</p>
         <p class="jb-metrica-linea" id="m-preferencia" style="background-color: #222226;  background-size: 4px 100%; background-repeat: no-repeat; padding: 12px 16px 12px 20px; border-radius: 6px; margin: 0; font-size: 0.95rem; color: #e5e7eb;">📅 Sin datos aún</p>
     </div>
+    <div class="jbLicSlot" data-lic="full"></div>
+    <div class="jbLicSlot" data-lic="preview"></div>
 </div><br><br>
                 <!-- STATS Y RESERVAS DE HOY -->
                 <div class="card">
@@ -1300,6 +1361,14 @@ window.addEventListener('load', function(){
             <div class="header-actions">
                 <button class="btn-logout" onclick="logout()">Salir</button>
             </div>
+        </div>
+        <div class="jbCtl" id="jbCtl">
+            <div>
+                <div class="jbCtl-t">Control del bot</div>
+                <div class="jbCtl-s" id="jbCtlEstado">Cargando…</div>
+                <div class="jbCtl-d" id="jbCtlDetalle"></div>
+            </div>
+            <button class="jbCtl-btn" id="jbCtlBtn" disabled>…</button>
         </div>
         <p style="color:#888;margin:10px 0 20px;">
             Clientes que reportaron que algo les costó al reservar. Contáctalos para saber más.
@@ -2843,6 +2912,228 @@ function formatearFechaImg(fechaISO) {
     reader.readAsDataURL(archivo);
 }
 
+</script>
+<script>
+/* ============================================
+   LICENCIA DEL ASISTENTE — Firebase: config/asistente
+   Estructura:
+     activo       true | false   (interruptor manual del desarrollador)
+     vencimiento  "YYYY-MM-DD"   (último día con el asistente activo)
+     monto        20000
+     periodoDias  30             (largo del ciclo, solo para la barra)
+   ============================================ */
+(function(){
+  // ⚠️ CAMBIA ESTE NÚMERO por tu WhatsApp (código de país + número, sin + ni espacios). Chile: 569XXXXXXXX
+  const WHATSAPP_PALMA = '56954998792';
+  const NOMBRE_NEGOCIO = 'Barbería James';
+  const DEFAULTS = { activo: true, vencimiento: '2026-10-17', monto: 20000, periodoDias: 30 };
+  const WA_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12 0C5.4 0 .1 5.3.1 11.9c0 2.1.6 4.1 1.6 5.9L0 24l6.4-1.7a11.9 11.9 0 0 0 5.6 1.4c6.6 0 11.9-5.3 11.9-11.9 0-3.2-1.2-6.2-3.4-8.3zM12 21.7c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 0 1-1.5-5.2C2.1 6.4 6.5 2 12 2c2.6 0 5.1 1 6.9 2.9a9.7 9.7 0 0 1 2.9 6.9c0 5.4-4.4 9.9-9.8 9.9zm5.4-7.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1l-.9 1.1c-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.3-.6-.4z"/></svg>';
+
+  let lic = null;
+
+  const hoyCL = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
+  function diasEntre(desde, hasta){
+    const [y1,m1,d1] = desde.split('-').map(Number), [y2,m2,d2] = hasta.split('-').map(Number);
+    return Math.round((Date.UTC(y2,m2-1,d2) - Date.UTC(y1,m1-1,d1)) / 86400000);
+  }
+  const money = n => '$' + Number(n||0).toLocaleString('es-CL');
+  function fechaLarga(s){
+    const [y,m,d] = s.split('-').map(Number);
+    const t = new Date(y, m-1, d).toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+  function waLink(l){
+    const msg = `Hola Palma, quiero reactivar el bot de ${NOMBRE_NEGOCIO} por ${money(l.monto)}. ¿Cómo realizo el pago?`;
+    return `https://wa.me/${WHATSAPP_PALMA}?text=${encodeURIComponent(msg)}`;
+  }
+  function calcular(l){
+    const dias = diasEntre(hoyCL(), l.vencimiento);
+    let estado;
+    if (l.activo === false) estado = 'suspendido';
+    else if (dias < 0) estado = 'vencido';
+    else if (dias <= 3) estado = 'porvencer';
+    else estado = 'activo';
+    return { dias, estado };
+  }
+  const textoDias = d => d === 0 ? 'Vence hoy' : d === 1 ? 'Vence mañana' : `Vence en ${d} días`;
+
+  function htmlFull(l, c){
+    const off = c.estado === 'vencido' || c.estado === 'suspendido';
+    const pill = { activo:'Activo', porvencer:'Por vencer', vencido:'Desactivado', suspendido:'Desactivado' }[c.estado];
+    const pct = off ? 0 : Math.max(0, Math.min(100, (c.dias / (l.periodoDias || 30)) * 100));
+    const countNum = off ? '0' : String(c.dias);
+    const countLbl = off ? 'días restantes' : (c.dias === 1 ? 'día restante' : 'días restantes');
+    let alerta = '', boton = '';
+    if (off){
+      const hace = Math.abs(c.dias);
+      alerta = `<div class="jbLic-alert">${c.estado === 'suspendido'
+        ? 'El asistente fue desactivado. Solicita la reactivación para volver a recibir reservas automáticas.'
+        : `La cuota venció ${hace === 0 ? 'hoy' : hace === 1 ? 'ayer' : 'hace ' + hace + ' días'}. El asistente está desactivado hasta registrar el pago de <b>${money(l.monto)}</b>.`}</div>`;
+      boton = `<a class="jbLic-btn" href="${waLink(l)}" target="_blank" rel="noopener">${WA_ICON}Pedir reactivación</a>`;
+    }
+    return `<div class="jbLic jbLic--${c.estado}" role="status">
+      <div class="jbLic-head">
+        <div class="jbLic-title">Licencia del asistente</div>
+        <span class="jbLic-pill"><i class="jbLic-dot"></i>${pill}</span>
+      </div>
+      <div class="jbLic-body">
+        <div class="jbLic-amount"><small>Cuota mensual</small><strong>${money(l.monto)}</strong></div>
+        <div class="jbLic-count"><small>${off ? 'Estado' : 'Tiempo'}</small><strong>${countNum}</strong><small style="margin:2px 0 0">${countLbl}</small></div>
+      </div>
+      <div class="jbLic-bar"><span style="width:${pct}%"></span></div>
+      <div class="jbLic-meta">${off ? 'Venció el' : 'Próximo pago:'} <b>${fechaLarga(l.vencimiento)}</b></div>
+      ${alerta}${boton}
+      <div class="jbLic-foot"><span>Soporte y desarrollo</span><b>Palma Codes</b></div>
+    </div>`;
+  }
+  function htmlPreview(l, c){
+    const off = c.estado === 'vencido' || c.estado === 'suspendido';
+    if (!off) return '';
+    // Si no existe calendario-cuadrado.png junto a admin.html, se muestra este dibujo
+    let celdas = '';
+    for (let f = 0; f < 5; f++) for (let k = 0; k < 7; k++){
+      const marcada = [3,9,10,16,22,23,29].includes(f*7+k);
+      celdas += `<rect x="${14+k*25}" y="${62+f*24}" width="21" height="19" rx="4" fill="${marcada ? '#e4a64f' : '#2a2b32'}"/>`;
+    }
+    const fallback = `<svg viewBox="0 0 200 200" style="display:none" aria-label="Calendario"><rect width="200" height="200" fill="#16171c"/><rect x="0" y="0" width="200" height="44" fill="#e4a64f"/><rect x="40" y="14" width="120" height="16" rx="8" fill="#0b0b0d" opacity=".35"/>${celdas}</svg>`;
+    const motivo = c.estado === 'vencido'
+      ? 'La cuota no está al día, así que <b>el bot dejó de atender</b>.'
+      : 'El bot está <b>apagado</b>.';
+    return `<div class="jbCal">
+      <div class="jbCal-img">
+        <img src="calendario-cuadrado.png" alt="Calendario de reservas" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        ${fallback}
+      </div>
+      <div class="jbCal-txt">
+        <div class="jbCal-t">Tu página volvió al calendario</div>
+        <p class="jbCal-p">${motivo} Tus clientes ahora reservan con el <b>calendario de siempre</b>, no con el asistente automático.</p>
+        <a class="jbLic-btn" href="${waLink(l)}" target="_blank" rel="noopener">${WA_ICON}Pedir reactivación</a>
+      </div>
+    </div>`;
+  }
+  function htmlChip(l, c){
+    const off = c.estado === 'vencido' || c.estado === 'suspendido';
+    const txt = off ? (c.estado === 'vencido' ? 'Cuota vencida · asistente desactivado' : 'Asistente desactivado') : `Asistente activo · ${textoDias(c.dias)}`;
+    const btn = off ? `<a class="jbLicChip-btn" href="${waLink(l)}" target="_blank" rel="noopener">${WA_ICON}Pedir reactivación</a>` : '';
+    return `<span class="jbLicChip jbLicChip--${c.estado}"><i class="jbLic-dot"></i><span>${txt}</span>${btn}</span>`;
+  }
+
+  function render(){
+    if (!lic) return;
+    const c = calcular(lic);
+    document.querySelectorAll('.jbLicSlot').forEach(el => {
+      el.innerHTML = el.dataset.lic === 'full' ? htmlFull(lic, c) : el.dataset.lic === 'preview' ? htmlPreview(lic, c) : htmlChip(lic, c);
+    });
+    // Barra superior "Asistente activo"
+    const off = c.estado === 'vencido' || c.estado === 'suspendido';
+    const card = document.getElementById('jbEstadoCard');
+    const tit = document.getElementById('jbEstadoTitulo');
+    if (card){
+      card.classList.toggle('jbLic-off', off);
+      card.classList.toggle('jbLic-warn', c.estado === 'porvencer');
+    }
+    if (tit) tit.textContent = off ? 'Asistente desactivado' : 'Asistente activo';
+  }
+
+  window.addEventListener('load', function(){
+    if (typeof db === 'undefined') return console.error('Licencia: db de Firebase no disponible');
+    const ref = db.ref('config/asistente');
+    // Primera vez: crea el registro con la cuota que vence el 17
+    ref.once('value').then(s => { if (!s.exists()) ref.set(DEFAULTS); }).catch(e => console.error('Licencia:', e));
+    ref.on('value', snap => {
+      const v = snap.val() || DEFAULTS;
+      lic = {
+        activo: v.activo !== false,
+        vencimiento: /^\d{4}-\d{2}-\d{2}$/.test(v.vencimiento || '') ? v.vencimiento : DEFAULTS.vencimiento,
+        monto: Number(v.monto) || DEFAULTS.monto,
+        periodoDias: Number(v.periodoDias) || DEFAULTS.periodoDias
+      };
+      render();
+    }, e => console.error('Licencia:', e));
+    setInterval(render, 60000); // refresca al cruzar la medianoche
+  });
+})();
+</script>
+
+<style>
+.jbCtl{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:18px 0 8px;padding:20px 22px;border-radius:12px;background:linear-gradient(135deg,#1d1e23,#17181c);border:1px solid rgba(228,166,79,.3);position:relative;overflow:hidden;font-family:'Poppins',sans-serif}
+.jbCtl::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c,#8b8d96)}
+.jbCtl.on{--c:#33d17a}.jbCtl.off{--c:#ff3b3f}
+.jbCtl-t{font-family:'Playfair Display',serif;font-weight:700;font-size:1.1rem;color:var(--barber-orange,#e4a64f);margin-bottom:6px}
+.jbCtl-s{display:flex;align-items:center;gap:9px;font-size:.95rem;font-weight:600;color:#fff}
+.jbCtl-s i{width:9px;height:9px;border-radius:50%;background:var(--c,#8b8d96)}
+.jbCtl-d{font-size:.8rem;color:#8b8d96;margin-top:4px}
+.jbCtl-btn{padding:13px 24px;border:none;border-radius:10px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;font-size:.95rem;color:#fff;transition:transform .15s ease,opacity .15s ease}
+.jbCtl-btn:hover:not(:disabled){transform:translateY(-2px)}
+.jbCtl-btn:disabled{opacity:.5;cursor:wait}
+.jbCtl-btn:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.jbCtl.on .jbCtl-btn{background:linear-gradient(135deg,#e4a64f,#ff3b3f)}
+.jbCtl.off .jbCtl-btn{background:linear-gradient(135deg,#33d17a,#1fa85d)}
+</style>
+<script>
+/* Control del bot (solo panel secreto) → escribe config/asistente en Firebase */
+window.addEventListener('load', function(){
+  const box = document.getElementById('jbCtl'); if(!box) return;
+  const btn = document.getElementById('jbCtlBtn'), est = document.getElementById('jbCtlEstado'), det = document.getElementById('jbCtlDetalle');
+  const ref = db.ref('config/asistente');
+  const hoyCL = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
+  const dias = (a,b) => { const [y1,m1,d1]=a.split('-').map(Number),[y2,m2,d2]=b.split('-').map(Number); return Math.round((Date.UTC(y2,m2-1,d2)-Date.UTC(y1,m1-1,d1))/864e5); };
+  const masDias = (s,n) => { const [y,m,d]=s.split('-').map(Number); return new Date(Date.UTC(y,m-1,d+n)).toISOString().slice(0,10); };
+  let data = null;
+
+  function render(){
+    if(!data) return;
+    const venc = data.vencimiento || '2026-10-17';
+    const d = dias(hoyCL(), venc);
+    const encendido = data.activo !== false && d >= 0;
+    box.className = 'jbCtl ' + (encendido ? 'on' : 'off');
+    est.innerHTML = '<i></i>' + (encendido ? 'Bot encendido · los clientes ven el bot' : 'Bot apagado · los clientes ven el calendario');
+    det.textContent = d >= 0 ? `Cuota vigente hasta el ${venc} (${d} ${d===1?'día':'días'})` : `Cuota vencida el ${venc}`;
+    btn.textContent = encendido ? 'Apagar bot' : 'Encender bot';
+    btn.disabled = false;
+    btn.dataset.accion = encendido ? 'apagar' : 'encender';
+    btn.dataset.vencida = d < 0 ? '1' : '';
+  }
+  ref.on('value', s => { data = s.val() || { activo:true, vencimiento:'2026-10-17' }; render(); });
+
+  btn.addEventListener('click', async function(){
+    try{
+      if(btn.dataset.accion === 'apagar'){
+        if(!confirm('¿Apagar el bot? Los clientes verán el calendario al recargar el mismo link.')) return;
+        btn.disabled = true; await ref.update({ activo:false });
+      } else if(btn.dataset.vencida){
+        if(!confirm('La cuota está vencida. ¿Encender el bot y extender el vencimiento 30 días desde hoy?')) return;
+        btn.disabled = true; await ref.update({ activo:true, vencimiento: masDias(hoyCL(), 30) });
+      } else {
+        btn.disabled = true; await ref.update({ activo:true });
+      }
+    }catch(e){ alert('No se pudo guardar: ' + e.message); render(); }
+  });
+});
+</script>
+<script>
+(function () {
+  var PAGINA = 'bot'; // ← en calendario.html pon: 'calendario'
+  var FB_URL = 'https://jeisonstyle-1530f-default-rtdb.firebaseio.com/config/asistente.json';
+
+  function hoy() {
+    return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
+  }
+  function revisar() {
+    fetch(FB_URL, { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (l) {
+        if (!l) return;
+        var botOn = !(l.activo === false || (l.vencimiento && hoy() > l.vencimiento));
+        if ((botOn ? 'bot' : 'calendario') !== PAGINA) location.reload();
+      })
+      .catch(function () {});
+  }
+  setInterval(revisar, 60000);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) revisar();
+  });
+})();
 </script>
 </body>
 </html>
