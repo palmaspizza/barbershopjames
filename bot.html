@@ -8572,7 +8572,7 @@ function irAConfirmar() {
       // Botón "Ver más días"
       const btnOtro = document.createElement('button');
       btnOtro.style.cssText = 'width:100%;padding:13px;background:rgba(228,166,79,0.08);border:1.5px solid rgba(228,166,79,0.35);color:#e4a64f;border-radius:12px;font-size:0.87rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .18s;margin-top:2px;';
-      btnOtro.textContent = '📆 Ver más días (2 meses)';
+      btnOtro.textContent = '📆Elige un día ☝🏻 (Ver más días)';
       btnOtro.onmouseover = ()=>{ btnOtro.style.background='rgba(228,166,79,0.18)'; };
       btnOtro.onmouseout  = ()=>{ btnOtro.style.background='rgba(228,166,79,0.08)'; };
       btnOtro.onclick = ()=>{
@@ -9082,7 +9082,7 @@ function jbMostrarFormularioWhatsapp(){
     jbGuardarEstadoReserva(false);
     jbBot('¿Qué quieres cambiar?');
     jbMostrarOpciones([
-      { emoji:'✂️', texto:'El servicio',   valor:'servicio' },
+      { emoji:'✂️', texto:'El servicio (seleccionalos)',   valor:'servicio' },
       { emoji:'📅', texto:'El día',        valor:'dia'      },
       { emoji:'🕐', texto:'La hora',       valor:'hora'     },
       { emoji:'👤', texto:'El nombre',     valor:'nombre'   }
