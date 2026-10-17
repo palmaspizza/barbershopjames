@@ -3169,6 +3169,8 @@ window.addEventListener('load', function(){
   const hoyCL = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
   const dias = (a,b) => { const [y1,m1,d1]=a.split('-').map(Number),[y2,m2,d2]=b.split('-').map(Number); return Math.round((Date.UTC(y2,m2-1,d2)-Date.UTC(y1,m1-1,d1))/864e5); };
   const masDias = (s,n) => { const [y,m,d]=s.split('-').map(Number); return new Date(Date.UTC(y,m-1,d+n)).toISOString().slice(0,10); };
+  // Suma n meses calendario respetando el día; si el mes destino no tiene ese día, usa el último (ej: 31 ene → 28 feb)
+  const masMes = (s,n) => { const [y,m,d]=s.split('-').map(Number); const ult = new Date(Date.UTC(y,m-1+n+1,0)).getUTCDate(); return new Date(Date.UTC(y,m-1+n,Math.min(d,ult))).toISOString().slice(0,10); };
   let data = null;
 
   function render(){
@@ -3195,7 +3197,7 @@ window.addEventListener('load', function(){
     try{
       const venc = (data && data.vencimiento) || hoyCL(), monto = (data && data.monto) || 20000;
       const base = dias(hoyCL(), venc) >= 0 ? venc : hoyCL();   // si paga antes, no pierde días
-      const nuevo = masDias(base, 30);
+      const nuevo = masMes(base, 1);   // mismo día del mes siguiente (17 oct → 17 nov)
       if(!confirm(`Registrar pago de $${Number(monto).toLocaleString('es-CL')}.\nNuevo vencimiento: ${nuevo}\n¿Confirmar?`)) return;
       pagoBtn.disabled = true;
       await ref.update({ activo:true, vencimiento:nuevo, ultimoPago:hoyCL() });
