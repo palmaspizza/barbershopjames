@@ -1974,7 +1974,7 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
             const estaCerrado = esDiaSemanaCerrado || esDiaEspecificoCerrado;
             
             document.getElementById('dia-seleccionado-texto').textContent = 
-                `${nombresDias[diaSemana]} ${diaSeleccionado}`;
+                ` ${diaSeleccionado}`;
             
             document.getElementById('btn-cerrar-dia').style.display = estaCerrado ? 'none' : 'block';
             document.getElementById('btn-abrir-dia').style.display = estaCerrado ? 'block' : 'none';
