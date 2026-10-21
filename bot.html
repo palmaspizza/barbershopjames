@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reservas Barbería</title>
-    <link rel="stylesheet" href="styleone.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -651,6 +650,8 @@ document.getElementById('solicitar').addEventListener('click', async () => {
             const totalDias = new Date(anio, mes, 0).getDate();
 
             const offset = primerDiaSemana === 0 ? 6 : primerDiaSemana - 1;
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
 
 
 
@@ -681,6 +682,7 @@ document.getElementById('solicitar').addEventListener('click', async () => {
                     celda.appendChild(badge);
                 }
 
+                const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fechaActual);
                 const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0;
 
                 const estaOcupado = horasReservadas.length >= horarioDelDia.length;
@@ -1028,48 +1030,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-function limpiarReservasMayoresAUnaño() {
-    const fechaLimite = new Date();
-    fechaLimite.setFullYear(fechaLimite.getFullYear() - 1);
-    const fechaLimiteTimestamp = fechaLimite.getTime();
-
-    // Obtener todas las reservas de la base de datos una sola vez
-    reservasRef.once('value')
-        .then(snapshot => {
-            const actualizaciones = {};
-            let hayReservasParaEliminar = false;
-
-            snapshot.forEach(childSnapshot => {
-                const reserva = childSnapshot.val();
-                const fechaReservaTimestamp = new Date(reserva.fecha).getTime();
-
-                // Si la reserva es más antigua que un año, la marcamos para eliminar
-                if (fechaReservaTimestamp < fechaLimiteTimestamp) {
-                    actualizaciones[childSnapshot.key] = null;
-                    hayReservasParaEliminar = true;
-                }
-            });
-
-            if (hayReservasParaEliminar) {
-                // Borrar las reservas antiguas usando una sola operación
-                return reservasRef.update(actualizaciones);
-            } else {
-                console.log("No se encontraron reservas con más de un año de antigüedad.");
-                return Promise.resolve();
-            }
-        })
-        .then(() => {
-            console.log("Reservas con más de un año de antigüedad eliminadas exitosamente.");
-        })
-        .catch(error => {
-            console.error("Error al eliminar las reservas antiguas: ", error);
-        });
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Llama a la función de limpieza de reservas al cargar la página
-    limpiarReservasMayoresAUnaño();
-ocultarContadorTemporal();
+if (typeof ocultarContadorTemporal === 'function') ocultarContadorTemporal();
     // Aquí iría el resto de tu código que se ejecuta al cargar la página,
     // como la generación del calendario, etc.
     generarCuadroCalendario();
@@ -1231,10 +1193,6 @@ ocultarContadorTemporal();
 (function(){
   const grid = document.getElementById('cuadroCalendario');
   if (!grid) return;
-  let timer = null;
-  let startX = 0, startY = 0;
-  const threshold = 12;
-  let cell = null;
   function closestCell(target){
     while (target && target.nodeType === 1){
       if (target.classList && target.classList.contains('diaCalendario')) return target;
@@ -1242,30 +1200,6 @@ ocultarContadorTemporal();
     }
     return null;
   }
-
-  function movePress(e){
-    if (!timer) return;
-    const t = e.touches && e.touches[0] ? e.touches[0] : e;
-    if (!t) return;
-    const dx = Math.abs(t.clientX - startX);
-    const dy = Math.abs(t.clientY - startY);
-    if (dx > threshold || dy > threshold){
-      clearTimeout(timer);
-      timer = null;
-    }
-  }
-  function endPress(){
-    clearTimeout(timer);
-    timer = null;
-  }
-  grid.addEventListener('mousedown', startPress);
-  grid.addEventListener('mousemove', movePress);
-  grid.addEventListener('mouseup', endPress);
-  grid.addEventListener('mouseleave', endPress);
-  grid.addEventListener('touchstart', startPress, {passive:true});
-  grid.addEventListener('touchmove', movePress, {passive:true});
-  grid.addEventListener('touchend', endPress);
-  grid.addEventListener('touchcancel', endPress);
   grid.addEventListener('contextmenu', function(e){ 
     const target = closestCell(e.target);
     if (target) e.preventDefault();
@@ -1311,6 +1245,7 @@ ocultarContadorTemporal();
                     celda.appendChild(badge);
                 }
                 
+                const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fechaActual);
                 const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0;
 
                 const estaOcupado = horasReservadas.length >= horarioDelDia.length;
@@ -1544,19 +1479,17 @@ ocultarContadorTemporal();
                 <br>
                 <h3 id="tituloVentana" class="titulo-animado" style="color: red; text-shadow: 1px 1px 1px #000;"></h3>
               <style>
+  #servicios { display:grid; gap:14px; width:min(100%,720px); margin:0 auto; }
+  .servicios-bloque { padding:16px; border:1px solid rgba(228,166,79,.22); border-radius:16px; background:linear-gradient(145deg,#202126,#15161a); text-align:left; }
+  .servicios-bloque h4 { margin:0 0 10px; color:#e4a64f; font-size:1rem; }
+  .servicios-bloque .nota { margin:0 0 10px; color:#b8bac2; font-size:.86rem; }
   .servicio-btn {
-    display: inline-block;
-    margin: 6px;
-    padding: 12px 16px;
-    border: 1px solid rgba(228,166,79,0.5);
-    border-radius: 12px;
-    background: linear-gradient(180deg,#26272c,#16171b);
-    color: #f1f1f1;
-    font-weight: 600;
-    cursor: pointer;
-    position: relative;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.35), 0 0 10px rgba(32,137,255,0.12);
-    transition: transform 0.15s ease, box-shadow 0.25s ease, background 0.25s ease, filter .2s ease;
+    display:block; width:100%; margin:8px 0; padding:14px 16px; min-height:54px;
+    border:1px solid rgba(228,166,79,0.38); border-radius:12px;
+    background:linear-gradient(180deg,#26272c,#16171b); color:#f1f1f1;
+    font-weight:600; text-align:left; cursor:pointer; position:relative;
+    box-shadow:0 5px 14px rgba(0,0,0,.22);
+    transition:transform .15s ease,box-shadow .25s ease,background .25s ease;
   }
   .servicio-btn:hover {
     transform: translateY(-2px);
@@ -1590,6 +1523,11 @@ ocultarContadorTemporal();
     background: #121317;
     color: #f1f1f1;
     box-shadow: 0 6px 14px rgba(0,0,0,0.35), 0 0 10px rgba(255,122,26,0.2);
+  }
+  @media (max-width:600px) {
+    .servicios-bloque { padding:13px; }
+    .servicio-btn { padding:14px 12px; font-size:.94rem; }
+    #eltotal, #opciones { max-width:100%; }
   }
 </style>
 
@@ -1660,26 +1598,19 @@ ocultarContadorTemporal();
 
 <h1>Barbero</h1>
 <button class="btn">James</button>
-<!-- SISTEMA DE SELECCIÓN DE CORTE + SELECCIÓN DE TIEMPO  -->
+<!-- Catálogo de servicios -->
 <div><h2 id="serviciosTitulo" style="font-size: 100%;">Selecciona tus servicios</h2>
 <div id="servicios">
   <div class="servicios-bloque">
-    <h4>Cortes</h4>
-    <p class="nota">Elige tu corte</p>
-    <button class="servicio-btn exclusivo" data-nombre="Corte Clásico" data-precio="10000" data-tiempo="20">Corte clásico · $10.000</button>
-    <button class="servicio-btn exclusivo" data-nombre="Corte Degradado" data-precio="12000" data-tiempo="30">Degradado · $12.000</button>
+    <h4>Barba</h4>
+    <button class="servicio-btn barba" data-nombre="Barba Express" data-precio="6000" data-tiempo="20">Barba Express · Perfilado de barba a elección · $6.000</button>
+    <button class="servicio-btn barba" data-nombre="Barba Premium" data-precio="12000" data-tiempo="60">Barba Premium · Ritual con toalla caliente · $12.000</button>
   </div>
   <div class="servicios-bloque">
-    <h4>Extras</h4>
-    <p class="nota">Opcional</p>
-    <button class="servicio-btn" data-nombre="Barba" data-precio="6000" data-tiempo="10">Barba · $6.000</button>
-    <button class="servicio-btn" data-nombre="Cejas" data-precio="3000" data-tiempo="5">Cejas · $3.000</button>
-  </div>
-  <div class="servicios-bloque">
-    <h4>Color (Opcional)</h4>
-    <p class="nota">Elige uno</p>
-    <button class="servicio-btn color" data-nombre="Color Global" data-precio="70000" data-tiempo="60">Color Global · $70.000</button>
-    <button class="servicio-btn color" data-nombre="Visos" data-precio="50000" data-tiempo="60">Risos/Ondulaciones · $50.000</button>
+    <h4>Corte</h4>
+    <button class="servicio-btn exclusivo" data-nombre="Corte Clásico" data-precio="10000" data-tiempo="45">Corte Clásico · $10.000</button>
+    <button class="servicio-btn exclusivo" data-nombre="Corte Degradado" data-precio="12000" data-tiempo="45">Corte Degradado · $12.000</button>
+    <button class="servicio-btn exclusivo" data-nombre="Corte Degradado + Lavado" data-precio="15000" data-tiempo="60">Corte Degradado + Lavado · Corte degradado + ritual con toalla caliente · $15.000</button>
   </div>
 </div>
 <div class="resumen-reserva">
@@ -1732,9 +1663,8 @@ ocultarContadorTemporal();
         });
       }
 
-      // Exclusivos de color (Color Global vs Visos)
-      if (btn.classList.contains("color")) {
-        document.querySelectorAll(".color").forEach(b => {
+      if (btn.classList.contains("barba")) {
+        document.querySelectorAll(".barba").forEach(b => {
           if (b !== btn) {
             b.classList.remove("selected");
             seleccionados = seleccionados.filter(s => s.nombre !== b.dataset.nombre);
@@ -1850,7 +1780,7 @@ ocultarContadorTemporal();
 const UID_ADMINISTRADOR = "TU_UID_DE_ADMINISTRADOR"; 
 
 // Usa el evento 'onAuthStateChanged' para saber si el usuario está logueado
-firebase.auth().onAuthStateChanged((user) => {
+if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((user) => {
     if (user) {
         // Si el usuario está logueado, verifica su UID
         if (user.uid === UID_ADMINISTRADOR) {
@@ -4571,14 +4501,8 @@ img {
     /* ... (otros estilos) ... */
 }</style>
 <script>
-
-</script>
-<script src="app.js"></script>
-<script src="server.js"></script>
-<script>
-
 // Registrar el Service Worker
-if ('serviceWorker' in navigator) {
+if (window.location.protocol === 'https:' && 'serviceWorker' in navigator) {
   navigator.serviceWorker.register('/firebase-messaging-sw.js')
     .then(reg => {
       console.log('Service Worker registrado');
@@ -4627,6 +4551,7 @@ db.ref('galeria').on('value', snapshot => {
 function renderGaleriaClientes(imagenes) {
     const keys = Object.keys(imagenes);
     const grid = document.getElementById('galeria-grid-clientes');
+    if (!grid) return;
 
     if (keys.length === 0) {
         grid.innerHTML = '<div class="galeria-vacia-clientes">Próximamente mostraremos Nuestras promos</div>';
@@ -4953,7 +4878,8 @@ function habilitarDiaDeLaSemana(dia) {
             document.getElementById("botonCambiar").classList.remove("oculto");
         });
 
-       document.getElementById("buscadorGlobal").addEventListener("input", () => {
+       const buscadorGlobal = document.getElementById("buscadorGlobal");
+       if (buscadorGlobal) buscadorGlobal.addEventListener("input", () => {
     // Convertir el valor del input a minúsculas y eliminar espacios en blanco
     const filtro = document.getElementById("buscadorGlobal").value.trim().toLowerCase();
     const contenedor = document.getElementById("reservas-lista");
@@ -5331,11 +5257,8 @@ function validarClave() {
         estadoRef.on("value", snapshot => {
             const estado = snapshot.val();
             console.log("Estado actualizado:", estado);
-            if (estado === "cerrado") {
-                document.getElementById("modal-cerrado").style.display = "flex";
-            } else {
-                document.getElementById("modal-cerrado").style.display = "none";
-            }
+            const modalCerrado = document.getElementById("modal-cerrado");
+            if (modalCerrado) modalCerrado.style.display = estado === "cerrado" ? "flex" : "none";
         });
 
         function activarPresionProlongada(elemento, accion, tiempo = 1000) {
@@ -5435,10 +5358,20 @@ const reservasRefMostrar = firebase.database().ref("reservas");
 
         mensajeRef.on("value", snapshot => {
             const mensaje = snapshot.val();
-            document.getElementById("mensaje-cerrado").textContent = mensaje || "";
+            const mensajeCerrado = document.getElementById("mensaje-cerrado");
+            if (mensajeCerrado) mensajeCerrado.textContent = mensaje || "";
         });
 
+        function confirmarRespaldoAntesDeLimpieza() {
+            const mensaje = 'Hola, Palma Codes. Como recordatorio formal, antes de cualquier limpieza o eliminación de reservas de James Barbershop, por favor realiza y verifica una copia de seguridad completa de la base de datos. Te solicito enviar este recordatorio con al menos 48 horas de anticipación para evitar la pérdida de reservas y permitir su restauración. Muchas gracias.';
+            const url = `https://wa.me/56954998792?text=${encodeURIComponent(mensaje)}`;
+            if (!confirm('Antes de borrar reservas, debes solicitar y verificar una copia de seguridad. ¿Abrir WhatsApp para enviar el recordatorio a Palma Codes?')) return false;
+            window.open(url, '_blank', 'noopener,noreferrer');
+            return confirm('Continúa solo después de enviar el recordatorio y confirmar que la copia de seguridad está lista. ¿Deseas continuar con la eliminación?');
+        }
+
         function borrarTodasLasHorasEnPantalla() {
+            if (!confirmarRespaldoAntesDeLimpieza()) return;
             reservasRef.remove()
                 .then(() => {
                     console.log("Todas las reservas han sido eliminadas de Firebase");
@@ -5458,6 +5391,7 @@ const reservasRefMostrar = firebase.database().ref("reservas");
         }
 
         function borrarHorasMesHastaHoy() {
+            if (!confirmarRespaldoAntesDeLimpieza()) return;
             const hoy = new Date();
             const diaActual = hoy.getDate();
             const mesActual = hoy.getMonth() + 1;
@@ -5952,7 +5886,8 @@ const ReservaSegura = {
 }
 
     </style><script>
-document.getElementById("formReserva").addEventListener("submit", function(e) {
+    const formularioReserva = document.getElementById("formReserva");
+    if (formularioReserva) formularioReserva.addEventListener("submit", function(e) {
   e.preventDefault(); // evita recarga
 
   const nombre = document.getElementById("nombre").value;
@@ -6281,9 +6216,19 @@ function marcarHorasOcupadasPorDuracion() {
       if (ctx.state === 'suspended') ctx.resume();
     }
 function playTone(freq, dur, vol){
-  const audio = new Audio('click.mp3');
-  audio.volume = vol;
-  audio.play();
+  if (!ctx) return;
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const ahora = ctx.currentTime;
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(freq, ahora);
+  gain.gain.setValueAtTime(0, ahora);
+  gain.gain.linearRampToValueAtTime(vol, ahora + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, ahora + Math.max(dur, 0.02));
+  oscillator.connect(gain);
+  gain.connect(master);
+  oscillator.start(ahora);
+  oscillator.stop(ahora + Math.max(dur, 0.02));
 }
     function sequence(tones, gap){
       let t = 0;
@@ -6433,11 +6378,11 @@ function reservarHoraConNotificacion() {
 
 <script>
   // Simplificación de la navegación del calendario
-  document.getElementById('mesAnterior').addEventListener('click', () => {
+  document.getElementById('mesAnterior')?.addEventListener('click', () => {
     console.log('Mes anterior');
   });
 
-  document.getElementById('mesSiguiente').addEventListener('click', () => {
+  document.getElementById('mesSiguiente')?.addEventListener('click', () => {
     console.log('Mes siguiente');
   });
 </script>
@@ -6756,8 +6701,18 @@ function reservarHoraConNotificacion() {
   .jbPostConfirmBtn.nueva:hover { background: rgba(14,165,233,0.26); color:#fff; transform:translateY(-1px); }
 
   @media (max-width: 480px) {
-    #jbChatPanel { right: 10px; bottom: 85px; width: calc(100vw - 20px); height: 80% !important; }
-    #jbChatBubble { right: 15px; bottom: 15px; }
+    #jbChatPanel { left: 10px; right: 10px; bottom: calc(78px + env(safe-area-inset-bottom)); width: auto; max-width: none; height: min(76dvh, 680px) !important; border-radius: 20px; }
+    #jbChatBubble { right: 15px; bottom: calc(15px + env(safe-area-inset-bottom)); }
+  }
+  #jbChatPanel { width: 390px; max-width: calc(100vw - 32px); height: min(76dvh, 720px) !important; border-radius: 20px; }
+  .jbBubble { font-size: .92rem; line-height: 1.5; max-width: 92%; margin-bottom: 0; }
+  #jbChatBody { gap: 9px; overscroll-behavior: contain; }
+  #jbQuickActions { padding: 9px 10px calc(9px + env(safe-area-inset-bottom)); }
+  .jbServItem > div:first-child { width: 76px !important; height: 62px !important; border-radius: 9px; margin: 7px; }
+  .jbServItem img { width: 76px !important; height: 62px !important; object-fit: cover; object-position: center; }
+  @media (max-width: 480px) {
+    #jbChatPanel { left: 10px; right: 10px; width: auto; max-width: none; height: min(76dvh, 680px) !important; }
+    .jbBubble { font-size: .9rem; }
   }
 </style>
 
@@ -6801,12 +6756,11 @@ function reservarHoraConNotificacion() {
 
   // Servicios disponibles para el chat de reserva
   const JB_SERVICIOS = [
-    { nombre: 'Corte Clásico',     label: 'Corte Clásico',        precio: 10000, tiempo: 20, grupo: 'corte', foto: ()=>JB_IMG_CORTE_BARBA,     fotoLabel: 'Javier, 30s — Corte + Barba'      },
-    { nombre: 'Corte Degradado',   label: 'Corte Degradado',      precio: 12000, tiempo: 30, grupo: 'corte', foto: ()=>JB_IMG_DEGRADADO_RIZOS, fotoLabel: 'Mateo, 20s — Degradado + Rizos'   },
-    { nombre: 'Barba',             label: 'Barba Express',         precio: 6000,  tiempo: 10, grupo: null,    foto: ()=>JB_IMG_CORTE_BARBA,     fotoLabel: 'Ejemplo incluido en Corte+Barba'  },
-    { nombre: 'Cejas',             label: 'Cejas',                 precio: 3000,  tiempo: 5,  grupo: null,    foto: ()=>JB_IMG_CEJAS,           fotoLabel: 'Corte Clásico + Cejas'           },
-    { nombre: 'Color Global',      label: 'Color Global',          precio: 70000, tiempo: 60, grupo: 'color', foto: ()=>JB_IMG_COLOR,           fotoLabel: 'Sarah, 20s — Color Global'        },
-    { nombre: 'Rizos',             label: 'Rizos/Ondulaciones',    precio: 50000, tiempo: 60, grupo: 'color', foto: ()=>JB_IMG_DEGRADADO_RIZOS, fotoLabel: 'Mateo, 20s — Rizos/Ondulaciones' }
+    { nombre: 'Barba Express', label: 'Barba Express', precio: 6000, tiempo: 20, grupo: 'barba', detalle: 'Perfilado de barba a elección', foto: ()=>JB_IMG_CORTE_BARBA },
+    { nombre: 'Barba Premium', label: 'Barba Premium', precio: 12000, tiempo: 60, grupo: 'barba', detalle: 'Ritual con toalla caliente', foto: ()=>JB_IMG_CORTE_BARBA },
+    { nombre: 'Corte Clásico', label: 'Corte Clásico', precio: 10000, tiempo: 45, grupo: 'corte', foto: ()=>JB_IMG_CORTE_BARBA },
+    { nombre: 'Corte Degradado', label: 'Corte Degradado', precio: 12000, tiempo: 45, grupo: 'corte', foto: ()=>JB_IMG_DEGRADADO_RIZOS },
+    { nombre: 'Corte Degradado + Lavado', label: 'Corte Degradado + Lavado', precio: 15000, tiempo: 60, grupo: 'corte', detalle: 'Corte degradado + ritual con toalla caliente', foto: ()=>JB_IMG_DEGRADADO_RIZOS }
   ];
 
 
@@ -7859,12 +7813,11 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
 
   // Detecta qué servicios mencionó el cliente en su mensaje
   const JB_KW = [
-    { re:/clasic|clasico/,          nombre:'Corte Clásico'   },
-    { re:/degrada|fade|deca/,       nombre:'Corte Degradado' },
-    { re:/\bbarba/,                 nombre:'Barba'           },
-    { re:/ceja/,                    nombre:'Cejas'           },
-    { re:/viso|rizo|ondula|riso/,   nombre:'Visos'           },
-    { re:/\bcolor/,                 nombre:'Color Global'    }
+    { re:/barba.*premium|premium.*barba/, nombre:'Barba Premium' },
+    { re:/barba.*express|express.*barba|\bbarba/, nombre:'Barba Express' },
+    { re:/(degrada|fade).*(lavado)|(lavado).*(degrada|fade)/, nombre:'Corte Degradado + Lavado' },
+    { re:/degrada|fade|deca/, nombre:'Corte Degradado' },
+    { re:/clasic|clasico/, nombre:'Corte Clásico' }
   ];
   function jbDetectarServicios(texto){
     const t = jbNorm(texto);
@@ -7872,7 +7825,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     JB_KW.forEach(k => {
       if(k.re.test(t)){
         const s = JB_SERVICIOS.find(x => x.nombre === k.nombre);
-        if(s && !encontrados.find(e=>e.nombre===s.nombre)) encontrados.push(s);
+        if(s && !encontrados.find(e=>e.nombre===s.nombre || (s.grupo && e.grupo === s.grupo))) encontrados.push(s);
       }
     });
     return encontrados;
@@ -8380,41 +8333,58 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
   function jbMostrarSelectorServicios(){
     jbBloquearInput();
     const body = document.getElementById('jbChatBody');
+    document.getElementById('jbServicioSelector')?.remove();
+    document.getElementById('jbBtnConfServ')?.remove();
 
     jbBot('Elige tus servicios 👇 Puedes marcar varios:');
 
     const seleccionados = new Set();
     const wrapper = document.createElement('div');
     wrapper.id = 'jbServicioSelector';
-    wrapper.style.cssText = 'margin-top: -112px; position: fixed;width:90%;max-width:440px;align-self:flex-start;display:flex;flex-direction:column;gap:0;background:#141422;border-radius:16px;overflow:hidden;border:1px solid rgba(228,166,79,0.18);height: 100%; overflow-y: auto; z-index: 843938294392432;';
+    wrapper.style.cssText = 'width:100%;max-width:440px;max-height:48dvh;flex:0 0 auto;align-self:flex-start;display:flex;flex-direction:column;gap:0;background:#141422;border-radius:16px;overflow-y:auto;border:1px solid rgba(228,166,79,0.18);z-index:2;';
 
     JB_SERVICIOS.forEach((s, i) => {
       const item = document.createElement('div');
       item.className = 'jbServItem';
-      item.style.cssText = 'display:flex;align-items:center;gap:0;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);transition:background .15s;user-select:none;';
+      item.jbActive = false;
+      item.style.cssText = 'display:flex;align-items:center;gap:0;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);transition:background .15s;user-select:none;min-height:76px;';
       if(i === JB_SERVICIOS.length-1) item.style.borderBottom = 'none';
 
       const fotoSrc = s.foto ? s.foto() : '';
       item.innerHTML = `
-        <div style="width:72px;height:58px;flex-shrink:0;overflow:hidden;background:#0d0d1a;">
-          ${fotoSrc ? `<img src="${fotoSrc}" alt="${s.label}" style="width:72px;height:58px;object-fit:cover;display:block;" loading="eager">` : '<div style="width:72px;height:58px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">✂️</div>'}
+        <div style="width:76px;height:62px;flex-shrink:0;overflow:hidden;background:#0d0d1a;border-radius:9px;margin:7px;">
+          ${fotoSrc ? `<img src="${fotoSrc}" alt="${s.label}" style="width:76px;height:62px;object-fit:cover;object-position:center;display:block;" loading="eager">` : '<div style="width:76px;height:62px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">✂️</div>'}
         </div>
         <div style="flex:1;padding:8px 10px;min-width:0;">
           <div style="font-size:0.87rem;font-weight:700;color:#f1f1f1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.label||s.nombre}</div>
-          <div style="font-size:0.75rem;color:#e4a64f;margin-top:1px;">$${s.precio.toLocaleString('es-CL')} · ${s.tiempo} min</div>
-          ${s.fotoLabel ? `<div style="font-size:0.68rem;color:#888;margin-top:1px;">${s.fotoLabel}</div>` : ''}
+          <div style="font-size:0.75rem;color:#e4a64f;margin-top:3px;">$${s.precio.toLocaleString('es-CL')}</div>
+          ${s.detalle ? `<div style="font-size:0.72rem;color:#aeb0b8;margin-top:3px;line-height:1.35;">${s.detalle}</div>` : ''}
         </div>
         <div class="jbServCheck" style="width:38px;height:38px;flex-shrink:0;margin-right:10px;border-radius:50%;border:2.5px solid rgba(228,166,79,0.4);display:flex;align-items:center;justify-content:center;font-size:1.1rem;background:#0d0d1a;transition:all .15s;">
         </div>
       `;
 
       const check = item.querySelector('.jbServCheck');
-      let activo = false;
 
       item.addEventListener('click', () => {
-        activo = !activo;
+        const activo = !item.jbActive;
+        item.jbActive = activo;
         if(activo){
-          irAConfirmar();
+          if(s.grupo){
+            [...seleccionados].filter(x => x.grupo === s.grupo).forEach(x => {
+              seleccionados.delete(x);
+              const indice = JB_SERVICIOS.indexOf(x);
+              const anterior = wrapper.children[indice];
+              if(anterior){
+                anterior.jbActive = false;
+                anterior.style.background = '';
+                const anteriorCheck = anterior.querySelector('.jbServCheck');
+                anteriorCheck.style.background = '#0d0d1a';
+                anteriorCheck.style.borderColor = 'rgba(228,166,79,0.4)';
+                anteriorCheck.innerHTML = '';
+              }
+            });
+          }
           seleccionados.add(s);
           item.style.background = 'rgba(228,166,79,0.12)';
           check.style.background = '#e4a64f';
@@ -8428,17 +8398,8 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
           check.style.background = '#0d0d1a';
           check.style.borderColor = 'rgba(228,166,79,0.4)';
           check.innerHTML = '';
-          irAConfirmar();
         }
-        // Actualizar botón inline (sin referencia a const declarada después)
-        const total2 = [...seleccionados].reduce((a,x)=>a+x.precio,0);
-        if(seleccionados.size > 0){
-          btnConfirmar.style.display = 'block';
-          const names2 = [...seleccionados].map(x=>x.label||x.nombre).join(' + ');
-          btnConfirmar.textContent = `Reservar: ${names2} · $${total2.toLocaleString('es-CL')} ➜`;
-        } else {
-          btnConfirmar.style.display = 'none';
-        }
+        actualizarBotonContinuar();
       });
       wrapper.appendChild(item);
     });
@@ -8446,13 +8407,27 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     // Botón confirmar servicios
     const btnConfirmar = document.createElement('button');
     btnConfirmar.id = 'jbBtnConfServ';
-    btnConfirmar.style.cssText = 'z-index: 843938294392432;position: fixed;width:90%;max-width:420px;display:flex;flex-direction:column;gap:0;background:#141422;border-radius:16px;overflow:hidden;border:1px solid rgba(228,166,79,0.18);margin:2px 0 6px; margin:8px 0 2px;width:90%;max-width:420px;padding:14px;background:linear-gradient(135deg,#e4a64f,#d4903a);color:#16130a;border:none;border-radius:12px;font-size:1.8rem;font-weight:800;cursor:pointer;letter-spacing:0.02em; margin-top:350px;';
+    btnConfirmar.type = 'button';
+    btnConfirmar.disabled = true;
+    btnConfirmar.style.cssText = 'width:100%;max-width:440px;flex:0 0 auto;display:none;margin:10px 0 4px;padding:14px;background:linear-gradient(135deg,#e4a64f,#d4903a);color:#16130a;border:none;border-radius:12px;font-size:.95rem;font-weight:800;cursor:pointer;letter-spacing:.01em;';
     btnConfirmar.textContent = 'Continuar ➜';
 
-    const actualizarBtnConfirmar = () => {}; // mantenida por compatibilidad
+    function actualizarBotonContinuar(){
+      const total = [...seleccionados].reduce((suma, servicio) => suma + servicio.precio, 0);
+      btnConfirmar.disabled = seleccionados.size === 0;
+      btnConfirmar.style.display = seleccionados.size ? 'block' : 'none';
+      btnConfirmar.textContent = seleccionados.size
+        ? `Continuar · $${total.toLocaleString('es-CL')} ➜`
+        : 'Continuar ➜';
+      if(seleccionados.size){
+        requestAnimationFrame(() => {
+          btnConfirmar.scrollIntoView({ behavior:'smooth', block:'nearest' });
+        });
+      }
+    }
 
     btnConfirmar.onclick = () => {
-      if(seleccionados.size === 0) return;
+      if(btnConfirmar.disabled || seleccionados.size === 0) return;
       jbReserva.servicios = [...seleccionados];
       wrapper.remove();
       btnConfirmar.remove();
@@ -9089,6 +9064,9 @@ function jbMostrarFormularioWhatsapp(){
 
   // Reiniciar los servicios para elegirlos nuevamente
   jbReserva.servicios = [];
+  jbReserva.fecha = null;
+  jbReserva.hora = null;
+  jbGuardarEstadoReserva(false);
 
   // Mostrar el MISMO selector visual que se usa
   // al comenzar una reserva nueva.
@@ -10513,17 +10491,16 @@ DATOS DEL NEGOCIO:
 - No hay lista de espera si no hay horas disponibles.
 - No se pueden enviar fotos de referencia por el chat.
 - Venden productos: ceras y aceites de barba.
-- Profesional: James (barbero), realiza cortes, barbas, color y permanentes.
+- Profesional: James (barbero), realiza cortes y servicios de barba.
 - ${horarioTexto}
 
 SERVICIOS Y PRECIOS (estos son los ÚNICOS servicios que se pueden reservar; no ofrezcas otros que no estén aquí):
-- Corte Clásico (20 min): $10.000
-- Corte Degradado (30 min): $12.000
-- Barba (10 min): $6.000
-- Cejas (5 min): $3.000
-- Color Global (60 min): $70.000
-- Risos/Ondulaciones (60 min): $50.000
-Se pueden combinar varios servicios en una misma reserva (ej: Corte Degradado + Barba). Corte Clásico y Corte Degradado son excluyentes entre sí (se elige solo uno de los dos), igual que Color Global y Risos/Ondulaciones.
+- Barba Express — Perfilado de barba a elección: $6.000
+- Barba Premium — Ritual con toalla caliente: $12.000
+- Clásico: $10.000
+- Corte Degradado: $12.000
+- Corte Degradado + Lavado — Corte degradado + ritual con toalla caliente: $15.000
+En una reserva se puede elegir un servicio de barba y un servicio de corte. Dentro de cada grupo se elige solo una opción.
 
 REGLAS:
 
@@ -10980,12 +10957,8 @@ const JB_FAQ = [
     ],
 
     r: `
-      ⏱ <b>Tiempos aproximados:</b><br><br>
-      • Corte solo — 20 a 30 min<br>
-      • Corte + Barba — 40 a 50 min<br>
-      • Color o Risos — 60 a 90 min
-      <br><br>
-      Si quieres llegar sin espera, lo mejor es <b>reservar hora</b> 👇
+      La duración depende del servicio elegido y de la agenda disponible.
+      Puedes consultar los servicios y reservar tu hora aquí. 👇
     `
   },
 
@@ -11006,12 +10979,11 @@ const JB_FAQ = [
 
     r: `
       💰 <b>Precios actuales:</b><br><br>
-      • Corte Clásico — $10.000<br>
+      • Barba Express — $6.000 (perfilado de barba a elección)<br>
+      • Barba Premium — $12.000 (ritual con toalla caliente)<br>
+      • Clásico — $10.000<br>
       • Corte Degradado — $12.000<br>
-      • Barba express — $6.000<br>
-      • Cejas — $3.000<br>
-      • Color Global — $70.000<br>
-      • Risos/Ondulaciones — $50.000
+      • Corte Degradado + Lavado — $15.000 (ritual con toalla caliente)
       <br><br>
       ¿Quieres reservar una hora? 📅
     `
@@ -11332,11 +11304,8 @@ const JB_FAQ = [
 
     r: `
       💈 <b>Lo más pedido:</b><br><br>
-      • Corte Degradado + Barba express — $18.000<br>
-      • Corte Clásico + Barba express — $16.000<br>
-      • Corte Clásico + Cejas — $13.000
-      <br><br>
-      Puedes combinar cualquier servicio. ¿Agendamos?
+      Los servicios se seleccionan por separado en el catálogo y el total se calcula antes de confirmar.
+      ¿Quieres ver las opciones disponibles y agendar?
     `
   },
 
@@ -11356,10 +11325,8 @@ const JB_FAQ = [
     ],
 
     r: `
-      🚿 El lavado de pelo está incluido en el servicio de color
-      y risos/ondulaciones.
-      <br><br>
-      Para cortes, puede incluirse según disponibilidad del local.
+      🚿 El servicio <b>Corte Degradado + Lavado</b> incluye el ritual con toalla caliente y tiene un valor de $15.000.
+      También está disponible <b>Barba Premium</b> con ritual de toalla caliente por $12.000.
     `
   },
 
@@ -11438,12 +11405,7 @@ const JB_FAQ = [
     ],
 
     r: `
-      🎨 Sí, hacemos color global, camuflaje de canas y platinado.
-      <br><br>
-      • Color Global — $70.000<br>
-      • Risos/Ondulaciones — $50.000
-      <br><br>
-      Te recomendamos reservar con anticipación para estos servicios.
+      Por ahora, el catálogo disponible incluye servicios de barba y cortes clásicos o degradados. Puedes revisar los precios y reservar desde el menú de servicios.
     `
   },
 
