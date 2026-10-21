@@ -1249,12 +1249,27 @@ window.addEventListener('load', function(){
             <!-- COLUMNA IZQUIERDA -->
             <div class="columna-izquierda">
 <div id="jbLicPanel" data-nivel="0"><div class="jbLicSlot" data-lic="full"></div><div class="jbLicSlot" data-lic="preview"></div></div>
-<section id="jbBackupReminder" role="status" aria-live="polite" style="margin-top:18px;padding:18px;border:1px solid #e4a64f;border-left:5px solid #e4a64f;border-radius:12px;background:linear-gradient(145deg,#292319,#1b1c20);color:#f5f2eb;box-shadow:0 10px 28px rgba(0,0,0,.24);">
+<section id="jbBackupReminder" role="status" aria-live="polite" hidden style="margin-top:18px;padding:18px;border:1px solid #e4a64f;border-left:5px solid #e4a64f;border-radius:12px;background:linear-gradient(145deg,#292319,#1b1c20);color:#f5f2eb;box-shadow:0 10px 28px rgba(0,0,0,.24);">
     <h2 style="margin:0 0 8px;color:#f1c887;font-size:1.05rem;">🛡️ Protección de reservas y copia de seguridad</h2>
-    <p id="jbBackupReminderStatus" style="margin:0 0 12px;line-height:1.55;color:#e5e7eb;">Las reservas históricas ya no se eliminan automáticamente al abrir la página. Antes de cualquier limpieza manual, solicita una copia de seguridad.</p>
-    <a id="jbBackupReminderLink" href="https://wa.me/56954998792" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:11px 16px;border-radius:10px;background:#25d366;color:#102117;text-decoration:none;font-weight:800;text-align:center;">Enviar recordatorio formal a Palma Codes por WhatsApp</a>
-    <p style="margin:10px 0 0;color:#b9b9b9;font-size:.82rem;line-height:1.45;">La alerta de vencimiento se activa durante las 48 horas previas a la antigüedad de un año. No se borrará nada de forma automática: confirma primero el respaldo antes de eliminar registros.</p>
+    <p id="jbBackupReminderStatus" style="margin:0 0 12px;line-height:1.55;color:#e5e7eb;"></p>
+    <p id="jbBackupReminderCountdown" style="margin:0 0 12px;color:#f1c887;font-weight:700;"></p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+        <a id="jbBackupReminderLink" href="https://wa.me/56954998792" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:11px 16px;border-radius:10px;background:#25d366;color:#102117;text-decoration:none;font-weight:800;text-align:center;">Abrir WhatsApp y enviar aviso</a>
+        <button id="jbBackupMarkReminder" type="button" hidden style="min-height:46px;padding:11px 16px;border:1px solid #25d366;border-radius:10px;background:#153b28;color:#fff;font-weight:700;cursor:pointer;">Ya envié el aviso</button>
+        <button id="jbBackupDownload" type="button" style="min-height:46px;padding:11px 16px;border:1px solid #e4a64f;border-radius:10px;background:#3a2c18;color:#fff;font-weight:700;cursor:pointer;">Descargar copia de seguridad</button>
+        <button id="jbBackupConfirm" type="button" hidden style="min-height:46px;padding:11px 16px;border:0;border-radius:10px;background:#e4a64f;color:#21180a;font-weight:800;cursor:pointer;">Confirmar copia guardada</button>
+    </div>
+    <p id="jbBackupReminderHelp" style="margin:10px 0 0;color:#b9b9b9;font-size:.82rem;line-height:1.45;">El aviso se mostrará 48 horas antes de que venza la reserva más antigua. Si el respaldo no se confirma, las reservas no se borrarán.</p>
 </section>
+<div id="jbBackupGate" hidden role="dialog" aria-modal="true" aria-labelledby="jbBackupGateTitle" style="position:fixed;inset:0;z-index:1000000;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;padding:18px;">
+    <div style="width:min(100%,520px);padding:24px;border:2px solid #e4a64f;border-radius:16px;background:#1b1c20;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,.55);">
+        <h2 id="jbBackupGateTitle" style="margin:0 0 12px;color:#f1c887;">⚠️ Aviso anual de respaldo obligatorio</h2>
+        <p id="jbBackupGateStatus" style="line-height:1.55;"></p>
+        <a id="jbBackupGateLink" href="https://wa.me/56954998792" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;justify-content:center;min-height:48px;padding:12px;border-radius:10px;background:#25d366;color:#102117;text-decoration:none;font-weight:800;text-align:center;">Abrir WhatsApp para avisar a Palma Codes</a>
+        <button id="jbBackupGateAcknowledge" type="button" hidden style="width:100%;min-height:48px;margin-top:10px;padding:12px;border:1px solid #25d366;border-radius:10px;background:#153b28;color:#fff;font-weight:800;cursor:pointer;">Ya envié el aviso</button>
+        <p style="margin:12px 0 0;color:#b9b9b9;font-size:.84rem;">El borrado automático seguirá bloqueado hasta que el aviso esté registrado y la copia de seguridad se descargue y confirme.</p>
+    </div>
+</div>
 <!-- EXPERIENCIA DE RESERVA (solo métricas positivas) -->
 <div class="card tarjeta-animada" style="margin-top: 25px; background: #1D1E22;  border-radius: 8px; padding: 20px; color: #fff;">
     <h2 style="font-family: 'Playfair Display', serif; color: var(--barber-orange); margin-bottom: 15px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
@@ -1475,30 +1490,235 @@ window.addEventListener('load', function(){
         let horarioSemana = ["11:00","12:00","13:00","14:00","16:00","17:00","18:00","19:00","20:00","21:30"];
         let horarioDomingo = ["11:00","12:00","13:00","14:00","16:00","17:00","18:00","19:00","20:00","21:30"];
         let horariosEspecificos = {};
+        let jbBackupState = {};
+        let jbBackupEventoActual = null;
+        let jbBackupDescargaEvento = null;
+        let jbBackupPurgeEnCurso = false;
+        let jbBackupAvisoTimer = null;
+
+        function jbClaveFecha(timestamp) {
+            const fecha = new Date(timestamp);
+            return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+        }
+
+        function jbFechaVencimientoReserva(fecha) {
+            const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(fecha || ''));
+            if (!match) return null;
+            const anio = Number(match[1]);
+            const mes = Number(match[2]) - 1;
+            const dia = Number(match[3]);
+            const fechaReserva = new Date(anio, mes, dia);
+            if (fechaReserva.getFullYear() !== anio || fechaReserva.getMonth() !== mes || fechaReserva.getDate() !== dia) return null;
+            const anioVencimiento = anio + 1;
+            const diaMaximo = new Date(anioVencimiento, mes + 1, 0).getDate();
+            return new Date(anioVencimiento, mes, Math.min(dia, diaMaximo)).getTime();
+        }
+
+        function jbTextoFecha(timestamp) {
+            return new Date(timestamp).toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function jbTextoTiempoRestante(milisegundos) {
+            const horas = Math.max(0, Math.ceil(milisegundos / (60 * 60 * 1000)));
+            const dias = Math.floor(horas / 24);
+            const horasRestantes = horas % 24;
+            return dias ? `${dias} día(s) y ${horasRestantes} hora(s)` : `${horas} hora(s)`;
+        }
+
+        function jbMostrarGateRespaldo(mostrar, fecha, urgente) {
+            const gate = document.getElementById('jbBackupGate');
+            if (!gate) return;
+            gate.hidden = !mostrar;
+            gate.style.display = mostrar ? 'flex' : 'none';
+            if (!mostrar) return;
+            const estado = document.getElementById('jbBackupGateStatus');
+            const link = document.getElementById('jbBackupGateLink');
+            const confirmar = document.getElementById('jbBackupGateAcknowledge');
+            estado.textContent = urgente
+                ? `La fecha de eliminación de las reservas de ${jbTextoFecha(fecha)} está a menos de 24 horas o ya pasó. Debes enviar y registrar el aviso antes de poder borrar esos datos.`
+                : `Las reservas más antiguas vencerán el ${jbTextoFecha(fecha)}. Envía el aviso a Palma Codes ahora.`;
+            link.href = jbCrearEnlaceAvisoRespaldo(fecha);
+            confirmar.hidden = link.dataset.abierto !== '1';
+        }
+
+        function jbCrearEnlaceAvisoRespaldo(fecha) {
+            const detalle = fecha
+                ? `el ${jbTextoFecha(fecha)} vence el plazo anual de conservación de las reservas de James Barbershop`
+                : 'se realizará una limpieza manual de reservas en James Barbershop';
+            const plazo = fecha ? 'antes de esa fecha' : 'antes de proceder con la limpieza';
+            const mensaje = `Hola, Palma Codes. Este es el recordatorio formal de que ${detalle}. Por favor realiza y verifica una copia de seguridad completa de la base de datos ${plazo} para evitar la pérdida de información. Muchas gracias.`;
+            return `https://wa.me/56954998792?text=${encodeURIComponent(mensaje)}`;
+        }
+
+        function jbDescargarSnapshot(snapshot) {
+            const contenido = JSON.stringify(snapshot.val() || {}, null, 2);
+            const archivo = new Blob([contenido], { type: 'application/json' });
+            const enlaceTemporal = document.createElement('a');
+            const url = URL.createObjectURL(archivo);
+            enlaceTemporal.href = url;
+            enlaceTemporal.download = `backup-james-barbershop-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(enlaceTemporal);
+            enlaceTemporal.click();
+            enlaceTemporal.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        function jbBuscarProximaEliminacion() {
+            return Object.values(reservas || {})
+                .filter(reserva => reserva && reserva.fecha)
+                .map(reserva => jbFechaVencimientoReserva(reserva.fecha))
+                .filter(timestamp => timestamp !== null)
+                .sort((a, b) => a - b)[0] || null;
+        }
+
+        function jbDescargarCopiaSeguridad() {
+            const estado = document.getElementById('jbBackupReminderStatus');
+            const boton = document.getElementById('jbBackupDownload');
+            boton.disabled = true;
+            estado.textContent = 'Preparando una copia completa de la base de datos…';
+            db.ref('/').once('value').then(snapshot => {
+                jbDescargarSnapshot(snapshot);
+                jbBackupDescargaEvento = jbBackupEventoActual;
+                document.getElementById('jbBackupConfirm').hidden = false;
+                estado.textContent = 'Copia descargada. Guarda el archivo en un lugar seguro y confirma cuando verifiques que quedó guardado.';
+            }).catch(error => {
+                console.error('No se pudo crear la copia de seguridad:', error);
+                estado.textContent = `Error al descargar la copia de seguridad: ${error.message}`;
+            }).finally(() => {
+                boton.disabled = false;
+            });
+        }
+
+        function jbConfirmarCopiaSeguridad() {
+            if (!jbBackupEventoActual || jbBackupDescargaEvento !== jbBackupEventoActual) {
+                mostrarToast('Descarga primero la copia de seguridad correspondiente.');
+                return;
+            }
+            if (jbBackupState.recordatorioEnviadoEvento !== jbBackupEventoActual) {
+                mostrarToast('Registra primero el envío del aviso a Palma Codes.');
+                return;
+            }
+            if (!confirm('Confirma que descargaste y guardaste la copia completa de la base de datos en un lugar seguro.')) return;
+
+            db.ref('config/respaldoReservas').update({
+                respaldoConfirmadoEvento: jbBackupEventoActual,
+                respaldoConfirmadoAt: Date.now()
+            }).then(() => {
+                mostrarToast('Copia de seguridad registrada. Las reservas se eliminarán solo al cumplir un año.');
+            }).catch(error => {
+                console.error('No se pudo registrar la copia de seguridad:', error);
+                mostrarToast(`No se pudo registrar el respaldo: ${error.message}`);
+            });
+        }
+
+        function jbRegistrarAvisoEnviado() {
+            if (!jbBackupEventoActual) return;
+            db.ref('config/respaldoReservas').update({
+                recordatorioEnviadoEvento: jbBackupEventoActual,
+                recordatorioEnviadoAt: Date.now()
+            }).then(() => {
+                document.getElementById('jbBackupReminderLink').dataset.abierto = '0';
+                document.getElementById('jbBackupGateLink').dataset.abierto = '0';
+                document.getElementById('jbBackupMarkReminder').hidden = true;
+                document.getElementById('jbBackupGateAcknowledge').hidden = true;
+                actualizarAvisoRespaldo();
+            }).catch(error => {
+                console.error('No se pudo registrar el envío del aviso:', error);
+                document.getElementById('jbBackupReminderStatus').textContent = `No se pudo registrar el aviso: ${error.message}`;
+            });
+        }
+
+        function jbEliminarReservasVencidas(proximaEliminacion) {
+            if (jbBackupPurgeEnCurso || !proximaEliminacion || proximaEliminacion > Date.now()) return;
+            const evento = jbClaveFecha(proximaEliminacion);
+            if (jbBackupState.recordatorioEnviadoEvento !== evento || jbBackupState.respaldoConfirmadoEvento !== evento) return;
+
+            const eliminaciones = {};
+            Object.entries(reservas || {}).forEach(([id, reserva]) => {
+                const vencimiento = reserva && jbFechaVencimientoReserva(reserva.fecha);
+                if (vencimiento !== null && vencimiento <= Date.now()) eliminaciones[id] = null;
+            });
+            if (!Object.keys(eliminaciones).length) return;
+
+            jbBackupPurgeEnCurso = true;
+            db.ref('reservas').update(eliminaciones).then(() => {
+                mostrarToast(`Limpieza anual completada: ${Object.keys(eliminaciones).length} reservas respaldadas y vencidas eliminadas.`);
+            }).catch(error => {
+                console.error('Falló la limpieza anual de reservas vencidas:', error);
+                const estado = document.getElementById('jbBackupReminderStatus');
+                if (estado) estado.textContent = `No se pudieron eliminar las reservas vencidas: ${error.message}. No se perdió información.`;
+            }).finally(() => {
+                jbBackupPurgeEnCurso = false;
+            });
+        }
 
         function actualizarAvisoRespaldo() {
             const estado = document.getElementById('jbBackupReminderStatus');
             const enlace = document.getElementById('jbBackupReminderLink');
-            if (!estado || !enlace) return;
+            const panel = document.getElementById('jbBackupReminder');
+            if (!estado || !enlace || !panel) return;
 
-            const ahora = new Date();
-            const limiteAviso = new Date(ahora.getTime() + 48 * 60 * 60 * 1000);
-            const proximas = Object.values(reservas || {}).filter(reserva => {
-                if (!reserva || !/^\d{4}-\d{2}-\d{2}$/.test(String(reserva.fecha || ''))) return false;
-                const vence = new Date(`${reserva.fecha}T00:00:00`);
-                if (Number.isNaN(vence.getTime())) return false;
-                vence.setFullYear(vence.getFullYear() + 1);
-                return vence <= limiteAviso;
-            });
-            const mensaje = 'Hola, Palma Codes. Como recordatorio formal, antes de cualquier limpieza o eliminación de reservas de James Barbershop, por favor realiza y verifica una copia de seguridad completa de la base de datos. Te solicito enviar este recordatorio con al menos 48 horas de anticipación para evitar la pérdida de reservas y permitir su restauración. Muchas gracias.';
-            enlace.href = `https://wa.me/56954998792?text=${encodeURIComponent(mensaje)}`;
-
-            if (proximas.length) {
-                estado.textContent = `⚠️ Hay ${proximas.length} reserva(s) que alcanzan un año de antigüedad dentro de las próximas 48 horas o ya lo superaron. Envía el recordatorio y verifica la copia antes de cualquier eliminación.`;
-            } else {
-                estado.textContent = 'Las reservas históricas ya no se eliminan automáticamente al abrir la página. No hay reservas que alcancen un año de antigüedad dentro de las próximas 48 horas. Antes de cualquier limpieza manual, solicita y verifica una copia de seguridad.';
+            const proximaEliminacion = jbBuscarProximaEliminacion();
+            if (!proximaEliminacion) {
+                panel.hidden = true;
+                jbMostrarGateRespaldo(false);
+                return;
             }
+            const eventoAnterior = jbBackupEventoActual;
+            jbBackupEventoActual = jbClaveFecha(proximaEliminacion);
+            if (eventoAnterior !== jbBackupEventoActual) {
+                jbBackupDescargaEvento = null;
+                document.getElementById('jbBackupReminderLink').dataset.abierto = '0';
+                document.getElementById('jbBackupGateLink').dataset.abierto = '0';
+            }
+            const restante = proximaEliminacion - Date.now();
+            const dentroDeVentana = restante <= 48 * 60 * 60 * 1000;
+            panel.hidden = !dentroDeVentana;
+            if (!dentroDeVentana) {
+                jbMostrarGateRespaldo(false);
+                return;
+            }
+
+            const avisoEnviado = jbBackupState.recordatorioEnviadoEvento === jbBackupEventoActual;
+            const respaldoConfirmado = jbBackupState.respaldoConfirmadoEvento === jbBackupEventoActual;
+            const urgente = restante <= 24 * 60 * 60 * 1000;
+            enlace.href = jbCrearEnlaceAvisoRespaldo(proximaEliminacion);
+            document.getElementById('jbBackupReminderCountdown').textContent = restante > 0
+                ? `Eliminación prevista el ${jbTextoFecha(proximaEliminacion)} · faltan ${jbTextoTiempoRestante(restante)}.`
+                : `Plazo anual cumplido el ${jbTextoFecha(proximaEliminacion)}; la eliminación está bloqueada hasta completar el respaldo.`;
+
+            if (!avisoEnviado) {
+                estado.textContent = urgente
+                    ? '⛔ Aviso obligatorio: abre WhatsApp y registra el envío para continuar. La eliminación permanece bloqueada.'
+                    : '⚠️ En las próximas 48 horas vencerá la reserva más antigua. Envía ahora el recordatorio formal a Palma Codes.';
+                document.getElementById('jbBackupReminderHelp').textContent = 'Primero registra el envío del aviso; después descarga la copia completa y confirma que quedó guardada. Sin ambos pasos, no se eliminarán reservas.';
+            } else if (!respaldoConfirmado) {
+                estado.textContent = 'Aviso registrado. Falta descargar la copia completa y confirmar que se guardó en un lugar seguro; las reservas siguen protegidas.';
+                document.getElementById('jbBackupReminderHelp').textContent = 'El sistema no borrará datos mientras no se confirme el respaldo. La limpieza anual se ejecutará cuando el plazo venza y se cumplan ambas confirmaciones.';
+            } else {
+                estado.textContent = '✅ Aviso enviado y respaldo confirmado. Las reservas vencidas se eliminarán automáticamente al cumplir un año.';
+                document.getElementById('jbBackupReminderHelp').textContent = 'La fecha y hora de eliminación se revisan mientras el Admin esté abierto. Si no se confirma el respaldo, las reservas se conservan.';
+            }
+
+            document.getElementById('jbBackupMarkReminder').hidden = !enlace.dataset.abierto || avisoEnviado;
+            document.getElementById('jbBackupConfirm').hidden = jbBackupDescargaEvento !== jbBackupEventoActual || respaldoConfirmado;
+            document.getElementById('jbBackupGateAcknowledge').hidden = document.getElementById('jbBackupGateLink').dataset.abierto !== '1';
+            jbMostrarGateRespaldo(urgente && !avisoEnviado, proximaEliminacion, urgente);
+            jbEliminarReservasVencidas(proximaEliminacion);
         }
+
+        document.getElementById('jbBackupReminderLink').addEventListener('click', () => {
+            document.getElementById('jbBackupReminderLink').dataset.abierto = '1';
+            document.getElementById('jbBackupMarkReminder').hidden = false;
+        });
+        document.getElementById('jbBackupGateLink').addEventListener('click', () => {
+            document.getElementById('jbBackupGateLink').dataset.abierto = '1';
+            document.getElementById('jbBackupGateAcknowledge').hidden = false;
+        });
+        document.getElementById('jbBackupMarkReminder').addEventListener('click', jbRegistrarAvisoEnviado);
+        document.getElementById('jbBackupGateAcknowledge').addEventListener('click', jbRegistrarAvisoEnviado);
+        document.getElementById('jbBackupDownload').addEventListener('click', jbDescargarCopiaSeguridad);
+        document.getElementById('jbBackupConfirm').addEventListener('click', jbConfirmarCopiaSeguridad);
         
         const nombresMeses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
         const nombresDias = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
@@ -1582,6 +1802,18 @@ window.addEventListener('load', function(){
             
             // Cargar datos de Firebase
             cargarDatos();
+
+            db.ref('config/respaldoReservas').on('value', snapshot => {
+                jbBackupState = snapshot.val() || {};
+                actualizarAvisoRespaldo();
+            }, error => {
+                console.error('Error al leer estado de respaldo:', error);
+                const estado = document.getElementById('jbBackupReminderStatus');
+                if (estado) estado.textContent = `No se pudo consultar el estado de respaldo: ${error.message}`;
+            });
+            if (!jbBackupAvisoTimer) {
+                jbBackupAvisoTimer = window.setInterval(actualizarAvisoRespaldo, 60 * 1000);
+            }
             
             // Escuchar cambios en tiempo real
             db.ref('reservas').on('value', snapshot => {
@@ -1591,6 +1823,7 @@ window.addEventListener('load', function(){
             reservas[child.key] = child.val();
         }
     });
+    if (jbBackupState) actualizarAvisoRespaldo();
     actualizarAvisoRespaldo();
     renderReservasHoy();
     renderCalendario();
@@ -2272,38 +2505,61 @@ async function notificarCancelacionAdmin(reserva) {
     }
 }
         
-        function confirmarRespaldoAntesDeLimpieza() {
-            const enlace = document.getElementById('jbBackupReminderLink');
-            const url = enlace ? enlace.href : 'https://wa.me/56954998792';
-            if (!confirm('Antes de borrar reservas, debes solicitar y verificar una copia de seguridad. ¿Abrir WhatsApp para enviar el recordatorio a Palma Codes?')) return false;
-            window.open(url, '_blank', 'noopener,noreferrer');
-            return confirm('Continúa solo después de enviar el recordatorio y confirmar que la copia de seguridad está lista. ¿Deseas continuar con la eliminación?');
+        async function confirmarRespaldoAntesDeLimpieza() {
+            if (!confirm('Antes de borrar reservas, debes solicitar y descargar una copia de seguridad completa. ¿Abrir WhatsApp para enviar el recordatorio a Palma Codes?')) return false;
+            const fechaEvento = jbBackupEventoActual ? new Date(`${jbBackupEventoActual}T00:00:00`) : null;
+            window.open(jbCrearEnlaceAvisoRespaldo(fechaEvento ? fechaEvento.getTime() : null), '_blank', 'noopener,noreferrer');
+            if (!confirm('¿Enviaste el recordatorio a Palma Codes? Se descargará una copia completa antes de permitir la eliminación.')) return false;
+
+            try {
+                const snapshot = await db.ref('/').once('value');
+                jbDescargarSnapshot(snapshot);
+                return confirm('Confirma que guardaste la copia JSON completa en un lugar seguro. Si no se guardó, cancela para conservar las reservas.');
+            } catch (error) {
+                console.error('No se pudo preparar una copia antes de la limpieza:', error);
+                mostrarToast(`No se pudo descargar la copia. Las reservas se conservaron: ${error.message}`);
+                return false;
+            }
         }
 
-        function borrarTodasReservas() {
+        async function borrarTodasReservas() {
             if (!confirm('⚠️ ¿ESTÁS SEGURO?\n\nEsto eliminará TODAS las reservas permanentemente.')) return;
-            if (!confirmarRespaldoAntesDeLimpieza()) return;
-            
-            db.ref('reservas').remove();
-            mostrarToast('Todas las reservas eliminadas');
+            if (!await confirmarRespaldoAntesDeLimpieza()) return;
+            try {
+                await db.ref('reservas').remove();
+                mostrarToast('Todas las reservas eliminadas');
+            } catch (error) {
+                console.error('No se pudieron eliminar todas las reservas:', error);
+                mostrarToast(`No se pudieron eliminar las reservas: ${error.message}`);
+            }
         }
         
-        function borrarReservasAntiguas() {
+        async function borrarReservasAntiguas() {
             const hoy = formatearFecha(new Date());
             const confirmar = confirm(`¿Borrar reservas anteriores a ${hoy}?`);
             if (!confirmar) return;
-            if (!confirmarRespaldoAntesDeLimpieza()) return;
-            
-            db.ref('reservas').once('value', snapshot => {
-                let count = 0;
+            if (!await confirmarRespaldoAntesDeLimpieza()) return;
+
+            try {
+                const snapshot = await db.ref('reservas').once('value');
+                const eliminaciones = {};
                 snapshot.forEach(child => {
-                    if (child.val().fecha < hoy) {
-                        child.ref.remove();
-                        count++;
+                    const reserva = child.val();
+                    if (reserva && reserva.fecha && reserva.fecha < hoy) {
+                        eliminaciones[child.key] = null;
                     }
                 });
+                const count = Object.keys(eliminaciones).length;
+                if (!count) {
+                    mostrarToast('No hay reservas anteriores para eliminar');
+                    return;
+                }
+                await db.ref('reservas').update(eliminaciones);
                 mostrarToast(`${count} reservas antiguas eliminadas`);
-            });
+            } catch (error) {
+                console.error('No se pudieron eliminar las reservas antiguas:', error);
+                mostrarToast(`No se pudieron eliminar las reservas: ${error.message}`);
+            }
         }
         
         // ============================================
