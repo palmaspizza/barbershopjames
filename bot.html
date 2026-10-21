@@ -1612,6 +1612,11 @@ if (typeof ocultarContadorTemporal === 'function') ocultarContadorTemporal();
     <button class="servicio-btn exclusivo" data-nombre="Corte Degradado" data-precio="12000" data-tiempo="45">Corte Degradado · $12.000</button>
     <button class="servicio-btn exclusivo" data-nombre="Corte Degradado + Lavado" data-precio="15000" data-tiempo="60">Corte Degradado + Lavado · Corte degradado + ritual con toalla caliente · $15.000</button>
   </div>
+  <div class="servicios-bloque">
+    <h4>Color y ondulaciones</h4>
+    <button class="servicio-btn color" data-nombre="Color Global" data-precio="70000" data-tiempo="60">Color Global · $70.000</button>
+    <button class="servicio-btn ondulaciones" data-nombre="Rizos/Ondulaciones" data-precio="50000" data-tiempo="60">Rizos/Ondulaciones · $50.000</button>
+  </div>
 </div>
 <div class="resumen-reserva">
   <label>Total</label>
@@ -1665,6 +1670,24 @@ if (typeof ocultarContadorTemporal === 'function') ocultarContadorTemporal();
 
       if (btn.classList.contains("barba")) {
         document.querySelectorAll(".barba").forEach(b => {
+          if (b !== btn) {
+            b.classList.remove("selected");
+            seleccionados = seleccionados.filter(s => s.nombre !== b.dataset.nombre);
+          }
+        });
+      }
+
+      if (btn.classList.contains("color")) {
+        document.querySelectorAll(".color").forEach(b => {
+          if (b !== btn) {
+            b.classList.remove("selected");
+            seleccionados = seleccionados.filter(s => s.nombre !== b.dataset.nombre);
+          }
+        });
+      }
+
+      if (btn.classList.contains("ondulaciones")) {
+        document.querySelectorAll(".ondulaciones").forEach(b => {
           if (b !== btn) {
             b.classList.remove("selected");
             seleccionados = seleccionados.filter(s => s.nombre !== b.dataset.nombre);
@@ -6760,7 +6783,9 @@ function reservarHoraConNotificacion() {
     { nombre: 'Barba Premium', label: 'Barba Premium', precio: 12000, tiempo: 60, grupo: 'barba', detalle: 'Ritual con toalla caliente', foto: ()=>JB_IMG_CORTE_BARBA },
     { nombre: 'Corte Clásico', label: 'Corte Clásico', precio: 10000, tiempo: 45, grupo: 'corte', foto: ()=>JB_IMG_CORTE_BARBA },
     { nombre: 'Corte Degradado', label: 'Corte Degradado', precio: 12000, tiempo: 45, grupo: 'corte', foto: ()=>JB_IMG_DEGRADADO_RIZOS },
-    { nombre: 'Corte Degradado + Lavado', label: 'Corte Degradado + Lavado', precio: 15000, tiempo: 60, grupo: 'corte', detalle: 'Corte degradado + ritual con toalla caliente', foto: ()=>JB_IMG_DEGRADADO_RIZOS }
+    { nombre: 'Corte Degradado + Lavado', label: 'Corte Degradado + Lavado', precio: 15000, tiempo: 60, grupo: 'corte', detalle: 'Corte degradado + ritual con toalla caliente', foto: ()=>JB_IMG_DEGRADADO_RIZOS },
+    { nombre: 'Color Global', label: 'Color Global', precio: 70000, tiempo: 60, grupo: 'color', foto: ()=>JB_IMG_CORTE_BARBA },
+    { nombre: 'Rizos/Ondulaciones', label: 'Rizos/Ondulaciones', precio: 50000, tiempo: 60, grupo: 'ondulaciones', foto: ()=>JB_IMG_DEGRADADO_RIZOS }
   ];
 
 
@@ -7813,6 +7838,8 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
 
   // Detecta qué servicios mencionó el cliente en su mensaje
   const JB_KW = [
+    { re:/color\s*(global)?|tinte|coloracion/, nombre:'Color Global' },
+    { re:/rizos?|rulos?|ondulacion(?:es)?|permanente/, nombre:'Rizos/Ondulaciones' },
     { re:/barba.*premium|premium.*barba/, nombre:'Barba Premium' },
     { re:/barba.*express|express.*barba|\bbarba/, nombre:'Barba Express' },
     { re:/(degrada|fade).*(lavado)|(lavado).*(degrada|fade)/, nombre:'Corte Degradado + Lavado' },
@@ -10500,7 +10527,9 @@ SERVICIOS Y PRECIOS (estos son los ÚNICOS servicios que se pueden reservar; no 
 - Clásico: $10.000
 - Corte Degradado: $12.000
 - Corte Degradado + Lavado — Corte degradado + ritual con toalla caliente: $15.000
-En una reserva se puede elegir un servicio de barba y un servicio de corte. Dentro de cada grupo se elige solo una opción.
+- Color Global: $70.000
+- Rizos/Ondulaciones: $50.000
+En una reserva se puede elegir un servicio de cada categoría disponible (barba, corte, color y ondulaciones). Dentro de cada categoría se elige solo una opción. Color Global más Rizos/Ondulaciones suma $120.000.
 
 REGLAS:
 
@@ -10983,7 +11012,9 @@ const JB_FAQ = [
       • Barba Premium — $12.000 (ritual con toalla caliente)<br>
       • Clásico — $10.000<br>
       • Corte Degradado — $12.000<br>
-      • Corte Degradado + Lavado — $15.000 (ritual con toalla caliente)
+      • Corte Degradado + Lavado — $15.000 (ritual con toalla caliente)<br>
+      • Color Global — $70.000<br>
+      • Rizos/Ondulaciones — $50.000
       <br><br>
       ¿Quieres reservar una hora? 📅
     `
@@ -11327,6 +11358,7 @@ const JB_FAQ = [
     r: `
       🚿 El servicio <b>Corte Degradado + Lavado</b> incluye el ritual con toalla caliente y tiene un valor de $15.000.
       También está disponible <b>Barba Premium</b> con ritual de toalla caliente por $12.000.
+      El servicio <b>Color Global</b> cuesta $70.000 y <b>Rizos/Ondulaciones</b> cuesta $50.000.
     `
   },
 
@@ -11405,7 +11437,7 @@ const JB_FAQ = [
     ],
 
     r: `
-      Por ahora, el catálogo disponible incluye servicios de barba y cortes clásicos o degradados. Puedes revisar los precios y reservar desde el menú de servicios.
+      El catálogo incluye servicios de barba, cortes, Color Global y Rizos/Ondulaciones. Puedes revisar los precios y reservar desde el menú de servicios.
     `
   },
 
