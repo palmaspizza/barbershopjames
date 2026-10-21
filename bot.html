@@ -927,7 +927,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <br><br>
                 <button style="background-color: blue;" onclick="activarModoHorarios();">⚙️ Gestionar Horarios por Día</button>
                 <br><br>
-                <button style="background-color: purple;" onclick="cerrarModal('modal-control');borrarTodasLasHorasEnPantalla()">🧹 borrar TODAS las reservas</button>
+                <button type="button" disabled title="El borrado total está bloqueado para proteger las reservas del mes actual." style="background-color: #555; color: #ddd;">🔒 Borrado total deshabilitado</button>
                 <br><br>
                 <button onclick="actiwar();cerrarModal('modal-control');"  style="border: 2px solid white; color: #000; background: orange; text-shadow: #000 3px 3px 5px;" id="activarBloqueoDias">🔒 Marcar Días cerrados 1x1</button>
                 <button type="button" onclick="mostrarX();" style="border: 2px solid white; color: #000; background: lightslategrey; text-shadow: #000 3px 3px 5px;"  id="abrirVentanaVX"><span style="color: red;">CERRAR</span><span style="color: #fff;"> /</span>
@@ -1327,7 +1327,7 @@ if (typeof ocultarContadorTemporal === 'function') ocultarContadorTemporal();
 
     </script>
                 <br><br>
-                <button style="background-color: rgb(65, 65, 65);" onclick="borrarHorasMesHastaHoy()">📜 Borrar reservas antiguas del MES</button>
+                <button style="background-color: rgb(65, 65, 65);" onclick="borrarHorasMesHastaHoy()">📜 Borrar reservas de meses anteriores (conserva el mes actual)</button>
                 <br><br>
                 <button style="background: brown; color: white;" onclick="mostrarBotonBorrar();mostrarBotonesX();cerrarModal('modal-control');">❌ Eliminar reservas a elección </button>
                 <br><br>
@@ -5385,53 +5385,41 @@ const reservasRefMostrar = firebase.database().ref("reservas");
             if (mensajeCerrado) mensajeCerrado.textContent = mensaje || "";
         });
 
-        function confirmarRespaldoAntesDeLimpieza() {
-            const mensaje = 'Hola, Palma Codes. Como recordatorio formal, antes de cualquier limpieza o eliminación de reservas de James Barbershop, por favor realiza y verifica una copia de seguridad completa de la base de datos. Te solicito enviar este recordatorio con al menos 48 horas de anticipación para evitar la pérdida de reservas y permitir su restauración. Muchas gracias.';
-            const url = `https://wa.me/56954998792?text=${encodeURIComponent(mensaje)}`;
-            if (!confirm('Antes de borrar reservas, debes solicitar y verificar una copia de seguridad. ¿Abrir WhatsApp para enviar el recordatorio a Palma Codes?')) return false;
-            window.open(url, '_blank', 'noopener,noreferrer');
-            return confirm('Continúa solo después de enviar el recordatorio y confirmar que la copia de seguridad está lista. ¿Deseas continuar con la eliminación?');
-        }
-
         function borrarTodasLasHorasEnPantalla() {
-            if (!confirmarRespaldoAntesDeLimpieza()) return;
-            reservasRef.remove()
-                .then(() => {
-                    console.log("Todas las reservas han sido eliminadas de Firebase");
-                    const lista = document.getElementById("reservas-lista");
-                    if (!lista) {
-                        console.warn("No se encontró el contenedor de reservas");
-                        return;
-                    }
-                    while (lista.firstChild) {
-                        lista.removeChild(lista.firstChild);
-                    }
-                    console.log("Todas las horas en pantalla han sido eliminadas");
-                })
-                .catch(error => {
-                    console.error("Error al borrar las reservas:", error);
-                });
+            alert('El borrado total está deshabilitado. La limpieza mensual conserva siempre las reservas del mes actual.');
         }
 
         function borrarHorasMesHastaHoy() {
-            if (!confirmarRespaldoAntesDeLimpieza()) return;
-            const hoy = new Date();
-            const diaActual = hoy.getDate();
-            const mesActual = hoy.getMonth() + 1;
-            const añoActual = hoy.getFullYear();
+            if (!confirm('Se eliminarán las reservas con fecha anterior al primer día de este mes. Se conservará completo el mes actual. ¿Continuar?')) return;
+            const hoyChile = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
+            const inicioMes = `${hoyChile.slice(0, 7)}-01`;
 
-            reservasRef.once("value", snapshot => {
+            reservasRef.once("value").then(snapshot => {
+                const eliminaciones = {};
                 snapshot.forEach(child => {
-                    const {
-                        fecha
-                    } = child.val();
-                    const [año, mes, dia] = fecha.split("-").map(Number);
-                    if (año === añoActual && mes === mesActual && dia < diaActual) {
-                        reservasRef.child(child.key).remove();
+                    const reserva = child.val();
+                    const fecha = reserva && String(reserva.fecha || '');
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(fecha) && fecha < inicioMes) {
+                        const [anio, mes, dia] = fecha.split('-').map(Number);
+                        const fechaValida = new Date(anio, mes - 1, dia);
+                        if (fechaValida.getFullYear() === anio && fechaValida.getMonth() === mes - 1 && fechaValida.getDate() === dia) {
+                            eliminaciones[child.key] = null;
+                        }
                     }
                 });
+                const cantidad = Object.keys(eliminaciones).length;
+                if (!cantidad) {
+                    alert('No hay reservas de meses anteriores para eliminar.');
+                    return;
+                }
+                return reservasRef.update(eliminaciones).then(() => {
+                    document.getElementById("modal-control").classList.add("fantasma");
+                    alert(`${cantidad} reserva(s) de meses anteriores eliminada(s). Se conservó el mes actual completo.`);
+                });
+            }).catch(error => {
+                console.error('Error al limpiar reservas de meses anteriores:', error);
+                alert(`No se pudieron limpiar las reservas: ${error.message}`);
             });
-            document.getElementById("modal-control").classList.add("fantasma");
         }
 
         function miFuncion() {
