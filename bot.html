@@ -13,11 +13,56 @@
 <meta property="og:description" content="Reservar Hora">
 <meta property="og:image" content="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg">
 <meta property="og:type" content="website">
+<style>
+  html, body { background: transparent !important; }
+  #bg-video-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -2;
+    overflow: hidden;
+    background: #101114;
+    pointer-events: none;
+  }
+  #bg-video-container video {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+  }
+  #bg-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: rgba(16, 17, 20, 0.75);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    pointer-events: none;
+  }
+</style>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
+    <div id="jbVipSplash" role="status" aria-label="Cargando James Barbershop" style="position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:#050505;color:#f6df9b;">
+      <div class="jbVipSplashBrand">
+        <img src="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" alt="" width="132" height="132">
+        <span>BARBERO PROFESIONAL</span>
+        <strong>CORTE <i>&amp;</i> ESTILO</strong>
+      </div>
+    </div>
+    <div id="bg-video-container" aria-hidden="true">
+        <video id="video-a" autoplay muted loop playsinline preload="auto"></video>
+        <video id="video-b" autoplay muted loop playsinline preload="auto"></video>
+    </div>
+    <div id="bg-overlay" aria-hidden="true"></div>
     
     <!-- REMPLAZAR: "James Barbershop" POR "EL NOMBRE DE LABARBER" -->
     
@@ -56,6 +101,15 @@
   }
 
 </style><br>
+<header class="jbSiteHeader">
+  <p class="jbSiteEyebrow">BARBERO PROFESIONAL · CORTE &amp; ESTILO</p>
+  <h1>James <span>Barbershop</span></h1>
+  <p class="jbSiteIntro">Tu próximo corte empieza aquí. Elige cómo quieres reservar.</p>
+  <nav class="jbSiteNav" aria-label="Navegación de la barbería">
+    <a href="#cuadroCalendario">Reservar</a>
+    <a href="#misReservasSection">Mis reservas</a>
+  </nav>
+</header>
 
 <!-- ============================================
      BANNER DE RESERVA — invita al chat sin mencionar "IA"
@@ -1918,10 +1972,6 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
         <span class="icono-titulo">📋</span>
         Mis Reservas
     </h2><p class="hint-text">💡 tus reservas aparecerán automáticamente si las hiciste desde este dispositivo</p>
-  <br> <br><br><br><br><br> <!-- SNIPPET: pega esto donde quieras dentro de tu HTML -->
-<h2 class="mis-reservas-titulo">
-     
-    </h2>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
 <style>
@@ -2000,9 +2050,9 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
   }
 </style>
 
-<div style="border: 1px solid yellow;" class="privacidad-wrap">
+<div class="privacidad-wrap">
 
-  <p style="color: yellow;" class="privacidad-label">
+  <p class="privacidad-label">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
     </svg>
@@ -3614,14 +3664,7 @@ function alAceptarTerminos(checkbox) {
 input {
   text-transform: capitalize;
 }
-.container {
-  width: 100% !important;
-  margin: 0 !important;
-  background-color: #111;
-  padding: 0px !important;
-  border-radius: 0px;
-  height: 100%;
-} 
+
 /* IMPORTANTE CONFIG CONTAINER */
 
 h1, h2 {
@@ -3761,15 +3804,7 @@ label{
 
   text-shadow: #000 1px 1px 2px;
 }
-/* Contenedor principal */
-.container {
-  max-width: 600px;
-  margin: auto;
-  padding: 20px;
-  background-color: #1a1a1a;
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-}
+
 
 /* Título principal */
 h1 {
@@ -4526,7 +4561,7 @@ img {
 <script>
 // Registrar el Service Worker
 if (window.location.protocol === 'https:' && 'serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/firebase-messaging-sw.js')
+  navigator.serviceWorker.register('/push-sw.js')
     .then(reg => {
       console.log('Service Worker registrado');
     })
@@ -5073,7 +5108,8 @@ const total = document.getElementById("eltotal")?.value || "";
     const idBloque = `${fechaInputValor}-${hora}`;
     const ref = db.ref("reservas");
 
-    ref.once("value", snapshot => {
+    try {
+        const snapshot = await ref.orderByChild("fecha").equalTo(fechaInputValor).once("value");
         let ocupada = false;
         snapshot.forEach(child => {
             const r = child.val();
@@ -5084,38 +5120,88 @@ const total = document.getElementById("eltotal")?.value || "";
 
         if (ocupada) {
             document.getElementById("modal-ocupado")?.classList.remove("hidden");
-        } else {
-            // Crear reserva en Firebase - USAR fechaInputValor DIRECTAMENTE
-            const nuevaReserva = {
-                nombre: nombre,
-                fecha: fechaInputValor,  // 🔴 SIEMPRE usar el string YYYY-MM-DD
-                hora: hora,
-                servicios: servicios,
-                total: total,
-                telefono: telefono,
-                acepta_contacto_whatsapp: true,
-                timestamp: firebase.database.ServerValue.TIMESTAMP  // Usar timestamp del servidor
-            };
-
-            const reservaRef = ref.push(nuevaReserva);
-            const reservaId = reservaRef.key;
-
-            // Guardar en localStorage con la fecha correcta
-            guardarReservaLocal(reservaId, nombre, fechaInputValor, hora, servicios, total);
-
-            // Mostrar confirmación
-            mostrarConfirmacionReserva(reservaId, fechaInputValor, hora, nombre);
-
-            // Notificar al barbero
-            if (typeof notificarNuevaReserva === 'function') {
-                notificarNuevaReserva(nuevaReserva);
-            }
-
-            // Enviar WhatsApp
-            enviarMensajeWhatsApp();
-            setTimeout(() => cargarMisReservasAutomatico(), 800);
+            return;
         }
-    });
+
+        const ownerUid = typeof window.jbWebPushObtenerUid === "function"
+            ? await window.jbWebPushObtenerUid()
+            : null;
+        const nuevaReserva = {
+            nombre: nombre,
+            fecha: fechaInputValor,
+            hora: hora,
+            ...(ownerUid ? { ownerUid } : {}),
+            servicios: servicios,
+            total: total,
+            telefono: telefono,
+            acepta_contacto_whatsapp: true,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        };
+        const reservaRef = ref.push();
+        const claveHora = String(hora).replace(/[^a-zA-Z0-9_-]/g, "_");
+        const bloqueoRef = db.ref(`bloqueos/${fechaInputValor}/${claveHora}`);
+        const bloqueo = await bloqueoRef.transaction(actual => actual === null
+            ? { reservaId: reservaRef.key, timestamp: Date.now() }
+            : undefined);
+        if (!bloqueo.committed) {
+            document.getElementById("modal-ocupado")?.classList.remove("hidden");
+            return;
+        }
+        try {
+            await reservaRef.set(nuevaReserva);
+        } catch (error) {
+            try {
+                await bloqueoRef.transaction(actual => actual?.reservaId === reservaRef.key ? null : undefined);
+            } catch (cleanupError) {
+                console.error("No se pudo liberar el horario tras fallar la reserva:", cleanupError);
+            }
+            throw error;
+        }
+
+        const reservaId = reservaRef.key;
+        window.dispatchEvent(new CustomEvent("jb:reservation-created", {
+            detail: { reservationId, ownerUid, fecha: fechaInputValor, hora }
+        }));
+        try {
+            guardarReservaLocal(reservaId, nombre, fechaInputValor, hora, servicios, total);
+        } catch (error) {
+            console.error("La reserva se guardó, pero no se pudo actualizar la lista local:", error);
+        }
+        try {
+            mostrarConfirmacionReserva(reservaId, fechaInputValor, hora, nombre);
+        } catch (error) {
+            console.error("La reserva se guardó, pero no se pudo mostrar la confirmación visual:", error);
+            mostrarToastCliente("Tu reserva sí quedó guardada, pero no pudimos mostrar el resumen.", true);
+        }
+        if (typeof notificarNuevaReserva === "function") {
+            try {
+                const envio = notificarNuevaReserva(nuevaReserva);
+                if (envio && typeof envio.catch === "function") {
+                    envio.catch(error => console.error("No se pudo avisar al barbero:", error));
+                }
+            } catch (error) {
+                console.error("No se pudo avisar al barbero:", error);
+            }
+        }
+        try {
+            const envioWhatsApp = enviarMensajeWhatsApp();
+            if (envioWhatsApp && typeof envioWhatsApp.catch === "function") {
+                envioWhatsApp.catch(error => console.error("No se pudo abrir el mensaje de WhatsApp:", error));
+            }
+        } catch (error) {
+            console.error("No se pudo abrir el mensaje de WhatsApp:", error);
+        }
+        setTimeout(() => {
+            try {
+                cargarMisReservasAutomatico();
+            } catch (error) {
+                console.error("No se pudo actualizar la lista de reservas:", error);
+            }
+        }, 800);
+    } catch (error) {
+        console.error("No se pudo guardar la reserva:", error);
+        mostrarToastCliente("No pudimos guardar la reserva. Revisa tu conexión e inténtalo de nuevo.", true);
+    }
 }
 // NUEVA FUNCIÓN: Mostrar confirmación bonita
 function mostrarConfirmacionReserva(reservaId, fecha, hora, nombre) {
@@ -5394,7 +5480,7 @@ const reservasRefMostrar = firebase.database().ref("reservas");
             const hoyChile = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
             const inicioMes = `${hoyChile.slice(0, 7)}-01`;
 
-            reservasRef.once("value").then(snapshot => {
+            reservasRef.orderByChild("fecha").endAt(inicioMes).once("value").then(snapshot => {
                 const eliminaciones = {};
                 snapshot.forEach(child => {
                     const reserva = child.val();
@@ -5968,9 +6054,7 @@ function marcarHorasOcupadasPorDuracion() {
   }
   .container{
     background: var(--surface);
-    box-shadow: 0 20px 60px rgba(0,0,0,.6);
     border-radius: 18px;
-    padding: 28px;
     position: relative;
     overflow: hidden;
   }
@@ -6146,11 +6230,7 @@ function marcarHorasOcupadasPorDuracion() {
   body{
     font-size: clamp(14px, 2.6vw, 18px);
   }
-  .container{
-    width: min(96vw, 720px);
-    padding: clamp(16px, 4vw, 28px);
-    margin: 0 auto;
-  }
+
   #cuadroCalendario{
     gap: clamp(4px, 1.2vw, 8px);
   }
@@ -6202,7 +6282,6 @@ function marcarHorasOcupadasPorDuracion() {
   (function(){
     let ctx;
     let master;
-    const lastHover = new WeakMap();
     if (!Element.prototype.matches) {
       Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
     }
@@ -6227,45 +6306,29 @@ function marcarHorasOcupadasPorDuracion() {
       if (ctx.state === 'suspended') ctx.resume();
     }
 function playTone(freq, dur, vol){
-  if (!ctx) return;
-  const oscillator = ctx.createOscillator();
-  const gain = ctx.createGain();
-  const ahora = ctx.currentTime;
-  oscillator.type = 'sine';
-  oscillator.frequency.setValueAtTime(freq, ahora);
-  gain.gain.setValueAtTime(0, ahora);
-  gain.gain.linearRampToValueAtTime(vol, ahora + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.001, ahora + Math.max(dur, 0.02));
-  oscillator.connect(gain);
-  gain.connect(master);
-  oscillator.start(ahora);
-  oscillator.stop(ahora + Math.max(dur, 0.02));
+  try {
+    ensureCtx();
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const start = ctx.currentTime;
+    const duration = Math.max(0.025, Math.min(0.06, dur || 0.045));
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(freq, start);
+    oscillator.frequency.exponentialRampToValueAtTime(Math.max(240, freq * 0.72), start + duration);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.002, Math.min(0.009, vol * 0.08)), start + 0.004);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    oscillator.connect(gain);
+    gain.connect(master);
+    oscillator.start(start);
+    oscillator.stop(start + duration + 0.005);
+  } catch (error) {
+    console.warn('No se pudo reproducir el sonido del botón:', error);
+  }
 }
-    function sequence(tones, gap){
-      let t = 0;
-      tones.forEach(([f,d,v])=>{
-        setTimeout(()=>playTone(f,d,v), t);
-        t += Math.max(0, Math.floor(gap));
-      });
-    }
-    function hashFreq(el){
-      const s = (el.id || '') + (el.className || '') + (el.textContent || '');
-      let h = 0;
-      for (let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
-      const base = 360 + (h % 520);
-      return base;
-    }
     function playFor(el, type){
-      const vol = 0.3;
-      if (type === 'nav') sequence([[520,0.1,vol],[700,0.1,vol]], 100);
-      else if (type === 'service-select') {
-        const on = el.classList.contains('selected');
-        playTone(on ? 940 : 420, 0.1, vol);
-      } else if (type === 'hour-free') playTone(560, 0.1, vol);
-      else if (type === 'hour-occupied') playTone(300, 0.1, vol*0.95);
-      else if (type === 'reserve') sequence([[680,0.1,vol],[920,0.1,vol]], 120);
-      else if (type === 'toggle') playTone(740, 0.1, vol);
-      else playTone(hashFreq(el), 0.1, vol);
+      const frequency = type === 'service-select' && el.classList.contains('selected') ? 920 : 760;
+      playTone(frequency, 0.045, 0.08);
     }
     document.addEventListener('click', function(e){
       const el = safeClosest(e, 'button, .bloqueHora');
@@ -6279,15 +6342,6 @@ function playTone(freq, dur, vol){
       } else if (el.id === 'reservar-button') type = 'reserve';
       else if (el.classList.contains('toggle-hora-btn')) type = 'toggle';
       playFor(el, type);
-    }, true);
-    document.addEventListener('pointerenter', function(e){
-      const el = safeClosest(e, 'button, .bloqueHora');
-      if (!el) return;
-      const now = Date.now();
-      const last = lastHover.get(el) || 0;
-      if (now - last < 350) return;
-      lastHover.set(el, now);
-      playTone(Math.max(380, hashFreq(el)-80), 0.08, 0.18);
     }, true);
     document.addEventListener('pointerdown', ensureCtx, { once: true, capture: true });
   })();
@@ -9503,12 +9557,16 @@ if(!resultadoBloqueo.committed){
 }
 
 bloqueoTomado = true;
+      const ownerUid = typeof window.jbWebPushObtenerUid === "function"
+        ? await window.jbWebPushObtenerUid()
+        : null;
       const serviciosTexto = jbReserva.servicios.map(s=>s.label||s.nombre).join(' + ');
       const total = jbReserva.servicios.reduce((a,s)=>a+s.precio,0);
       const nuevaReserva = {
         nombre:   jbReserva.nombre,
         fecha:    jbReserva.fecha,
         hora:     jbReserva.hora,
+        ...(ownerUid ? { ownerUid } : {}),
         servicios: serviciosTexto,
         total:    '$'+total.toLocaleString('es-CL'),
         telefono: jbReserva.telefono,
@@ -9520,6 +9578,14 @@ bloqueoTomado = true;
       await bloqueoRef.update({
         reservaId: ref.key
       });
+      window.dispatchEvent(new CustomEvent('jb:reservation-created', {
+        detail: {
+          reservationId: ref.key,
+          ownerUid,
+          fecha: nuevaReserva.fecha,
+          hora: nuevaReserva.hora
+        }
+      }));
 
       if(typeof notificarNuevaReserva === 'function') notificarNuevaReserva(nuevaReserva);
       if(typeof guardarReservaLocal   === 'function') guardarReservaLocal(ref.key, nuevaReserva.nombre, nuevaReserva.fecha, nuevaReserva.hora, nuevaReserva.servicios, nuevaReserva.total);
@@ -11756,6 +11822,1124 @@ window.addEventListener('load', function() {
     if (!document.hidden) revisar();
   });
 })();
+</script>
+<script src="push-client.js"></script>
+<script>
+(() => {
+    const sources = [
+        'videofondo1.mp4',
+        'videofondo2.mp4',
+        'videofondo3.mp4',
+        'videovisosjames1.mp4'
+    ];
+    const players = [
+        document.getElementById('video-a'),
+        document.getElementById('video-b')
+    ];
+    let activePlayer = null;
+    let nextSourceIndex = 0;
+    let switching = false;
+
+    function loadAndPlay(player, source) {
+        player.pause();
+        player.removeAttribute('src');
+        player.load();
+        player.src = source;
+        player.load();
+
+        return new Promise((resolve, reject) => {
+            const cleanup = () => {
+                window.clearTimeout(timeoutId);
+                player.removeEventListener('canplay', onCanPlay);
+                player.removeEventListener('error', onError);
+            };
+            const onCanPlay = () => {
+                cleanup();
+                player.play().then(resolve, reject);
+            };
+            const onError = () => {
+                cleanup();
+                reject(new Error(`No se pudo cargar ${source}`));
+            };
+            const timeoutId = window.setTimeout(() => {
+                cleanup();
+                reject(new Error(`Tiempo agotado al cargar ${source}`));
+            }, 10000);
+
+            if (player.readyState >= 3) {
+                onCanPlay();
+            } else {
+                player.addEventListener('canplay', onCanPlay, { once: true });
+                player.addEventListener('error', onError, { once: true });
+            }
+        });
+    }
+
+    async function startFirstVideo() {
+        for (let index = 0; index < sources.length; index += 1) {
+            try {
+                await loadAndPlay(players[0], sources[index]);
+                players[0].style.opacity = '1';
+                activePlayer = players[0];
+                nextSourceIndex = (index + 1) % sources.length;
+                return true;
+            } catch (error) {
+                console.error('Carrusel de fondo:', error);
+                players[0].removeAttribute('src');
+                players[0].load();
+            }
+        }
+        console.error('Carrusel de fondo: no se pudo reproducir ninguno de los videos configurados.');
+        return false;
+    }
+
+    async function showNextVideo() {
+        if (switching || !activePlayer) return;
+        switching = true;
+        const nextPlayer = players.find(player => player !== activePlayer);
+
+        for (let attempt = 0; attempt < sources.length; attempt += 1) {
+            const source = sources[nextSourceIndex];
+            nextSourceIndex = (nextSourceIndex + 1) % sources.length;
+            try {
+                await loadAndPlay(nextPlayer, source);
+                const previousPlayer = activePlayer;
+                nextPlayer.style.opacity = '1';
+                previousPlayer.style.opacity = '0';
+                activePlayer = nextPlayer;
+                window.setTimeout(() => previousPlayer.pause(), 1000);
+                break;
+            } catch (error) {
+                console.error('Carrusel de fondo:', error);
+                nextPlayer.removeAttribute('src');
+                nextPlayer.load();
+            }
+        }
+        switching = false;
+    }
+
+    startFirstVideo().then(ready => {
+        if (ready) window.setInterval(showNextVideo, 2800);
+    });
+})();
+</script>
+<style>
+  :root {
+    color-scheme: dark;
+    --jb-premium-bg: #101114;
+    --jb-premium-panel: rgba(25, 26, 31, .94);
+    --jb-premium-panel-raised: rgba(33, 34, 40, .96);
+    --jb-premium-line: rgba(228, 166, 79, .22);
+    --jb-premium-gold: #e4a64f;
+    --jb-premium-gold-light: #f4ca83;
+    --jb-premium-text: #f4f1eb;
+    --jb-premium-muted: #b7b4ad;
+  }
+  html {
+    min-height: 100%;
+    background: var(--jb-premium-bg) !important;
+  }
+  body {
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: transparent !important;
+    color: var(--jb-premium-text);
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(15px, 1.3vw, 17px);
+    line-height: 1.6;
+    text-align: center;
+  }
+  #bg-video-container {
+    z-index: 0;
+    background:
+      radial-gradient(ellipse at 50% 18%, rgba(137, 91, 34, .24), transparent 48%),
+      linear-gradient(145deg, #17181c, #0d0e11 68%, #171512);
+  }
+  #bg-video-container video {
+    filter: brightness(.98) saturate(.96);
+    transform: scale(1.035);
+  }
+  #bg-overlay {
+    z-index: 1;
+    background:
+      linear-gradient(180deg, rgba(12, 13, 15, .22), rgba(12, 13, 15, .38) 55%, rgba(12, 13, 15, .52)),
+      radial-gradient(ellipse at 50% 22%, rgba(228, 166, 79, .035), transparent 52%);
+    backdrop-filter: blur(.35px);
+    -webkit-backdrop-filter: blur(.35px);
+  }
+  body > .container {
+    position: relative;
+    z-index: 2;
+    width: min(100% - 32px, 1040px) !important;
+    min-height: 100vh;
+    margin: 0 auto !important;
+    padding: 1px 0 56px !important;
+    background: transparent !important;
+  }
+  #jbBanner, #jbBanner * { box-sizing: border-box; }
+  #logo {
+    width: clamp(142px, 20vw, 184px) !important;
+    height: clamp(142px, 20vw, 184px) !important;
+    margin: 24px auto 14px !important;
+    border: 3px solid rgba(244, 202, 131, .92);
+    box-shadow: 0 16px 42px rgba(0, 0, 0, .38), 0 0 0 8px rgba(228, 166, 79, .08);
+  }
+  .jbSiteHeader {
+    position: relative;
+    max-width: 760px;
+    margin: 0 auto 28px;
+    padding: 0 16px;
+    text-align: center;
+  }
+  .jbSiteEyebrow {
+    margin: 0 0 5px;
+    color: var(--jb-premium-gold-light);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .24em;
+  }
+  .jbSiteHeader h1 {
+    margin: 0;
+    color: #fff !important;
+    font: 700 clamp(2.1rem, 5.5vw, 3.6rem)/1.08 'Playfair Display', serif;
+    letter-spacing: -.035em;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, .42);
+  }
+  .jbSiteHeader h1 span { color: var(--jb-premium-gold-light); }
+  .jbSiteIntro {
+    margin: 10px 0 18px;
+    color: #e0ddd7;
+    font-size: clamp(1rem, 2vw, 1.18rem);
+    line-height: 1.5;
+  }
+  .jbSiteNav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 9px;
+  }
+  .jbSiteNav a {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 15px;
+    border: 1px solid rgba(244, 202, 131, .34);
+    border-radius: 999px;
+    background: rgba(21, 22, 26, .58);
+    color: #f2e5ce;
+    font-size: .86rem;
+    font-weight: 700;
+    text-decoration: none;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: background .18s ease, border-color .18s ease, transform .18s ease;
+  }
+  .jbSiteNav a:hover {
+    transform: translateY(-1px);
+    border-color: var(--jb-premium-gold-light);
+    background: rgba(228, 166, 79, .16);
+  }
+  #jbBanner {
+    width: min(100%, 920px);
+    max-width: 920px;
+    margin: 0 auto 28px;
+    padding: 0;
+  }
+  #jbBanner::before {
+    content: none;
+  }
+  #jbBanner .jbBannerRow {
+    display: flex;
+    align-items: stretch;
+    gap: 14px;
+  }
+  #jbBanner .jbBannerRow > br { display: none; }
+  #jbBanner .jbBannerCard {
+    position: relative;
+    flex: 1 1 280px;
+    min-width: 0;
+    max-width: none;
+    min-height: 205px;
+    padding: 23px;
+    border: 1px solid var(--jb-premium-line);
+    border-radius: 19px;
+    background: linear-gradient(150deg, rgba(34, 35, 40, .84), rgba(21, 22, 26, .82));
+    box-shadow: 0 18px 44px rgba(0, 0, 0, .26);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+  }
+  #jbBanner .jbBannerCard[hidden] { display: none !important; }
+  #jbBanner .jbBannerCard:hover {
+    transform: translateY(-3px);
+    border-color: rgba(244, 202, 131, .48);
+    box-shadow: 0 22px 48px rgba(0, 0, 0, .34);
+  }
+  #jbBanner .jbBannerCard.jbBannerChat {
+    border-color: rgba(228, 166, 79, .42);
+    background:
+      radial-gradient(circle at 100% 0, rgba(228, 166, 79, .15), transparent 48%),
+      linear-gradient(150deg, rgba(42, 38, 29, .88), rgba(22, 22, 24, .84));
+  }
+  #jbBanner .jbBannerBadge {
+    top: 15px;
+    right: 15px;
+    padding: 5px 10px;
+    border: 1px solid rgba(255, 255, 255, .26);
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--jb-premium-gold-light), var(--jb-premium-gold));
+    color: #21180c;
+    font-size: .78rem;
+    letter-spacing: .03em;
+  }
+  #jbBanner .jbBannerIcon {
+    margin: 0 0 13px;
+    color: var(--jb-premium-muted);
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  #jbBanner .jbBannerCard h3 {
+    margin: 0 0 8px;
+    color: var(--jb-premium-gold-light);
+    font: 700 clamp(1.4rem, 3.2vw, 1.75rem)/1.25 'Playfair Display', serif;
+    text-align: left;
+  }
+  #jbBanner .jbBannerCard p {
+    margin: 0 0 18px;
+    color: #d0cec8;
+    font-size: 1rem;
+    line-height: 1.55;
+    text-align: left;
+  }
+  #jbBanner .jbBannerCta {
+    display: inline-flex;
+    min-height: 50px;
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
+    padding: 10px 16px;
+    border: 1px solid rgba(244, 202, 131, .26);
+    border-radius: 11px;
+    background: linear-gradient(135deg, #f4ca83, #e4a64f);
+    box-shadow: 0 7px 18px rgba(228, 166, 79, .16);
+    color: #21180c;
+    font-size: .96rem;
+    font-weight: 800;
+  }
+  #cuadroCalendario,
+  .galeria-clientes,
+  .mis-reservas-container {
+    border: 1px solid var(--jb-premium-line);
+    border-radius: 20px;
+    background: linear-gradient(150deg, rgba(33, 34, 40, .83), rgba(25, 26, 31, .82));
+    box-shadow: 0 18px 48px rgba(0, 0, 0, .27);
+    color: var(--jb-premium-text);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .mis-reservas-container {
+    position: relative;
+    z-index: 2;
+  }
+  .mis-reservas-titulo {
+    color: var(--jb-premium-gold-light) !important;
+    font-size: clamp(1.45rem, 3.5vw, 1.85rem) !important;
+  }
+  .hint-text {
+    color: #dedbd4 !important;
+    font-size: .95rem !important;
+  }
+  #cuadroCalendario {
+    width: min(100%, 920px);
+    margin: 22px auto 28px;
+    padding: clamp(15px, 3vw, 28px);
+  }
+  .galeria-clientes,
+  .mis-reservas-container {
+    width: min(100% - 32px, 920px);
+    margin: 24px auto;
+    padding: clamp(16px, 3vw, 26px);
+  }
+  #jbChatBody .jbBubble { font-size: 1.02rem; }
+  #jbChatBubble {
+    right: max(20px, env(safe-area-inset-right));
+    bottom: max(20px, env(safe-area-inset-bottom));
+    width: 60px;
+    height: 60px;
+    border: 3px solid rgba(255, 255, 255, .8);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .48), 0 0 0 6px rgba(228, 166, 79, .12);
+  }
+  #jbUnreadDot { border-color: #191a1f; }
+  #jbChatPanel {
+    right: 22px;
+    bottom: 96px;
+    width: min(410px, calc(100vw - 36px));
+    max-width: calc(100vw - 36px);
+    height: min(78dvh, 740px) !important;
+    min-height: 420px;
+    border: 1px solid rgba(244, 202, 131, .38);
+    border-radius: 22px;
+    background: linear-gradient(155deg, rgba(32, 33, 38, .99), rgba(20, 21, 25, .99));
+    box-shadow: 0 28px 78px rgba(0, 0, 0, .62), 0 0 36px rgba(228, 166, 79, .07);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  #jbChatHeader {
+    min-height: 68px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--jb-premium-line);
+    background: linear-gradient(115deg, #2b281f, #1b1c20 72%);
+  }
+  #jbChatHeader img {
+    width: 42px;
+    height: 42px;
+    border-color: var(--jb-premium-gold-light);
+    box-shadow: 0 0 0 4px rgba(228, 166, 79, .1);
+  }
+  #jbChatHeader .jbTitle { color: var(--jb-premium-gold-light); font-size: .98rem; }
+  #jbChatHeader .jbSub { color: #c5c2bb; font-size: .74rem; }
+  #jbChatClose {
+    min-width: 42px;
+    min-height: 42px;
+    border-radius: 11px;
+    color: #e9e3d9;
+    font-size: 1.6rem;
+  }
+  #jbChatClose:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+  #jbChatBody {
+    min-height: 0;
+    gap: 11px;
+    padding: 15px;
+    background:
+      radial-gradient(ellipse at 0 0, rgba(228, 166, 79, .055), transparent 48%),
+      #121317;
+    overscroll-behavior: contain;
+  }
+  #jbChatBody .jbBubble {
+    max-width: min(88%, 350px);
+    margin-bottom: 2px;
+    padding: 11px 14px;
+    border: 1px solid rgba(255, 255, 255, .055);
+    border-radius: 16px 16px 16px 5px;
+    background: linear-gradient(145deg, #292a30, #23242a);
+    color: var(--jb-premium-text);
+    font-size: .96rem;
+    line-height: 1.55;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .13);
+  }
+  #jbChatBody .jbBubble.jbCliente {
+    border: 0;
+    border-radius: 16px 16px 5px 16px;
+    background: linear-gradient(135deg, var(--jb-premium-gold-light), var(--jb-premium-gold));
+    color: #21180c;
+  }
+  #jbChatBody .jbBubble.jbJames {
+    border-color: rgba(228, 166, 79, .2);
+    border-left: 3px solid var(--jb-premium-gold);
+    background: linear-gradient(145deg, #29271f, #222329);
+    color: #f2e5ce;
+  }
+  #jbChatBody .jbBubble.jbSistema { border: 0; background: transparent; color: #aaa7a0; }
+  #jbModalidadBar,
+  #jbQuickActions,
+  #jbChatInputBar,
+  #jbResetWrap {
+    border-color: var(--jb-premium-line);
+    background: #191a1e;
+  }
+  #jbModalidadBar { padding: 10px; gap: 9px; }
+  #jbModalidadBar button {
+    min-height: 48px;
+    border: 1px solid rgba(228, 166, 79, .3);
+    border-radius: 12px;
+    background: #24252a;
+    color: #e9d3ad;
+    font-size: .85rem;
+    font-weight: 700;
+  }
+  #jbModalidadBar button[aria-pressed="true"] {
+    border-color: transparent;
+    background: linear-gradient(135deg, var(--jb-premium-gold-light), var(--jb-premium-gold));
+    color: #21180c;
+    box-shadow: 0 5px 15px rgba(228, 166, 79, .17);
+  }
+  #jbQuickActions { gap: 8px; padding: 9px 11px 7px; }
+  .jbQuickBtn {
+    min-height: 38px;
+    padding: 7px 11px;
+    border: 1px solid rgba(228, 166, 79, .3);
+    border-radius: 11px;
+    background: rgba(228, 166, 79, .08);
+    color: var(--jb-premium-gold-light);
+    font-size: .75rem;
+  }
+  .jbQuickBtn.jbBtnReservar {
+    border: 0;
+    border-radius: 11px;
+    background: linear-gradient(135deg, var(--jb-premium-gold-light), var(--jb-premium-gold));
+    box-shadow: 0 4px 12px rgba(228, 166, 79, .16);
+    color: #21180c;
+    font-size: .82rem;
+    animation: none;
+  }
+  #jbChatInputBar { padding: 10px 11px max(10px, env(safe-area-inset-bottom)); }
+  #jbChatInput {
+    min-height: 46px;
+    border: 1px solid rgba(228, 166, 79, .25);
+    border-radius: 12px;
+    background: #25262b;
+    font-size: .95rem;
+  }
+  #jbChatSend {
+    min-width: 48px;
+    min-height: 46px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--jb-premium-gold-light), var(--jb-premium-gold));
+    color: #21180c;
+  }
+  .jbHoraBtn {
+    min-height: 44px;
+    border: 1px solid rgba(228, 166, 79, .42);
+    border-radius: 11px;
+    background: linear-gradient(145deg, rgba(228, 166, 79, .15), rgba(228, 166, 79, .06));
+    color: var(--jb-premium-gold-light);
+    font-size: .95rem;
+    box-shadow: none;
+  }
+  .jbHoraBtn:hover { border-color: var(--jb-premium-gold-light); background: rgba(228, 166, 79, .2); color: #fff; }
+  .jbDiaBtn { border-color: rgba(228, 166, 79, .3); border-radius: 11px; background: #222329; }
+  .jbOpcionBtn {
+    border-color: rgba(228, 166, 79, .3);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(228, 166, 79, .11), rgba(228, 166, 79, .04));
+    color: var(--jb-premium-gold-light);
+  }
+  .jbOpcionBtn:hover { border-color: var(--jb-premium-gold); background: rgba(228, 166, 79, .18); color: #fff; }
+  .jbConfirmBtn { border-radius: 12px; }
+  .jbFechaInput, .jbNombreInput { min-height: 48px; border-radius: 12px; background: #202126; }
+  .jbFechaInputBtn, .jbNombreInputBtn { min-height: 48px; border-radius: 12px; }
+  #jbChatPanel :focus-visible,
+  #jbChatBubble:focus-visible,
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 3px solid rgba(244, 202, 131, .9);
+    outline-offset: 2px;
+  }
+  @media (max-width: 700px) {
+    body > .container {  
+      width: min(100% - 24px, 560px) !important;
+      padding: 1px 0 48px !important;
+    }
+    #logo { width: clamp(148px, 42vw, 170px) !important; height: clamp(148px, 42vw, 170px) !important; margin: 19px auto 14px !important; }
+    .jbSiteHeader { margin-bottom: 23px; padding-inline: 10px; }
+    .jbSiteEyebrow { font-size: .66rem; letter-spacing: .18em; }
+    .jbSiteHeader h1 { font-size: clamp(2.15rem, 9vw, 2.8rem); }
+    .jbSiteIntro { margin: 9px 0 15px; font-size: 1rem; }
+    .jbSiteNav { gap: 7px; }
+    .jbSiteNav a { min-height: 40px; padding: 7px 12px; font-size: .8rem; }
+    #jbBanner { margin-bottom: 22px; }
+    #jbBanner .jbBannerRow { flex-direction: column; gap: 11px; }
+    #jbBanner .jbBannerCard { flex: 0 0 auto; width: 100%; min-height: 0; padding: 20px; border-radius: 17px; }
+    #jbBanner .jbBannerCard h3 { font-size: 1.55rem; }
+    #jbBanner .jbBannerCard p { max-width: 38ch; font-size: .98rem; }
+    #jbChatBubble {
+      right: max(14px, env(safe-area-inset-right));
+      bottom: max(14px, env(safe-area-inset-bottom));
+      width: 56px;
+      height: 56px;
+    }
+    #jbChatPanel {
+      inset: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+      width: auto;
+      max-width: none;
+      height: auto !important;
+      min-height: 0;
+      max-height: none;
+      border-radius: 20px;
+    }
+    #jbChatHeader { min-height: 64px; padding: 9px 12px; }
+    #jbChatBody { padding: 12px; gap: 9px; }
+    #jbChatBody .jbBubble { max-width: 94%; font-size: .94rem; }
+    #jbModalidadBar { padding: 8px; gap: 7px; }
+    #jbModalidadBar button { min-width: 0; min-height: 48px; padding: 8px 6px; font-size: .78rem; }
+    #jbQuickActions { padding: 8px 9px 5px; }
+    .jbQuickBtn { white-space: normal; }
+    .galeria-clientes, .mis-reservas-container { width: min(100% - 24px, 560px); }
+  }
+  @media (max-width: 380px) {
+    .jbSiteEyebrow { font-size: .58rem; letter-spacing: .13em; }
+    .jbSiteHeader h1 { font-size: clamp(1.65rem, 8vw, 2.1rem); }
+    .jbSiteIntro { font-size: .9rem; }
+    .jbSiteNav { gap: 6px; }
+    .jbSiteNav a { min-height: 36px; padding: 6px 10px; font-size: .72rem; }
+    #jbBanner .jbBannerCard { padding: 17px; }
+    #jbChatHeader .jbTitle { font-size: .9rem; }
+    #jbModalidadBar button { font-size: .72rem; }
+    #jbQuickActions { gap: 6px; }
+    .jbQuickBtn { font-size: .7rem; padding-inline: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #jbChatBubble { animation: none; }
+    *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+  }
+</style>
+<style>
+  :root {
+    --jb-vip-gold: #d4af37;
+    --jb-vip-gold-light: #f5d77f;
+    --jb-vip-gold-deep: #aa771c;
+    --jb-vip-glass: rgba(18, 19, 24, .7);
+    --jb-vip-border: rgba(212, 175, 55, .3);
+    --jb-vip-ease: cubic-bezier(.16, 1, .3, 1);
+  }
+  body > .container { animation: jbVipReveal .9s var(--jb-vip-ease) both; }
+  @keyframes jbVipReveal {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .jbSiteHeader h1,
+  .jbSiteHeader h1 span {
+    background: linear-gradient(135deg, var(--jb-vip-gold-light) 0%, var(--jb-vip-gold) 50%, var(--jb-vip-gold-deep) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent !important;
+  }
+  .jbSiteEyebrow {
+    color: var(--jb-vip-gold-light);
+    letter-spacing: .28em;
+  }
+  .jbSiteIntro { letter-spacing: .035em; }
+  .jbSiteNav a {
+    border-color: var(--jb-vip-border);
+    background: rgba(18, 19, 24, .54);
+    transition: all .4s var(--jb-vip-ease);
+  }
+  .jbSiteNav a:hover {
+    transform: translateY(-3px) scale(1.02);
+    border-color: rgba(245, 215, 127, .6);
+    box-shadow: 0 12px 30px rgba(212, 175, 55, .2);
+  }
+  #jbBanner .jbBannerCard,
+  #cuadroCalendario,
+  .galeria-clientes,
+  .mis-reservas-container,
+  .jbGaleriaTrabajos,
+  #jbRes2,
+  #jbResenas {
+    border: 1px solid var(--jb-vip-border);
+    background: var(--jb-vip-glass);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .12);
+    transition: transform .4s var(--jb-vip-ease), border-color .4s var(--jb-vip-ease), box-shadow .4s var(--jb-vip-ease), background .4s var(--jb-vip-ease);
+  }
+  #jbBanner .jbBannerCard.jbBannerChat {
+    border-color: var(--jb-vip-border);
+    background:
+      radial-gradient(circle at 100% 0, rgba(212, 175, 55, .15), transparent 48%),
+      var(--jb-vip-glass);
+  }
+  #jbBanner .jbBannerCard:hover,
+  .jbGaleriaTrabajos:hover,
+  #jbRes2:hover,
+  #jbResenas:hover {
+    transform: translateY(-3px);
+    border-color: rgba(245, 215, 127, .52);
+    box-shadow: 0 30px 58px rgba(0, 0, 0, .82), 0 12px 30px rgba(212, 175, 55, .12), inset 0 1px 0 rgba(255, 255, 255, .14);
+  }
+  #jbBanner .jbBannerCard h3,
+  .jbGaleriaTrabajos h3,
+  #jbRes2 .tit,
+  #jbResenas .jbRevHead,
+  .mis-reservas-titulo {
+    color: var(--jb-vip-gold-light) !important;
+    letter-spacing: .025em;
+  }
+  #jbBanner .jbBannerCard p { letter-spacing: .012em; }
+  #jbBanner .jbBannerCta,
+  #jbChatSend,
+  .jbNombreInputBtn,
+  .jbFechaInputBtn {
+    background: linear-gradient(135deg, var(--jb-vip-gold-light) 0%, var(--jb-vip-gold) 55%, var(--jb-vip-gold-deep) 100%);
+    color: #21180c;
+    transition: all .4s var(--jb-vip-ease);
+  }
+  #jbBanner .jbBannerCta:hover,
+  #jbChatSend:hover,
+  .jbNombreInputBtn:hover,
+  .jbFechaInputBtn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(212, 175, 55, .45);
+    filter: brightness(1.06);
+  }
+  .jbBannerBadge {
+    animation: jbVipBadgePulse 3.4s ease-in-out infinite;
+    box-shadow: 0 4px 16px rgba(212, 175, 55, .2);
+  }
+  @keyframes jbVipBadgePulse {
+    0%, 100% { box-shadow: 0 4px 16px rgba(212, 175, 55, .18); }
+    50% { box-shadow: 0 5px 22px rgba(212, 175, 55, .42); }
+  }
+  #jbChatBubble,
+  #jbChatPanel,
+  #jbChatHeader,
+  #jbChatBody,
+  #jbQuickActions,
+  #jbChatInputBar,
+  #jbResetWrap {
+    border-color: var(--jb-vip-border);
+  }
+  #jbChatPanel {
+    background: rgba(18, 19, 24, .94);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .12);
+  }
+  #jbChatHeader { background: rgba(18, 19, 24, .88); }
+  #jbChatHeader .jbTitle { color: var(--jb-vip-gold-light); letter-spacing: .015em; }
+  #jbChatBody { background: rgba(12, 13, 17, .82); }
+  #jbChatBody .jbBubble { background: rgba(37, 38, 44, .86); }
+  #jbChatBody .jbBubble.jbCliente {
+    background: linear-gradient(135deg, var(--jb-vip-gold-light), var(--jb-vip-gold));
+  }
+  #jbModalidadBar button,
+  #jbQuickActions button,
+  #jbChatPanel button,
+  #jbSiteNav a,
+  button {
+    transition: all .4s var(--jb-vip-ease);
+  }
+  #jbModalidadBar button:hover,
+  #jbQuickActions button:hover,
+  #jbChatPanel button:not(#jbChatClose):hover,
+  #jbSiteNav a:hover,
+  button:not(#jbChatClose):hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(212, 175, 55, .28);
+  }
+  #jbChatBubble {
+    transition: transform .4s var(--jb-vip-ease), box-shadow .4s var(--jb-vip-ease);
+  }
+  #jbChatBubble:hover {
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: 0 12px 30px rgba(212, 175, 55, .45);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body > .container { animation: none; }
+    .jbBannerBadge { animation: none; }
+    *, *::before, *::after { transition-duration: .01ms !important; }
+  }
+</style>
+<style>
+  :root {
+    --jb-luxe-gold: #d4af37;
+    --jb-luxe-champagne: #f6df9b;
+    --jb-luxe-platinum: #a0a0a5;
+    --jb-luxe-edge: linear-gradient(135deg, rgba(255, 231, 164, .82), rgba(212, 175, 55, .38) 42%, rgba(116, 82, 24, .7));
+    --jb-luxe-shadow: 0 24px 58px rgba(0, 0, 0, .72), 0 0 28px rgba(212, 175, 55, .13), inset 0 1px 0 rgba(255, 255, 255, .09);
+  }
+  body > .container {
+    width: min(100% - 40px, 1080px) !important;
+    max-width: 1080px !important;
+    color: #f3efe6;
+  }
+  #logo {
+    border: 2px solid rgba(246, 223, 155, .92) !important;
+    box-shadow: 0 0 0 8px rgba(212, 175, 55, .08), 0 0 0 16px rgba(212, 175, 55, .035), 0 22px 55px rgba(0, 0, 0, .65), 0 0 38px rgba(212, 175, 55, .2) !important;
+  }
+  .jbSiteHeader {
+    width: min(100%, 1000px);
+    margin: 8px auto 34px !important;
+    padding: clamp(26px, 5vw, 54px) clamp(18px, 5vw, 58px) 30px !important;
+    overflow: hidden;
+    border: 1px solid transparent;
+    border-radius: 28px;
+    background:
+      radial-gradient(ellipse at 50% -35%, rgba(212, 175, 55, .22), transparent 64%),
+      linear-gradient(135deg, rgba(25, 26, 33, .82), rgba(15, 16, 21, .82)) padding-box,
+      var(--jb-luxe-edge) border-box;
+    box-shadow: 0 28px 70px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .11);
+    -webkit-backdrop-filter: blur(22px);
+    backdrop-filter: blur(22px);
+  }
+  .jbSiteHeader::before {
+    content: "JAMES  ·  BARBERÍA PREMIUM";
+    display: block;
+    width: fit-content;
+    margin: 0 auto 14px;
+    padding: 7px 13px;
+    border: 1px solid rgba(212, 175, 55, .3);
+    border-radius: 999px;
+    background: rgba(8, 9, 12, .5);
+    color: var(--jb-luxe-champagne);
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .24em;
+  }
+  .jbSiteEyebrow {
+    margin-bottom: 9px !important;
+    color: #c4b99e !important;
+    font-size: .68rem !important;
+    letter-spacing: .28em !important;
+  }
+  .jbSiteHeader h1 {
+    font-size: clamp(2.65rem, 7vw, 5rem) !important;
+    letter-spacing: -.045em !important;
+    line-height: 1 !important;
+    background: linear-gradient(135deg, #fff 0%, #f6df9b 34%, #d4af37 70%, #aa771c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 26px rgba(212, 175, 55, .16) !important;
+  }
+  .jbSiteIntro {
+    max-width: 620px;
+    margin: 17px auto 25px !important;
+    color: #c7c4bd !important;
+    font-size: clamp(1rem, 2vw, 1.12rem) !important;
+    letter-spacing: .055em !important;
+  }
+  .jbSiteNav { gap: 10px !important; }
+  .jbSiteNav a {
+    min-height: 44px !important;
+    padding: 9px 17px !important;
+    border-color: rgba(212, 175, 55, .26) !important;
+    background: rgba(8, 9, 12, .54) !important;
+    color: #e8dfcb !important;
+    letter-spacing: .065em;
+  }
+  .jbSiteNav a:hover {
+    border-color: rgba(246, 223, 155, .78) !important;
+    background: linear-gradient(135deg, rgba(212, 175, 55, .24), rgba(212, 175, 55, .08)) !important;
+    box-shadow: 0 10px 26px rgba(212, 175, 55, .18) !important;
+  }
+  #jbBanner { margin-bottom: 34px !important; }
+  #jbBanner .jbBannerRow { gap: 18px !important; }
+  #jbBanner .jbBannerCard,
+  #cuadroCalendario,
+  .leyenda-calendario,
+  .mis-reservas-container {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid transparent !important;
+    border-radius: 20px !important;
+    background:
+      linear-gradient(135deg, rgba(25, 26, 33, .88), rgba(15, 16, 21, .96)) padding-box,
+      var(--jb-luxe-edge) border-box !important;
+    box-shadow: var(--jb-luxe-shadow) !important;
+    -webkit-backdrop-filter: blur(22px);
+    backdrop-filter: blur(22px);
+    transition: transform .45s var(--jb-vip-ease), box-shadow .45s var(--jb-vip-ease), filter .45s var(--jb-vip-ease) !important;
+  }
+  #jbBanner .jbBannerCard {
+    min-height: 230px !important;
+    padding: 29px !important;
+    overflow: hidden;
+  }
+  #jbBanner .jbBannerCard::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(246, 223, 155, .95), transparent);
+    opacity: .8;
+  }
+  #jbBanner .jbBannerCard.jbBannerChat {
+    background:
+      radial-gradient(circle at 100% 0, rgba(212, 175, 55, .2), transparent 48%),
+      linear-gradient(135deg, rgba(25, 26, 33, .88), rgba(15, 16, 21, .96)) padding-box,
+      var(--jb-luxe-edge) border-box !important;
+  }
+  #jbBanner .jbBannerCard:hover,
+  #cuadroCalendario:hover,
+  .mis-reservas-container:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 32px 72px rgba(0, 0, 0, .78), 0 0 38px rgba(212, 175, 55, .22), inset 0 1px 0 rgba(255, 255, 255, .13) !important;
+    filter: saturate(1.12);
+  }
+  #jbBanner .jbBannerCard h3,
+  .mis-reservas-titulo {
+    color: transparent !important;
+    background: linear-gradient(135deg, #fff 0%, #f6df9b 52%, #d4af37 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: clamp(1.55rem, 3.4vw, 2.1rem) !important;
+    letter-spacing: .035em !important;
+    text-shadow: 0 2px 16px rgba(212, 175, 55, .18);
+  }
+  #jbBanner .jbBannerCta {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 236, 181, .74) !important;
+    border-radius: 12px !important;
+    background: linear-gradient(115deg, #f6df9b 0%, #d4af37 52%, #aa771c 100%) !important;
+    box-shadow: 0 9px 24px rgba(212, 175, 55, .21), inset 0 1px 0 rgba(255, 255, 255, .44) !important;
+    color: #17130b !important;
+    font-weight: 800 !important;
+    transition: transform .4s var(--jb-vip-ease), box-shadow .4s var(--jb-vip-ease), filter .4s var(--jb-vip-ease) !important;
+  }
+  #jbBanner .jbBannerCta::after {
+    content: "";
+    position: absolute;
+    inset: -60% auto -60% -45%;
+    width: 32%;
+    transform: rotate(22deg);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .65), transparent);
+    animation: jbLuxeShimmer 5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  #jbBanner .jbBannerCta:hover {
+    transform: translateY(-4px) scale(1.025) !important;
+    box-shadow: 0 16px 38px rgba(212, 175, 55, .38), 0 0 24px rgba(212, 175, 55, .22) !important;
+    filter: brightness(1.07);
+  }
+  .mis-reservas-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: min(100% - 32px, 1000px) !important;
+    max-width: 1000px !important;
+    margin: 34px auto !important;
+    padding: clamp(22px, 4vw, 42px) !important;
+    overflow: hidden;
+  }
+  .mis-reservas-container::before {
+    content: "ÁREA DE CLIENTES";
+    display: block;
+    color: var(--jb-luxe-champagne);
+    font-size: .67rem;
+    font-weight: 700;
+    letter-spacing: .25em;
+  }
+  .mis-reservas-container > .identificacion-cliente { order: 1; }
+  .mis-reservas-container > .mis-reservas-vacio { order: 2; }
+  .mis-reservas-container > .lista-reservas-cliente { order: 3; }
+  .mis-reservas-container > .privacidad-wrap { order: 4; }
+  .mis-reservas-titulo {
+    justify-content: flex-start !important;
+    margin: 0 0 8px !important;
+    font-size: clamp(1.9rem, 4vw, 2.6rem) !important;
+  }
+  .hint-text {
+    margin: 0 !important;
+    padding: 12px 15px;
+    border-left: 2px solid rgba(212, 175, 55, .72);
+    border-radius: 0 10px 10px 0;
+    background: linear-gradient(90deg, rgba(212, 175, 55, .09), transparent);
+    color: #c5c2bc !important;
+  }
+  .mis-reservas-vacio,
+  .lista-reservas-cliente {
+    padding: clamp(14px, 2.8vw, 24px);
+    border: 1px solid rgba(212, 175, 55, .19);
+    border-radius: 16px;
+    background: rgba(8, 9, 12, .38);
+  }
+  .privacidad-wrap {
+    order: 4;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 12px !important;
+    margin-top: 8px;
+    padding: 20px clamp(14px, 3vw, 26px) !important;
+    border: 1px solid rgba(212, 175, 55, .2);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(10, 11, 15, .62), rgba(18, 19, 24, .78));
+  }
+  .privacidad-label {
+    margin: 0;
+    color: var(--jb-luxe-champagne) !important;
+    font-family: inherit !important;
+    font-size: .69rem !important;
+    font-weight: 700;
+    letter-spacing: .2em !important;
+  }
+  .privacidad-label svg { color: var(--jb-luxe-gold); }
+  .privacidad-btn {
+    max-width: 100%;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 236, 181, .8) !important;
+    border-radius: 12px !important;
+    background: linear-gradient(115deg, #f6df9b 0%, #d4af37 52%, #aa771c 100%) !important;
+    box-shadow: 0 10px 28px rgba(212, 175, 55, .2), inset 0 1px 0 rgba(255, 255, 255, .48);
+    color: #17130b !important;
+  }
+  .privacidad-btn::after { content: none !important; }
+  .privacidad-btn-title { color: #17130b !important; white-space: normal !important; }
+  .privacidad-btn-title svg { color: #17130b; flex: 0 0 auto; }
+  .privacidad-btn-email { color: rgba(23, 19, 11, .72) !important; overflow-wrap: anywhere; }
+  .privacidad-nota { color: var(--jb-luxe-platinum) !important; }
+  .leyenda-calendario { padding: clamp(17px, 3vw, 28px) !important; }
+  #cuadroCalendario {
+    margin-top: 20px;
+    padding: clamp(16px, 3vw, 28px);
+  }
+  #cuadroCalendario button,
+  .mis-reservas-container button,
+  .jbHoraBtn,
+  .jbDiaBtn,
+  .jbOpcionBtn,
+  #jbChatSend,
+  #jbQuickActions button,
+  #jbChatPanel button {
+    -webkit-tap-highlight-color: transparent;
+    transition: transform .35s var(--jb-vip-ease), border-color .35s var(--jb-vip-ease), box-shadow .35s var(--jb-vip-ease), filter .35s var(--jb-vip-ease) !important;
+  }
+  #cuadroCalendario button:hover,
+  .mis-reservas-container button:hover,
+  .jbHoraBtn:hover,
+  .jbDiaBtn:hover,
+  .jbOpcionBtn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(246, 223, 155, .78);
+    box-shadow: 0 9px 24px rgba(212, 175, 55, .16);
+  }
+  button:active,
+  a:active,
+  .jbBannerCard:active,
+  .jbHoraBtn:active,
+  .jbDiaBtn:active,
+  .jbOpcionBtn:active {
+    transform: scale(.96) !important;
+    transition-duration: .08s !important;
+  }
+  button,
+  a,
+  .jbBannerCard,
+  .jbHoraBtn,
+  .jbDiaBtn,
+  .jbOpcionBtn { -webkit-tap-highlight-color: transparent; }
+  @keyframes jbLuxeShimmer {
+    0%, 52% { left: -45%; opacity: 0; }
+    60% { opacity: .7; }
+    100% { left: 125%; opacity: 0; }
+  }
+  @keyframes jbVipSplashIn {
+    from { opacity: 0; transform: translateY(12px) scale(.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes jbVipSplashPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 8px rgba(212, 175, 55, .08), 0 0 38px rgba(212, 175, 55, .2), 0 22px 56px rgba(0, 0, 0, .72); }
+    50% { transform: scale(1.035); box-shadow: 0 0 0 11px rgba(212, 175, 55, .1), 0 0 54px rgba(212, 175, 55, .32), 0 22px 56px rgba(0, 0, 0, .72); }
+  }
+  @keyframes jbLuxeViewIn {
+    from { opacity: .35; transform: translateY(22px); filter: blur(3px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+  .jbLuxeViewEntering { scroll-margin-top: 24px; animation: jbLuxeViewIn .72s var(--jb-vip-ease) both; }
+  #jbVipSplash {
+    position: fixed;
+    overflow: hidden;
+    transition: opacity .65s var(--jb-vip-ease), visibility 0s linear .65s;
+  }
+  #jbVipSplash::before,
+  #jbVipSplash::after {
+    content: "";
+    position: absolute;
+    width: min(82vw, 390px);
+    aspect-ratio: 1;
+    border: 1px solid rgba(212, 175, 55, .12);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  #jbVipSplash::after { width: min(68vw, 320px); border-color: rgba(246, 223, 155, .09); }
+  .jbVipSplashBrand {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    animation: jbVipSplashIn .8s var(--jb-vip-ease) both;
+  }
+  .jbVipSplashBrand img {
+    width: clamp(112px, 34vw, 148px);
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border: 2px solid rgba(246, 223, 155, .94);
+    border-radius: 50%;
+    box-shadow: 0 0 0 8px rgba(212, 175, 55, .08), 0 0 48px rgba(212, 175, 55, .25), 0 22px 56px rgba(0, 0, 0, .72);
+    animation: jbVipSplashPulse 2.4s ease-in-out infinite;
+  }
+  .jbVipSplashBrand > span {
+    margin-top: 8px;
+    color: #b6b1a4;
+    font: 600 .65rem/1.4 'Poppins', sans-serif;
+    letter-spacing: .28em;
+  }
+  .jbVipSplashBrand > strong {
+    color: #f6df9b;
+    font: 700 clamp(1.15rem, 5vw, 1.55rem)/1.1 'Playfair Display', serif;
+    letter-spacing: .2em;
+  }
+  .jbVipSplashBrand > strong i { color: #d4af37; font-style: normal; }
+  #jbVipSplash.jbVipSplashLeaving { opacity: 0; visibility: hidden; pointer-events: none; }
+  @media (max-width: 700px) {
+    body > .container { width: min(100% - 24px, 560px) !important; max-width: 560px !important; }
+    .jbSiteHeader { padding: 24px 15px 20px !important; border-radius: 22px; }
+    .jbSiteHeader::before { font-size: .56rem; letter-spacing: .17em; }
+    .jbSiteEyebrow { font-size: .62rem !important; letter-spacing: .14em !important; }
+    .jbSiteHeader h1 { font-size: clamp(1.9rem, 9vw, 3rem) !important; overflow-wrap: anywhere; }
+    .jbSiteHeader h1 span { display: block; }
+    .jbSiteIntro { font-size: .95rem !important; }
+    #jbBanner .jbBannerCard { min-height: 190px !important; padding: 22px !important; }
+    #cuadroCalendario { padding: 15px 10px; }
+    .mis-reservas-container { width: min(100% - 24px, 560px) !important; padding: 22px 16px !important; }
+    .mis-reservas-titulo { justify-content: center !important; gap: 7px !important; font-size: clamp(1.35rem, 7vw, 1.8rem) !important; }
+    .privacidad-wrap { padding: 17px 11px !important; }
+    .privacidad-btn { width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .jbVipSplashBrand,
+    .jbVipSplashBrand img,
+    #jbBanner .jbBannerCta::after { animation: none; }
+    .jbLuxeViewEntering { animation: none; }
+    button:active,
+    a:active,
+    .jbBannerCard:active { transform: none !important; }
+  }
+</style>
+<script>
+  (function () {
+    const splash = document.getElementById('jbVipSplash');
+    function dismissSplash() {
+      if (!splash) return;
+      window.setTimeout(function () {
+        splash.classList.add('jbVipSplashLeaving');
+        window.setTimeout(function () { splash.remove(); }, 700);
+      }, 1000);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', dismissSplash, { once: true });
+    } else {
+      dismissSplash();
+    }
+
+    const sectionTimers = new WeakMap();
+    document.querySelectorAll('.jbSiteNav a[href="#cuadroCalendario"], .jbSiteNav a[href="#misReservasSection"]').forEach(function (link) {
+      link.addEventListener('click', function () {
+        const target = document.querySelector(link.getAttribute('href'));
+        if (!target) return;
+        window.clearTimeout(sectionTimers.get(target));
+        target.classList.remove('jbLuxeViewEntering');
+        void target.offsetWidth;
+        target.classList.add('jbLuxeViewEntering');
+        sectionTimers.set(target, window.setTimeout(function () {
+          target.classList.remove('jbLuxeViewEntering');
+        }, 800));
+      });
+    });
+  })();
 </script>
 </body>
 </html>
