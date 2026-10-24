@@ -76,7 +76,7 @@
 <!-- "https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" -->
 
 <div class="container">
-   <br>  <div id="logo" style="
+  <div id="logo" style="
             width: 200px;
             height: 200px;
             background-image: url('https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg');
@@ -100,13 +100,13 @@
     position: relative;
   }
 
-</style><br>
+</style>
 <header class="jbSiteHeader">
   <p class="jbSiteEyebrow">BARBERO PROFESIONAL · CORTE &amp; ESTILO</p>
   <h1>James <span>Barbershop</span></h1>
   <p class="jbSiteIntro">Tu próximo corte empieza aquí. Elige cómo quieres reservar.</p>
   <nav class="jbSiteNav" aria-label="Navegación de la barbería">
-    <a href="#cuadroCalendario">Reservar</a>
+    <a href="#jbChatPanel" onclick="jbAbrirChatDesdeBanner(); return false;">Reservar</a>
     <a href="#misReservasSection">Mis reservas</a>
   </nav>
 </header>
@@ -149,7 +149,7 @@
       <h3>Reserva en 1 minuto</h3>
       <p>Cuéntanos qué necesitas y te ayudamos a agendar al tiro, a cualquier hora del día.</p>
       <span class="jbBannerCta">Empezar ahora →</span>
-    </div><br><br><br><br><br>
+    </div>
     <div hidden class="jbBannerCard jbBannerManual" onclick="document.getElementById('cuadroCalendario').scrollIntoView({behavior:'smooth',block:'center'})">
       <div class="jbBannerIcon">🗓️</div>
       <h3>Elige tú mismo</h3>
@@ -1658,13 +1658,13 @@ if (typeof ocultarContadorTemporal === 'function') ocultarContadorTemporal();
   <div class="servicios-bloque">
     <h4>Barba</h4>
     <button class="servicio-btn barba" data-nombre="Barba Express" data-precio="6000" data-tiempo="20">Barba Express · Perfilado de barba a elección · $6.000</button>
-    <button class="servicio-btn barba" data-nombre="Barba Premium" data-precio="12000" data-tiempo="60">Barba Premium · Ritual con toalla caliente · $12.000</button>
+    <button class="servicio-btn barba" data-nombre="Barba Premium" data-precio="12000" data-tiempo="60">Barba Premium · $12.000</button>
   </div>
   <div class="servicios-bloque">
     <h4>Corte</h4>
     <button class="servicio-btn exclusivo" data-nombre="Corte Clásico" data-precio="10000" data-tiempo="45">Corte Clásico · $10.000</button>
     <button class="servicio-btn exclusivo" data-nombre="Corte Degradado" data-precio="12000" data-tiempo="45">Corte Degradado · $12.000</button>
-    <button class="servicio-btn exclusivo" data-nombre="Corte Degradado + Lavado" data-precio="15000" data-tiempo="60">Corte Degradado + Lavado · Corte degradado + ritual con toalla caliente · $15.000</button>
+    <button class="servicio-btn exclusivo" data-nombre="Corte Degradado + Lavado" data-precio="15000" data-tiempo="60">Corte Degradado + Lavado · $15.000</button>
   </div>
   <div class="servicios-bloque">
     <h4>Color y ondulaciones</h4>
@@ -6822,10 +6822,10 @@ function reservarHoraConNotificacion() {
   // Servicios disponibles para el chat de reserva
   const JB_SERVICIOS = [
     { nombre: 'Barba Express', label: 'Barba Express', precio: 6000, tiempo: 20, grupo: 'barba', detalle: 'Perfilado de barba a elección', foto: ()=>JB_IMG_CORTE_BARBA },
-    { nombre: 'Barba Premium', label: 'Barba Premium', precio: 12000, tiempo: 60, grupo: 'barba', detalle: 'Ritual con toalla caliente', foto: ()=>JB_IMG_CORTE_BARBA },
+    { nombre: 'Barba Premium', label: 'Barba Premium', precio: 12000, tiempo: 60, grupo: 'barba', foto: ()=>JB_IMG_CORTE_BARBA },
     { nombre: 'Corte Clásico', label: 'Corte Clásico', precio: 10000, tiempo: 45, grupo: 'corte', foto: ()=>JB_IMG_CORTE_BARBA },
     { nombre: 'Corte Degradado', label: 'Corte Degradado', precio: 12000, tiempo: 45, grupo: 'corte', foto: ()=>JB_IMG_DEGRADADO_RIZOS },
-    { nombre: 'Corte Degradado + Lavado', label: 'Corte Degradado + Lavado', precio: 15000, tiempo: 60, grupo: 'corte', detalle: 'Corte degradado + ritual con toalla caliente', foto: ()=>JB_IMG_DEGRADADO_RIZOS },
+    { nombre: 'Corte Degradado + Lavado', label: 'Corte Degradado + Lavado', precio: 15000, tiempo: 60, grupo: 'corte', foto: ()=>JB_IMG_DEGRADADO_RIZOS },
     { nombre: 'Color Global', label: 'Color Global', precio: 70000, tiempo: 60, grupo: 'color', foto: ()=>JB_IMG_CORTE_BARBA },
     { nombre: 'Rizos/Ondulaciones', label: 'Rizos/Ondulaciones', precio: 50000, tiempo: 60, grupo: 'ondulaciones', foto: ()=>JB_IMG_DEGRADADO_RIZOS }
   ];
@@ -10577,10 +10577,10 @@ DATOS DEL NEGOCIO:
 
 SERVICIOS Y PRECIOS (estos son los ÚNICOS servicios que se pueden reservar; no ofrezcas otros que no estén aquí):
 - Barba Express — Perfilado de barba a elección: $6.000
-- Barba Premium — Ritual con toalla caliente: $12.000
+- Barba Premium: $12.000
 - Clásico: $10.000
 - Corte Degradado: $12.000
-- Corte Degradado + Lavado — Corte degradado + ritual con toalla caliente: $15.000
+- Corte Degradado + Lavado: $15.000
 - Color Global: $70.000
 - Rizos/Ondulaciones: $50.000
 En una reserva se puede elegir un servicio de cada categoría disponible (barba, corte, color y ondulaciones). Dentro de cada categoría se elige solo una opción. Color Global más Rizos/Ondulaciones suma $120.000.
@@ -11063,10 +11063,10 @@ const JB_FAQ = [
     r: `
       💰 <b>Precios actuales:</b><br><br>
       • Barba Express — $6.000 (perfilado de barba a elección)<br>
-      • Barba Premium — $12.000 (ritual con toalla caliente)<br>
+      • Barba Premium — $12.000<br>
       • Clásico — $10.000<br>
       • Corte Degradado — $12.000<br>
-      • Corte Degradado + Lavado — $15.000 (ritual con toalla caliente)<br>
+      • Corte Degradado + Lavado — $15.000<br>
       • Color Global — $70.000<br>
       • Rizos/Ondulaciones — $50.000
       <br><br>
@@ -11410,8 +11410,8 @@ const JB_FAQ = [
     ],
 
     r: `
-      🚿 El servicio <b>Corte Degradado + Lavado</b> incluye el ritual con toalla caliente y tiene un valor de $15.000.
-      También está disponible <b>Barba Premium</b> con ritual de toalla caliente por $12.000.
+      🚿 El servicio <b>Corte Degradado + Lavado</b> tiene un valor de $15.000.
+      También está disponible <b>Barba Premium</b> por $12.000.
       El servicio <b>Color Global</b> cuesta $70.000 y <b>Rizos/Ondulaciones</b> cuesta $50.000.
     `
   },
@@ -12332,7 +12332,8 @@ window.addEventListener('load', function() {
     outline-offset: 2px;
   }
   @media (max-width: 700px) {
-    body > .container {  
+    body { padding: 0 !important; }
+    body > .container {
       width: min(100% - 24px, 560px) !important;
       padding: 1px 0 48px !important;
     }
@@ -12941,5 +12942,170 @@ window.addEventListener('load', function() {
     });
   })();
 </script>
+<style>
+  html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+  body { margin: 0; min-width: 0; }
+  #bg-video-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  body > .container {
+    box-sizing: border-box;
+    width: min(100% - 32px, 1080px) !important;
+    max-width: 1080px !important;
+    margin-inline: auto;
+    padding-inline: 0;
+  }
+  #logo {
+    width: clamp(136px, 30vw, 196px) !important;
+    height: clamp(136px, 30vw, 196px) !important;
+    margin: clamp(20px, 4vw, 34px) auto 20px !important;
+  }
+  .jbSiteHeader {
+    box-sizing: border-box;
+    width: min(100%, 1000px);
+    margin: 0 auto 28px !important;
+    text-align: center;
+  }
+  .jbSiteEyebrow {
+    max-width: 100%;
+    line-height: 1.5;
+    text-wrap: balance;
+  }
+  .jbSiteHeader h1 {
+    line-height: 1.05;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+  .jbSiteIntro {
+    max-width: 40ch;
+    margin-inline: auto;
+    line-height: 1.65;
+    text-wrap: balance;
+  }
+  .jbSiteNav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+  .jbSiteNav a {
+    display: inline-flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+  }
+  #jbBanner {
+    box-sizing: border-box;
+    width: min(100%, 720px);
+    margin-inline: auto;
+  }
+  #jbBanner .jbBannerRow {
+    width: 100%;
+    align-items: stretch;
+  }
+  #jbBanner .jbBannerCard {
+    box-sizing: border-box;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  #jbBanner .jbBannerCard p { line-height: 1.65; }
+  #jbBanner .jbBannerCta {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border-radius: 999px;
+    text-align: center;
+  }
+  .mis-reservas-container,
+  .galeria-clientes,
+  #cuadroCalendario {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+  .mis-reservas-container { width: 100% !important; }
+  .mis-reservas-container form {
+    box-sizing: border-box;
+    width: 100% !important;
+    max-width: 100%;
+  }
+  body > form {
+    box-sizing: border-box;
+    width: min(calc(100% - 40px), 560px) !important;
+    max-width: 100%;
+    margin: 0 20px !important;
+  }
+  @media (max-width: 700px) {
+    body > .container {
+      width: calc(100% - 24px) !important;
+      max-width: 560px !important;
+      padding: 0 0 40px !important;
+    }
+    #logo {
+      width: clamp(132px, 40vw, 158px) !important;
+      height: clamp(132px, 40vw, 158px) !important;
+      margin: 22px auto 17px !important;
+    }
+    .jbSiteHeader {
+      margin-bottom: 22px !important;
+      padding: 24px clamp(15px, 5vw, 26px) 22px !important;
+      border-radius: 24px;
+    }
+    .jbSiteEyebrow {
+      font-size: clamp(.58rem, 2.8vw, .75rem) !important;
+      letter-spacing: clamp(.08em, 2.2vw, .17em) !important;
+    }
+    .jbSiteHeader h1 {
+      font-size: clamp(2rem, 9.5vw, 3.25rem) !important;
+      overflow-wrap: anywhere;
+    }
+    .jbSiteHeader h1 span { display: block; }
+    .jbSiteIntro { font-size: clamp(.92rem, 4vw, 1.05rem) !important; }
+    .jbSiteNav { gap: 8px; }
+    .jbSiteNav a {
+      flex: 1 1 125px;
+      min-height: 46px;
+      padding: 9px 12px;
+      font-size: .82rem;
+    }
+    #jbBanner { margin-bottom: 22px; padding-inline: 0; }
+    #jbBanner .jbBannerRow {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+    #jbBanner .jbBannerCard {
+      width: 100%;
+      min-height: 0 !important;
+      padding: clamp(18px, 5vw, 24px) !important;
+      border-radius: 19px;
+    }
+    #jbBanner .jbBannerCard h3 {
+      font-size: clamp(1.25rem, 6vw, 1.55rem);
+      line-height: 1.25;
+    }
+    #jbBanner .jbBannerCard p {
+      max-width: 42ch;
+      font-size: .94rem;
+      line-height: 1.6;
+    }
+    #jbBanner .jbBannerCta { width: 100%; }
+    #cuadroCalendario { max-width: 100%; }
+  }
+  @media (max-width: 380px) {
+    body > .container { width: calc(100% - 20px) !important; }
+    .jbSiteHeader { padding-inline: 13px !important; }
+    .jbSiteEyebrow { letter-spacing: .07em !important; }
+    .jbSiteHeader h1 { font-size: clamp(1.8rem, 9vw, 2.3rem) !important; }
+    .jbSiteNav a { flex-basis: 110px; font-size: .76rem; }
+  }
+</style>
 </body>
 </html>
