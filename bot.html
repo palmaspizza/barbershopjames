@@ -174,47 +174,6 @@
                 <button onclick="document.getElementById('modal-reservas-dia').classList.add('fantasma')">Cerrar</button>
             </div>
         </div>
-        <button id="solicitar" hidden>Solicitar notificaciones</button>
-<script>
-  // Las notificaciones se envían automáticamente vía ntfy.sh al reservar
-  // ============================================
-// NOTIFICACIONES PUSH - INTEGRACIÓN
-// ============================================
-// ============================================
-// NOTIFICACIONES PUSH - INTEGRACIÓN
-// ============================================
-const NTFY_TOPIC = 'james-barber-shop-2026'; // Cambia esto por tu topic único
-
-async function notificarNuevaReserva(datosReserva) {
-    // Emojis SOLO en el body, NUNCA en los headers
-    const mensaje = `💈 Nueva Reserva
-👤 ${datosReserva.nombre}
-📅 ${datosReserva.fecha} a las ${datosReserva.hora}
- ${datosReserva.servicios || 'Sin servicio'}
-💰 ${datosReserva.total || 'No especificado'}`;
-
-    try {
-        const respuesta = await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
-            method: 'POST',
-            body: mensaje,
-            headers: {
-                // Headers: solo caracteres ASCII/ISO-8859-1 (sin emojis)
-                'Title': 'Nueva Reserva - Barberia',
-                'Priority': 'high',
-                'Tags': 'scissors,calendar'
-            }
-        });
-        
-        if (respuesta.ok) {
-            console.log('Notificacion enviada correctamente');
-        } else {
-            console.error('Error HTTP al enviar notificacion:', respuesta.status);
-        }
-    } catch (error) {
-        console.error('Error de red al enviar notificacion:', error);
-    }
-}
-</script>
 <style>
   /* Contenedor principal con efecto vidrio */
   .leyenda-calendario {
@@ -446,7 +405,6 @@ async function notificarNuevaReserva(datosReserva) {
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
 </style>
-<button onclick="enviar()" hidden>Enviar notificación</button>
 <!-- ============================================
      GALERÍA DE TRABAJOS - CLIENTES
      ============================================ -->
@@ -638,27 +596,6 @@ async function notificarNuevaReserva(datosReserva) {
 <div id="cuadroCalendario"></div>
 </div>
     <script>
-document.getElementById('solicitar').addEventListener('click', async () => {
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      const token = await messaging.getToken({ vapidKey: 'LPiNDM_XNqEyUax9FouVf80pSRw0RKakQcr3uWolXio' });
-      console.log('Token:', token);
-
-      // Aquí puedes guardar el token en tu base de datos para enviarle notificaciones después
-      await fetch('/guardar-token', {
-        method: 'POST',
-        body: JSON.stringify({ token }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-  } catch (err) {
-    console.error('Error al solicitar permiso:', err);
-  }
-});
-
-
-
         // Función para generar los nombres de los días de la semana
 
         function generarDiasSemana() {
@@ -939,14 +876,16 @@ function mostrar(){
 
         <div id="modal-acceso" class="ventana-secreta fantasma">
             <div class="caja-misteriosa">
-                <h3>ACCESO</h3>
-                  <br><br>
-       
-                  <button onclick="cerrarModal('modal-acceso')">Cerrar</button>
-                <input type="password" id="clave-input" maxlength="4" placeholder="Clave de 4 dígitos">
-               <br><br>
-             
-                     <button style="background-color: green;" onclick="validarClave();ingresarllave();">Ingresar</button>
+                <h3>Acceso de administración</h3>
+                <p>Usa una cuenta autorizada de James Barbershop o Palmacodes.</p>
+                <button type="button" onclick="cerrarModal('modal-acceso')">Cerrar</button>
+                <label for="control-email">Correo</label>
+                <input type="email" id="control-email" autocomplete="username" placeholder="correo autorizado">
+                <label for="control-password">Contraseña</label>
+                <input type="password" id="control-password" autocomplete="current-password" placeholder="Contraseña">
+                <br><br>
+                <button type="button" style="background-color: green;" onclick="validarClave()">Ingresar</button>
+                <p id="control-login-error" role="status" aria-live="polite"></p>
               </div>
         </div>
 <script>
@@ -1381,7 +1320,7 @@ if (typeof ocultarContadorTemporal === 'function') ocultarContadorTemporal();
 
     </script>
                 <br><br>
-                <button style="background-color: rgb(65, 65, 65);" onclick="borrarHorasMesHastaHoy()">📜 Borrar reservas de meses anteriores (conserva el mes actual)</button>
+                <button style="background-color: rgb(65, 65, 65);" onclick="borrarHorasMesHastaHoy()">📜 Archivar citas pasadas (más de 30 días)</button>
                 <br><br>
                 <button style="background: brown; color: white;" onclick="mostrarBotonBorrar();mostrarBotonesX();cerrarModal('modal-control');">❌ Eliminar reservas a elección </button>
                 <br><br>
@@ -2737,8 +2676,6 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
 // SISTEMA: MIS RESERVAS - CLIENTE (AUTOMÁTICO)
 // ============================================
 
-const NTFY_TOPIC_CANCELACIONES = 'james-barber-shop-2026';
-
 // Variables de estado
 let nombreClienteActual = '';
 let reservasClienteActuales = [];
@@ -2894,7 +2831,10 @@ function cargarReservasPorIds(reservasLocales) {
             // Reserva ya cancelada en este dispositivo: no se muestra jamás.
             // Si por algún motivo seguía en Firebase, se intenta borrar de nuevo.
             if (canceladasLocal[id]) {
-                if (snap.exists()) db.ref(`reservas/${id}`).remove().catch(() => {});
+                if (snap.exists()) {
+                    window.jbArchivarReservaCliente(id, snap.val(), 'cancelada_en_este_dispositivo')
+                        .catch(error => console.error('No se pudo archivar la reserva cancelada:', error));
+                }
                 return null;
             }
             if (snap.exists()) {
@@ -3193,7 +3133,7 @@ function confirmarCancelacion() {
         btn.textContent = '⏳ Cancelando...';
     }
 
-    db.ref(`reservas/${reserva.id}`).remove()
+    window.jbArchivarReservaCliente(reserva.id, reserva, 'cancelada_por_cliente')
         .then(() => {
             // Desde aquí la reserva YA NO existe en Firebase. Cualquier fallo
             // secundario (limpieza, notificación, animación) se registra pero
@@ -3214,8 +3154,7 @@ function confirmarCancelacion() {
                 }
             });
 
-            // 3) Avisar y actualizar la pantalla
-            seguro(() => notificarCancelacion(reserva));
+            // 3) Actualizar la pantalla
             seguro(() => cerrarModalCancelar());
             seguro(() => mostrarToastCliente('✅ Reserva cancelada correctamente'));
 
@@ -3240,35 +3179,6 @@ function confirmarCancelacion() {
                 btn.textContent = '🗑️ CANCELAR RESERVA';
             }
         });
-}
-
-// ============================================
-// NOTIFICACIÓN NTfy
-// ============================================
-
-async function notificarCancelacion(reserva) {
-    // Notificación ntfy (la que ya tienes, sin cambios)
-    const mensajeNtfy = `❌ RESERVA CANCELADA ❌
-❌👤 Cliente: ${reserva.nombre}❌
-❌📅 ${reserva.fecha} a las ${reserva.hora}❌
-❌💈 ${reserva.servicios || 'Sin servicio'}❌
-❌💰 ${reserva.total || 'No especificado'}❌`;
-
-    try {
-        await fetch(`https://ntfy.sh/${NTFY_TOPIC_CANCELACIONES}`, {
-            method: 'POST',
-            body: mensajeNtfy,
-            headers: {
-                'Title': 'CANCELACION - Barberia',
-                'Priority': 'high',
-                'Tags': 'x,cancel,warning'
-            }
-        });
-    } catch (error) {
-        console.error('Error enviando notificación ntfy:', error);
-    }
-
-    
 }
 
 // ============================================
@@ -4558,20 +4468,6 @@ img {
     gap: 6px;
     /* ... (otros estilos) ... */
 }</style>
-<script>
-// Registrar el Service Worker
-if (window.location.protocol === 'https:' && 'serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/push-sw.js')
-    .then(reg => {
-      console.log('Service Worker registrado');
-    })
-    .catch(err => {
-      console.error('Error al registrar el Service Worker:', err);
-    });
-}
-
-// Notificaciones integradas vía app.js
-</script>
     <script>
 
 // Import the functions you need from the SDKs you need
@@ -4593,6 +4489,27 @@ const firebaseConfig = {
         window._jbInicioFlujoReserva = null;
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
+        window.jbArchivarReservaCliente = async function (reservationId, reservation, reason = 'cancelada_por_cliente') {
+            if (!/^[A-Za-z0-9_-]{10,128}$/.test(String(reservationId || ''))) {
+                throw new Error('No se pudo validar el identificador de la reserva.');
+            }
+            let current = reservation;
+            if (!current || typeof current !== 'object' || !current.fecha) {
+                const snapshot = await db.ref(`reservas/${reservationId}`).once('value');
+                current = snapshot.val();
+            }
+            if (!current) return false;
+            const updates = {};
+            updates[`reservas_archivadas/${reservationId}`] = {
+                ...current,
+                archivedAt: firebase.database.ServerValue.TIMESTAMP,
+                archiveReason: reason
+            };
+            updates[`reservas/${reservationId}`] = null;
+            await db.ref().update(updates);
+            return true;
+        };
         const reservasRef = db.ref("reservas");
         // ============================================
 // GALERÍA - CLIENTES (solo visualización)
@@ -4713,10 +4630,6 @@ function renderGaleriaClientes(imagenes) {
             actualizarBarraMes();
         });
 
-        function ingresarllave() {
-            document.getElementById("clave-input").value = '';
-        }
-    
 function obtenerHorario(fechaStr) {
     const personalizado = horariosPersonalizados[fechaStr];
     if (Array.isArray(personalizado)) return personalizado;
@@ -5123,18 +5036,15 @@ const total = document.getElementById("eltotal")?.value || "";
             return;
         }
 
-        const ownerUid = typeof window.jbWebPushObtenerUid === "function"
-            ? await window.jbWebPushObtenerUid()
-            : null;
         const nuevaReserva = {
             nombre: nombre,
             fecha: fechaInputValor,
             hora: hora,
-            ...(ownerUid ? { ownerUid } : {}),
             servicios: servicios,
             total: total,
             telefono: telefono,
             acepta_contacto_whatsapp: true,
+            createdAt: firebase.database.ServerValue.TIMESTAMP,
             timestamp: firebase.database.ServerValue.TIMESTAMP
         };
         const reservaRef = ref.push();
@@ -5159,9 +5069,6 @@ const total = document.getElementById("eltotal")?.value || "";
         }
 
         const reservaId = reservaRef.key;
-        window.dispatchEvent(new CustomEvent("jb:reservation-created", {
-            detail: { reservationId, ownerUid, fecha: fechaInputValor, hora }
-        }));
         try {
             guardarReservaLocal(reservaId, nombre, fechaInputValor, hora, servicios, total);
         } catch (error) {
@@ -5172,16 +5079,6 @@ const total = document.getElementById("eltotal")?.value || "";
         } catch (error) {
             console.error("La reserva se guardó, pero no se pudo mostrar la confirmación visual:", error);
             mostrarToastCliente("Tu reserva sí quedó guardada, pero no pudimos mostrar el resumen.", true);
-        }
-        if (typeof notificarNuevaReserva === "function") {
-            try {
-                const envio = notificarNuevaReserva(nuevaReserva);
-                if (envio && typeof envio.catch === "function") {
-                    envio.catch(error => console.error("No se pudo avisar al barbero:", error));
-                }
-            } catch (error) {
-                console.error("No se pudo avisar al barbero:", error);
-            }
         }
         try {
             const envioWhatsApp = enviarMensajeWhatsApp();
@@ -5339,16 +5236,26 @@ async function solicitarCancelacionSegura(reservaId) {
         function cerrarModal(id) {
             document.getElementById(id).classList.add("fantasma");
         }
-function validarClave() {
-    const claveInput = document.getElementById("clave-input");
-    const clave = claveInput.value;
-    if (clave === "1234" || clave === "3331") {
+async function validarClave() {
+    const email = document.getElementById('control-email').value.trim().toLowerCase();
+    const passwordInput = document.getElementById('control-password');
+    const error = document.getElementById('control-login-error');
+    if (email !== 'james@palmacodes.cl' && email !== 'palmacodes@palmacodes.cl') {
+        error.textContent = 'Esta cuenta no está autorizada.';
+        return;
+    }
+    try {
+        await firebase.auth().signInWithEmailAndPassword(email, passwordInput.value);
+        error.textContent = '';
+        passwordInput.value = '';
         document.getElementById("modal-acceso").classList.add("fantasma");
         document.getElementById("modal-control").classList.remove("fantasma");
-        claveInput.value = "";
-    } 
-    else {
-        alert("Clave incorrecta");
+    } catch (authError) {
+        console.error('No se pudo autenticar el panel de controles:', authError);
+        error.textContent = authError.code === 'auth/invalid-credential'
+            ? 'Correo o contraseña incorrectos.'
+            : authError.message || 'No se pudo iniciar sesión.';
+        passwordInput.value = '';
     }
 }
 
@@ -5476,12 +5383,14 @@ const reservasRefMostrar = firebase.database().ref("reservas");
         }
 
         function borrarHorasMesHastaHoy() {
-            if (!confirm('Se eliminarán las reservas con fecha anterior al primer día de este mes. Se conservará completo el mes actual. ¿Continuar?')) return;
-            const hoyChile = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
-            const inicioMes = `${hoyChile.slice(0, 7)}-01`;
+            if (!confirm('Las reservas con más de 30 días se moverán al archivo histórico. ¿Continuar?')) return;
+            const fechaCorte = new Date();
+            fechaCorte.setDate(fechaCorte.getDate() - 30);
+            const inicioMes = fechaCorte.toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
 
             reservasRef.orderByChild("fecha").endAt(inicioMes).once("value").then(snapshot => {
                 const eliminaciones = {};
+                let cantidad = 0;
                 snapshot.forEach(child => {
                     const reserva = child.val();
                     const fecha = reserva && String(reserva.fecha || '');
@@ -5489,18 +5398,23 @@ const reservasRefMostrar = firebase.database().ref("reservas");
                         const [anio, mes, dia] = fecha.split('-').map(Number);
                         const fechaValida = new Date(anio, mes - 1, dia);
                         if (fechaValida.getFullYear() === anio && fechaValida.getMonth() === mes - 1 && fechaValida.getDate() === dia) {
-                            eliminaciones[child.key] = null;
+                            eliminaciones[`reservas_archivadas/${child.key}`] = {
+                                ...reserva,
+                                archivedAt: firebase.database.ServerValue.TIMESTAMP,
+                                archiveReason: 'retention_archive'
+                            };
+                            eliminaciones[`reservas/${child.key}`] = null;
+                            cantidad++;
                         }
                     }
                 });
-                const cantidad = Object.keys(eliminaciones).length;
                 if (!cantidad) {
-                    alert('No hay reservas de meses anteriores para eliminar.');
+                    alert('No hay reservas con más de 30 días para archivar.');
                     return;
                 }
-                return reservasRef.update(eliminaciones).then(() => {
+                return db.ref().update(eliminaciones).then(() => {
                     document.getElementById("modal-control").classList.add("fantasma");
-                    alert(`${cantidad} reserva(s) de meses anteriores eliminada(s). Se conservó el mes actual completo.`);
+                    alert(`${cantidad} reserva(s) archivada(s). El historial se conservará durante 3 años.`);
                 });
             }).catch(error => {
                 console.error('Error al limpiar reservas de meses anteriores:', error);
@@ -6351,25 +6265,6 @@ function playTone(freq, dur, vol){
 
   
 
-// Modificar tu función reservarHora() existente para incluir la notificación:
-const reservarHoraOriginal = reservarHora; // Guardar referencia si existe
-function reservarHoraConNotificacion() {
-    // ... tu código actual de reservarHora ...
-    
-    // Al final, después de guardar en Firebase:
-    const nuevaReserva = {
-        nombre: document.getElementById("nombre").value,
-        fecha: fechaInput.value,
-        hora: document.getElementById("hora").value,
-        servicios: document.getElementById("opciones")?.value,
-        total: document.getElementById("eltotal")?.value
-    };
-    
-    // Enviar notificación
-    notificarNuevaReserva(nuevaReserva);
-    
-    // Continuar con el flujo normal...
-}
 </script>
 <style>
   /* Simplificación del diseño para clientes */
@@ -6864,6 +6759,14 @@ function reservarHoraConNotificacion() {
   const jbChatId  = jbGetChatId();
   const jbChatRef = db.ref('chats/' + jbChatId);
   const jbMsgsRef = jbChatRef.child('mensajes');
+  function jbGuardarMensajePersistente(messageRef, message, metadata = {}) {
+    return jbChatRef.update({
+      [`mensajes/${messageRef.key}`]: message,
+      ultimaActividad: Date.now(),
+      ultimoMensaje: String(message.texto || '').slice(0, 240),
+      ...metadata
+    });
+  }
 // ============================================================
 // PERSISTENCIA ROBUSTA DEL ESTADO DE RESERVA
 // ============================================================
@@ -7634,10 +7537,18 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       jbMostrarOpciones([
         { emoji:'\u2705', texto:'S\u00ED, reagendar', valor:'si', estilo:'green' },
         { emoji:'\u274C', texto:'No, mantener',   valor:'no', estilo:'red'   }
-      ], valor => {
+      ], async valor => {
         if (valor === 'si') {
           const rid = r.reservaId || r.id;
-          if (rid && !String(rid).startsWith('local_')) db.ref('reservas/' + rid).remove().catch(() => {});
+          if (rid && !String(rid).startsWith('local_')) {
+            try {
+              await window.jbArchivarReservaCliente(rid, r, 'reagendada_por_cliente');
+            } catch (error) {
+              console.error('No se pudo archivar la reserva al reagendar:', error);
+              jbBot('No se pudo cancelar la hora anterior. Conservé tu reserva; intenta nuevamente o contáctanos.');
+              return;
+            }
+          }
           try {
             let ls = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber') || '[]');
             ls = ls.filter(x => (x.reservaId || x.id) !== rid);
@@ -8122,7 +8033,8 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       // Registrar la key ANTES del push para evitar duplicados con child_added
       const newRef = jbMsgsRef.push();
       jbRenderedKeys.add(newRef.key);
-      newRef.set({ de:'ia', texto: textoPlano, ts: Date.now() }).catch(()=>{});
+      jbGuardarMensajePersistente(newRef, { de:'ia', texto: textoPlano, ts: Date.now() })
+        .catch(error => console.error('No se pudo guardar el mensaje del asistente:', error));
     }
   }
 
@@ -8138,7 +8050,8 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     const newRef = jbMsgsRef.push();
     jbRenderedKeys.add(newRef.key);
     if (!jbRestaurandoEstado) {
-      newRef.set({ de:'cliente', texto, ts: Date.now() }).catch(()=>{});
+      jbGuardarMensajePersistente(newRef, { de:'cliente', texto, ts: Date.now() })
+        .catch(error => console.error('No se pudo guardar el mensaje del cliente:', error));
     }
   }
 
@@ -9557,37 +9470,24 @@ if(!resultadoBloqueo.committed){
 }
 
 bloqueoTomado = true;
-      const ownerUid = typeof window.jbWebPushObtenerUid === "function"
-        ? await window.jbWebPushObtenerUid()
-        : null;
       const serviciosTexto = jbReserva.servicios.map(s=>s.label||s.nombre).join(' + ');
       const total = jbReserva.servicios.reduce((a,s)=>a+s.precio,0);
       const nuevaReserva = {
         nombre:   jbReserva.nombre,
         fecha:    jbReserva.fecha,
         hora:     jbReserva.hora,
-        ...(ownerUid ? { ownerUid } : {}),
         servicios: serviciosTexto,
         total:    '$'+total.toLocaleString('es-CL'),
         telefono: jbReserva.telefono,
         acepta_contacto_whatsapp: jbReserva.acepta_contacto_whatsapp === true,
         origen:   'chat',
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
         timestamp: firebase.database.ServerValue.TIMESTAMP
       };
       const ref = await db.ref('reservas').push(nuevaReserva);
       await bloqueoRef.update({
         reservaId: ref.key
       });
-      window.dispatchEvent(new CustomEvent('jb:reservation-created', {
-        detail: {
-          reservationId: ref.key,
-          ownerUid,
-          fecha: nuevaReserva.fecha,
-          hora: nuevaReserva.hora
-        }
-      }));
-
-      if(typeof notificarNuevaReserva === 'function') notificarNuevaReserva(nuevaReserva);
       if(typeof guardarReservaLocal   === 'function') guardarReservaLocal(ref.key, nuevaReserva.nombre, nuevaReserva.fecha, nuevaReserva.hora, nuevaReserva.servicios, nuevaReserva.total);
       // Que la sección "Mis Reservas" muestre la reserva recién creada
       try { if(typeof cargarMisReservasAutomatico === 'function') cargarMisReservasAutomatico(); } catch(e){}
@@ -10112,7 +10012,7 @@ async function jbLiberarBloqueoReserva(r){
         jbCliente('Sí, cancelar');
         try {
           if(r.reservaId){
-            await db.ref('reservas/' + r.reservaId).remove();
+            await window.jbArchivarReservaCliente(r.reservaId, r, 'cancelada_por_cliente');
             await jbLiberarBloqueoReserva(r);
             // Limpiar localStorage
             let arr = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber')||'[]');
@@ -10233,7 +10133,7 @@ async function jbLiberarBloqueoReserva(r){
           datosReserva = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber')||'[]')
             .find(x => x.reservaId === reservaId) || null;
         } catch(e){}
-        await db.ref('reservas/' + reservaId).remove();
+        await window.jbArchivarReservaCliente(reservaId, datosReserva, 'cancelada_por_cliente');
         let arr = JSON.parse(localStorage.getItem('mis_reservas_jamesbarber')||'[]');
         arr = arr.filter(x => x.reservaId !== reservaId);
         localStorage.setItem('mis_reservas_jamesbarber', JSON.stringify(arr));
@@ -10512,10 +10412,8 @@ async function jbLiberarBloqueoReserva(r){
     const msgCliente = { de:'cliente', texto, ts: Date.now() };
     const newRef = jbMsgsRef.push();
     jbRenderedKeys.add(newRef.key);
-    await newRef.set(msgCliente);
+    await jbGuardarMensajePersistente(newRef, msgCliente, { atendidoPor: jbAtendidoPor || 'IA' });
     jbRenderMensaje(msgCliente);
-
-    jbChatRef.update({ atendidoPor: jbAtendidoPor||'IA', ultimaActividad: Date.now(), ultimoMensaje: texto });
 
     if(jbAtendidoPor==='HUMANO') return; // James atiende manualmente
 
@@ -10637,7 +10535,7 @@ REGLAS:
       if(!texto) throw new Error('Respuesta vacía');
       const iaRef = jbMsgsRef.push();
       jbRenderedKeys.add(iaRef.key);
-      await iaRef.set({ de:'ia', texto: texto.trim(), ts: Date.now() });
+      await jbGuardarMensajePersistente(iaRef, { de:'ia', texto: texto.trim(), ts: Date.now() });
       jbRenderMensaje({ de:'ia', texto: texto.trim() });
     } catch(err){
       console.error('IA no disponible:', err);
@@ -11823,7 +11721,6 @@ window.addEventListener('load', function() {
   });
 })();
 </script>
-<script src="push-client.js"></script>
 <script>
 (() => {
     const sources = [
@@ -13107,5 +13004,6 @@ window.addEventListener('load', function() {
     .jbSiteNav a { flex-basis: 110px; font-size: .76rem; }
   }
 </style>
+<script src="remove-legacy-push.js"></script>
 </body>
 </html>
