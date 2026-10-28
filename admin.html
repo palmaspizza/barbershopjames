@@ -10,6 +10,8 @@
     <title>Panel Admin - Barbería</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="support-center.css">
+    <script src="support-center.js" defer></script>
     
     <!-- Firebase 9.22.2 (misma versión que tu app original) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -1068,6 +1070,8 @@
                 <p id="jbChangePasswordStatus" role="status" aria-live="polite" style="margin:10px 0 0;color:#c5c6cc;"></p>
             </details>
         </section>
+
+        <a class="jb-support-shortcut" href="#jbSupportCenter">Centro de Ayuda <span>Asistencia de Palma Codes</span></a>
         
         <!-- Header -->
         <div class="admin-header">
@@ -1274,7 +1278,21 @@ window.addEventListener('load', function(){
  <style>
 
  </style>       
-        <!-- Grid Principal -->
+        <section id="jbSupportCenter" class="jb-support" aria-labelledby="jbSupportTitle">
+            <header class="jb-support-header">
+                <div class="jb-support-brand">
+                    <img src="palmacodeslogo.png" alt="Palma Codes" width="auto" height="98">
+                    <div>
+                        <p class="jb-support-eyebrow">SOPORTE DE PALMA CODES</p>
+                        <h2 id="jbSupportTitle">Centro de Ayuda</h2>
+                        <p>Estamos aquí para ayudarte con tu sistema.</p>
+                    </div>
+                </div>
+            </header>
+            <div id="jbSupportApp" class="jb-support-app" aria-live="polite"></div>
+            <p class="jb-support-privacy">No escribas contraseñas, códigos de acceso, datos bancarios ni información privada de clientes.</p>
+        </section>
+<!-- Grid Principal -->
         <div class="admin-grid">
             
             <!-- COLUMNA IZQUIERDA -->
