@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Términos de Servicio y Alcance Técnico - Barbería James</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f1015;
+      --card-bg: #161822;
+      --accent-gold: #f59e0b;
+      --accent-orange: #ff6b00;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border-color: #272a3a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      text-align: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 24px;
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      color: var(--accent-gold);
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      color: var(--accent-gold);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 8px;
+    }
+
+    ul {
+      list-style-type: none;
+    }
+
+    li {
+      position: relative;
+      padding-left: 20px;
+      margin-bottom: 8px;
+      color: var(--text-main);
+      font-size: 14px;
+    }
+
+    li::before {
+      content: "•";
+      color: var(--accent-gold);
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+    }
+
+    .tag-included {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .tag-extra {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .footer {
+      border-top: 1px solid var(--border-color);
+      padding-top: 20px;
+      margin-top: 32px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .footer strong {
+      color: var(--accent-orange);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div class="brand">Barbería James</div>
+      <div class="subtitle">Términos de Servicio y Alcance Técnico | Palma Codes</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        <span>1. Alcance de la Mantención Operativa</span>
+        <span class="tag-included">$20.000 / mes</span>
+      </div>
+      <p style="font-size: 14px; color: var(--text-muted);">
+        Cubre la continuidad operacional y disponibilidad técnica del sistema de reservas existente:
+      </p>
+      <div class="card-box">
+        <ul>
+          <li>Disponibilidad continua del servidor de la plataforma web y la base de datos de reservas.</li>
+          <li>Supervisión y corrección de errores imprevistos en los flujos del bot o sistema actual.</li>
+          <li>Acceso activo al panel de gestión y actualización de contraseñas de seguridad.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        <span>2. Desarrollos Nuevos y Servicios Adicionales</span>
+        <span class="tag-extra">Cotización Independiente</span>
+      </div>
+      <p style="font-size: 14px; color: var(--text-muted);">
+        No forman parte del soporte operativo mensual y requieren cotización y abono previo:
+      </p>
+      <div class="card-box">
+        <ul>
+          <li>Creación e integración de nuevos módulos (e.g., notificaciones Push, campañas de marketing).</li>
+          <li>Reestructuración de la interfaz de usuario o creación de nuevas vistas en el panel.</li>
+          <li>Servicios audiovisuales, fotografía, edición de reels o piezas publicitarias gráficas.</li>
+          <li>Asistencia o modificaciones técnicas presenciales fuera del horario estándar de soporte.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        <span>3. Seguridad y Accesos</span>
+      </div>
+      <div class="card-box">
+        <p style="font-size: 14px;">
+          Debido al volumen creciente de reservas del establecimiento, las credenciales de administración se gestionan bajo estándares estrictos de autenticación protegida. Las claves y correos de acceso son personales e intransferibles.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer">
+      Sistemas y tecnología provistos por <strong>Palma Codes</strong>. Todos los derechos reservados.
+    </div>
+  </div>
+
+</body>
+</html>
