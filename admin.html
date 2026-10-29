@@ -1611,6 +1611,86 @@ window.addEventListener('load', function(){
             </div>
             <p id="jbChatRetentionStatus" role="status" aria-live="polite" style="margin:10px 0 0;color:#f1c887;">La limpieza se intentará al entrar como Palma Codes.</p>
         </section>
+        <section id="jbReservationManager" style="margin:18px 0;padding:18px;border:1px solid #6b522e;border-radius:14px;background:#18191d;color:#f5f2eb;">
+            <h2 style="margin:0 0 8px;color:#f1c887;">Gestor de reservas</h2>
+            <p style="margin:0 0 14px;color:#c5c6cc;line-height:1.5;">Edita los datos de contacto y de la cita, crea reservas, reprograma, archiva o restaura. Los cambios verifican la disponibilidad y actualizan el bloqueo; se conservan hasta 20 cambios por reserva en Registro de reservas &gt; Ver todo. El aviso al cliente por WhatsApp es manual.</p>
+            <div id="jbReservationManagerSummary" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;" aria-live="polite"></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:12px;">
+                <label>Buscar
+                    <input id="jbReservationManagerSearch" type="search" autocomplete="off" placeholder="Nombre, teléfono, fecha o ID" style="display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #56565c;border-radius:8px;background:#111216;color:#fff;">
+                </label>
+                <label>Estado
+                    <select id="jbReservationManagerFilter" style="display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #56565c;border-radius:8px;background:#111216;color:#fff;">
+                        <option value="active">Activas</option>
+                        <option value="archived">Archivadas</option>
+                        <option value="all">Todas</option>
+                    </select>
+                </label>
+                <label>Desde
+                    <input id="jbReservationManagerFrom" type="date" style="display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #56565c;border-radius:8px;background:#111216;color:#fff;">
+                </label>
+                <label>Hasta
+                    <input id="jbReservationManagerTo" type="date" style="display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #56565c;border-radius:8px;background:#111216;color:#fff;">
+                </label>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
+                <button id="jbReservationManagerNew" type="button" style="min-height:42px;padding:10px 14px;border:0;border-radius:9px;background:#e4a64f;color:#21180a;font-weight:800;cursor:pointer;">＋ Nueva reserva</button>
+                <span id="jbReservationManagerCount" style="color:#c5c6cc;" aria-live="polite"></span>
+            </div>
+            <div style="overflow:auto;border:1px solid #34353b;border-radius:10px;">
+                <table style="width:100%;min-width:880px;border-collapse:collapse;text-align:left;">
+                    <thead><tr style="background:#111216;color:#f1c887;">
+                        <th style="padding:10px;">Cita</th><th style="padding:10px;">Cliente</th><th style="padding:10px;">Contacto</th><th style="padding:10px;">Servicio / total</th><th style="padding:10px;">Estado</th><th style="padding:10px;">Acciones</th>
+                    </tr></thead>
+                    <tbody id="jbReservationManagerRows"><tr><td colspan="6" style="padding:14px;color:#bbb;">Cargando reservas…</td></tr></tbody>
+                </table>
+            </div>
+            <button id="jbReservationManagerMore" type="button" hidden style="margin-top:12px;min-height:42px;padding:10px 14px;border:1px solid #e4a64f;border-radius:9px;background:transparent;color:#f1c887;font-weight:700;cursor:pointer;">Mostrar más</button>
+            <p id="jbReservationManagerStatus" role="status" aria-live="polite" style="margin:10px 0 0;color:#c5c6cc;"></p>
+        </section>
+        <div id="jbReservationEditor" hidden role="dialog" aria-modal="true" aria-labelledby="jbReservationEditorTitle" style="position:fixed;inset:0;z-index:10000;overflow:auto;background:rgba(0,0,0,.78);padding:18px;align-items:center;justify-content:center;">
+            <div style="width:min(720px,100%);max-height:calc(100vh - 36px);overflow:auto;padding:20px;border:1px solid #6b522e;border-radius:14px;background:#18191d;color:#f5f2eb;box-shadow:0 20px 70px rgba(0,0,0,.5);">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                    <h2 id="jbReservationEditorTitle" style="margin:0;color:#f1c887;">Editar reserva</h2>
+                    <button id="jbReservationEditorClose" type="button" aria-label="Cerrar" style="font-size:1.6rem;border:0;background:transparent;color:#fff;cursor:pointer;">×</button>
+                </div>
+                <p id="jbReservationEditorHint" style="color:#c5c6cc;line-height:1.45;">Verifica los datos antes de guardar. La fecha y hora se comprueban para evitar conflictos.</p>
+                <form id="jbReservationEditorForm">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+                        <label>Nombre del cliente *
+                            <input id="jbReservationName" name="nombre" required maxlength="120" autocomplete="name" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:11px;border:1px solid #56565c;border-radius:8px;background:#111216;color:#fff;">
+                        </label>
+                        <label>Teléfono / WhatsApp
+                            <input id="jbReservationPhone" name="telefono" type="tel" maxlength="32" autocomplete="tel" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:11px;border:1px solid #56565c;border-radius:8px;background:#111216;color:#fff;">
+                        </label>
+                        <label>Fecha *
+                            <input id="jbReservationDate" name="fecha" type="date" required style="display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:11px;border:1px solid #56565c;border-radius:8px;background:#111216;color:#fff;">
+                        </label>
+                        <label>Hora *
+                            <input id="jbReservationTime" name="hora" type="time" required style="display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:11px;border:1px solid #56565c;border-radius:8px;background:#111216;color:#fff;">
+                        </label>
+                        <label>Servicio(s)
+                            <input id="jbReservationServices" name="servicios" maxlength="250" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:11px;border:1px solid #56565c;border-radius:8px;background:#111216;color:#fff;">
+                        </label>
+                        <label>Total / precio
+                            <input id="jbReservationTotal" name="total" maxlength="40" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:11px;border:1px solid #56565c;border-radius:8px;background:#111216;color:#fff;">
+                        </label>
+                    </div>
+                    <label style="display:block;margin-top:12px;">Nota interna
+                        <textarea id="jbReservationNote" name="notaAdmin" maxlength="500" rows="3" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:11px;border:1px solid #56565c;border-radius:8px;background:#111216;color:#fff;resize:vertical;"></textarea>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:9px;margin-top:12px;color:#ddd;">
+                        <input id="jbReservationWhatsappConsent" name="acepta_contacto_whatsapp" type="checkbox">
+                        El cliente autorizó contacto por WhatsApp
+                    </label>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+                        <button id="jbReservationSave" type="submit" style="min-height:44px;padding:10px 16px;border:0;border-radius:9px;background:#e4a64f;color:#21180a;font-weight:800;cursor:pointer;">Guardar cambios</button>
+                        <button id="jbReservationEditorCancel" type="button" style="min-height:44px;padding:10px 16px;border:1px solid #777;border-radius:9px;background:transparent;color:#fff;font-weight:700;cursor:pointer;">Cancelar</button>
+                    </div>
+                    <p id="jbReservationEditorStatus" role="status" aria-live="polite" style="margin:12px 0 0;color:#f1c887;"></p>
+                </form>
+            </div>
+        </div>
         <section id="jbAuditReservations" style="margin:18px 0;padding:18px;border:1px solid #34353b;border-radius:14px;background:#18191d;color:#f5f2eb;">
             <h2 style="margin:0 0 8px;color:#f1c887;">Registro de reservas</h2>
             <p style="margin:0 0 14px;color:#c5c6cc;line-height:1.5;">Consulta las reservas guardadas, la fecha y hora en que se crearon, sus datos completos y exporta un CSV para análisis. Los registros antiguos sin marca de tiempo se señalarán como no disponible.</p>
@@ -1752,6 +1832,10 @@ window.addEventListener('load', function(){
         let jbDeveloperClientPagina = 1;
         const JB_AUDIT_PAGINA_TAMANO = 100;
         const JB_CLIENT_PAGINA_TAMANO = 50;
+        let jbReservationManagerPage = 1;
+        let jbReservationEditorRecord = null;
+        let jbReservationSaveInProgress = false;
+        const JB_RESERVATION_MANAGER_PAGE_SIZE = 50;
         let jbAuditListener = null;
         let jbDeveloperClientListener = null;
         let jbChatCleanupInProgress = false;
@@ -2687,6 +2771,395 @@ function generarBotonWhatsapp(reserva) {
 // PANEL SECRETO — CLIENTES CON DIFICULTADES
 // ============================================
 
+function jbReservationManagerSetStatus(message, isError = false) {
+    const status = document.getElementById('jbReservationManagerStatus');
+    if (!status) return;
+    status.textContent = message;
+    status.style.color = isError ? '#ff9b9b' : '#c5c6cc';
+}
+
+function jbReservationManagerFiltered() {
+    const search = document.getElementById('jbReservationManagerSearch');
+    const filter = document.getElementById('jbReservationManagerFilter');
+    const from = document.getElementById('jbReservationManagerFrom');
+    const to = document.getElementById('jbReservationManagerTo');
+    if (!search || !filter || !from || !to) return [];
+    const query = search.value.trim().toLowerCase();
+    return jbAuditReservas
+        .filter(({ id, reserva }) => {
+            const archived = Boolean(reserva.archivedAt);
+            if (filter.value === 'active' && archived) return false;
+            if (filter.value === 'archived' && !archived) return false;
+            const date = String(reserva.fecha || '');
+            if (from.value && date < from.value) return false;
+            if (to.value && date > to.value) return false;
+            if (!query) return true;
+            return `${id} ${reserva.nombre || ''} ${reserva.telefono || ''} ${reserva.fecha || ''} ${reserva.hora || ''} ${reserva.servicios || ''} ${reserva.total || ''}`
+                .toLowerCase().includes(query);
+        })
+        .sort((a, b) => {
+            const archivedA = Boolean(a.reserva.archivedAt);
+            const archivedB = Boolean(b.reserva.archivedAt);
+            if (archivedA !== archivedB) return archivedA ? 1 : -1;
+            if (archivedA) return Number(b.reserva.archivedAt) - Number(a.reserva.archivedAt);
+            return `${a.reserva.fecha || ''} ${a.reserva.hora || ''}`
+                .localeCompare(`${b.reserva.fecha || ''} ${b.reserva.hora || ''}`);
+        });
+}
+
+function jbReservationManagerRender() {
+    const summary = document.getElementById('jbReservationManagerSummary');
+    const rows = document.getElementById('jbReservationManagerRows');
+    const count = document.getElementById('jbReservationManagerCount');
+    const more = document.getElementById('jbReservationManagerMore');
+    if (!summary || !rows || !count || !more) return;
+
+    const today = jbFechaChile();
+    const active = jbAuditReservas.filter(({ reserva }) => !reserva.archivedAt);
+    const upcoming = active.filter(({ reserva }) => String(reserva.fecha || '') >= today).length;
+    const todayCount = active.filter(({ reserva }) => String(reserva.fecha || '') === today).length;
+    const archived = jbAuditReservas.length - active.length;
+    const tile = (label, value) => `<div style="min-width:120px;padding:12px 14px;border:1px solid #34353b;border-radius:10px;background:#111216;"><span style="display:block;color:#aeb0b8;font-size:.8rem;">${label}</span><strong style="font-size:1.35rem;color:#f1c887;">${value}</strong></div>`;
+    summary.innerHTML = tile('Reservas activas', active.length)
+        + tile('Próximas', upcoming)
+        + tile('Para hoy', todayCount)
+        + tile('Archivadas', archived);
+
+    const filtered = jbReservationManagerFiltered();
+    const shown = filtered.slice(0, jbReservationManagerPage * JB_RESERVATION_MANAGER_PAGE_SIZE);
+    count.textContent = `Mostrando ${shown.length} de ${filtered.length} reserva(s)`;
+    more.hidden = shown.length >= filtered.length;
+    if (!shown.length) {
+        rows.innerHTML = `<tr><td colspan="6" style="padding:14px;color:#bbb;">${jbAuditReservas.length ? 'No hay coincidencias con estos filtros.' : 'No se encontraron reservas guardadas.'}</td></tr>`;
+        return;
+    }
+
+    rows.innerHTML = shown.map(({ id, reserva }) => {
+        const isArchived = Boolean(reserva.archivedAt);
+        const phone = jbDeveloperWhatsappPhone(reserva.telefono || '');
+        const appointment = `${reserva.fecha || 'Sin fecha'} · ${reserva.hora || 'Sin hora'}`;
+        const message = `Hola ${reserva.nombre || ''}, te escribimos de James Barber Shop. Tu reserva quedó para el ${reserva.fecha || ''} a las ${reserva.hora || ''}.`;
+        const whatsapp = phone
+            ? `<a href="https://wa.me/${encodeURIComponent(phone)}?text=${encodeURIComponent(message)}" target="_blank" rel="noopener noreferrer" style="color:#80e6a3;">${jbAuditEscapar(reserva.telefono || 'WhatsApp')}</a>`
+            : jbAuditEscapar(reserva.telefono || 'Sin teléfono');
+        const editLabel = isArchived ? 'Editar / restaurar' : 'Editar';
+        const archiveAction = isArchived
+            ? ''
+            : `<button type="button" data-reservation-action="archive" data-reservation-id="${jbAuditEscapar(id)}" style="padding:7px 9px;border:1px solid #a34a50;border-radius:7px;background:#351d20;color:#ffdfe0;font-weight:700;cursor:pointer;">Archivar</button>`;
+        return `<tr>
+            <td style="padding:10px;border-bottom:1px solid #34353b;white-space:nowrap;">${jbAuditEscapar(appointment)}</td>
+            <td style="padding:10px;border-bottom:1px solid #34353b;">${jbAuditEscapar(reserva.nombre || 'Sin nombre')}</td>
+            <td style="padding:10px;border-bottom:1px solid #34353b;">${whatsapp}</td>
+            <td style="padding:10px;border-bottom:1px solid #34353b;">${jbAuditEscapar(reserva.servicios || reserva.servicio || '—')}<br>${jbAuditEscapar(reserva.total || reserva.precio || '—')}</td>
+            <td style="padding:10px;border-bottom:1px solid #34353b;">${isArchived ? 'Archivada' : 'Activa'}</td>
+            <td style="padding:10px;border-bottom:1px solid #34353b;white-space:nowrap;">
+                <button type="button" data-reservation-action="edit" data-reservation-id="${jbAuditEscapar(id)}" style="margin-right:5px;padding:7px 9px;border:0;border-radius:7px;background:#e4a64f;color:#21180a;font-weight:800;cursor:pointer;">${editLabel}</button>
+                ${archiveAction}
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function jbReservationEditorClose() {
+    const editor = document.getElementById('jbReservationEditor');
+    if (editor) {
+        editor.hidden = true;
+        editor.style.display = 'none';
+    }
+    jbReservationEditorRecord = null;
+}
+
+function jbReservationEditorOpen(record = null) {
+    if (!jbEsAccesoDesarrollador()) {
+        mostrarToast('Esta función requiere iniciar sesión con la cuenta de Palmacodes.', true);
+        return;
+    }
+    const form = document.getElementById('jbReservationEditorForm');
+    const editor = document.getElementById('jbReservationEditor');
+    const status = document.getElementById('jbReservationEditorStatus');
+    if (!form || !editor || !status) return;
+    form.reset();
+    jbReservationEditorRecord = record
+        ? { id: record.id, archived: Boolean(record.reserva.archivedAt), mode: 'edit' }
+        : { mode: 'new' };
+    const reserva = record ? record.reserva : {};
+    document.getElementById('jbReservationEditorTitle').textContent = record
+        ? (reserva.archivedAt ? 'Editar / restaurar reserva' : 'Editar reserva')
+        : 'Crear reserva manual';
+    document.getElementById('jbReservationEditorHint').textContent = reserva.archivedAt
+        ? 'Al guardar, la reserva volverá a estar activa. Se comprobará la disponibilidad de la fecha y hora.'
+        : 'Verifica los datos antes de guardar. La fecha y hora se comprueban para evitar conflictos.';
+    document.getElementById('jbReservationName').value = reserva.nombre || '';
+    document.getElementById('jbReservationPhone').value = reserva.telefono || '';
+    document.getElementById('jbReservationDate').value = reserva.fecha || '';
+    document.getElementById('jbReservationTime').value = reserva.hora || '';
+    document.getElementById('jbReservationServices').value = reserva.servicios || reserva.servicio || '';
+    document.getElementById('jbReservationTotal').value = reserva.total || reserva.precio || '';
+    document.getElementById('jbReservationNote').value = reserva.notaAdmin || '';
+    document.getElementById('jbReservationWhatsappConsent').checked = Boolean(reserva.acepta_contacto_whatsapp);
+    document.getElementById('jbReservationSave').textContent = record ? 'Guardar cambios' : 'Crear reserva';
+    status.textContent = '';
+    editor.hidden = false;
+    editor.style.display = 'flex';
+    document.getElementById('jbReservationName').focus();
+}
+
+function jbReservationSlotKey(hora) {
+    return String(hora).replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
+async function jbReservationAcquireSlot(fecha, hora, id) {
+    const ref = db.ref(`bloqueos/${fecha}/${jbReservationSlotKey(hora)}`);
+    const result = await ref.transaction(actual => {
+        if (actual === null) return { reservaId: id, timestamp: Date.now() };
+        if (actual && actual.reservaId === id) return actual;
+        return undefined;
+    });
+    if (!result.committed) throw new Error('Ese horario ya está ocupado o reservado por otro cliente. Elige otra fecha u hora.');
+    return ref;
+}
+
+async function jbReservationReleaseSlot(fecha, hora, id) {
+    if (!fecha || !hora || !id) return false;
+    const ref = db.ref(`bloqueos/${fecha}/${jbReservationSlotKey(hora)}`);
+    const result = await ref.transaction(actual => actual && actual.reservaId === id ? null : undefined);
+    return result.committed;
+}
+
+async function jbReservationHasConflict(fecha, hora, id) {
+    const snapshot = await db.ref('reservas').once('value');
+    let conflict = false;
+    snapshot.forEach(child => {
+        const reserva = child.val();
+        if (child.key !== id && reserva && String(reserva.fecha || '') === fecha && String(reserva.hora || '') === hora) {
+            conflict = true;
+        }
+    });
+    return conflict;
+}
+
+async function jbReservationSave(event) {
+    event.preventDefault();
+    if (!jbEsAccesoDesarrollador()) {
+        mostrarToast('Esta función requiere iniciar sesión con la cuenta de Palmacodes.', true);
+        return;
+    }
+    if (jbReservationSaveInProgress) return;
+    const form = document.getElementById('jbReservationEditorForm');
+    const status = document.getElementById('jbReservationEditorStatus');
+    const saveButton = document.getElementById('jbReservationSave');
+    if (!form || !form.reportValidity()) return;
+
+    const draft = {
+        nombre: document.getElementById('jbReservationName').value.trim(),
+        telefono: document.getElementById('jbReservationPhone').value.trim(),
+        fecha: document.getElementById('jbReservationDate').value,
+        hora: document.getElementById('jbReservationTime').value,
+        servicios: document.getElementById('jbReservationServices').value.trim(),
+        total: document.getElementById('jbReservationTotal').value.trim(),
+        notaAdmin: document.getElementById('jbReservationNote').value.trim(),
+        acepta_contacto_whatsapp: document.getElementById('jbReservationWhatsappConsent').checked
+    };
+    if (!draft.nombre || draft.nombre.length > 120 || draft.telefono.length > 32
+        || draft.servicios.length > 250 || draft.total.length > 40 || draft.notaAdmin.length > 500) {
+        status.textContent = 'Revisa los campos: algún dato está vacío o supera el largo permitido.';
+        return;
+    }
+    if (!jbEsFechaReservaValida(draft.fecha) || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(draft.hora)) {
+        status.textContent = 'La fecha o la hora no tiene un formato válido.';
+        return;
+    }
+
+    jbReservationSaveInProgress = true;
+    saveButton.disabled = true;
+    status.textContent = 'Comprobando disponibilidad y guardando…';
+    try {
+        const currentRecord = jbReservationEditorRecord;
+        const isNew = currentRecord.mode === 'new';
+        const isArchived = Boolean(currentRecord.archived);
+        let current = null;
+        let id = currentRecord.id;
+        let reservationRef;
+        if (isNew) {
+            reservationRef = db.ref('reservas').push();
+            id = reservationRef.key;
+        } else {
+            const currentPath = isArchived ? `reservas_archivadas/${id}` : `reservas/${id}`;
+            const currentSnapshot = await db.ref(currentPath).once('value');
+            current = currentSnapshot.val();
+            if (!current) throw new Error('La reserva cambió o ya no existe. Actualiza la lista e inténtalo otra vez.');
+            reservationRef = db.ref(`reservas/${id}`);
+        }
+
+        if (await jbReservationHasConflict(draft.fecha, draft.hora, id)) {
+            throw new Error('Ya existe otra reserva activa en esa fecha y hora. Elige otro horario.');
+        }
+
+        const sameSlot = Boolean(current && !isArchived
+            && current.fecha === draft.fecha
+            && jbReservationSlotKey(current.hora) === jbReservationSlotKey(draft.hora));
+        const targetLockRef = db.ref(`bloqueos/${draft.fecha}/${jbReservationSlotKey(draft.hora)}`);
+        const targetLockSnapshot = await targetLockRef.once('value');
+        const targetLockAlreadyOwned = Boolean(targetLockSnapshot.val()
+            && targetLockSnapshot.val().reservaId === id);
+        await jbReservationAcquireSlot(draft.fecha, draft.hora, id);
+
+        const editorEmail = auth.currentUser && auth.currentUser.email
+            ? auth.currentUser.email.toLowerCase()
+            : JB_DEVELOPER_EMAIL;
+        const updated = {
+            ...(current || {}),
+            ...draft,
+            updatedAt: firebase.database.ServerValue.TIMESTAMP,
+            updatedBy: editorEmail
+        };
+        let writeSucceeded = false;
+        try {
+            if (isNew) {
+                updated.createdAt = firebase.database.ServerValue.TIMESTAMP;
+                updated.timestamp = firebase.database.ServerValue.TIMESTAMP;
+                updated.origen = 'developer';
+                updated.historialCambios = [];
+            } else {
+                const oldValues = {};
+                const newValues = {};
+                Object.keys(draft).forEach(key => {
+                    const oldValue = current[key] ?? '';
+                    const newValue = draft[key];
+                    if (String(oldValue) !== String(newValue)) {
+                        oldValues[key] = oldValue;
+                        newValues[key] = newValue;
+                    }
+                });
+                const history = Array.isArray(current.historialCambios) ? current.historialCambios : [];
+                if (Object.keys(newValues).length || isArchived) {
+                    history.push({
+                        at: firebase.database.ServerValue.TIMESTAMP,
+                        by: editorEmail,
+                        action: isArchived ? 'restored_and_edited' : 'edited',
+                        before: oldValues,
+                        after: newValues
+                    });
+                }
+                updated.historialCambios = history.slice(-20);
+                updated.archivedAt = null;
+                updated.archiveReason = null;
+            }
+
+            if (isArchived) {
+                await db.ref().update({
+                    [`reservas/${id}`]: updated,
+                    [`reservas_archivadas/${id}`]: null
+                });
+            } else {
+                await reservationRef.set(updated);
+            }
+            writeSucceeded = true;
+        } finally {
+            if (!writeSucceeded && (!sameSlot || isArchived || isNew || !targetLockAlreadyOwned)) {
+                try {
+                    await jbReservationReleaseSlot(draft.fecha, draft.hora, id);
+                } catch (cleanupError) {
+                    console.error('No se pudo liberar el horario después de fallar la edición:', cleanupError);
+                }
+            }
+        }
+
+        if (current && !isArchived
+            && (current.fecha !== draft.fecha || jbReservationSlotKey(current.hora) !== jbReservationSlotKey(draft.hora))) {
+            try {
+                const released = await jbReservationReleaseSlot(current.fecha, current.hora, id);
+                if (!released) console.warn('El horario anterior no tenía un bloqueo que perteneciera a esta reserva.');
+            } catch (releaseError) {
+                console.error('La reserva se guardó, pero no se pudo liberar su horario anterior:', releaseError);
+                jbReservationManagerSetStatus('La reserva se guardó, pero no se pudo liberar automáticamente el bloqueo anterior. Revisa ese horario en el calendario.', true);
+            }
+        }
+
+        jbReservationEditorClose();
+        jbReservationManagerSetStatus(isNew
+            ? 'Reserva creada y horario bloqueado. Si corresponde, avisa al cliente por WhatsApp.'
+            : (isArchived ? 'Reserva restaurada y actualizada. Si corresponde, avisa al cliente por WhatsApp.' : 'Cambios guardados. Si cambió la cita, avisa al cliente por WhatsApp.'));
+    } catch (error) {
+        console.error('No se pudo guardar la reserva desde el gestor:', error);
+        status.textContent = `No se pudo guardar: ${error.message}`;
+    } finally {
+        jbReservationSaveInProgress = false;
+        saveButton.disabled = false;
+    }
+}
+
+async function jbReservationArchive(id) {
+    if (!jbEsAccesoDesarrollador()) {
+        mostrarToast('Esta función requiere iniciar sesión con la cuenta de Palmacodes.', true);
+        return;
+    }
+    const record = jbAuditReservas.find(item => item.id === id && !item.reserva.archivedAt);
+    if (!record) {
+        jbReservationManagerSetStatus('La reserva ya no está activa. Actualiza la página e inténtalo otra vez.', true);
+        return;
+    }
+    const confirmed = window.confirm(`¿Archivar la reserva de ${record.reserva.nombre || 'este cliente'} para ${record.reserva.fecha || 'fecha desconocida'} a las ${record.reserva.hora || 'hora desconocida'}?`);
+    if (!confirmed) return;
+    try {
+        const snapshot = await db.ref(`reservas/${id}`).once('value');
+        const current = snapshot.val();
+        if (!current) throw new Error('La reserva ya no está activa.');
+        await jbArchivarReserva(id, current, 'archivada_desde_gestor');
+        try {
+            const released = await jbReservationReleaseSlot(current.fecha, current.hora, id);
+            if (!released) console.warn('No había un bloqueo propio para liberar al archivar la reserva.');
+            jbReservationManagerSetStatus('Reserva archivada. Puedes restaurarla desde el filtro “Archivadas”.');
+        } catch (releaseError) {
+            console.error('La reserva se archivó, pero no se pudo liberar su horario:', releaseError);
+            jbReservationManagerSetStatus('La reserva se archivó, pero no se pudo liberar automáticamente el horario. Revisa el calendario.', true);
+        }
+    } catch (error) {
+        console.error('No se pudo archivar la reserva desde el gestor:', error);
+        jbReservationManagerSetStatus(`No se pudo archivar: ${error.message}`, true);
+    }
+}
+
+function jbReservationManagerBind() {
+    const manager = document.getElementById('jbReservationManager');
+    if (!manager || manager.dataset.bound) return;
+    manager.dataset.bound = '1';
+    ['jbReservationManagerSearch', 'jbReservationManagerFilter', 'jbReservationManagerFrom', 'jbReservationManagerTo']
+        .forEach(id => {
+            const input = document.getElementById(id);
+            input.addEventListener(id.endsWith('Search') ? 'input' : 'change', () => {
+                jbReservationManagerPage = 1;
+                jbReservationManagerRender();
+            });
+        });
+    document.getElementById('jbReservationManagerNew').addEventListener('click', () => jbReservationEditorOpen());
+    document.getElementById('jbReservationManagerMore').addEventListener('click', () => {
+        jbReservationManagerPage++;
+        jbReservationManagerRender();
+    });
+    document.getElementById('jbReservationManagerRows').addEventListener('click', event => {
+        const button = event.target.closest('[data-reservation-action]');
+        if (!button) return;
+        const { reservationAction, reservationId } = button.dataset;
+        if (reservationAction === 'archive') jbReservationArchive(reservationId);
+        if (reservationAction === 'edit') {
+            const record = jbAuditReservas.find(item => item.id === reservationId);
+            if (record) jbReservationEditorOpen(record);
+        }
+    });
+    document.getElementById('jbReservationEditorForm').addEventListener('submit', jbReservationSave);
+    document.getElementById('jbReservationEditorClose').addEventListener('click', jbReservationEditorClose);
+    document.getElementById('jbReservationEditorCancel').addEventListener('click', jbReservationEditorClose);
+    document.getElementById('jbReservationEditor').addEventListener('click', event => {
+        if (event.target.id === 'jbReservationEditor') jbReservationEditorClose();
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !document.getElementById('jbReservationEditor').hidden) {
+            jbReservationEditorClose();
+        }
+    });
+}
+
 function jbAuditEscapar(valor) {
     return String(valor ?? '').replace(/[&<>"']/g, caracter => ({
 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -2963,6 +3436,7 @@ jbAuditListener = null;
 
 function jbIniciarRegistroReservasDeveloper() {
     if (!jbEsAccesoDesarrollador()) return;
+    jbReservationManagerBind();
     const search = document.getElementById('jbAuditSearch');
     const filter = document.getElementById('jbAuditDateFilter');
     const exportButton = document.getElementById('jbAuditExport');
@@ -2997,6 +3471,7 @@ jbAuditReservas = [
 jbAuditPagina = 1;
 status.textContent = 'Datos sincronizados desde Firebase.';
 jbAuditRender();
+jbReservationManagerRender();
 jbDeveloperClientRender();
     };
     jbAuditListener = snapshot => {
@@ -3343,7 +3818,8 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
             const panel = document.getElementById('panel-dia');
             panel.classList.add('active');
             
-            const fecha = new Date(diaSeleccionado);
+            const [anio, mes, dia] = diaSeleccionado.split('-').map(Number);
+            const fecha = new Date(anio, mes - 1, dia);
             const diaSemana = fecha.getDay();
             const esDiaSemanaCerrado = diasSemanaCerrados.includes(diaSemana);
             const esDiaEspecificoCerrado = diasCerrados.includes(diaSeleccionado);
@@ -3566,7 +4042,8 @@ firebase.database().ref('config/reloadSignal').on('value', snap => {
         }
         
         function obtenerHorarioDefault(fechaStr) {
-            const fecha = new Date(fechaStr);
+            const [anio, mes, dia] = fechaStr.split('-').map(Number);
+            const fecha = new Date(anio, mes - 1, dia);
             const diaSemana = fecha.getDay();
             return diaSemana === 0 ? horarioDomingo : horarioSemana;
         }
