@@ -2923,14 +2923,11 @@ function buscarMisReservasManual() {
     db.ref('reservas').orderByChild('nombre').equalTo(nombre).once('value')
         .then(snapshot => {
             reservasClienteActuales = [];
-            const ahora = new Date();
             const hoyStr = formatearFechaSimple(new Date());
             
             snapshot.forEach(child => {
                 const reserva = { id: child.key, ...child.val() };
-                const fechaReserva = new Date(reserva.fecha);
-                
-                if (fechaReserva >= new Date(ahora.setHours(0,0,0,0)) || reserva.fecha === hoyStr) {
+                if (reserva.fecha >= hoyStr) {
                     reservasClienteActuales.push(reserva);
                 }
             });
@@ -3107,7 +3104,7 @@ function solicitarCancelacion(reservaId) {
     }
     
     info.innerHTML = `
-        <p><strong>📅 Fecha:</strong> ${formatearFechaLarga(new Date(reserva.fecha))}</p>
+        <p><strong>📅 Fecha:</strong> ${formatearFechaLarga(reserva.fecha)}</p>
         <p><strong>⏰ Hora:</strong> ${reserva.hora}</p>
         <p><strong>💈 Servicios:</strong> ${reserva.servicios || 'No especificado'}</p>
         ${reserva.total ? `<p><strong>💰 Total:</strong> ${reserva.total}</p>` : ''}
@@ -4634,7 +4631,8 @@ function obtenerHorario(fechaStr) {
     const personalizado = horariosPersonalizados[fechaStr];
     if (Array.isArray(personalizado)) return personalizado;
 
-    const dia = new Date(fechaStr).getDay();
+    const [anio, mes, diaDelMes] = fechaStr.split("-").map(Number);
+    const dia = new Date(anio, mes - 1, diaDelMes).getDay();
     if (dia === 0) return horarioDomingo;
 
     return horarioSemana;
@@ -4838,7 +4836,8 @@ function habilitarDiaDeLaSemana(dia) {
         };
 
         fechaInput.addEventListener("change", () => {
-            const fechaElegida = new Date(fechaInput.value);
+            const [anio, mes, dia] = fechaInput.value.split("-").map(Number);
+            const fechaElegida = new Date(anio, mes - 1, dia);
             const opciones = {
                 year: 'numeric',
                 month: 'long',
@@ -5507,7 +5506,8 @@ const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fecha);
         }
 
         function abrirVentanaConfiguracionHorarios() {
-            const diaSemana = new Date(fechaSeleccionadaParaConfigurar).getDay();
+            const [anio, mes, dia] = fechaSeleccionadaParaConfigurar.split("-").map(Number);
+            const diaSemana = new Date(anio, mes - 1, dia).getDay();
             const esSabado = diaSemana === 6;
 
             tituloConfigHorarios.textContent = `Configurar Horario (${fechaSeleccionadaParaConfigurar})`;
@@ -9406,6 +9406,37 @@ if(!jbResponderFAQ(texto)){
 window._jbConfirmandoReserva = true;
     jbBot('Guardando tu hora... ⏳');
     try {
+      const reservasDelDia = await db.ref('reservas')
+        .orderByChild('fecha')
+        .equalTo(jbReserva.fecha)
+        .once('value');
+      let horaYaReservada = false;
+      reservasDelDia.forEach(child => {
+        const reservaExistente = child.val();
+        if (reservaExistente &&
+            String(reservaExistente.hora || '').slice(0, 5) === String(jbReserva.hora || '').slice(0, 5)) {
+          horaYaReservada = true;
+        }
+      });
+
+      if (horaYaReservada) {
+        if (typeof reservasPorDia !== 'undefined') {
+          const horas = reservasPorDia[jbReserva.fecha] || [];
+          if (!horas.includes(jbReserva.hora)) horas.push(jbReserva.hora);
+          reservasPorDia[jbReserva.fecha] = horas;
+        }
+        jbBot('Uy 😕 alguien acaba de tomar ese horario. Elige otra hora disponible:');
+        jbReserva.hora = null;
+        jbReserva.step = 'hora';
+        if (typeof jbLimpiarControlesReserva === 'function') {
+          jbLimpiarControlesReserva();
+        }
+        jbGuardarEstadoReserva(false);
+        window._jbConfirmandoReserva = false;
+        jbPreguntarHora();
+        return;
+      }
+
       const claveHora = String(jbReserva.hora).replace(/[^a-zA-Z0-9_-]/g, '_');
 
 const bloqueoRef = db.ref(
