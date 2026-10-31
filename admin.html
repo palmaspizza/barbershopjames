@@ -2192,6 +2192,35 @@ RESPONDE EN ESTE FORMATO
             return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
         }
 
+        const JB_NTFY_TOPIC = 'james-barber-shop-2026';
+        function jbEnviarNotificacionNtfy(reserva, accion) {
+            try {
+                const nombre = String(reserva?.nombre || '').trim().split(/\s+/)[0] || 'Cliente';
+                const telefono = String(reserva?.telefono || '').replace(/[^\d]/g, '');
+                const whatsapp = telefono ? `\n💬 WhatsApp: https://wa.me/${telefono}` : '';
+                const mensaje = [
+                    accion === 'tomada' ? '📅 Nueva reserva tomada' : '❌ Reserva cancelada por administrador',
+                    `📅 Fecha: ${reserva?.fecha || '—'}`,
+                    `🕐 Hora: ${reserva?.hora || '—'}`,
+                    `✂️ Servicio: ${reserva?.servicios || '—'}`,
+                    `👤 Nombre: ${nombre}`,
+                    whatsapp
+                ].filter(Boolean).join('\n');
+                fetch(`https://ntfy.sh/${JB_NTFY_TOPIC}`, {
+                    method: 'POST',
+                    headers: {
+                        Title: accion === 'tomada' ? 'Nueva reserva - Barbería James' : 'Reserva cancelada - Barbería James',
+                        Tags: accion === 'tomada' ? 'calendar,scissors' : 'x,scissors'
+                    },
+                    body: mensaje
+                }).then(response => {
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                }).catch(error => console.error('No se pudo enviar la notificación ntfy:', error));
+            } catch (error) {
+                console.error('No se pudo preparar la notificación ntfy:', error);
+            }
+        }
+
         function jbArchivarReserva(id, reserva, motivo = 'cancelada') {
             if (!id || !reserva || typeof reserva !== 'object') {
                 return Promise.reject(new Error('No se pudo validar la reserva que se desea archivar.'));
@@ -2203,7 +2232,11 @@ RESPONDE EN ESTE FORMATO
                 archiveReason: motivo
             };
             updates[`reservas/${id}`] = null;
-            return db.ref().update(updates);
+            return db.ref().update(updates).then(() => {
+                if (String(motivo || '').startsWith('cancelada') || String(motivo || '').startsWith('eliminada')) {
+                    jbEnviarNotificacionNtfy({ ...reserva, reservaId: id }, 'cancelada');
+                }
+            });
         }
 
         async function jbLimpiarReservasMesesAnteriores() {
