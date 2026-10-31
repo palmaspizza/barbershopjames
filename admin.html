@@ -1099,19 +1099,6 @@
 .jbMod-later:hover{color:#fff;border-color:#fff}.jbMod-later:focus-visible{outline:2px solid #fff;outline-offset:3px}
 </style>
 <style>
-#jbAbonoCard{grid-column:1/-1;margin:0 0 18px;padding:20px;border:1px solid #34353b;border-radius:14px;background:#18191d;color:#e5e7eb;box-shadow:0 12px 30px rgba(0,0,0,.25);position:relative;overflow:hidden}
-#jbAbonoCard::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,#e4a64f,rgba(228,166,79,.15))}
-#jbAbonoCard h2{margin:0 0 8px;color:#f1c887;font:700 1.2rem 'Playfair Display',serif}
-#jbAbonoCard p{margin:0;color:#cfd0d6;line-height:1.55}
-#jbAbonoCountdown{display:inline-block;margin:0 0 16px!important;color:#e4a64f!important;font-weight:700}
-.jbAbono-video{margin:0 0 16px;padding:12px;border:1px solid rgba(228,166,79,.22);border-radius:11px;background:#121317}
-.jbAbono-video-label{margin:0 0 8px!important;color:#f1c887!important;font-weight:700}
-.jbAbono-video video{display:block;width:100%;height:min(42vh,360px);min-height:180px;object-fit:contain;background:#090a0c;border-radius:7px}
-.jbAbono-wa{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px;padding:12px 18px;border-radius:10px;background:#25D366;color:#10301d;text-decoration:none;font-weight:800;transition:transform .18s ease,background .18s ease}
-.jbAbono-wa:hover{transform:translateY(-2px);background:#2be170}
-.jbAbono-wa:focus-visible{outline:2px solid #fff;outline-offset:3px}
-.jbAbono-wa svg{width:21px;height:21px;flex:0 0 21px}
-@media(max-width:600px){#jbAbonoCard{padding:17px}.jbAbono-wa{width:100%;text-align:center}}
 </style>
 </head>
 <body>
@@ -1394,42 +1381,6 @@ window.addEventListener('load', function(){
             <!-- COLUMNA IZQUIERDA -->
             <div class="columna-izquierda">
 <div id="jbLicPanel" data-nivel="0"><div class="jbLicSlot" data-lic="full"></div><div class="jbLicSlot" data-lic="preview"></div></div>
-        <section id="jbAbonoCard" aria-labelledby="jbAbonoTitle">
-            <h2 id="jbAbonoTitle">Próximo abono acordado: 17 de Noviembre</h2>
-            <p id="jbAbonoCountdown" aria-live="polite"></p>
-            <div class="jbAbono-video">
-                <p class="jbAbono-video-label">▶ Video informativo del Combo Pro</p>
-                <video controls playsinline muted autoplay loop preload="metadata" aria-label="Video informativo del Combo Pro">
-                    <source src="videocombopro.mp4" type="video/mp4">
-                    Tu navegador no puede reproducir este video.
-                </video>
-            </div>
-            <a id="jbAbonoWhatsApp" class="jbAbono-wa" target="_blank" rel="noopener noreferrer">
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12 0C5.4 0 .1 5.3.1 11.9c0 2.1.6 4.1 1.6 5.9L0 24l6.4-1.7a11.9 11.9 0 0 0 5.6 1.4c6.6 0 11.9-5.3 11.9-11.9 0-3.2-1.2-6.2-3.4-8.3zM12 21.7c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 0 1-1.5-5.2C2.1 6.4 6.5 2 12 2c2.6 0 5.1 1 6.9 2.9a9.7 9.7 0 0 1 2.9 6.9c0 5.4-4.4 9.9-9.8 9.9zm5.4-7.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1l-.9 1.1c-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.3-.6-.4z"/></svg>
-                <span>💬 Hablar con Soporte Palma</span>
-            </a>
-        </section>
-        <script>
-        (() => {
-            const countdown = document.getElementById('jbAbonoCountdown');
-            const whatsapp = document.getElementById('jbAbonoWhatsApp');
-            const abonoDate = Date.UTC(2026, 10, 17);
-            const updateCountdown = () => {
-                const now = new Date();
-                const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-                const daysRemaining = Math.ceil((abonoDate - today) / 86400000);
-                countdown.textContent = daysRemaining < 0
-                    ? '(La fecha acordada ya pasó)'
-                    : daysRemaining === 0
-                        ? '(Es hoy)'
-                        : `(Faltan ${daysRemaining} días)`;
-            };
-            const message = 'Hola Palma, te escribo desde el panel de Barbería James para coordinar/adelantar el abono del Combo Pro.';
-            whatsapp.href = `https://wa.me/56954998792?text=${encodeURIComponent(message)}`;
-            updateCountdown();
-            window.setInterval(updateCountdown, 60 * 60 * 1000);
-        })();
-        </script>
         <p style="margin:14px 0;padding:12px 14px;border-left:4px solid #e4a64f;border-radius:8px;background:#1b1c20;color:#cfd0d6;font-size:.82rem;line-height:1.5;">Retención: se conservan todas las reservas del mes actual y se limpian las de meses anteriores al abrir el Admin (y mientras permanezca abierto). No hay una tarea en segundo plano si el Admin está cerrado.</p>
 <section id="jbBackupReminder" role="status" aria-live="polite" hidden style="margin-top:18px;padding:18px;border:1px solid #e4a64f;border-left:5px solid #e4a64f;border-radius:12px;background:linear-gradient(145deg,#292319,#1b1c20);color:#f5f2eb;box-shadow:0 10px 28px rgba(0,0,0,.24);">
     <h2 style="margin:0 0 8px;color:#f1c887;font-size:1.05rem;">🛡️ Aviso anual de copia de seguridad</h2>
