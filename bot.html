@@ -4487,16 +4487,44 @@ const firebaseConfig = {
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        const JB_NTFY_TOPIC = 'james-barber-shop-2026';
+        function jbEnviarNotificacionNtfy(reserva, accion) {
+            try {
+                const nombre = String(reserva?.nombre || '').trim().split(/\s+/)[0] || 'Cliente';
+                const telefono = String(reserva?.telefono || '').replace(/[^\d]/g, '');
+                const whatsapp = telefono ? `\n💬 WhatsApp: https://wa.me/${telefono}` : '';
+                const mensaje = [
+                    accion === 'tomada' ? '📅 Nueva reserva tomada' : '❌ Reserva cancelada',
+                    `📅 Fecha: ${reserva?.fecha || '—'}`,
+                    `🕐 Hora: ${reserva?.hora || '—'}`,
+                    `✂️ Servicio: ${reserva?.servicios || '—'}`,
+                    `👤 Nombre: ${nombre}`,
+                    whatsapp
+                ].filter(Boolean).join('\n');
+                fetch(`https://ntfy.sh/${JB_NTFY_TOPIC}`, {
+                    method: 'POST',
+                    headers: {
+                        Title: accion === 'tomada' ? 'Nueva reserva - Barbería James' : 'Reserva cancelada - Barbería James',
+                        Tags: accion === 'tomada' ? 'calendar,scissors' : 'x,scissors'
+                    },
+                    body: mensaje
+                }).then(response => {
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                }).catch(error => console.error('No se pudo enviar la notificación ntfy:', error));
+            } catch (error) {
+                console.error('No se pudo preparar la notificación ntfy:', error);
+            }
+        }
+
         window.jbArchivarReservaCliente = async function (reservationId, reservation, reason = 'cancelada_por_cliente') {
             if (!/^[A-Za-z0-9_-]{10,128}$/.test(String(reservationId || ''))) {
                 throw new Error('No se pudo validar el identificador de la reserva.');
             }
-            let current = reservation;
-            if (!current || typeof current !== 'object' || !current.fecha) {
-                const snapshot = await db.ref(`reservas/${reservationId}`).once('value');
-                current = snapshot.val();
-            }
-            if (!current) return false;
+            let current = reservation && typeof reservation === 'object' ? reservation : {};
+            const snapshot = await db.ref(`reservas/${reservationId}`).once('value');
+            const storedReservation = snapshot.val();
+            if (storedReservation) current = { ...current, ...storedReservation };
+            if (!current.fecha) return false;
             const updates = {};
             updates[`reservas_archivadas/${reservationId}`] = {
                 ...current,
@@ -4505,6 +4533,9 @@ const firebaseConfig = {
             };
             updates[`reservas/${reservationId}`] = null;
             await db.ref().update(updates);
+            if (String(reason || '').startsWith('cancelada')) {
+                jbEnviarNotificacionNtfy({ ...current, reservaId: reservationId }, 'cancelada');
+            }
             return true;
         };
         const reservasRef = db.ref("reservas");
@@ -5021,6 +5052,11 @@ const total = document.getElementById("eltotal")?.value || "";
     const ref = db.ref("reservas");
 
     try {
+        if (!await jbHorarioSigueDisponible(fechaInputValor, hora)) {
+            document.getElementById("modal-ocupado")?.classList.remove("hidden");
+            await jbRecargarDisponibilidad(fechaInputValor);
+            return;
+        }
         const snapshot = await ref.orderByChild("fecha").equalTo(fechaInputValor).once("value");
         let ocupada = false;
         snapshot.forEach(child => {
@@ -5066,6 +5102,7 @@ const total = document.getElementById("eltotal")?.value || "";
             }
             throw error;
         }
+        jbEnviarNotificacionNtfy(nuevaReserva, 'tomada');
 
         const reservaId = reservaRef.key;
         try {
@@ -6447,18 +6484,29 @@ function playTone(freq, dur, vol){
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-self: flex-start; max-width: 95%;
   }
   .jbHoraBtn {
-    background: linear-gradient(135deg, rgba(32,137,255,0.18), rgba(32,137,255,0.08));
-    border: 1.5px solid rgba(32,137,255,0.7); color: lime;
+    background: transparent;
+    border: 1.5px solid #e4a64f; color: #e4a64f;
     padding: 10px 10px; border-radius: 10px; text-align: center; font-size: 1.3rem;
     cursor: pointer; font-family: inherit; font-weight: 700; transition: all .18s ease;
-    box-shadow: 0 2px 8px rgba(32,137,255,0.15); letter-spacing: 0.03em;
+    box-shadow: 0 2px 8px rgba(228,166,79,0.15); letter-spacing: 0.03em;
   }
   .jbHoraBtn:hover {
-    background: linear-gradient(135deg, rgba(32,137,255,0.38), rgba(32,137,255,0.22));
-    border-color: #4eb0ff; color: #fff;
-    transform: translateY(-2px); box-shadow: 0 4px 14px rgba(32,137,255,0.35);
+    background: rgba(228,166,79,0.14);
+    border-color: #f0b65a; color: #fff;
+    transform: translateY(-2px); box-shadow: 0 4px 14px rgba(228,166,79,0.35);
   }
   .jbHoraBtn:active { transform: translateY(0); box-shadow: none; }
+  .jbHoraBtn.jbHoraTomada,
+  .jbHoraBtn.jbHoraTomada:hover {
+    background: #666;
+    border-color: #777;
+    color: #d0d0d0;
+    cursor: not-allowed;
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    transform: none;
+    box-shadow: none;
+  }
 
   /* Inputs de nombre y apellido inline */
   /* ── Avatar del cliente en header del chat ── */
@@ -7729,7 +7777,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     return dias;
   }
   function jbHorasDisponibles(fechaStr, horasDiaParam){
-    const horasDia = horasDiaParam || ((typeof obtenerHorarioDelDiaDesdeFecha === 'function') ? (obtenerHorarioDelDiaDesdeFecha(fechaStr) || []) : []);
+    const horasDia = horasDiaParam || jbHorasHabilitadasVisibles(fechaStr);
     const ocupadas = (typeof reservasPorDia !== 'undefined' && reservasPorDia[fechaStr]) || [];
     let libres = horasDia.filter(h => !ocupadas.includes(h));
     const [anio, mes, dia] = fechaStr.split('-').map(Number);
@@ -7740,6 +7788,59 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       libres = libres.filter(h => { const [hh,mm] = h.split(':').map(Number); return (hh*60+mm) > ahoraMin; });
     }
     return libres;
+  }
+  function jbHorasHabilitadasVisibles(fechaStr){
+    const horasDia = (typeof obtenerHorarioDelDiaDesdeFecha === 'function')
+      ? (obtenerHorarioDelDiaDesdeFecha(fechaStr) || [])
+      : [];
+    if (typeof diasBloqueados !== 'undefined' && diasBloqueados.includes(fechaStr)) return [];
+    const [anio, mes, dia] = String(fechaStr).split('-').map(Number);
+    const fechaObj = new Date(anio, mes - 1, dia);
+    if (typeof diasDeLaSemanaBloqueados !== 'undefined' &&
+        diasDeLaSemanaBloqueados.map(Number).includes(fechaObj.getDay())) return [];
+    if (fechaObj.toDateString() === new Date().toDateString()) {
+      const ahoraMin = new Date().getHours() * 60 + new Date().getMinutes();
+      return horasDia.filter(h => {
+        const [hh, mm] = h.split(':').map(Number);
+        return (hh * 60 + mm) > ahoraMin;
+      });
+    }
+    return horasDia;
+  }
+  async function jbRecargarDisponibilidad(fechaStr){
+    const snapshot = await db.ref('reservas').orderByChild('fecha').equalTo(fechaStr).once('value');
+    const horas = [];
+    snapshot.forEach(child => {
+      const reserva = child.val();
+      if (reserva && reserva.hora) horas.push(reserva.hora);
+    });
+    reservasPorDia[fechaStr] = horas;
+  }
+  async function jbHorarioSigueDisponible(fechaStr, hora){
+    const [diasCerradosSnapshot, horarioSemanaSnapshot, horarioDomingoSnapshot, horariosEspecificosSnapshot, diasSemanaCerradosSnapshot] = await Promise.all([
+      db.ref('diasCerrados').once('value'),
+      db.ref('config/horarioSemana').once('value'),
+      db.ref('config/horarioDomingo').once('value'),
+      db.ref('config/horariosEspecificos').once('value'),
+      db.ref('config/diasSemanaCerrados').once('value')
+    ]);
+    const diasCerradosActuales = [];
+    diasCerradosSnapshot.forEach(child => {
+      const valor = child.val();
+      if (valor && valor.fecha) diasCerradosActuales.push(valor.fecha);
+    });
+    const [anio, mes, dia] = String(fechaStr).split('-').map(Number);
+    const diaSemana = new Date(anio, mes - 1, dia).getDay();
+    const diasSemanaCerrados = (diasSemanaCerradosSnapshot.val() || []).map(Number);
+    const horariosEspecificos = horariosEspecificosSnapshot.val() || {};
+    const horarioBase = diaSemana === 0
+      ? (horarioDomingoSnapshot.val() || horarioDomingo)
+      : (horarioSemanaSnapshot.val() || horarioSemana);
+    const horarioDelDia = horariosEspecificos[fechaStr] || horarioBase;
+    return !diasCerradosActuales.includes(fechaStr) &&
+      !diasSemanaCerrados.includes(diaSemana) &&
+      Array.isArray(horarioDelDia) &&
+      horarioDelDia.includes(hora);
   }
   function jbSugerirDiasCercanos(anioRef, mesRef, diaRef, cantidad){
     cantidad = cantidad || 3;
@@ -8066,8 +8167,9 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
 
   // Muestra las horas disponibles como grid de botones + opción de cambiar fecha
   function jbMostrarHoras(fechaStr){
-    const horas = jbHorasDisponibles(fechaStr);
+    const horas = jbHorasHabilitadasVisibles(fechaStr);
     if(!horas.length) return false;
+    const ocupadas = (typeof reservasPorDia !== 'undefined' && reservasPorDia[fechaStr]) || [];
     jbBloquearInput();
     const body = document.getElementById('jbChatBody');
 
@@ -8080,7 +8182,16 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       const btn = document.createElement('button');
       btn.className = 'jbHoraBtn';
       btn.textContent = h;
+      const estaTomada = ocupadas.includes(h);
+      if (estaTomada) {
+        btn.classList.add('jbHoraTomada');
+        btn.disabled = true;
+        btn.setAttribute('aria-label', `${h}, hora tomada`);
+      } else {
+        btn.setAttribute('aria-label', `${h}, hora disponible`);
+      }
       btn.onclick = () => {
+  if(estaTomada) return;
 
   if(!jbReserva) return;
   if(window._jbConfirmandoReserva) return;
@@ -8736,8 +8847,8 @@ function irAConfirmar() {
 }
 
   function jbPreguntarHora(){
-    const horas = jbHorasDisponibles(jbReserva.fecha);
-    if(!horas.length){
+    const horasHabilitadas = jbHorasHabilitadasVisibles(jbReserva.fecha);
+    if(!horasHabilitadas.length){
       const fechaLeg = jbFormatFechaLegible(jbReserva.fecha);
       const [anio,mes,dia] = jbReserva.fecha.split('-').map(Number);
       const sugeridos = jbSugerirDiasCercanos(anio, mes-1, dia);
@@ -8753,7 +8864,7 @@ function irAConfirmar() {
       return;
     }
     const fechaLeg = jbFormatFechaLegible(jbReserva.fecha);
-    jbBot(`Para el <b>${fechaLeg}</b> tengo estas horas disponibles 👇 ¿Cuál prefieres?`);
+    jbBot(`Para el <b>${fechaLeg}</b> estas son las horas habilitadas 👇 Elige una disponible:`);
     jbMostrarHoras(jbReserva.fecha);
   }
 
@@ -9343,7 +9454,7 @@ function jbMostrarFormularioWhatsapp(){
           jbReserva.step  = 'nombre';
           jbPreguntarNombre();
         } else {
-          jbBot('Esa hora no está disponible 🙏 Elige una de las que te mostré arriba.');
+          jbBot('Esa hora ya no está disponible. Elige otra.');
         }
         break;
       }
@@ -9410,6 +9521,47 @@ window._jbConfirmandoReserva = true;
         .orderByChild('fecha')
         .equalTo(jbReserva.fecha)
         .once('value');
+      const [
+        diasCerradosSnapshot,
+        horariosSemanaSnapshot,
+        horariosDomingoSnapshot,
+        horariosEspecificosSnapshot,
+        diasSemanaCerradosSnapshot
+      ] = await Promise.all([
+        db.ref('diasCerrados').once('value'),
+        db.ref('config/horarioSemana').once('value'),
+        db.ref('config/horarioDomingo').once('value'),
+        db.ref('config/horariosEspecificos').once('value'),
+        db.ref('config/diasSemanaCerrados').once('value')
+      ]);
+      const diasCerradosActuales = [];
+      diasCerradosSnapshot.forEach(child => {
+        const valor = child.val();
+        if (valor && valor.fecha) diasCerradosActuales.push(valor.fecha);
+      });
+      const [anioReserva, mesReserva, diaReserva] = String(jbReserva.fecha).split('-').map(Number);
+      const fechaReserva = new Date(anioReserva, mesReserva - 1, diaReserva);
+      const diaSemanaReserva = fechaReserva.getDay();
+      const diasSemanaCerradosActuales = (diasSemanaCerradosSnapshot.val() || []).map(Number);
+      const horariosEspecificosActuales = horariosEspecificosSnapshot.val() || {};
+      const horarioBaseActual = diaSemanaReserva === 0
+        ? (horariosDomingoSnapshot.val() || horarioDomingo)
+        : (horariosSemanaSnapshot.val() || horarioSemana);
+      const horarioDelDiaActual = horariosEspecificosActuales[jbReserva.fecha] || horarioBaseActual;
+      const diaNoDisponible = diasCerradosActuales.includes(jbReserva.fecha) ||
+        diasSemanaCerradosActuales.includes(diaSemanaReserva) ||
+        !Array.isArray(horarioDelDiaActual) ||
+        !horarioDelDiaActual.includes(jbReserva.hora);
+      if (diaNoDisponible) {
+        jbBot('Esa hora ya no está disponible. Elige otra.');
+        jbReserva.hora = null;
+        jbReserva.step = 'hora';
+        jbGuardarEstadoReserva(false);
+        window._jbConfirmandoReserva = false;
+        await jbRecargarDisponibilidad(jbReserva.fecha);
+        jbPreguntarHora();
+        return;
+      }
       let horaYaReservada = false;
       reservasDelDia.forEach(child => {
         const reservaExistente = child.val();
@@ -9420,12 +9572,7 @@ window._jbConfirmandoReserva = true;
       });
 
       if (horaYaReservada) {
-        if (typeof reservasPorDia !== 'undefined') {
-          const horas = reservasPorDia[jbReserva.fecha] || [];
-          if (!horas.includes(jbReserva.hora)) horas.push(jbReserva.hora);
-          reservasPorDia[jbReserva.fecha] = horas;
-        }
-        jbBot('Uy 😕 alguien acaba de tomar ese horario. Elige otra hora disponible:');
+        jbBot('Esa hora ya no está disponible. Elige otra.');
         jbReserva.hora = null;
         jbReserva.step = 'hora';
         if (typeof jbLimpiarControlesReserva === 'function') {
@@ -9433,6 +9580,7 @@ window._jbConfirmandoReserva = true;
         }
         jbGuardarEstadoReserva(false);
         window._jbConfirmandoReserva = false;
+        await jbRecargarDisponibilidad(jbReserva.fecha);
         jbPreguntarHora();
         return;
       }
@@ -9475,8 +9623,7 @@ const resultadoBloqueo = await bloqueoRef.transaction(actual => {
 if(!resultadoBloqueo.committed){
 
   jbBot(
-    'Uy 😕 alguien acaba de tomar ese horario. ' +
-    'Elige otra hora disponible:'
+    'Esa hora ya no está disponible. Elige otra.'
   );
 
   // Limpiar la hora ocupada
@@ -9495,6 +9642,7 @@ if(!resultadoBloqueo.committed){
   // CRÍTICO: resetear bandera para que se pueda volver a confirmar
   window._jbConfirmandoReserva = false;
 
+  await jbRecargarDisponibilidad(jbReserva.fecha);
   jbPreguntarHora();
 
   return;
@@ -9519,6 +9667,7 @@ bloqueoTomado = true;
       await bloqueoRef.update({
         reservaId: ref.key
       });
+      jbEnviarNotificacionNtfy(nuevaReserva, 'tomada');
       if(typeof guardarReservaLocal   === 'function') guardarReservaLocal(ref.key, nuevaReserva.nombre, nuevaReserva.fecha, nuevaReserva.hora, nuevaReserva.servicios, nuevaReserva.total);
       // Que la sección "Mis Reservas" muestre la reserva recién creada
       try { if(typeof cargarMisReservasAutomatico === 'function') cargarMisReservasAutomatico(); } catch(e){}
