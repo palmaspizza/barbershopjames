@@ -3004,6 +3004,16 @@ function buscarMisReservasManual() {
         });
 }
 
+function jbNormalizar(str) {
+    return String(str || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9 ]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
 function normalizarTelefonoRecuperacion(valor) {
     const limpio = String(valor || '').replace(/\D/g, '');
     if (/^569\d{8}$/.test(limpio)) return limpio;
@@ -4607,8 +4617,10 @@ const firebaseConfig = {
 
 
         window._jbInicioFlujoReserva = null;
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        const jbFirebaseApp = firebase.apps.length
+            ? firebase.app()
+            : firebase.initializeApp(firebaseConfig);
+        const db = jbFirebaseApp.database();
 
         const JB_NTFY_TOPIC = '';
         function jbEnviarNotificacionNtfy(reserva, accion) {
@@ -4780,8 +4792,8 @@ function renderGaleriaClientes(imagenes) {
             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
         ];
 
-        const estadoRef = firebase.database().ref("estadoBarberia");
-        const mensajeRef = firebase.database().ref("mensajeCierre");
+        const estadoRef = db.ref("estadoBarberia");
+        const mensajeRef = db.ref("mensajeCierre");
 
         // Escuchar configuración base en tiempo real
         configRef.child("horarioSemana").on("value", s => { if(s.val()) horarioSemana = s.val(); actualizarBarraMes(); actualizarHorasAbiertasEnTiempoReal(); });
@@ -5590,7 +5602,7 @@ async function validarClave() {
     elemento.addEventListener("touchcancel", cancel);
 }
 
-const reservasRefMostrar = firebase.database().ref("reservas");
+const reservasRefMostrar = db.ref("reservas");
         function mostrarBotonesX() {
             modoEliminarReservas = true;
             document.querySelectorAll(".boton-x").forEach(b => {
@@ -9445,6 +9457,7 @@ function jbMostrarFormularioWhatsapp(){
       }
     });
   }
+  window.jbPreguntarQueCambiar = jbPreguntarQueCambiar;
 
   // ============================================
   // MANEJADOR CENTRAL DE MENSAJES EN RESERVA
