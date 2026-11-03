@@ -59,8 +59,8 @@
       </div>
     </div>
     <div id="bg-video-container" aria-hidden="true">
-        <video id="video-a" autoplay muted loop playsinline preload="auto"></video>
-        <video id="video-b" autoplay muted loop playsinline preload="auto"></video>
+        <video id="video-a" autoplay muted loop playsinline preload="metadata"></video>
+        <video id="video-b" autoplay muted loop playsinline preload="metadata"></video>
     </div>
     <div id="bg-overlay" aria-hidden="true"></div>
     
@@ -3284,6 +3284,22 @@ function volverABuscar() {
     document.getElementById('identificacionCliente').classList.remove('hidden');
     document.getElementById('nombreClienteBusqueda').focus();
 }
+
+window.jbAbrirRecuperacion = function() {
+    const panel = document.getElementById('jbChatPanel');
+    if (panel && !panel.classList.contains('jbOpen')) panel.classList.add('jbOpen');
+    const identificacion = document.getElementById('identificacionCliente');
+    const lista = document.getElementById('listaReservasCliente');
+    const vacio = document.getElementById('misReservasVacio');
+    if (identificacion) {
+        identificacion.classList.remove('hidden');
+        identificacion.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    if (lista) lista.classList.add('hidden');
+    if (vacio) vacio.classList.add('hidden');
+    const nombre = document.getElementById('nombreClienteBusqueda');
+    if (nombre) nombre.focus();
+};
 
 function mostrarToastCliente(mensaje, esError = false) {
     const toast = document.getElementById('toastCliente');
@@ -6958,7 +6974,9 @@ function playTone(freq, dur, vol){
   <div id="jbTyping">Escribiendo<span>.</span><span>.</span><span>.</span></div>
   <div id="jbQuickActions">
     <button style="display: none;" type="button" class="jbQuickBtn jbBtnReservar" onclick="jbPedirHora()">📅 Reservar hora</button>
-    <button type="button" class="jbQuickBtn" onclick="jbAbrirCancelarDesdeBoton()">❌ Cancelar hora</button>
+    <button type="button" class="jbQuickBtn" onclick="jbAbrirCancelarDesdeBoton()">❌ Cancelar o modificar hora</button>
+    <button id="jbQuickCambiar" type="button" class="jbQuickBtn" style="display:none;" onclick="jbPreguntarQueCambiar()">✏️ Cambiar selección</button>
+    <button type="button" class="jbQuickBtn" onclick="jbAbrirRecuperacion()">🔐 Recuperar reservas</button>
     <button type="button" class="jbQuickBtn" onclick="window.open('https://wa.me/56954527837','_blank')">💬 Contactar por WhatsApp</button>
   </div>
   <div style="display: none !important;" id="jbChatInputBar">
@@ -9373,7 +9391,8 @@ function jbMostrarFormularioWhatsapp(){
       { emoji:'✂️', texto:'El servicio (seleccionalos)',   valor:'servicio' },
       { emoji:'📅', texto:'El día',        valor:'dia'      },
       { emoji:'🕐', texto:'La hora',       valor:'hora'     },
-      { emoji:'👤', texto:'El nombre',     valor:'nombre'   }
+      { emoji:'👤', texto:'El nombre',     valor:'nombre'   },
+      { emoji:'📱', texto:'El WhatsApp',   valor:'whatsapp' }
     ], valor => {
       jbReserva.step = 'cambiar';
       if(valor === 'servicio'){
@@ -9400,6 +9419,8 @@ function jbMostrarFormularioWhatsapp(){
         jbReserva.step = 'hora'; jbPreguntarHora();
       } else if(valor === 'nombre'){
         jbReserva.step = 'nombre'; jbPreguntarNombre(true);
+      } else if(valor === 'whatsapp'){
+        jbReserva.step = 'whatsapp'; jbPreguntarWhatsapp(true);
       }
     });
   }
@@ -10571,7 +10592,10 @@ async function jbLiberarBloqueoReserva(r){
   // UI: mostrar/ocultar quick actions
   // ============================================
   function jbSetModoReserva(activo){
-    document.getElementById('jbQuickActions').style.display = activo ? 'none' : 'flex';
+    const acciones = document.getElementById('jbQuickActions');
+    const cambiar = document.getElementById('jbQuickCambiar');
+    if (acciones) acciones.style.display = 'flex';
+    if (cambiar) cambiar.style.display = activo ? 'block' : 'none';
   }
 
   /**
@@ -10683,6 +10707,20 @@ async function jbLiberarBloqueoReserva(r){
       btnReservar.onclick = ()=>{ wrap.remove(); jbCliente('Reservar hora'); jbIniciarFlujoReserva(); };
 
       wrap.appendChild(btnReservar);
+
+      const btnGestionar = document.createElement('button');
+      btnGestionar.type = 'button';
+      btnGestionar.style.cssText = 'background:rgba(255,87,87,.12);width:100%;padding:14px;color:#ff9a9a;border:1px solid rgba(255,87,87,.5);border-radius:14px;font-size:.98rem;font-weight:700;cursor:pointer;';
+      btnGestionar.innerHTML = '❌ &nbsp;Cancelar o modificar una reserva';
+      btnGestionar.onclick = ()=>{ wrap.remove(); jbAbrirCancelarDesdeBoton(); };
+      wrap.appendChild(btnGestionar);
+
+      const btnRecuperar = document.createElement('button');
+      btnRecuperar.type = 'button';
+      btnRecuperar.style.cssText = 'background:rgba(14,165,233,.12);width:100%;padding:12px;color:#7dd3fc;border:1px solid rgba(14,165,233,.45);border-radius:14px;font-size:.92rem;font-weight:700;cursor:pointer;';
+      btnRecuperar.innerHTML = '🔐 &nbsp;Recuperar reservas con nombre y WhatsApp';
+      btnRecuperar.onclick = ()=>{ wrap.remove(); jbAbrirRecuperacion(); };
+      wrap.appendChild(btnRecuperar);
 
       body.appendChild(wrap);
       jbScrollBottom();
@@ -12117,7 +12155,9 @@ window.addEventListener('load', function() {
       .then(function (l) {
         if (!l) return;
         var botOn = !(l.activo === false || (l.vencimiento && hoy() > l.vencimiento));
-        if ((botOn ? 'bot' : 'calendario') !== PAGINA) location.reload();
+        window.dispatchEvent(new CustomEvent('jb:asistente-estado', {
+          detail: { activo: botOn, pagina: PAGINA }
+        }));
       })
       .catch(function () {});
   }
@@ -12139,6 +12179,10 @@ window.addEventListener('load', function() {
         document.getElementById('video-a'),
         document.getElementById('video-b')
     ];
+    const conexion = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const reducirVideo = window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+        Boolean(conexion && (conexion.saveData || /^(slow-2g|2g)$/.test(conexion.effectiveType || '')));
+    const fuentes = reducirVideo ? sources.slice(0, 1) : sources;
     let activePlayer = null;
     let nextSourceIndex = 0;
     let switching = false;
@@ -12179,12 +12223,12 @@ window.addEventListener('load', function() {
     }
 
     async function startFirstVideo() {
-        for (let index = 0; index < sources.length; index += 1) {
+        for (let index = 0; index < fuentes.length; index += 1) {
             try {
-                await loadAndPlay(players[0], sources[index]);
+                await loadAndPlay(players[0], fuentes[index]);
                 players[0].style.opacity = '1';
                 activePlayer = players[0];
-                nextSourceIndex = (index + 1) % sources.length;
+                nextSourceIndex = (index + 1) % fuentes.length;
                 return true;
             } catch (error) {
                 console.error('Carrusel de fondo:', error);
@@ -12201,9 +12245,13 @@ window.addEventListener('load', function() {
         switching = true;
         const nextPlayer = players.find(player => player !== activePlayer);
 
-        for (let attempt = 0; attempt < sources.length; attempt += 1) {
-            const source = sources[nextSourceIndex];
-            nextSourceIndex = (nextSourceIndex + 1) % sources.length;
+        if (fuentes.length < 2) {
+            switching = false;
+            return;
+        }
+        for (let attempt = 0; attempt < fuentes.length; attempt += 1) {
+            const source = fuentes[nextSourceIndex];
+            nextSourceIndex = (nextSourceIndex + 1) % fuentes.length;
             try {
                 await loadAndPlay(nextPlayer, source);
                 const previousPlayer = activePlayer;
@@ -12222,7 +12270,7 @@ window.addEventListener('load', function() {
     }
 
     startFirstVideo().then(ready => {
-        if (ready) window.setInterval(showNextVideo, 2800);
+        if (ready && fuentes.length > 1) window.setInterval(showNextVideo, 12000);
     });
 })();
 </script>
