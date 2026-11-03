@@ -49,6 +49,19 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script>
+      window.__jbFirebaseConfig = {
+        apiKey: "AIzaSyBHLlV9HDfa1v-Uz4YVcbt3vQGByhNFYus",
+        authDomain: "jeisonstyle-1530f.firebaseapp.com",
+        databaseURL: "https://jeisonstyle-1530f-default-rtdb.firebaseio.com",
+        projectId: "jeisonstyle-1530f",
+        storageBucket: "jeisonstyle-1530f.firebasestorage.app",
+        messagingSenderId: "40159402096",
+        appId: "1:40159402096:web:d54b2d9a2dd990c1203cb5",
+        measurementId: "G-3RGRBSQ9QG"
+      };
+      if (!firebase.apps.length) firebase.initializeApp(window.__jbFirebaseConfig);
+    </script>
 </head>
 <body>
     <div id="jbVipSplash" role="status" aria-label="Cargando James Barbershop" style="position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:#050505;color:#f6df9b;">
@@ -2961,7 +2974,7 @@ function buscarMisReservasManual() {
             });
 
             if (clienteEncontrado) {
-                jbGuardarSesion(
+                window.jbGuardarSesion(
                     clienteEncontrado.id,
                     clienteEncontrado.nombreDisplay || nombre,
                     clienteEncontrado.nombreNormalizado || jbNormalizar(nombre)
@@ -3045,9 +3058,8 @@ function fusionarReservasRecuperadas(reservas, nombre, telefono) {
     });
     localStorage.setItem('mis_reservas_jamesbarber', JSON.stringify([...porId.values()]));
     localStorage.setItem('mi_nombre_barberia', nombre);
-    if (jbSesionCliente) {
-        jbSesionCliente.telefono = telefono;
-        localStorage.setItem('jb_perfil', JSON.stringify(jbSesionCliente));
+    if (typeof window.jbActualizarTelefonoSesion === 'function') {
+        window.jbActualizarTelefonoSesion(telefono);
     }
 }
 
@@ -4604,7 +4616,7 @@ img {
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+const firebaseConfig = window.__jbFirebaseConfig || {
   apiKey: "AIzaSyBHLlV9HDfa1v-Uz4YVcbt3vQGByhNFYus",
   authDomain: "jeisonstyle-1530f.firebaseapp.com",
   databaseURL: "https://jeisonstyle-1530f-default-rtdb.firebaseio.com",
@@ -7629,6 +7641,12 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     // Mostrar avatar en el header
     jbMostrarAvatarEnHeader(avatarUrl, nombreDisplay);
   }
+  window.jbGuardarSesion = jbGuardarSesion;
+  window.jbActualizarTelefonoSesion = function(telefono) {
+    if (!jbSesionCliente) return;
+    jbSesionCliente.telefono = telefono;
+    localStorage.setItem('jb_perfil', JSON.stringify(jbSesionCliente));
+  };
 
   // ── BUSCAR CLIENTE EN FIREBASE ─────────────────────────────
   // Trae todos los clientes y aplica scoring bidireccional.
