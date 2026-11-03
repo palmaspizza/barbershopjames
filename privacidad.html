@@ -240,8 +240,9 @@
       </tbody>
     </table>
     <div class="highlight">
-      <strong>No recopilamos:</strong> correo electrónico, contraseñas, número de teléfono
-      del cliente, ubicación geográfica, datos bancarios ni información de tarjetas de crédito.
+      <strong>No recopilamos:</strong> correo electrónico, contraseñas, ubicación geográfica,
+      datos bancarios ni información de tarjetas de crédito. El teléfono de contacto se
+      solicita únicamente cuando el cliente lo proporciona para gestionar la reserva.
     </div>
   </div>
 
@@ -293,7 +294,10 @@
     </div>
     <p style="margin-top:14px;">
       La aplicación también usa <strong>localStorage</strong> del navegador para guardar reservas
-      de forma temporal en el dispositivo, permitiéndole consultarlas sin conexión.
+      de forma temporal en el dispositivo, permitiéndole consultarlas sin conexión. Si el usuario
+      cambia de dispositivo, puede solicitar la recuperación de sus reservas usando el mismo nombre
+      y número de WhatsApp registrados. Esta recuperación puede volver a guardar localmente las
+      reservas activas que existan en Firebase.
     </p>
   </div>
 
@@ -313,7 +317,7 @@
           <td><strong>Firebase Realtime Database</strong></td>
           <td>Google LLC</td>
           <td>Base de datos de reservas</td>
-          <td>Nombre, fecha, hora, servicios, total</td>
+          <td>Nombre, fecha, hora y servicios</td>
         </tr>
         <tr>
           <td><strong>ntfy.sh</strong></td>
@@ -347,7 +351,7 @@
     <ul>
       <li>La reserva se elimina permanentemente de Firebase.</li>
       <li>Se elimina del almacenamiento local del dispositivo.</li>
-      <li>Se notifica automáticamente al barbero vía ntfy.sh y WhatsApp.</li>
+      <li>Se notifica automáticamente al barbero vía ntfy.sh. El teléfono no se incluye en esa notificación; el barbero puede consultarlo desde el panel protegido.</li>
     </ul>
     <p>Adicionalmente, el sistema realiza limpieza automática de reservas con más de <strong>1 año de antigüedad</strong>.</p>
     <div class="highlight">
@@ -376,7 +380,7 @@
       <li><strong>Panel de administración protegido:</strong> Solo el barbero tiene acceso con clave.</li>
       <li><strong>Sin cuentas de clientes:</strong> No almacenamos contraseñas ni credenciales de usuarios.</li>
       <li><strong>Sin datos bancarios:</strong> No procesamos ni almacenamos datos de pago.</li>
-      <li><strong>Limpieza periódica:</strong> Los datos antiguos se eliminan automáticamente.</li>
+      <li><strong>Limpieza periódica:</strong> Las reservas se conservan hasta 12 meses en la agenda activa y hasta 3 años en el archivo histórico; los chats sin actividad durante 90 días pueden eliminarse para reducir el uso del servicio.</li>
     </ul>
   </div>
 
