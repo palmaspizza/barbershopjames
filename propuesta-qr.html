@@ -32,6 +32,7 @@
     .btn-primary{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#17120a;box-shadow:0 10px 30px rgba(228,166,79,.2)}
     .btn-ghost{background:rgba(255,255,255,.04);border-color:var(--line);color:var(--text)}
     .hero-note{margin-top:18px;color:var(--muted);font-size:.85rem}
+    .intro-video{padding:30px 0 0}.intro-video-card{position:relative;overflow:hidden;border:1px solid rgba(228,166,79,.42);border-radius:22px;background:#050607;box-shadow:0 24px 70px rgba(0,0,0,.38)}.intro-video-card video{display:block;width:100%;max-height:min(67vh,680px);aspect-ratio:16/9;object-fit:cover;background:#050607}.intro-video-label{position:absolute;left:18px;top:18px;padding:7px 10px;border:1px solid rgba(255,255,255,.18);border-radius:9px;background:rgba(7,8,10,.75);backdrop-filter:blur(8px);color:var(--gold2);font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.intro-video-note{margin:11px 0 0;color:var(--muted);font-size:.8rem;text-align:center}
     .hero-stage{position:relative;min-height:440px;display:grid;place-items:center}
     .glow{position:absolute;width:70%;height:70%;border-radius:50%;background:rgba(228,166,79,.15);filter:blur(70px)}
     .tv{position:relative;width:min(100%,620px);border:8px solid #25272c;border-radius:20px;background:#050607;box-shadow:var(--shadow),0 0 0 1px #555;transform:perspective(900px) rotateY(-7deg) rotateX(2deg)}
@@ -89,6 +90,16 @@
   </div></div>
 
   <main>
+    <section class="intro-video wrap" aria-labelledby="video-title">
+      <div class="intro-video-card">
+        <video id="video-title" autoplay muted loop playsinline controls preload="metadata" aria-label="Video de presentación de la propuesta QR">
+          <source src="videoqrs.mp4" type="video/mp4">
+          Tu navegador no puede reproducir este video.
+        </video>
+        <div class="intro-video-label">Así puede verse la propuesta</div>
+      </div>
+      <p class="intro-video-note">Presentación visual de la experiencia QR para James Barbershop.</p>
+    </section>
     <section class="hero wrap" id="inicio">
       <div>
         <div class="eyebrow"><i></i> Una mejora para la experiencia completa</div>
