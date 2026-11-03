@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Datos para tu dominio</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#16202f;--mute:#5a6475;--line:#d8d3c6;--acc:#128c4a;--accink:#fff;--err:#b3261e;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1520;--card:#18212f;--ink:#eef1f7;--mute:#a2adc0;--line:#2b3649;--acc:#34c27a;--accink:#06210f;--err:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1520;--card:#18212f;--ink:#eef1f7;--mute:#a2adc0;--line:#2b3649;--acc:#34c27a;--accink:#06210f;--err:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:560px;margin:0 auto;padding:20px 16px 56px}
+h1{font-size:1.5rem;line-height:1.2;margin:0 0 8px}
+.intro{color:var(--mute);margin:0 0 20px}
+.dom{display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:2px 8px;font-weight:700;color:var(--ink)}
+.step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.step h2{font-size:1.05rem;margin:0 0 4px}
+.help{color:var(--mute);font-size:.93rem;margin:0 0 12px}
+input[type=text],input[type=email],select{width:100%;min-height:50px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+.opt{display:flex;gap:12px;align-items:flex-start;min-height:50px;padding:12px;border:1.5px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer}
+.opt input{width:22px;height:22px;margin-top:2px;flex:none;accent-color:var(--acc)}
+.opt b{display:block}
+.opt span{color:var(--mute);font-size:.9rem}
+.opt:has(input:checked){border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,var(--card))}
+.row{display:grid;gap:10px}
+.err{color:var(--err);font-size:.9rem;margin:6px 0 0;display:none}
+.bad .err{display:block}
+.bad input[type=text],.bad input[type=email],.bad select{border-color:var(--err)}
+button.send{width:100%;min-height:56px;border:0;border-radius:14px;background:var(--acc);color:var(--accink);font:inherit;font-weight:700;font-size:1.1rem;cursor:pointer}
+.note{color:var(--mute);font-size:.9rem;text-align:center;margin:12px 0 0}
+.hid{display:none}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<h1>Datos para tu dirección web</h1>
+<p class="intro">Tu página tendrá esta dirección: <span class="dom">barberiajames.cl</span>. Completa esto en 2 minutos y se lo mandas a Palma por WhatsApp. Aquí no se paga nada.</p>
+
+<form id="f" novalidate>
+
+<div class="step" id="s0">
+<h2>Tu nombre</h2>
+<p class="help">Para saber quién manda los datos.</p>
+<input type="text" id="nombre" autocomplete="name" placeholder="Nombre y apellido">
+<p class="err">Escribe tu nombre.</p>
+</div>
+
+<div class="step" id="s1">
+<h2>1. ¿Con qué empresa emites tus boletas hoy?</h2>
+<p class="help">Mira una boleta tuya: arriba sale el nombre y el RUT del negocio. Marca la opción que sale ahí.</p>
+<label class="opt"><input type="radio" name="emp" value="EIRL"><div><b>EIRL</b><span>Empresa Individual de Responsabilidad Limitada</span></div></label>
+<label class="opt"><input type="radio" name="emp" value="SpA"><div><b>SpA</b><span>Sociedad por Acciones</span></div></label>
+<label class="opt"><input type="radio" name="emp" value="Otra sociedad"><div><b>Otra sociedad</b><span>Por ejemplo, una Limitada (Ltda.)</span></div></label>
+<label class="opt"><input type="radio" name="emp" value="Persona natural"><div><b>No tengo empresa</b><span>Emito boletas con mi nombre y mi RUT personal</span></div></label>
+<p class="err">Marca una opción.</p>
+</div>
+
+<div class="step" id="s2">
+<h2>2. RUT de esa empresa</h2>
+<p class="help">Es el RUT que sale en tus boletas. No es tu RUT personal. Ejemplo: 76.123.456-7</p>
+<input type="text" id="rut" inputmode="text" autocomplete="off" placeholder="76.123.456-7">
+<p class="err">Revisa el RUT, parece que hay un número mal.</p>
+</div>
+
+<div class="step" id="s3">
+<h2>3. ¿A qué se dedica tu negocio? (giro)</h2>
+<p class="help">Es la actividad que tienes registrada en el SII. Si no la sabes, escribe “no sé” y Palma la revisa.</p>
+<input type="text" id="giro" placeholder="Ej.: Peluquería y barbería">
+<p class="err">Escribe la actividad o “no sé”.</p>
+</div>
+
+<div class="step" id="s4">
+<h2>4. ¿Dónde queda tu barbería?</h2>
+<p class="help">Palma ya tiene tu dirección. Solo falta confirmar la comuna y la región.</p>
+<div class="row">
+<input type="text" id="comuna" placeholder="Comuna (ej.: Las Condes)">
+<select id="region">
+<option>Metropolitana de Santiago</option><option>Arica y Parinacota</option><option>Tarapacá</option><option>Antofagasta</option><option>Atacama</option><option>Coquimbo</option><option>Valparaíso</option><option>O’Higgins</option><option>Maule</option><option>Ñuble</option><option>Biobío</option><option>La Araucanía</option><option>Los Ríos</option><option>Los Lagos</option><option>Aysén</option><option>Magallanes</option>
+</select>
+</div>
+<p class="err">Escribe la comuna.</p>
+</div>
+
+<div class="step" id="s5">
+<h2>5. ¿Revisas el correo que ya le diste a Palma?</h2>
+<p class="help">Ahí llegan los avisos para renovar la dirección. Si no lo lees, la página se podría caer sin que te enteres.</p>
+<label class="opt"><input type="radio" name="mail" value="mismo" checked><div><b>Sí, lo reviso seguido</b></div></label>
+<label class="opt"><input type="radio" name="mail" value="otro"><div><b>No, usa otro correo</b></div></label>
+<div id="otroBox" class="hid"><input type="email" id="otro" autocomplete="email" placeholder="tucorreo@ejemplo.com"><p class="err">Escribe un correo válido.</p></div>
+</div>
+
+<div class="step" id="s6">
+<h2>6. Confirmación</h2>
+<p class="help">La dirección quedará a nombre de tu negocio y Palma Codes hace el trámite.</p>
+<label class="opt"><input type="checkbox" id="ok"><div><b>Estoy de acuerdo</b><span>Inscribir barberiajames.cl a nombre de mi negocio</span></div></label>
+<p class="err">Marca la casilla para continuar.</p>
+</div>
+
+<button type="submit" class="send">Enviar por WhatsApp</button>
+<p class="note">Se abrirá WhatsApp con el mensaje listo. Solo toca “Enviar” allá.</p>
+<p class="note hid" id="fb">¿No se abrió? <a id="lnk" href="#">Toca aquí</a></p>
+</form>
+</main>
+
+<script>
+var $=function(i){return document.getElementById(i)};
+function dv(b){var s=0,m=2;for(var i=b.length-1;i>=0;i--){s+=parseInt(b[i],10)*m;m=m===7?2:m+1}var r=11-(s%11);return r===11?"0":r===10?"K":String(r)}
+function fmt(v){v=v.replace(/[^0-9kK]/g,"").toUpperCase();if(v.length<2)return v;var b=v.slice(0,-1),d=v.slice(-1);return b.replace(/\B(?=(\d{3})+(?!\d))/g,".")+"-"+d}
+function rutOk(v){var c=v.replace(/[^0-9kK]/g,"").toUpperCase();if(c.length<8||c.length>9)return false;return dv(c.slice(0,-1))===c.slice(-1)}
+function emp(){var r=document.querySelector("input[name=emp]:checked");return r?r.value:""}
+function sync(){
+  $("s2").classList.toggle("hid",emp()==="Persona natural");
+  $("otroBox").classList.toggle("hid",document.querySelector("input[name=mail]:checked").value!=="otro");
+}
+document.addEventListener("change",sync);
+$("rut").addEventListener("input",function(){this.value=fmt(this.value)});
+function mark(id,bad){$(id).classList.toggle("bad",bad);return bad}
+$("f").addEventListener("submit",function(e){
+  e.preventDefault();
+  var first=null,bad;
+  function chk(id,b){if(mark(id,b)&&!first)first=id}
+  chk("s0",!$("nombre").value.trim());
+  chk("s1",!emp());
+  chk("s2",emp()!=="Persona natural"&&!rutOk($("rut").value));
+  chk("s3",!$("giro").value.trim());
+  chk("s4",!$("comuna").value.trim());
+  var otro=document.querySelector("input[name=mail]:checked").value==="otro";
+  $("otroBox").classList.toggle("bad",otro&&!/^\S+@\S+\.\S+$/.test($("otro").value.trim()));
+  if(otro&&!/^\S+@\S+\.\S+$/.test($("otro").value.trim())&&!first)first="s5";
+  chk("s6",!$("ok").checked);
+  if(first){$(first).scrollIntoView({behavior:"smooth",block:"center"});return}
+  var l=["Hola Palma, soy "+$("nombre").value.trim()+". Estos son los datos para inscribir barberiajames.cl:",
+    "• Empresa: "+emp()];
+  if(emp()!=="Persona natural")l.push("• RUT de la empresa: "+$("rut").value);
+  l.push("• Giro: "+$("giro").value.trim(),
+    "• Comuna: "+$("comuna").value.trim(),
+    "• Región: "+$("region").value,
+    "• Correo para avisos: "+(otro?$("otro").value.trim():"el mismo que ya te di"),
+    "Confirmo que la dirección se inscriba a nombre de mi negocio.");
+  var url="https://wa.me/56954998792?text="+encodeURIComponent(l.join("\n"));
+  $("lnk").href=url;$("fb").classList.remove("hid");
+  window.location.href=url;
+});
+sync();
+</script>
+</body>
+</html>
