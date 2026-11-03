@@ -665,7 +665,7 @@
                 celda.textContent = dia;
                 celda.dataset.fecha = fechaActual;
 
-                const horasReservadas = reservasPorDia[fechaActual] || [];
+                const horasReservadas = horasOcupadasDelDia(fechaActual);
                 if (horasReservadas.length > 0) {
                     const badge = document.createElement("span");
                     badge.className = "badge-reservas";
@@ -1230,7 +1230,7 @@ if (typeof ocultarContadorTemporal === 'function') ocultarContadorTemporal();
                 celda.textContent = dia;
                 celda.dataset.fecha = fechaActual;
 
-                const horasReservadas = reservasPorDia[fechaActual] || [];
+                const horasReservadas = horasOcupadasDelDia(fechaActual);
                 if (horasReservadas.length > 0) {
                     const badge = document.createElement("span");
                     badge.className = "badge-reservas";
@@ -1320,7 +1320,7 @@ if (typeof ocultarContadorTemporal === 'function') ocultarContadorTemporal();
 
     </script>
                 <br><br>
-                <button style="background-color: rgb(65, 65, 65);" onclick="borrarHorasMesHastaHoy()">📜 Archivar citas pasadas (más de 30 días)</button>
+                <button style="background-color: rgb(65, 65, 65);" onclick="borrarHorasMesHastaHoy()">📜 Archivar citas pasadas (más de 12 meses)</button>
                 <br><br>
                 <button style="background: brown; color: white;" onclick="mostrarBotonBorrar();mostrarBotonesX();cerrarModal('modal-control');">❌ Eliminar reservas a elección </button>
                 <br><br>
@@ -2035,17 +2035,25 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
 </script>
     <!-- Formulario de identificación (inicialmente visible) -->
     <div class="identificacion-cliente" id="identificacionCliente">
-        <p  hidden="texto-identificacion">Ingresa tu nombre para ver tus reservas</p>
+        <p class="texto-identificacion">¿Cambiaste de dispositivo? Recupera tus reservas con tu nombre y WhatsApp.</p>
         <div class="input-group">
-            <input  hidden
+            <input
                 type="text" 
                 id="nombreClienteBusqueda" 
-                placeholder="Tu nombre (como lo escribiste al reservar)"
+                placeholder="Nombre y apellido"
                 class="input-nombre-cliente"
                 autocomplete="name"
             >
-            <button hidden class="btn-buscar-reservas">
-                🔍 Buscar
+            <input
+                type="tel"
+                id="telefonoClienteBusqueda"
+                placeholder="WhatsApp"
+                class="input-nombre-cliente"
+                autocomplete="tel"
+                inputmode="tel"
+            >
+            <button class="btn-buscar-reservas" type="button" onclick="buscarMisReservasManual()">
+                🔍 Recuperar reservas
             </button>
         </div>
         
@@ -2061,7 +2069,7 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
     <div class="lista-reservas-cliente hidden" id="listaReservasCliente">
         <div class="reservas-header">
             <h3>Tus reservas activas</h3>
-            <button hidden onclick="cerrarMisReservas()" class="btn-cambiar-nombre">
+            <button onclick="cerrarMisReservas()" class="btn-cambiar-nombre">
                 ✏️ Cambiar nombre / Cerrar sesión
             </button>
         </div>
@@ -2903,15 +2911,23 @@ function cargarReservasPorIds(reservasLocales) {
 
 function buscarMisReservasManual() {
     const nombreInput = document.getElementById('nombreClienteBusqueda');
+    const telefonoInput = document.getElementById('telefonoClienteBusqueda');
     const nombre = nombreInput.value.trim();
+    const telefono = normalizarTelefonoRecuperacion(telefonoInput ? telefonoInput.value : '');
     
     if (!nombre) {
-        mostrarToastCliente('⚠️ Escribe tu nombre para buscar', true);
+        mostrarToastCliente('⚠️ Escribe tu nombre y apellido', true);
         nombreInput.focus();
+        return;
+    }
+    if (!telefono) {
+        mostrarToastCliente('⚠️ Ingresa un WhatsApp chileno válido', true);
+        if (telefonoInput) telefonoInput.focus();
         return;
     }
     
     localStorage.setItem('mi_nombre_barberia', nombre);
+    if (telefonoInput) telefonoInput.value = telefono;
     
     const btnBuscar = document.querySelector('.btn-buscar-reservas');
     const textoOriginal = btnBuscar ? btnBuscar.textContent : 'Buscar';
@@ -2920,17 +2936,50 @@ function buscarMisReservasManual() {
         btnBuscar.disabled = true;
     }
     
-    db.ref('reservas').orderByChild('nombre').equalTo(nombre).once('value')
-        .then(snapshot => {
+    db.ref('reservas').once('value')
+        .then(async snapshot => {
             reservasClienteActuales = [];
             const hoyStr = formatearFechaSimple(new Date());
             
             snapshot.forEach(child => {
                 const reserva = { id: child.key, ...child.val() };
-                if (reserva.fecha >= hoyStr) {
+                if (reserva.fecha >= hoyStr &&
+                    jbNormalizar(reserva.nombre) === jbNormalizar(nombre) &&
+                    normalizarTelefonoRecuperacion(reserva.telefono) === telefono) {
                     reservasClienteActuales.push(reserva);
                 }
             });
+
+            const clientesSnapshot = await db.ref('clientes').once('value');
+            let clienteEncontrado = null;
+            clientesSnapshot.forEach(child => {
+                const cliente = child.val() || {};
+                if (jbNormalizar(cliente.nombreDisplay || cliente.nombre) === jbNormalizar(nombre) &&
+                    normalizarTelefonoRecuperacion(cliente.telefono) === telefono) {
+                    clienteEncontrado = { id: child.key, ...cliente };
+                }
+            });
+
+            if (clienteEncontrado) {
+                jbGuardarSesion(
+                    clienteEncontrado.id,
+                    clienteEncontrado.nombreDisplay || nombre,
+                    clienteEncontrado.nombreNormalizado || jbNormalizar(nombre)
+                );
+                const porCliente = await db.ref('reservas')
+                    .orderByChild('clienteId')
+                    .equalTo(clienteEncontrado.id)
+                    .once('value');
+                porCliente.forEach(child => {
+                    const reserva = { id: child.key, ...child.val() };
+                    if (reserva.fecha >= hoyStr &&
+                        jbNormalizar(reserva.nombre) === jbNormalizar(nombre) &&
+                        normalizarTelefonoRecuperacion(reserva.telefono || telefono) === telefono &&
+                        !reservasClienteActuales.some(actual => actual.id === reserva.id)) {
+                        reservasClienteActuales.push(reserva);
+                    }
+                });
+            }
             
             reservasClienteActuales.sort((a, b) => {
                 const fechaA = new Date(a.fecha + 'T' + a.hora);
@@ -2938,8 +2987,8 @@ function buscarMisReservasManual() {
                 return fechaA - fechaB;
             });
             
-            // Guardar en localStorage para futuras visitas
-            guardarReservasEncontradas(reservasClienteActuales);
+            // Fusionar con lo local sin borrar reservas guardadas en este dispositivo.
+            fusionarReservasRecuperadas(reservasClienteActuales, nombre, telefono);
             
             mostrarResultadosBusqueda();
         })
@@ -2953,6 +3002,43 @@ function buscarMisReservasManual() {
                 btnBuscar.disabled = false;
             }
         });
+}
+
+function normalizarTelefonoRecuperacion(valor) {
+    const limpio = String(valor || '').replace(/\D/g, '');
+    if (/^569\d{8}$/.test(limpio)) return limpio;
+    if (/^9\d{8}$/.test(limpio)) return `56${limpio}`;
+    return '';
+}
+
+function fusionarReservasRecuperadas(reservas, nombre, telefono) {
+    const actuales = obtenerMisReservasLocales();
+    const porId = new Map();
+    actuales.forEach(reserva => {
+        const id = reserva.reservaId || reserva.id;
+        if (id) porId.set(id, reserva);
+    });
+    reservas.forEach(reserva => {
+        if (reserva.id) {
+            porId.set(reserva.id, {
+                ...(porId.get(reserva.id) || {}),
+                reservaId: reserva.id,
+                nombre: reserva.nombre || nombre,
+                fecha: reserva.fecha,
+                hora: reserva.hora,
+                servicios: reserva.servicios || '',
+                total: reserva.total || '',
+                telefono: reserva.telefono || telefono,
+                timestamp: porId.get(reserva.id)?.timestamp || Date.now()
+            });
+        }
+    });
+    localStorage.setItem('mis_reservas_jamesbarber', JSON.stringify([...porId.values()]));
+    localStorage.setItem('mi_nombre_barberia', nombre);
+    if (jbSesionCliente) {
+        jbSesionCliente.telefono = telefono;
+        localStorage.setItem('jb_perfil', JSON.stringify(jbSesionCliente));
+    }
 }
 
 function guardarReservasEncontradas(reservas) {
@@ -3463,7 +3549,7 @@ function ocultarBotonBorrar() {
                 <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #f1f1f1; font-size: 0.95rem; line-height: 1.4;">
                     <input type="checkbox" id="aceptaContactoWhatsapp" style="margin-top: 3px; width: 18px; height: 18px; accent-color: #e4a64f; cursor: pointer;">
                     <span>
-                        Acepto proporcionar mi número de WhatsApp para que la barbería pueda contactarme ante cualquier imprevisto relacionado con mi reserva (cambios de horario, cancelaciones, confirmaciones, etc.)
+                        Acepto que James Barbershop use mi WhatsApp para gestionar mi reserva y contactarme si hay cambios o imprevistos.
                     </span>
                 </label>
                 <p id="errorContacto" style="color: #ff3b3f; font-size: 0.85rem; margin: 8px 0 0 28px; display: none;">⚠️ Debes ingresar tu WhatsApp y aceptar el contacto para continuar</p>
@@ -4487,25 +4573,24 @@ const firebaseConfig = {
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const JB_NTFY_TOPIC = 'james-barber-shop-2026';
+        const JB_NTFY_TOPIC = '';
         function jbEnviarNotificacionNtfy(reserva, accion) {
             try {
                 const nombre = String(reserva?.nombre || '').trim().split(/\s+/)[0] || 'Cliente';
-                const telefono = String(reserva?.telefono || '').replace(/[^\d]/g, '');
-                const whatsapp = telefono ? `\n💬 WhatsApp: https://wa.me/${telefono}` : '';
                 const mensaje = [
                     accion === 'tomada' ? '📅 Nueva reserva tomada' : '❌ Reserva cancelada',
                     `📅 Fecha: ${reserva?.fecha || '—'}`,
                     `🕐 Hora: ${reserva?.hora || '—'}`,
                     `✂️ Servicio: ${reserva?.servicios || '—'}`,
                     `👤 Nombre: ${nombre}`,
-                    whatsapp
+                    '🔒 Contacta clientes desde el panel: https://barbershopjames.netlify.app/admin'
                 ].filter(Boolean).join('\n');
                 fetch(`https://ntfy.sh/${JB_NTFY_TOPIC}`, {
                     method: 'POST',
                     headers: {
                         Title: accion === 'tomada' ? 'Nueva reserva - Barbería James' : 'Reserva cancelada - Barbería James',
-                        Tags: accion === 'tomada' ? 'calendar,scissors' : 'x,scissors'
+                        Tags: accion === 'tomada' ? 'calendar,scissors' : 'x,scissors',
+                        Priority: 'high'
                     },
                     body: mensaje
                 }).then(response => {
@@ -4532,6 +4617,9 @@ const firebaseConfig = {
                 archiveReason: reason
             };
             updates[`reservas/${reservationId}`] = null;
+            if (current.fecha && current.hora) {
+                updates[`bloqueos/${current.fecha}/${String(current.hora).replace(/[^a-zA-Z0-9_-]/g, '_')}`] = null;
+            }
             await db.ref().update(updates);
             if (String(reason || '').startsWith('cancelada')) {
                 jbEnviarNotificacionNtfy({ ...current, reservaId: reservationId }, 'cancelada');
@@ -4539,6 +4627,38 @@ const firebaseConfig = {
             return true;
         };
         const reservasRef = db.ref("reservas");
+
+        async function jbLimpiarBloqueoHuerfano(fecha, hora) {
+            if (!fecha || !hora) return false;
+            const bloqueoRef = db.ref(`bloqueos/${fecha}/${String(hora).replace(/[^a-zA-Z0-9_-]/g, '_')}`);
+            const snapshot = await bloqueoRef.once('value');
+            const bloqueo = snapshot.val();
+            if (!bloqueo) return false;
+
+            let esHuerfano = false;
+            if (bloqueo.reservaId) {
+                const reservaSnapshot = await db.ref(`reservas/${bloqueo.reservaId}`).once('value');
+                const reserva = reservaSnapshot.val();
+                esHuerfano = !reserva ||
+                    String(reserva.fecha || '') !== String(fecha) ||
+                    String(reserva.hora || '').slice(0, 5) !== String(hora).slice(0, 5);
+            } else {
+                esHuerfano = Number.isFinite(Number(bloqueo.timestamp)) &&
+                    Date.now() - Number(bloqueo.timestamp) > 15 * 60 * 1000;
+            }
+
+            if (!esHuerfano) return false;
+            const resultado = await bloqueoRef.transaction(actual => {
+                if (actual &&
+                    actual.reservaId === bloqueo.reservaId &&
+                    actual.chatId === bloqueo.chatId &&
+                    actual.timestamp === bloqueo.timestamp) {
+                    return null;
+                }
+                return undefined;
+            });
+            return resultado.committed;
+        }
         // ============================================
 // GALERÍA - CLIENTES (solo visualización)
 // ============================================
@@ -4605,9 +4725,12 @@ function renderGaleriaClientes(imagenes) {
         let diasBloqueados = [];
         let horariosPersonalizados = {};
         let reservasPorDia = {};
+        let bloqueosPorDia = {};
+        let bloqueosVersion = 0;
         let fechaActualCalendario = new Date();
         let fechaSeleccionadaParaConfigurar = "";
         let modoEliminarReservas = false;
+        let fechaHorariosAbiertos = null;
 
         // Horarios base (se cargarán de Firebase)
         let horarioSemana = ["11:00", "12:00",  "13:00", "14:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:30"];
@@ -4624,8 +4747,8 @@ function renderGaleriaClientes(imagenes) {
         const mensajeRef = firebase.database().ref("mensajeCierre");
 
         // Escuchar configuración base en tiempo real
-        configRef.child("horarioSemana").on("value", s => { if(s.val()) horarioSemana = s.val(); actualizarBarraMes(); });
-        configRef.child("horarioDomingo").on("value", s => { if(s.val()) horarioDomingo = s.val(); actualizarBarraMes(); });
+        configRef.child("horarioSemana").on("value", s => { if(s.val()) horarioSemana = s.val(); actualizarBarraMes(); actualizarHorasAbiertasEnTiempoReal(); });
+        configRef.child("horarioDomingo").on("value", s => { if(s.val()) horarioDomingo = s.val(); actualizarBarraMes(); actualizarHorasAbiertasEnTiempoReal(); });
 
         // Escuchar reservas en tiempo real
         reservasRef.on("value", snapshot => {
@@ -4634,10 +4757,56 @@ function renderGaleriaClientes(imagenes) {
                 const val = child.val();
                 if (val && val.fecha && val.hora) {
                     if (!reservasPorDia[val.fecha]) reservasPorDia[val.fecha] = [];
-                    reservasPorDia[val.fecha].push(val.hora);
+                    reservasPorDia[val.fecha].push(String(val.hora).slice(0, 5));
                 }
             });
+            Object.keys(reservasPorDia).forEach(fecha => {
+                reservasPorDia[fecha] = [...new Set(reservasPorDia[fecha])];
+            });
             actualizarBarraMes();
+            actualizarHorasAbiertasEnTiempoReal();
+        });
+
+        db.ref("bloqueos").on("value", async snapshot => {
+            const version = ++bloqueosVersion;
+            const bloqueosValidos = {};
+            const comprobaciones = [];
+            snapshot.forEach(diaSnapshot => {
+                diaSnapshot.forEach(horaSnapshot => {
+                    const bloqueo = horaSnapshot.val();
+                    if (!bloqueo) return;
+                    const fecha = diaSnapshot.key;
+                    const hora = String(horaSnapshot.key || "").replace("_", ":").slice(0, 5);
+                    comprobaciones.push((async () => {
+                        let valido = false;
+                        if (bloqueo.reservaId) {
+                            const reservaSnapshot = await db.ref(`reservas/${bloqueo.reservaId}`).once("value");
+                            const reserva = reservaSnapshot.val();
+                            valido = Boolean(reserva &&
+                                String(reserva.fecha || "") === String(fecha) &&
+                                horaNormalizada(reserva.hora) === hora);
+                        } else {
+                            valido = Number.isFinite(Number(bloqueo.timestamp)) &&
+                                Date.now() - Number(bloqueo.timestamp) <= 15 * 60 * 1000;
+                        }
+                        if (valido) {
+                            if (!bloqueosValidos[fecha]) bloqueosValidos[fecha] = [];
+                            bloqueosValidos[fecha].push(hora);
+                        } else {
+                            db.ref(`bloqueos/${fecha}/${horaSnapshot.key}`).remove().catch(error => {
+                                console.error("No se pudo limpiar un bloqueo inválido:", error);
+                            });
+                        }
+                    })());
+                });
+            });
+            await Promise.all(comprobaciones);
+            if (version !== bloqueosVersion) return;
+            bloqueosPorDia = Object.fromEntries(
+                Object.entries(bloqueosValidos).map(([fecha, horas]) => [fecha, [...new Set(horas)]])
+            );
+            actualizarBarraMes();
+            actualizarHorasAbiertasEnTiempoReal();
         });
 
         // Escuchar días bloqueados en tiempo real
@@ -4650,12 +4819,14 @@ function renderGaleriaClientes(imagenes) {
                 }
             });
             actualizarBarraMes();
+            actualizarHorasAbiertasEnTiempoReal();
         });
 
         // Escuchar horarios personalizados en tiempo real
         horariosRef.on("value", snapshot => {
             horariosPersonalizados = snapshot.val() || {};
             actualizarBarraMes();
+            actualizarHorasAbiertasEnTiempoReal();
         });
 
 function obtenerHorario(fechaStr) {
@@ -4714,7 +4885,7 @@ function obtenerHorario(fechaStr) {
         celda.classList.add("diaCalendario");
         celda.textContent = dia;
 
-        const horasReservadas = reservasPorDia[fechaActual] || [];
+        const horasReservadas = horasOcupadasDelDia(fechaActual);
         if (horasReservadas.length > 0) {
             const badge = document.createElement("span");
             badge.className = "badge-reservas";
@@ -5085,6 +5256,7 @@ const total = document.getElementById("eltotal")?.value || "";
         const reservaRef = ref.push();
         const claveHora = String(hora).replace(/[^a-zA-Z0-9_-]/g, "_");
         const bloqueoRef = db.ref(`bloqueos/${fechaInputValor}/${claveHora}`);
+        await jbLimpiarBloqueoHuerfano(fechaInputValor, hora);
         const bloqueo = await bloqueoRef.transaction(actual => actual === null
             ? { reservaId: reservaRef.key, timestamp: Date.now() }
             : undefined);
@@ -5419,9 +5591,9 @@ const reservasRefMostrar = firebase.database().ref("reservas");
         }
 
         function borrarHorasMesHastaHoy() {
-            if (!confirm('Las reservas con más de 30 días se moverán al archivo histórico. ¿Continuar?')) return;
+            if (!confirm('Las reservas con más de 12 meses se moverán al archivo histórico. ¿Continuar?')) return;
             const fechaCorte = new Date();
-            fechaCorte.setDate(fechaCorte.getDate() - 30);
+            fechaCorte.setDate(fechaCorte.getDate() - 365);
             const inicioMes = fechaCorte.toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
 
             reservasRef.orderByChild("fecha").endAt(inicioMes).once("value").then(snapshot => {
@@ -5440,12 +5612,15 @@ const reservasRefMostrar = firebase.database().ref("reservas");
                                 archiveReason: 'retention_archive'
                             };
                             eliminaciones[`reservas/${child.key}`] = null;
+                            if (reserva.fecha && reserva.hora) {
+                                eliminaciones[`bloqueos/${reserva.fecha}/${String(reserva.hora).replace(/[^a-zA-Z0-9_-]/g, '_')}`] = null;
+                            }
                             cantidad++;
                         }
                     }
                 });
                 if (!cantidad) {
-                    alert('No hay reservas con más de 30 días para archivar.');
+                    alert('No hay reservas con más de 12 meses para archivar.');
                     return;
                 }
                 return db.ref().update(eliminaciones).then(() => {
@@ -5484,25 +5659,29 @@ const reservasRefMostrar = firebase.database().ref("reservas");
           
          
         }
-        function abrirVentanaHorarios(fecha) {
-            tituloVentana.textContent = `${fecha}`;
+        function horaNormalizada(hora) {
+            return String(hora || "").slice(0, 5);
+        }
+
+        function horasOcupadasDelDia(fecha) {
+            return [...new Set([
+                ...(reservasPorDia[fecha] || []),
+                ...(bloqueosPorDia[fecha] || [])
+            ].map(horaNormalizada))];
+        }
+
+        function renderizarHorasVentana(fecha) {
+            const horasReservadas = horasOcupadasDelDia(fecha);
+            const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fecha);
             horariosDisponibles.innerHTML = "";
-            actualizarVisibilidadHoras();
-            const horasReservadas = reservasPorDia[fecha] || [];
-           const diaSemana = new Date(fecha).getDay(); // 0 = Domingo
-   
-const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fecha);
-
-
 
             horarioDelDia.forEach(hora => {
+                const horaNorm = horaNormalizada(hora);
                 const bloque = document.createElement("div");
-                bloque.classList.add("bloqueHora");
-                bloque.classList.add("hora-slot");
-                bloque.dataset.hora = `${hora.split(":")[0].padStart(2,"0")}:00`;
-                if (horasReservadas.includes(hora)) {
-                    bloque.classList.add("horaOcupada");
-                    bloque.classList.add("ocupada");
+                bloque.classList.add("bloqueHora", "hora-slot");
+                bloque.dataset.hora = horaNorm;
+                if (horasReservadas.includes(horaNorm)) {
+                    bloque.classList.add("horaOcupada", "ocupada");
                     bloque.setAttribute("disabled", "");
                     bloque.textContent = `⛔ ${hora}`;
                 } else {
@@ -5513,10 +5692,45 @@ const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fecha);
                         fechaInput.value = fecha;
                         document.getElementById("modal-hora-personalizada").classList.remove("hidden");
                         ventanaHorarios.style.display = "none";
+                        fechaHorariosAbiertos = null;
                     };
                 }
                 horariosDisponibles.appendChild(bloque);
             });
+        }
+
+        function actualizarHorasAbiertasEnTiempoReal() {
+            if (fechaHorariosAbiertos && ventanaHorarios.style.display !== "none") {
+                renderizarHorasVentana(fechaHorariosAbiertos);
+            }
+
+            document.querySelectorAll(".jbHorasGrid[data-jb-fecha]").forEach(grid => {
+                const fecha = grid.dataset.jbFecha;
+                const ocupadas = new Set(horasOcupadasDelDia(fecha));
+                grid.querySelectorAll(".jbHoraBtn").forEach(btn => {
+                    const hora = horaNormalizada(btn.dataset.jbHora || btn.textContent);
+                    const tomada = ocupadas.has(hora);
+                    btn.classList.toggle("jbHoraTomada", tomada);
+                    btn.disabled = tomada;
+                    btn.setAttribute("aria-label", `${hora}, hora ${tomada ? "tomada" : "disponible"}`);
+                });
+            });
+        }
+
+        async function abrirVentanaHorarios(fecha) {
+            tituloVentana.textContent = `${fecha}`;
+            horariosDisponibles.innerHTML = "";
+            actualizarVisibilidadHoras();
+            try {
+                await jbRecargarDisponibilidad(fecha);
+            } catch (error) {
+                console.error("No se pudo actualizar la disponibilidad del día:", error);
+                horariosDisponibles.innerHTML = "<p style=\"color:#ffb4b4;text-align:center;\">No se pudo actualizar la disponibilidad. Intenta nuevamente.</p>";
+                ventanaHorarios.style.display = "block";
+                return;
+            }
+            fechaHorariosAbiertos = fecha;
+            renderizarHorasVentana(fecha);
             ventanaHorarios.style.display = "block";
             setTimeout(smoothScrollToServicios, 80);
         }
@@ -5524,6 +5738,7 @@ const horarioDelDia = obtenerHorarioDelDiaDesdeFecha(fecha);
 
         cerrarVentana.onclick = () => {
             ventanaHorarios.style.display = "none";
+            fechaHorariosAbiertos = null;
         };
 
         window.onclick = (e) => {
@@ -5686,9 +5901,9 @@ const ReservaSegura = {
         // Fallback localStorage
         try {
             const reservas = JSON.parse(localStorage.getItem('mis_reservas_seguras') || '[]')
-            // Limpiar antiguas (>30 días)
+            // Limpiar reservas locales con más de 12 meses
             const hoy = Date.now()
-            const validas = reservas.filter(r => (hoy - r.timestamp) < 30 * 24 * 60 * 60 * 1000)
+            const validas = reservas.filter(r => (hoy - r.timestamp) < 365 * 24 * 60 * 60 * 1000)
             
             if (validas.length < reservas.length) {
                 localStorage.setItem('mis_reservas_seguras', JSON.stringify(validas))
@@ -7778,8 +7993,8 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
   }
   function jbHorasDisponibles(fechaStr, horasDiaParam){
     const horasDia = horasDiaParam || jbHorasHabilitadasVisibles(fechaStr);
-    const ocupadas = (typeof reservasPorDia !== 'undefined' && reservasPorDia[fechaStr]) || [];
-    let libres = horasDia.filter(h => !ocupadas.includes(h));
+    const ocupadasNormalizadas = horasOcupadasDelDia(fechaStr);
+    let libres = horasDia.filter(h => !ocupadasNormalizadas.includes(String(h).slice(0, 5)));
     const [anio, mes, dia] = fechaStr.split('-').map(Number);
     const fechaObj = new Date(anio, mes - 1, dia);
     const hoy = new Date(); hoy.setHours(0,0,0,0);
@@ -7812,9 +8027,10 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     const horas = [];
     snapshot.forEach(child => {
       const reserva = child.val();
-      if (reserva && reserva.hora) horas.push(reserva.hora);
+      if (reserva && reserva.hora) horas.push(String(reserva.hora).slice(0, 5));
     });
-    reservasPorDia[fechaStr] = horas;
+    reservasPorDia[fechaStr] = [...new Set(horas)];
+    return reservasPorDia[fechaStr];
   }
   async function jbHorarioSigueDisponible(fechaStr, hora){
     const [diasCerradosSnapshot, horarioSemanaSnapshot, horarioDomingoSnapshot, horariosEspecificosSnapshot, diasSemanaCerradosSnapshot] = await Promise.all([
@@ -8169,7 +8385,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
   function jbMostrarHoras(fechaStr){
     const horas = jbHorasHabilitadasVisibles(fechaStr);
     if(!horas.length) return false;
-    const ocupadas = (typeof reservasPorDia !== 'undefined' && reservasPorDia[fechaStr]) || [];
+    const ocupadasNormalizadas = horasOcupadasDelDia(fechaStr);
     jbBloquearInput();
     const body = document.getElementById('jbChatBody');
 
@@ -8178,11 +8394,13 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
 
     const grid = document.createElement('div');
     grid.className = 'jbHorasGrid';
+    grid.dataset.jbFecha = fechaStr;
     horas.forEach(h => {
       const btn = document.createElement('button');
       btn.className = 'jbHoraBtn';
       btn.textContent = h;
-      const estaTomada = ocupadas.includes(h);
+      btn.dataset.jbHora = String(h).slice(0, 5);
+      const estaTomada = ocupadasNormalizadas.includes(String(h).slice(0, 5));
       if (estaTomada) {
         btn.classList.add('jbHoraTomada');
         btn.disabled = true;
@@ -8846,7 +9064,14 @@ function irAConfirmar() {
   jbPreguntarHora();
 }
 
-  function jbPreguntarHora(){
+  async function jbPreguntarHora(){
+    try {
+      await jbRecargarDisponibilidad(jbReserva.fecha);
+    } catch (error) {
+      console.error("No se pudo actualizar las horas antes de mostrarlas:", error);
+      jbBot('No pude actualizar las horas disponibles. Intenta nuevamente en unos segundos.');
+      return;
+    }
     const horasHabilitadas = jbHorasHabilitadasVisibles(jbReserva.fecha);
     if(!horasHabilitadas.length){
       const fechaLeg = jbFormatFechaLegible(jbReserva.fecha);
@@ -8995,7 +9220,7 @@ function jbMostrarFormularioWhatsapp(){
 
   const textoConsentimiento = document.createElement('span');
   textoConsentimiento.innerHTML =
-    '<span id="aceptospan">Acepto</span> <br> <br>proporcionar mi número de WhatsApp para que la barbería pueda contactarme ante cualquier imprevisto relacionado con mi reserva y enviarme el recordatorio de mi hora.';
+    '<span id="aceptospan">Acepto</span> proporcionar mi número de WhatsApp para gestionar mi reserva y contactarme si hay cambios o imprevistos.';
   textoConsentimiento.style.cssText = 'font-size: 0.98rem;'
   consentimientoWrap.appendChild(checkbox);
   consentimientoWrap.appendChild(textoConsentimiento);
@@ -9596,6 +9821,7 @@ const bloqueoRef = db.ref(
 
 let bloqueoTomado = false;
 
+await jbLimpiarBloqueoHuerfano(jbReserva.fecha, jbReserva.hora);
 const resultadoBloqueo = await bloqueoRef.transaction(actual => {
 
   // Nadie la tiene todavía
