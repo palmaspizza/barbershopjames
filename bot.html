@@ -4633,7 +4633,7 @@ const firebaseConfig = window.__jbFirebaseConfig || {
             : firebase.initializeApp(firebaseConfig);
         const db = jbFirebaseApp.database();
 
-        const JB_NTFY_TOPIC = '';
+        const JB_NTFY_TOPIC = 'james-barber-shop-2026';
         function jbEnviarNotificacionNtfy(reserva, accion) {
             try {
                 const nombre = String(reserva?.nombre || '').trim().split(/\s+/)[0] || 'Cliente';
