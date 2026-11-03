@@ -13516,5 +13516,114 @@ window.addEventListener('load', function() {
   }
 </style>
 <script src="remove-legacy-push.js"></script>
+<style>
+  @media (max-width: 700px) {
+    #jbChatPanel {
+      position: fixed !important;
+      top: max(8px, env(safe-area-inset-top)) !important;
+      right: max(8px, env(safe-area-inset-right)) !important;
+      bottom: max(8px, env(safe-area-inset-bottom)) !important;
+      left: max(8px, env(safe-area-inset-left)) !important;
+      width: auto !important;
+      max-width: none !important;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+      display: none;
+    }
+
+    #jbChatPanel.jbOpen {
+      display: flex !important;
+    }
+
+    #jbChatHeader {
+      flex: 0 0 auto;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    #jbChatHeader > div {
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    #jbChatHeader .jbTitle {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #jbChatBody {
+      min-height: 0 !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #jbChatBody > * {
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    #jbQuickActions {
+      flex: 0 0 auto;
+      min-width: 0;
+      max-height: min(28dvh, 220px);
+      overflow-y: auto;
+      box-sizing: border-box;
+      padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    }
+
+    #jbQuickActions .jbQuickBtn {
+      flex: 1 1 calc(50% - 8px);
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.25;
+    }
+
+    #jbChatInputBar {
+      flex: 0 0 auto;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    .jbHorasGrid {
+      width: 100%;
+      max-width: 100%;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .jbHoraBtn,
+    .jbDiaBtn,
+    .jbOpcionBtn,
+    .jbConfirmBtn,
+    .jbConfirmBtns,
+    .jbFechaForm,
+    .jbNombreForm {
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+  }
+
+  @media (max-width: 380px) {
+    #jbChatPanel {
+      top: max(5px, env(safe-area-inset-top)) !important;
+      right: max(5px, env(safe-area-inset-right)) !important;
+      bottom: max(5px, env(safe-area-inset-bottom)) !important;
+      left: max(5px, env(safe-area-inset-left)) !important;
+    }
+
+    #jbQuickActions .jbQuickBtn {
+      flex-basis: 100%;
+      font-size: .74rem;
+    }
+  }
+</style>
 </body>
 </html>
