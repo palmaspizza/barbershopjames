@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>La próxima hora empieza aquí | James Barbershop</title>
+  <meta name="description" content="Presentación interactiva del sistema QR para reservas y reseñas de James Barbershop.">
+  <style>
+    :root{--bg:#08090b;--panel:#121419;--panel2:#191c22;--gold:#e4a64f;--gold2:#f7d58d;--green:#32d583;--blue:#6fd3ff;--text:#f7f4ed;--muted:#a9a7a1;--line:rgba(255,255,255,.1);--shadow:0 24px 80px rgba(0,0,0,.4)}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:radial-gradient(circle at 8% 0%,rgba(228,166,79,.16),transparent 30%),radial-gradient(circle at 90% 30%,rgba(50,213,131,.08),transparent 26%),var(--bg);color:var(--text);font:16px/1.55 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+    a{color:inherit;text-decoration:none}
+    button{font:inherit}
+    .wrap{width:min(1160px,calc(100% - 36px));margin:auto}
+    .topbar{position:sticky;top:0;z-index:5;backdrop-filter:blur(16px);background:rgba(8,9,11,.78);border-bottom:1px solid var(--line)}
+    .topbar-inner{display:flex;align-items:center;justify-content:space-between;min-height:64px;gap:20px}
+    .brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .brand-mark{display:grid;place-items:center;width:34px;height:34px;border:1px solid rgba(228,166,79,.65);border-radius:10px;color:var(--gold);background:rgba(228,166,79,.1);overflow:hidden}.brand-mark img{width:100%;height:100%;object-fit:cover}
+    .brand small{display:block;color:var(--muted);font-size:.62rem;letter-spacing:.18em;font-weight:600}
+    .topbar nav{display:flex;gap:18px;color:var(--muted);font-size:.84rem}
+    .topbar nav a:hover{color:var(--gold2)}
+    .hero{padding:90px 0 70px;display:grid;grid-template-columns:1.04fr .96fr;align-items:center;gap:56px}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--gold2);font-size:.76rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+    .eyebrow i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 14px var(--green)}
+    h1{font-size:clamp(2.7rem,6vw,5.6rem);line-height:.98;letter-spacing:-.06em;margin:19px 0 24px;max-width:760px}
+    h1 em{font-style:normal;color:var(--gold2)}
+    .lead{max-width:620px;color:#d0cec7;font-size:clamp(1.05rem,2vw,1.3rem)}
+    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+    .btn{border:1px solid transparent;border-radius:13px;padding:13px 18px;font-weight:800;cursor:pointer;transition:.2s transform,.2s background,.2s border-color}
+    .btn:hover{transform:translateY(-2px)}
+    .btn-primary{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#17120a;box-shadow:0 10px 30px rgba(228,166,79,.2)}
+    .btn-ghost{background:rgba(255,255,255,.04);border-color:var(--line);color:var(--text)}
+    .hero-note{margin-top:18px;color:var(--muted);font-size:.85rem}
+    .hero-stage{position:relative;min-height:440px;display:grid;place-items:center}
+    .glow{position:absolute;width:70%;height:70%;border-radius:50%;background:rgba(228,166,79,.15);filter:blur(70px)}
+    .tv{position:relative;width:min(100%,620px);border:8px solid #25272c;border-radius:20px;background:#050607;box-shadow:var(--shadow),0 0 0 1px #555;transform:perspective(900px) rotateY(-7deg) rotateX(2deg)}
+    .tv:before{content:"";display:block;padding-top:64%}
+    .tv-screen{position:absolute;inset:0;overflow:hidden;background:#050607}
+    .tv-real-shot{width:100%;height:100%;display:block;object-fit:cover;object-position:center}
+    .tv-qr-overlay{position:absolute;left:3.3%;bottom:8%;width:19%;aspect-ratio:1;display:grid;place-items:center;padding:5px;border:1px solid rgba(228,166,79,.8);border-radius:8px;background:rgba(7,8,10,.88);color:var(--gold2);text-align:center;font-size:.42rem;font-weight:800;line-height:1.1}
+    .tv-qr-overlay .fake-qr{width:58%;height:auto;aspect-ratio:1;border-width:3px;margin-bottom:3px}
+    .tv-qr-overlay span{display:block}
+    .tv-caption{position:absolute;right:2.5%;bottom:5%;padding:5px 8px;border-radius:7px;background:rgba(7,8,10,.86);color:#fff;font-size:.48rem;letter-spacing:.06em;text-transform:uppercase}
+    .tv-header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;gap:8px}
+    .tv-brand{display:flex;align-items:center;gap:6px;min-width:0}.tv-brand img{width:25px;height:25px;border-radius:7px;object-fit:cover}.tv-brand-copy{min-width:0}.tv-title{color:var(--gold);font-weight:900;letter-spacing:.1em;font-size:.62rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tv-sub{color:#666;font-size:.42rem;letter-spacing:.15em;text-transform:uppercase;white-space:nowrap}
+    .tv-time{text-align:center;font-size:1.15rem;font-weight:900}.tv-date{text-align:right;color:#888;font-size:.46rem;letter-spacing:.12em;text-transform:uppercase}
+    .tv-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:12px;height:calc(100% - 43px);padding-top:12px}
+    .tv-left{display:grid;grid-template-rows:1.1fr .8fr;gap:8px;min-width:0}.tv-qr{display:grid;place-items:center;border:1px solid rgba(228,166,79,.35);border-radius:10px;background:radial-gradient(circle at 50% 20%,rgba(228,166,79,.2),transparent 65%),#121419;text-align:center;padding:12px}
+    .fake-qr{width:84px;height:84px;background:repeating-conic-gradient(#fff 0 7%,#111 0 14%);border:6px solid #fff;box-shadow:0 0 0 2px #111}
+    .tv-qr strong{display:block;color:var(--gold2);font-size:.72rem;margin-top:9px}
+    .tv-qr span{display:block;color:var(--muted);font-size:.6rem}
+    .tv-list{display:flex;flex-direction:column;gap:7px}
+    .next{border:1px solid rgba(228,166,79,.4);border-radius:9px;padding:10px;background:rgba(228,166,79,.1)}
+    .next b{color:var(--gold2);font-size:.64rem;text-transform:uppercase}.next strong{display:block;font-size:1.1rem}.next span{color:var(--muted);font-size:.66rem}
+    .tv-styles{display:flex;gap:4px;overflow:hidden;border:1px solid var(--line);border-radius:8px;padding:4px;background:#0d0f13}.tv-style{flex:0 0 34px;border-radius:5px;background:linear-gradient(145deg,#8b6a48,#20232a);position:relative;overflow:hidden}.tv-style:nth-child(2){background:linear-gradient(145deg,#c59a72,#252a32)}.tv-style:nth-child(3){background:linear-gradient(145deg,#4f392e,#15171b)}.tv-style:after{content:"";position:absolute;inset:30% 20% 0;background:#111;border-radius:50% 50% 0 0}
+    .row{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:7px;padding:8px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.035);font-size:.68rem}
+    .row b{color:var(--gold2)}.row span{color:var(--muted)}.row i{font-style:normal;color:var(--green);font-size:.6rem}
+    section{padding:74px 0}
+    .section-head{max-width:680px;margin-bottom:28px}.section-head h2{font-size:clamp(2rem,4vw,3.4rem);line-height:1.03;letter-spacing:-.045em;margin:12px 0}.section-head p{color:var(--muted);font-size:1.05rem}
+    .problem-grid,.benefit-grid,.packs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .card{background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.025));border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 15px 40px rgba(0,0,0,.14)}
+    .card-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:rgba(228,166,79,.13);color:var(--gold2);font-size:1.3rem;margin-bottom:18px}
+    .card h3{margin:0 0 8px;font-size:1.12rem}.card p{margin:0;color:var(--muted);font-size:.93rem}
+    .demo{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:stretch}
+    .demo-panel{border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,#15181e,#0e1014);padding:24px;box-shadow:var(--shadow)}
+    .demo-panel h3{margin:0 0 6px}.demo-panel>p{color:var(--muted);margin:0 0 18px;font-size:.9rem}
+    .phone-wrap{min-height:440px;display:grid;place-items:center;background:radial-gradient(circle,rgba(111,211,255,.13),transparent 58%)}
+    .phone{width:min(260px,80%);border:8px solid #292d34;border-radius:30px;padding:9px;background:#07080a;box-shadow:0 20px 50px #000;overflow:hidden}
+    .phone-top{height:20px;width:80px;margin:0 auto 9px;border-radius:0 0 14px 14px;background:#292d34}
+    .phone-screen{border-radius:18px;background:#171a20;padding:14px;min-height:355px}
+    .phone-brand{color:var(--gold2);font-size:.7rem;font-weight:900;letter-spacing:.1em}.phone-screen h4{font-size:1.28rem;margin:32px 0 6px}.phone-screen p{font-size:.75rem;color:var(--muted)}
+    .service-chip{display:flex;justify-content:space-between;align-items:center;background:rgba(228,166,79,.12);border:1px solid rgba(228,166,79,.4);padding:11px;border-radius:10px;color:var(--gold2);font-size:.76rem;font-weight:800}
+    .step-list{display:grid;gap:10px}.step{display:flex;gap:12px;align-items:flex-start;padding:13px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.025);cursor:pointer}.step.active{border-color:rgba(228,166,79,.6);background:rgba(228,166,79,.1)}.step-num{display:grid;place-items:center;flex:0 0 26px;height:26px;border-radius:50%;background:var(--gold);color:#17120a;font-weight:900;font-size:.8rem}.step b{display:block}.step span{display:block;color:var(--muted);font-size:.83rem;margin-top:2px}
+    .pack{position:relative}.pack.recommended{border-color:rgba(228,166,79,.75);box-shadow:0 0 0 1px rgba(228,166,79,.18),var(--shadow)}.pack.best-value{border-color:rgba(50,213,131,.7);box-shadow:0 0 0 1px rgba(50,213,131,.14),var(--shadow)}.ribbon{position:absolute;right:18px;top:-12px;background:var(--gold);color:#17120a;font-size:.68rem;font-weight:900;padding:5px 9px;border-radius:99px;text-transform:uppercase}.ribbon.green{background:var(--green)}.pack h3{font-size:1.35rem}.pack .tagline{color:var(--gold2);font-size:.85rem;font-weight:800}.pack ul{padding-left:19px;color:#d4d1c9;font-size:.9rem;min-height:124px}.pack li{margin:7px 0}.pack .select{width:100%;margin-top:8px}.pack.selected{background:linear-gradient(145deg,rgba(228,166,79,.18),rgba(255,255,255,.035))}.pack-price{display:flex;align-items:baseline;gap:7px;margin:12px 0 2px}.pack-price strong{font-size:1.9rem;color:var(--text);letter-spacing:-.04em}.pack-price span{font-size:.76rem;color:var(--muted)}.pack-difference{min-height:25px;color:var(--muted);font-size:.76rem}.pack.best-value .pack-price strong{color:#8bf0bb}.pack.best-value .pack-difference{color:#8bf0bb;font-weight:700}
+    .ethics{border:1px solid rgba(50,213,131,.35);background:rgba(50,213,131,.07);border-radius:18px;padding:22px;display:flex;gap:16px;align-items:flex-start}.ethics strong{color:#8bf0bb}.ethics p{margin:4px 0 0;color:#c5dace;font-size:.9rem}
+    .gallery{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.gallery-card{position:relative;overflow:hidden;min-height:180px;border:1px solid var(--line);border-radius:17px;background:#111;box-shadow:0 12px 30px rgba(0,0,0,.2)}.gallery-card.large{grid-column:span 7;min-height:270px}.gallery-card.medium{grid-column:span 5;min-height:270px}.gallery-card.small{grid-column:span 4}.gallery-card img{width:100%;height:100%;display:block;object-fit:cover}.gallery-card figcaption{position:absolute;inset:auto 0 0;padding:38px 15px 13px;background:linear-gradient(transparent,rgba(0,0,0,.9));font-size:.82rem;font-weight:800}.gallery-card figcaption span{display:block;color:var(--gold2);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}.gallery-card.qr-card:after{content:"QR visual de la propuesta";position:absolute;right:10px;top:10px;padding:5px 7px;border-radius:7px;background:rgba(7,8,10,.82);color:var(--gold2);font-size:.58rem;font-weight:800}.qr-showcase{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}.qr-card-item{padding:16px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.035);text-align:center}.qr-card-item img{width:min(150px,100%);aspect-ratio:1;object-fit:contain;background:#fff;border-radius:10px;padding:9px}.qr-card-item strong{display:block;margin-top:10px}.qr-card-item small{display:block;color:var(--muted);margin-top:3px;font-size:.74rem}.qr-card-item.gold{border-color:rgba(228,166,79,.6)}.qr-card-item.blue{border-color:rgba(111,211,255,.6)}.qr-card-item.green{border-color:rgba(50,213,131,.6)}.proof-note{margin-top:14px;color:var(--muted);font-size:.8rem}
+    .cta{padding:70px 0 100px}.cta-box{border:1px solid rgba(228,166,79,.45);border-radius:24px;padding:38px;background:radial-gradient(circle at 80% 0,rgba(228,166,79,.22),transparent 42%),linear-gradient(130deg,#17191f,#0e1014);display:flex;align-items:center;justify-content:space-between;gap:26px}.cta-box h2{margin:0 0 8px;font-size:clamp(1.8rem,4vw,3rem);letter-spacing:-.04em}.cta-box p{margin:0;color:var(--muted);max-width:620px}
+    .toast{position:fixed;right:18px;bottom:18px;z-index:8;max-width:330px;padding:14px 16px;border:1px solid rgba(228,166,79,.55);border-radius:13px;background:#191c22;box-shadow:var(--shadow);transform:translateY(30px);opacity:0;pointer-events:none;transition:.25s}.toast.show{transform:none;opacity:1}.toast b{color:var(--gold2)}
+    @media(max-width:850px){.hero,.demo{grid-template-columns:1fr}.hero{padding-top:60px}.hero-stage{min-height:360px}.problem-grid,.benefit-grid,.packs{grid-template-columns:1fr}.cta-box{display:block}.cta-box .btn{margin-top:22px}.topbar nav{display:none}.gallery-card.large,.gallery-card.medium,.gallery-card.small{grid-column:span 6}.qr-showcase{grid-template-columns:1fr 1fr}}
+    .real-panel{display:grid;gap:13px}.real-panel-shot{width:100%;border-radius:13px;border:1px solid rgba(228,166,79,.32);box-shadow:0 12px 30px rgba(0,0,0,.32);display:block}.real-panel-caption{color:var(--muted);font-size:.82rem}.creator-mark{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:.78rem}.creator-mark img{width:100px;max-height:34px;object-fit:contain;object-position:left center}
+    @media(max-width:520px){.wrap{width:min(100% - 24px,1160px)}section{padding:52px 0}.tv{transform:none}.tv-grid{gap:6px}.tv-qr{padding:5px}.fake-qr{width:60px;height:60px}.row{font-size:.55rem}.tv-title{font-size:.58rem}.tv-time{font-size:1rem}.hero-stage{min-height:280px}.demo-panel{padding:17px}.cta-box{padding:25px}.tv-caption{font-size:.38rem}.tv-qr-overlay{font-size:.34rem}.gallery-card.large,.gallery-card.medium,.gallery-card.small{grid-column:span 12;min-height:210px}.qr-showcase{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="topbar"><div class="wrap topbar-inner">
+    <a class="brand" href="#inicio"><span class="brand-mark"><img src="james-logo-propuesta.jpg" alt="James Barbershop"></span><span>James Barbershop<small>Experiencia que hace volver</small></span></a>
+    <nav><a href="#experiencia">Experiencia</a><a href="#packs">Opciones</a><a href="#siguiente">Siguiente paso</a></nav>
+  </div></div>
+
+  <main>
+    <section class="hero wrap" id="inicio">
+      <div>
+        <div class="eyebrow"><i></i> Una mejora para la experiencia completa</div>
+        <h1>La próxima hora puede empezar <em>antes de que el cliente se vaya.</em></h1>
+        <p class="lead">Una pantalla que informa, un QR que simplifica y una reserva que queda lista en pocos pasos. El cliente gana comodidad; la barbería gana una oportunidad real de recibirlo nuevamente.</p>
+        <div class="actions"><a class="btn btn-primary" href="#experiencia">Ver cómo lo viviría el cliente ↓</a><a class="btn btn-ghost" href="#packs">Ver opciones</a></div>
+        <p class="hero-note">Sin cuentas obligatorias · Sin pasos innecesarios · Sin prometer resultados que todavía no se han medido</p>
+      </div>
+      <div class="hero-stage" aria-label="Vista previa real del panel TV">
+        <div class="glow"></div><div class="tv"><div class="tv-screen"><img class="tv-real-shot" src="tvpanel-real-propuesta.jpg" alt="Captura real del panel TV de James Barbershop"><div class="tv-qr-overlay"><div class="fake-qr"></div><span>QR de reserva</span></div><div class="tv-caption">Así se vería en la barbería</div></div></div>
+      </div>
+    </section>
+
+    <section class="wrap" id="problema">
+      <div class="section-head"><div class="eyebrow"><i></i> El problema real</div><h2>Una buena atención termina, pero la relación no debería terminar ahí.</h2><p>El cliente sale conforme, pero después tiene que volver a buscar el enlace, recordar el servicio y encontrar un horario. Cada paso extra es una oportunidad perdida.</p></div>
+      <div class="problem-grid">
+        <article class="card"><div class="card-icon">⌛</div><h3>Se va y lo deja para después</h3><p>Cuando llega a su casa, reservar deja de ser prioridad y la próxima visita se posterga.</p></article>
+        <article class="card"><div class="card-icon">↻</div><h3>Repite pasos que ya conoce</h3><p>Si siempre pide el mismo servicio, no debería tener que buscarlo y seleccionarlo otra vez.</p></article>
+        <article class="card"><div class="card-icon">◎</div><h3>La barbería no sabe qué funcionó</h3><p>Con enlaces separados se puede medir qué servicio genera interés y qué reservas llegan.</p></article>
+      </div>
+    </section>
+
+    <section class="wrap" id="experiencia">
+      <div class="section-head"><div class="eyebrow"><i></i> La experiencia del cliente</div><h2>Escanea. Elige cuándo. Confirma.</h2><p>Haz clic en los pasos para ver cómo un QR específico puede abrir directamente el servicio correcto, sin mostrar una pantalla de selección innecesaria.</p></div>
+      <div class="demo">
+        <div class="demo-panel phone-wrap"><div class="phone"><div class="phone-top"></div><div class="phone-screen">
+          <div class="phone-brand">JAMES BARBERSHOP</div><h4 id="phone-title">Tu próxima hora</h4><p id="phone-copy">El servicio ya viene seleccionado. Solo falta elegir cuándo quieres volver.</p><div class="service-chip"><span id="phone-service">Corte degradado</span><span id="phone-price">$12.000</span></div><button class="btn btn-primary" style="width:100%;margin-top:18px" id="phone-action" type="button">Elegir día y hora</button><div style="height:7px;background:#2c3038;border-radius:9px;margin-top:20px"></div><div style="height:7px;background:#2c3038;border-radius:9px;margin-top:8px;width:72%"></div>
+        </div></div></div>
+        <div class="demo-panel"><h3>Así funciona el QR específico</h3><p>Cada código puede representar un servicio popular. No reserva automáticamente: deja la decisión final en manos del cliente.</p><div class="step-list">
+          <button class="step active" data-step="0" type="button"><span class="step-num">1</span><span><b>Escanea el servicio</b><span>“Corte degradado” ya viene seleccionado.</span></span></button>
+          <button class="step" data-step="1" type="button"><span class="step-num">2</span><span><b>Elige día y hora</b><span>Se muestran solo horarios disponibles.</span></span></button>
+          <button class="step" data-step="2" type="button"><span class="step-num">3</span><span><b>Confirma tus datos</b><span>Nombre y WhatsApp, sin crear una cuenta.</span></span></button>
+          <button class="step" data-step="3" type="button"><span class="step-num">✓</span><span><b>Reserva confirmada</b><span>El cliente se va con su próxima visita lista.</span></span></button>
+        </div><button class="btn btn-ghost" id="run-demo" type="button" style="margin-top:18px;width:100%">▶ Ver el flujo completo</button></div>
+      </div>
+    </section>
+
+    <section class="wrap">
+      <div class="section-head"><div class="eyebrow"><i></i> Valor para ambos</div><h2>No es solo vender más. Es hacer que volver sea más fácil.</h2></div>
+      <div class="benefit-grid">
+        <article class="card"><div class="card-icon">☺</div><h3>Para el cliente</h3><p>Menos pasos, servicio recordado, horarios disponibles y confirmación clara. No se le obliga a registrarse.</p></article>
+        <article class="card"><div class="card-icon">▣</div><h3>Para James</h3><p>Una oportunidad de asegurar la siguiente visita y entender qué servicios generan más interés.</p></article>
+        <article class="card"><div class="card-icon">✓</div><h3>Para la operación</h3><p>La pantalla ya existe como base: reservas, próximo cliente, estados, estilos y QR de reseñas.</p></article>
+      </div>
+      <div class="real-panel" style="margin-top:22px"><img class="real-panel-shot" src="tvpanel-real-propuesta.jpg" alt="Panel TV real de James Barbershop"><div class="real-panel-caption">La propuesta parte de este panel real: reservas en vivo, próximo cliente, estados, servicios y pantalla informativa.</div><div class="creator-mark"><span>Desarrollado por</span><img src="palmacodes-logo-propuesta.png" alt="Palma Codes"></div></div>
+      <div class="ethics" style="margin-top:18px"><div style="font-size:1.6rem">⚖</div><div><strong>Reseñas honestas, siempre.</strong><p>El QR de reseñas facilita que el cliente comparta su experiencia, pero no fabrica comentarios ni condiciona la cantidad de estrellas.</p></div></div>
+    </section>
+
+    <section class="wrap" id="vista-real">
+      <div class="section-head"><div class="eyebrow"><i></i> Cómo se vería en la realidad</div><h2>De la pantalla del panel a la experiencia en la barbería.</h2><p>Estas imágenes muestran el contexto real: la pantalla instalada, el cliente escaneando y el trabajo de desarrollo detrás de la solución.</p></div>
+      <div class="gallery">
+        <figure class="gallery-card large qr-card"><img src="barberia-tv-perspectiva.png" alt="Pantalla del panel instalada en una barbería"><figcaption><span>En el local</span>La pantalla informa mientras el cliente espera.</figcaption></figure>
+        <figure class="gallery-card medium qr-card"><img src="barberia-cliente-qr-1.png" alt="Cliente escaneando el código QR en la barbería"><figcaption><span>Experiencia del cliente</span>Escanear debe ser simple y visible.</figcaption></figure>
+        <figure class="gallery-card small"><img src="barberia-tv-qr-2.png" alt="Panel TV con código QR en barbería"><figcaption><span>Panel + QR</span>La agenda y la acción están en el mismo lugar.</figcaption></figure>
+        <figure class="gallery-card small"><img src="panel-qr-realista.png" alt="Panel de reservas con código QR"><figcaption><span>Vista del sistema</span>El QR se integra a la información de reservas.</figcaption></figure>
+        <figure class="gallery-card small"><img src="palma-codes-programando-1.png" alt="Desarrollador trabajando en Palma Codes"><figcaption><span>Desarrollo</span>La solución se prueba y ajusta antes de instalarse.</figcaption></figure>
+      </div>
+      <div class="qr-showcase">
+        <div class="qr-card-item gold"><img src="qr-propuesta.png" alt="QR visual para reserva"><strong>QR de reserva</strong><small>Acceso directo a una experiencia específica.</small></div>
+        <div class="qr-card-item blue"><img src="qr-propuesta.png" alt="QR visual para servicio"><strong>QR de servicio</strong><small>Puede abrir un servicio preseleccionado.</small></div>
+        <div class="qr-card-item green"><img src="qr-propuesta.png" alt="QR visual para reseña"><strong>QR de reseña</strong><small>Invita a opinar honestamente.</small></div>
+      </div>
+      <p class="proof-note">El mismo QR se muestra como referencia visual en esta presentación. Antes de imprimir, cada código debe apuntar a su destino real y probarse con varios teléfonos.</p>
+    </section>
+
+    <section class="wrap" id="packs">
+      <div class="section-head"><div class="eyebrow"><i></i> Tres formas de comenzar</div><h2>Se puede probar pequeño, comparar y elegir el mejor valor.</h2><p>Los precios visibles son ejemplos de presentación, no una cotización definitiva. Cada plan tiene un alcance distinto y el completo agrega medición y ajustes por una diferencia pequeña.</p></div>
+      <div class="packs">
+        <article class="card pack"><div class="card-icon">①</div><h3>Pack Inicio</h3><div class="tagline">Probar la idea</div><div class="pack-price"><strong>$12.000</strong><span>pago único</span></div><div class="pack-difference">Para comenzar con poco riesgo.</div><ul><li>1 QR de servicio popular.</li><li>Flujo directo a día y hora.</li><li>Prueba en celular o cartel.</li></ul><button class="btn btn-ghost select" data-pack="Pack Inicio" type="button">Elegir esta opción</button></article>
+        <article class="card pack recommended"><div class="ribbon">Comparar</div><div class="card-icon">②</div><h3>Pack Clientes</h3><div class="tagline">Reservas + reseñas</div><div class="pack-price"><strong>$26.000</strong><span>pago único</span></div><div class="pack-difference">Incluye la experiencia completa para el cliente.</div><ul><li>3 QR de servicios populares.</li><li>QR de reseñas honestas.</li><li>Diseño listo para la pantalla.</li><li>Prueba y revisión inicial.</li></ul><button class="btn btn-primary select" data-pack="Pack Clientes" type="button">Elegir esta opción</button></article>
+        <article class="card pack best-value"><div class="ribbon green">Más valor</div><div class="card-icon">③</div><h3>Pack Completo</h3><div class="tagline">Medir y mejorar</div><div class="pack-price"><strong>$30.000</strong><span>pago único</span></div><div class="pack-difference">Por $4.000 más, incluye medición y ajustes.</div><ul><li>Todo el Pack Clientes.</li><li>Medición de escaneos y reservas.</li><li>Ajustes iniciales del panel TV.</li><li>Revisión de resultados.</li></ul><button class="btn btn-primary select" data-pack="Pack Completo" type="button">Elegir esta opción</button></article>
+      </div>
+    </section>
+
+    <section class="cta wrap" id="siguiente"><div class="cta-box"><div><div class="eyebrow"><i></i> Siguiente paso</div><h2>Primero probamos una experiencia real.</h2><p>No se trata de instalar muchas cosas de una vez. Se elige un alcance, se prueba con clientes y luego se decide con datos si vale la pena ampliarlo.</p></div><button class="btn btn-primary" id="cta-button" type="button">Quiero revisar la prueba →</button></div></section>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <script>
+    (function(){
+      const steps=[...document.querySelectorAll('.step')];
+      const title=document.getElementById('phone-title');
+      const copy=document.getElementById('phone-copy');
+      const action=document.getElementById('phone-action');
+      const states=[
+        ['Tu próxima hora','El servicio ya viene seleccionado. Solo falta elegir cuándo quieres volver.','Elegir día y hora'],
+        ['Elige tu día','Solo aparecen días con disponibilidad para este servicio.','Ver horas disponibles'],
+        ['Elige tu hora','Selecciona el horario que más te acomode.','Continuar'],
+        ['¡Listo!','Tu próxima visita queda confirmada y puedes verla en tus reservas.','Reserva confirmada']
+      ];
+      let current=0,timer=0;
+      function show(index){
+        current=index;
+        steps.forEach((s,i)=>s.classList.toggle('active',i===index));
+        title.textContent=states[index][0];copy.textContent=states[index][1];action.textContent=states[index][2];
+      }
+      steps.forEach((step,i)=>step.addEventListener('click',()=>show(i)));
+      document.getElementById('run-demo').addEventListener('click',function(){
+        clearInterval(timer);show(0);let i=0;
+        timer=setInterval(()=>{i+=1;if(i>3){clearInterval(timer);return}show(i)},1300);
+      });
+      document.querySelectorAll('.select').forEach(button=>button.addEventListener('click',()=>{
+        document.querySelectorAll('.pack').forEach(p=>p.classList.remove('selected'));
+        button.closest('.pack').classList.add('selected');
+        const toast=document.getElementById('toast');toast.innerHTML='<b>'+button.dataset.pack+'</b> seleccionado para revisar el alcance.';toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3500);
+      }));
+      document.getElementById('cta-button').addEventListener('click',()=>{
+        document.getElementById('packs').scrollIntoView({behavior:'smooth'});
+        const toast=document.getElementById('toast');toast.innerHTML='Elige un pack para definir una prueba clara y sin sorpresas.';toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3500);
+      });
+      action.addEventListener('click',()=>show(Math.min(current+1,3)));
+    }());
+  </script>
+</body>
+</html>
