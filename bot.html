@@ -3288,17 +3288,38 @@ function volverABuscar() {
 window.jbAbrirRecuperacion = function() {
     const panel = document.getElementById('jbChatPanel');
     if (panel && !panel.classList.contains('jbOpen')) panel.classList.add('jbOpen');
-    const identificacion = document.getElementById('identificacionCliente');
-    const lista = document.getElementById('listaReservasCliente');
-    const vacio = document.getElementById('misReservasVacio');
-    if (identificacion) {
-        identificacion.classList.remove('hidden');
-        identificacion.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    if (lista) lista.classList.add('hidden');
-    if (vacio) vacio.classList.add('hidden');
-    const nombre = document.getElementById('nombreClienteBusqueda');
-    if (nombre) nombre.focus();
+    const body = document.getElementById('jbChatBody');
+    if (!body) return;
+    const anterior = document.getElementById('jbRecuperacionChat');
+    if (anterior) anterior.remove();
+
+    const card = document.createElement('div');
+    card.id = 'jbRecuperacionChat';
+    card.style.cssText = 'align-self:flex-start;width:94%;max-width:420px;background:#1e1f24;border:1px solid rgba(14,165,233,.5);border-radius:14px;padding:14px;box-sizing:border-box;';
+    card.innerHTML = `
+      <div style="color:#7dd3fc;font-weight:700;margin-bottom:8px;">🔐 Recuperar mis reservas</div>
+      <div style="color:#c8c8c8;font-size:.84rem;margin-bottom:10px;">Escribe el mismo nombre y WhatsApp usados al reservar.</div>
+      <input id="jbRecuperarNombreChat" type="text" autocomplete="name" placeholder="Nombre y apellido" style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:11px;border-radius:9px;border:1px solid #555;background:#111215;color:#fff;">
+      <input id="jbRecuperarTelefonoChat" type="tel" autocomplete="tel" inputmode="tel" placeholder="WhatsApp (ej. 9 1234 5678)" style="width:100%;box-sizing:border-box;margin-bottom:10px;padding:11px;border-radius:9px;border:1px solid #555;background:#111215;color:#fff;">
+      <div style="display:flex;gap:8px;">
+        <button id="jbRecuperarEnviarChat" type="button" style="flex:1;padding:11px;border:0;border-radius:9px;background:#0ea5e9;color:#fff;font-weight:700;cursor:pointer;">Buscar reservas</button>
+        <button id="jbRecuperarCerrarChat" type="button" style="padding:11px;border:1px solid #666;border-radius:9px;background:transparent;color:#ddd;cursor:pointer;">Cerrar</button>
+      </div>
+    `;
+    body.appendChild(card);
+    const nombre = card.querySelector('#jbRecuperarNombreChat');
+    const telefono = card.querySelector('#jbRecuperarTelefonoChat');
+    card.querySelector('#jbRecuperarCerrarChat').onclick = () => card.remove();
+    card.querySelector('#jbRecuperarEnviarChat').onclick = () => {
+        const nombrePrincipal = document.getElementById('nombreClienteBusqueda');
+        const telefonoPrincipal = document.getElementById('telefonoClienteBusqueda');
+        if (nombrePrincipal) nombrePrincipal.value = nombre.value.trim();
+        if (telefonoPrincipal) telefonoPrincipal.value = telefono.value.trim();
+        card.remove();
+        buscarMisReservasManual();
+    };
+    body.scrollTop = body.scrollHeight;
+    nombre.focus();
 };
 
 function mostrarToastCliente(mensaje, esError = false) {
@@ -10370,10 +10391,12 @@ async function jbLiberarBloqueoReserva(r){
         jbMostrarOpciones([
           { emoji:'❌', texto:'Cancelar una reserva',  valor:'cancelar', estilo:'red'  },
           { emoji:'📅', texto:'Reagendar',              valor:'reagendar', estilo:'teal' },
-          { emoji:'📋', texto:'Ver todas mis reservas', valor:'modal'    }
+          { emoji:'📋', texto:'Ver todas mis reservas', valor:'modal'    },
+          { emoji:'➕', texto:'Reservar una nueva hora', valor:'reservar', estilo:'green' }
         ], valor => {
           if (valor === 'cancelar')  jbBuscarYCancelarReservaChat(reservasLocal);
           else if (valor === 'reagendar') jbBuscarYReagendarChat(reservasLocal);
+          else if (valor === 'reservar') jbIniciarFlujoReserva();
           else                       jbAbrirModalMisReservas();
         });
       }, 300);
@@ -10387,11 +10410,14 @@ async function jbLiberarBloqueoReserva(r){
       setTimeout(() => {
         jbMostrarOpciones([
           { emoji:'🔍', texto:'Buscar con otro nombre', valor:'otro' },
-          { emoji:'📋', texto:'Ver sección Mis Reservas', valor:'modal' }
+          { emoji:'📋', texto:'Ver sección Mis Reservas', valor:'modal' },
+          { emoji:'➕', texto:'Reservar una nueva hora', valor:'reservar', estilo:'green' }
         ], valor => {
           if (valor === 'otro') {
             jbBot('¿Con qué nombre hiciste la reserva?');
             jbMostrarInputIdentificacionConCallback(() => jbBotCancelarOpciones());
+          } else if (valor === 'reservar') {
+            jbIniciarFlujoReserva();
           } else {
             jbAbrirModalMisReservas();
           }
