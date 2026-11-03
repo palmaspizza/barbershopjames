@@ -874,12 +874,10 @@ function mostrar(){
             color: #333;
         }
         #aceptospan{
-          background: green;
-          border-radius: 5%;
-          color: #fff;
-          padding: 10px;
-          margin: 20px;
-          margin-bottom: 40px !important;
+          background: transparent;
+          color: #f1f1f1;
+          padding: 0;
+          margin: 0;
         }
     </style>
     <button onclick="desactiwar();ocultarbotonesdecierre()" hidden id="desactivarBloqueoDias">✅ Desactivar bloqueo</button>
@@ -3309,6 +3307,7 @@ function volverABuscar() {
 
 window.jbAbrirRecuperacion = function() {
     const panel = document.getElementById('jbChatPanel');
+    if (window.jbAbrirEntradaHistorial) window.jbAbrirEntradaHistorial();
     if (panel && !panel.classList.contains('jbOpen')) panel.classList.add('jbOpen');
     const body = document.getElementById('jbChatBody');
     if (!body) return;
@@ -7067,6 +7066,8 @@ function playTone(freq, dur, vol){
   // ============================================
   let jbReserva       = null;   // datos de la reserva en curso
   let jbReservaCancelada = false; // true tras cancelar: frena cualquier guardado/restauración automática
+  let jbRestaurandoHistorial = false;
+  let jbHistorialNavegacionListo = false;
   let jbHistorial     = [];     // historial de mensajes (para IA FAQ)
   let jbMenuMostrado  = false;
   let jbAtendidoPor   = 'IA';
@@ -8223,6 +8224,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
 
   // Muestra la lista de servicios seleccionados con botones X para quitar
   function jbMostrarListaServiciosEditable(callback){
+    jbRegistrarPasoHistorial('servicio_confirmar');
     const body = document.getElementById('jbChatBody');
     // Remover lista anterior si existe
     const prev = document.getElementById('jbListaServiciosEdit');
@@ -8688,6 +8690,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       acepta_contacto_whatsapp: false
     };
     jbGuardarEstadoReserva(false);
+    jbAbrirEntradaHistorial();
     document.getElementById('jbChatPanel').classList.add('jbOpen');
     document.getElementById('jbUnreadDot').style.display='none';
     jbSetModoReserva(true);
@@ -8711,6 +8714,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
 
   // ── SELECTOR VISUAL DE SERVICIOS CON FOTOS ──────────────────────────────
   function jbMostrarSelectorServicios(){
+    jbRegistrarPasoHistorial('servicio');
     jbBloquearInput();
     const body = document.getElementById('jbChatBody');
     document.getElementById('jbServicioSelector')?.remove();
@@ -8839,6 +8843,7 @@ function irAConfirmar() {
 
   // ── SELECTOR RÁPIDO DE FECHA (botones, sin escribir) ───────────────────────
   function jbMostrarSelectorFechaRapida(mostrarTodos){
+    jbRegistrarPasoHistorial('dia');
     mostrarTodos = mostrarTodos || false;
     jbBloquearInput();
     const body = document.getElementById('jbChatBody');
@@ -9134,6 +9139,7 @@ function irAConfirmar() {
 }
 
   async function jbPreguntarHora(){
+    jbRegistrarPasoHistorial('hora');
     try {
       await jbRecargarDisponibilidad(jbReserva.fecha);
     } catch (error) {
@@ -9163,6 +9169,7 @@ function irAConfirmar() {
   }
 
   function jbPreguntarNombre(forzarEdicion = false){
+    jbRegistrarPasoHistorial('nombre');
     // Edición explícita (el cliente tocó "Cambiar → El nombre"): SIEMPRE
     // mostrar el campo editable, sin importar si ya está identificado.
     // Antes, si jbSesionCliente existía, este caso nunca se alcanzaba:
@@ -9185,6 +9192,7 @@ function irAConfirmar() {
     }
   }
 function jbPreguntarWhatsapp(){
+  jbRegistrarPasoHistorial('whatsapp');
   jbReserva.step = 'whatsapp';
   jbGuardarEstadoReserva(false);
 
@@ -9238,7 +9246,7 @@ function jbMostrarFormularioWhatsapp(){
     telefonoInicial = jbSesionCliente.telefono;
   }
 
-  jbBot('Antes de confirmar, necesito tu número de WhatsApp 📱 para enviarte el recordatorio de tu hora. No lo compartiremos con terceros.');
+  jbBot('Antes de confirmar, necesito tu WhatsApp 📱 para enviarte el recordatorio de tu hora. Lo usaremos solo para gestionar esta reserva y avisarte si ocurre algún cambio.');
 
   jbBloquearInput();
 
@@ -9270,7 +9278,7 @@ function jbMostrarFormularioWhatsapp(){
     align-items:flex-start;
     gap:9px;
     color:#ddd;
-    font-size:1.3rem;
+    font-size:1rem;
     line-height:1.4;
     cursor:pointer;
   `;
@@ -9289,7 +9297,7 @@ function jbMostrarFormularioWhatsapp(){
 
   const textoConsentimiento = document.createElement('span');
   textoConsentimiento.innerHTML =
-    '<span id="aceptospan">Acepto</span> proporcionar mi número de WhatsApp para gestionar mi reserva y contactarme si hay cambios o imprevistos.';
+    '<strong id="aceptospan">Sí, autorizo usar este número</strong><br><span style="font-size:.9em;color:#aaa;">para gestionar mi reserva y avisarme si hay cambios.</span>';
   textoConsentimiento.style.cssText = 'font-size: 0.98rem;'
   consentimientoWrap.appendChild(checkbox);
   consentimientoWrap.appendChild(textoConsentimiento);
@@ -9389,6 +9397,7 @@ function jbMostrarFormularioWhatsapp(){
   setTimeout(() => input.focus(), 100);
 }
   function jbPreguntarConfirmar(){
+    jbRegistrarPasoHistorial('confirmar');
     jbReserva.step = 'confirmar';
     jbGuardarEstadoReserva(false);
     const total = jbReserva.servicios.reduce((a,s)=>a+s.precio,0);
@@ -9435,6 +9444,7 @@ function jbMostrarFormularioWhatsapp(){
   }
 
   function jbPreguntarQueCambiar(){
+    jbRegistrarPasoHistorial('cambiar');
     jbReserva.step = 'cambiar';
     jbGuardarEstadoReserva(false);
     jbBot('¿Qué quieres cambiar?');
@@ -10696,23 +10706,161 @@ async function jbLiberarBloqueoReserva(r){
   // ============================================
   window.jbToggleChat = function(){
     const panel  = document.getElementById('jbChatPanel');
-    const abierto = panel.classList.toggle('jbOpen');
+    const abierto = panel.classList.contains('jbOpen');
     if(abierto){
-      document.getElementById('jbUnreadDot').style.display = 'none';
-      if(!jbMenuMostrado && jbHistorial.length===0) jbMostrarBienvenida();
+      jbCerrarChatDesdeHistorial();
+      return;
     }
+    jbAbrirEntradaHistorial();
+    panel.classList.add('jbOpen');
+    document.getElementById('jbUnreadDot').style.display = 'none';
+    if(!jbMenuMostrado && jbHistorial.length===0) jbMostrarBienvenida();
   };
 
   function jbMostrarBienvenida(){
     jbMenuMostrado = true;
     if (jbSesionCliente && jbSesionCliente.nombreDisplay) {
       const n = jbSesionCliente.nombreDisplay.split(' ')[0];
-      jbBot('👋 ¡Hola de nuevo, <b>' + n + '</b>! ¿En qué te puedo ayudar hoy? 😊', false);
+      jbBot('👋 ¡Hola de nuevo, <b>' + n + '</b>! ¿En qué te puedo ayudar hoy? 😊<br><br><span style="font-size:.88em;color:#b8b8b8;">Tip: también puedes usar el botón Atrás de tu celular para volver al paso anterior.</span>', false);
     } else {
-      jbBot('👋 ¡Hola! Bienvenido a <b>Barbería James</b> ✂️<br><br>¿Cuál es tu nombre? 😊', false);
+      jbBot('👋 ¡Hola! Bienvenido a <b>Barbería James</b> ✂️<br><br>¿Cuál es tu nombre? 😊<br><br><span style="font-size:.88em;color:#b8b8b8;">Tip: puedes usar el botón Atrás de tu celular para volver al paso anterior.</span>', false);
       setTimeout(() => jbMostrarInputIdentificacion(), 500);
     }
   }
+
+  function jbPrepararHistorialNavegacion(){
+    if(jbHistorialNavegacionListo) return;
+    const estado = history.state;
+    if(!estado || !estado.jbBase){
+      history.replaceState(Object.assign({}, estado || {}, { jbBase: true }), '', location.href);
+    }
+    jbHistorialNavegacionListo = true;
+  }
+
+  function jbAbrirEntradaHistorial(){
+    jbPrepararHistorialNavegacion();
+    if(history.state && history.state.jb) return;
+    history.pushState({ jb: true, jbDepth: 1, jbMode: 'chat' }, '', location.href);
+  }
+
+  function jbRegistrarPasoHistorial(step){
+    if(jbRestaurandoHistorial || !jbReserva) return;
+    jbAbrirEntradaHistorial();
+    const actual = history.state;
+    const datos = JSON.parse(JSON.stringify(jbReserva));
+    history.pushState({
+      jb: true,
+      jbDepth: (actual && actual.jbDepth ? actual.jbDepth : 1) + 1,
+      jbMode: 'step',
+      jbStep: step,
+      jbReserva: datos
+    }, '', location.href);
+  }
+
+  function jbCerrarChatDesdeHistorial(){
+    const estado = history.state;
+    if(estado && estado.jb){
+      const pasos = Math.max(1, Number(estado.jbDepth) || 1);
+      history.go(-pasos);
+      return;
+    }
+    const panel = document.getElementById('jbChatPanel');
+    if(panel) panel.classList.remove('jbOpen');
+  }
+
+  function jbRestaurarPasoHistorial(estado){
+    const panel = document.getElementById('jbChatPanel');
+    if(panel) panel.classList.add('jbOpen');
+    const body = document.getElementById('jbChatBody');
+    if(!body || !estado || !estado.jbReserva) return;
+
+    jbRestaurandoHistorial = true;
+    try {
+      jbReserva = JSON.parse(JSON.stringify(estado.jbReserva));
+      jbReservaCancelada = false;
+      body.innerHTML = '';
+      jbSetModoReserva(true);
+      jbBot('↩️ Volviste al paso anterior. Puedes cambiar tu elección.', false);
+      switch(estado.jbStep || jbReserva.step){
+        case 'servicio':
+          jbReserva.step = 'servicio';
+          jbMostrarSelectorServicios();
+          break;
+        case 'servicio_confirmar':
+          jbReserva.step = 'servicio_confirmar';
+          jbMostrarListaServiciosEditable(() => jbPreguntarDia());
+          break;
+        case 'dia':
+          jbReserva.step = 'dia';
+          jbMostrarSelectorFechaRapida();
+          break;
+        case 'hora':
+          jbReserva.step = 'hora';
+          jbPreguntarHora();
+          break;
+        case 'nombre':
+          jbReserva.step = 'nombre';
+          jbPreguntarNombre(true);
+          break;
+        case 'whatsapp':
+          jbReserva.step = 'whatsapp';
+          jbMostrarFormularioWhatsapp();
+          break;
+        case 'confirmar':
+          jbReserva.step = 'confirmar';
+          jbPreguntarConfirmar();
+          break;
+        case 'cambiar':
+          jbReserva.step = 'cambiar';
+          jbPreguntarQueCambiar();
+          break;
+        default:
+          jbReserva.step = 'servicio';
+          jbMostrarSelectorServicios();
+      }
+    } catch(error) {
+      console.error('No se pudo restaurar el paso anterior:', error);
+    } finally {
+      jbRestaurandoHistorial = false;
+      jbScrollBottom();
+    }
+  }
+
+  function jbRestaurarEntradaChat(){
+    const panel = document.getElementById('jbChatPanel');
+    const body = document.getElementById('jbChatBody');
+    if(panel) panel.classList.add('jbOpen');
+    if(!body) return;
+    jbRestaurandoHistorial = true;
+    try {
+      body.innerHTML = '';
+      jbReserva = null;
+      jbSetModoReserva(false);
+      jbMenuMostrado = false;
+      jbMostrarBienvenida();
+    } finally {
+      jbRestaurandoHistorial = false;
+      jbScrollBottom();
+    }
+  }
+
+  window.jbAbrirEntradaHistorial = jbAbrirEntradaHistorial;
+
+  window.addEventListener('popstate', function(event){
+    const estado = event.state;
+    const panel = document.getElementById('jbChatPanel');
+    if(estado && estado.jb && estado.jbMode === 'step'){
+      jbRestaurarPasoHistorial(estado);
+      return;
+    }
+    if(estado && estado.jb && estado.jbMode === 'chat'){
+      jbRestaurarEntradaChat();
+      return;
+    }
+    if(!estado || !estado.jb){
+      if(panel) panel.classList.remove('jbOpen');
+    }
+  });
 
   // Menú principal del bot — incluye opción de "mis cortes anteriores"
 
