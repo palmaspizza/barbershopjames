@@ -12397,16 +12397,17 @@ window.addEventListener('load', function() {
       .then(function (l) {
         if (!l) return;
         var botOn = !(l.activo === false || (l.vencimiento && hoy() > l.vencimiento));
+        if (!botOn && PAGINA === 'bot') {
+          window.location.replace('/calendario');
+          return;
+        }
         window.dispatchEvent(new CustomEvent('jb:asistente-estado', {
           detail: { activo: botOn, pagina: PAGINA }
         }));
       })
       .catch(function () {});
   }
-  setInterval(revisar, 60000);
-  document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) revisar();
-  });
+  revisar();
 })();
 </script>
 <script>
