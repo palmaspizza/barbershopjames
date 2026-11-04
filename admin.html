@@ -4933,7 +4933,7 @@ function formatearFechaImg(fechaISO) {
     const ref = db.ref('config/asistente');
     // Primera vez: crea el registro con la cuota que vence el 17
     ref.once('value').then(s => { if (!s.exists()) ref.set(DEFAULTS); }).catch(e => console.error('Licencia:', e));
-    ref.on('value', snap => {
+    ref.once('value').then(snap => {
       const v = snap.val() || DEFAULTS;
       lic = {
         activo: v.activo !== false,
@@ -4943,8 +4943,7 @@ function formatearFechaImg(fechaISO) {
         ultimoPago: v.ultimoPago || ''
       };
       render();
-    }, e => console.error('Licencia:', e));
-    setInterval(render, 60000); // refresca al cruzar la medianoche
+    }).catch(e => console.error('Licencia:', e));
   });
 })();
 </script>
@@ -4990,13 +4989,16 @@ window.addEventListener('load', function(){
     btn.dataset.accion = encendido ? 'apagar' : 'encender';
     btn.dataset.vencida = d < 0 ? '1' : '';
   }
-  ref.on('value', s => { data = s.val() || { activo:true, vencimiento:'2026-10-17' }; render(); });
+  ref.once('value').then(s => {
+    data = s.val() || { activo:true, vencimiento:'2026-10-17' };
+    render();
+  }).catch(e => console.error('Control del bot:', e));
 
   const pagoBtn = document.getElementById('jbCtlPago'), listaPagos = document.getElementById('jbCtlPagos');
-  db.ref('config/asistente_pagos').limitToLast(3).on('value', s => {
+  db.ref('config/asistente_pagos').limitToLast(3).once('value').then(s => {
     const v = Object.values(s.val() || {}).reverse();
     listaPagos.textContent = v.length ? 'Últimos pagos: ' + v.map(x => `${x.fecha} ($${Number(x.monto).toLocaleString('es-CL')})`).join(' · ') : 'Sin pagos registrados';
-  });
+  }).catch(e => console.error('Historial de pagos:', e));
   pagoBtn.addEventListener('click', async function(){
     try{
       const venc = (data && data.vencimiento) || hoyCL(), monto = (data && data.monto) || 20000;
@@ -5006,6 +5008,7 @@ window.addEventListener('load', function(){
       pagoBtn.disabled = true;
       await ref.update({ activo:true, vencimiento:nuevo, ultimoPago:hoyCL() });
       await db.ref('config/asistente_pagos').push({ fecha:hoyCL(), monto:monto, vencimiento:nuevo });
+      window.location.reload();
     }catch(e){ alert('No se pudo guardar: ' + e.message); }
     pagoBtn.disabled = false;
   });
@@ -5013,12 +5016,12 @@ window.addEventListener('load', function(){
     try{
       if(btn.dataset.accion === 'apagar'){
         if(!confirm('¿Apagar el bot? Los clientes verán el calendario al recargar el mismo link.')) return;
-        btn.disabled = true; await ref.update({ activo:false });
+        btn.disabled = true; await ref.update({ activo:false }); window.location.reload();
       } else if(btn.dataset.vencida){
         if(!confirm('La cuota está vencida. ¿Encender el bot y extender el vencimiento 30 días desde hoy?')) return;
-        btn.disabled = true; await ref.update({ activo:true, vencimiento: masDias(hoyCL(), 30) });
+        btn.disabled = true; await ref.update({ activo:true, vencimiento: masDias(hoyCL(), 30) }); window.location.reload();
       } else {
-        btn.disabled = true; await ref.update({ activo:true });
+        btn.disabled = true; await ref.update({ activo:true }); window.location.reload();
       }
     }catch(e){ alert('No se pudo guardar: ' + e.message); render(); }
   });
