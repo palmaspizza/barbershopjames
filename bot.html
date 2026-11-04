@@ -2046,7 +2046,7 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
 </script>
     <!-- Formulario de identificación (inicialmente visible) -->
     <div class="identificacion-cliente" id="identificacionCliente">
-        <p class="texto-identificacion">Consulta tus reservas ingresando el nombre y WhatsApp usados al reservar.</p>
+        <p class="texto-identificacion">¿Cambiaste o perdiste tu celular? Recupera tus reservas ingresando el nombre y WhatsApp usados al reservar.</p>
         <div class="input-group">
             <input
                 type="text" 
@@ -2064,7 +2064,7 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
                 inputmode="tel"
             >
             <button class="btn-buscar-reservas" type="button" onclick="buscarMisReservasManual()">
-                🔍 Buscar mis reservas
+                🔐 Recuperar mis reservas perdidas
             </button>
         </div>
         
@@ -3319,7 +3319,7 @@ window.jbAbrirRecuperacion = function() {
     card.id = 'jbRecuperacionChat';
     card.style.cssText = 'align-self:flex-start;width:94%;max-width:420px;background:#1e1f24;border:1px solid rgba(14,165,233,.5);border-radius:14px;padding:14px;box-sizing:border-box;';
     card.innerHTML = `
-      <div style="color:#7dd3fc;font-weight:700;margin-bottom:8px;">🔐 Buscar mis reservas</div>
+      <div style="color:#7dd3fc;font-weight:700;margin-bottom:8px;">🔐 Recuperar mis reservas perdidas</div>
       <div style="color:#c8c8c8;font-size:.84rem;margin-bottom:10px;">Escribe el mismo nombre y WhatsApp usados al reservar. Puedes incluir el signo +.</div>
       <input id="jbRecuperarNombreChat" type="text" autocomplete="name" placeholder="Nombre y apellido" style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:11px;border-radius:9px;border:1px solid #555;background:#111215;color:#fff;">
       <input id="jbRecuperarTelefonoChat" type="tel" autocomplete="tel" inputmode="tel" placeholder="WhatsApp (ej. +56 9 1234 5678)" style="width:100%;box-sizing:border-box;margin-bottom:10px;padding:11px;border-radius:9px;border:1px solid #555;background:#111215;color:#fff;">
@@ -7021,7 +7021,7 @@ function playTone(freq, dur, vol){
     <button style="display: none;" type="button" class="jbQuickBtn jbBtnReservar" onclick="jbPedirHora()">📅 Reservar hora</button>
     <button type="button" class="jbQuickBtn" onclick="jbAbrirCancelarDesdeBoton()">📋 Ver / cancelar / cambiar reserva</button>
     <button id="jbQuickCambiar" type="button" class="jbQuickBtn" style="display:none;" onclick="jbPreguntarQueCambiar()">✏️ Cambiar selección</button>
-    <button type="button" class="jbQuickBtn" onclick="jbAbrirRecuperacion()">🔐 Buscar mis reservas</button>
+    <button type="button" class="jbQuickBtn" onclick="jbAbrirRecuperacion()">🔐 Recuperar mis reservas perdidas</button>
     <button type="button" class="jbQuickBtn" onclick="jbMostrarAyudaCliente()">ℹ️ ¿Cómo funciona?</button>
     <button type="button" class="jbQuickBtn" onclick="window.open('https://wa.me/56954527837','_blank')">💬 Contactar por WhatsApp</button>
   </div>
@@ -10756,7 +10756,7 @@ async function jbLiberarBloqueoReserva(r){
       <div>1. Elige servicio, día y hora.</div>
       <div>2. Si te equivocas, usa <b>Atrás</b> en tu celular o toca <b>Cambiar selección</b>.</div>
       <div>3. Para cancelar o cambiar una hora, toca <b>Ver / cancelar / cambiar reserva</b>.</div>
-      <div>4. Para consultar tus reservas, toca <b>Buscar mis reservas</b> e ingresa tu nombre y WhatsApp.</div>
+      <div>4. Si cambiaste o perdiste tu celular, toca <b>Recuperar mis reservas perdidas</b> e ingresa tu nombre y WhatsApp.</div>
       <div style="margin-top:9px;color:#aaa;font-size:.84rem;">La reserva queda confirmada solo cuando aparece el mensaje de confirmación.</div>
       <button type="button" style="margin-top:11px;width:100%;padding:10px;border:1px solid rgba(228,166,79,.5);border-radius:9px;background:transparent;color:#e4a64f;font-weight:700;cursor:pointer;">Entendido</button>
     `;
@@ -10960,7 +10960,7 @@ async function jbLiberarBloqueoReserva(r){
       const btnRecuperar = document.createElement('button');
       btnRecuperar.type = 'button';
       btnRecuperar.style.cssText = 'background:rgba(14,165,233,.12);width:100%;padding:12px;color:#7dd3fc;border:1px solid rgba(14,165,233,.45);border-radius:14px;font-size:.92rem;font-weight:700;cursor:pointer;';
-      btnRecuperar.innerHTML = '🔐 &nbsp;Buscar mis reservas con nombre y WhatsApp';
+      btnRecuperar.innerHTML = '🔐 &nbsp;Recuperar mis reservas perdidas con nombre y WhatsApp';
       btnRecuperar.onclick = ()=>{ wrap.remove(); jbAbrirRecuperacion(); };
       wrap.appendChild(btnRecuperar);
 
