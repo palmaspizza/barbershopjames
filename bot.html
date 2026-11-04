@@ -2046,7 +2046,7 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
 </script>
     <!-- Formulario de identificación (inicialmente visible) -->
     <div class="identificacion-cliente" id="identificacionCliente">
-        <p class="texto-identificacion">¿Cambiaste de dispositivo? Recupera tus reservas con tu nombre y WhatsApp.</p>
+        <p class="texto-identificacion">Consulta tus reservas ingresando el nombre y WhatsApp usados al reservar.</p>
         <div class="input-group">
             <input
                 type="text" 
@@ -2064,7 +2064,7 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
                 inputmode="tel"
             >
             <button class="btn-buscar-reservas" type="button" onclick="buscarMisReservasManual()">
-                🔍 Recuperar reservas
+                🔍 Buscar mis reservas
             </button>
         </div>
         
@@ -3026,8 +3026,9 @@ function jbNormalizar(str) {
 }
 
 function normalizarTelefonoRecuperacion(valor) {
-    const limpio = String(valor || '').replace(/\D/g, '');
-    if (/^569\d{8}$/.test(limpio)) return limpio;
+    let limpio = String(valor || '').trim().replace(/[^\d]/g, '');
+    if (limpio.startsWith('00')) limpio = limpio.slice(2);
+    if (limpio.startsWith('56') && limpio.length === 11) return limpio;
     if (/^9\d{8}$/.test(limpio)) return `56${limpio}`;
     return '';
 }
@@ -3318,10 +3319,10 @@ window.jbAbrirRecuperacion = function() {
     card.id = 'jbRecuperacionChat';
     card.style.cssText = 'align-self:flex-start;width:94%;max-width:420px;background:#1e1f24;border:1px solid rgba(14,165,233,.5);border-radius:14px;padding:14px;box-sizing:border-box;';
     card.innerHTML = `
-      <div style="color:#7dd3fc;font-weight:700;margin-bottom:8px;">🔐 Recuperar mis reservas</div>
-      <div style="color:#c8c8c8;font-size:.84rem;margin-bottom:10px;">Escribe el mismo nombre y WhatsApp usados al reservar.</div>
+      <div style="color:#7dd3fc;font-weight:700;margin-bottom:8px;">🔐 Buscar mis reservas</div>
+      <div style="color:#c8c8c8;font-size:.84rem;margin-bottom:10px;">Escribe el mismo nombre y WhatsApp usados al reservar. Puedes incluir el signo +.</div>
       <input id="jbRecuperarNombreChat" type="text" autocomplete="name" placeholder="Nombre y apellido" style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:11px;border-radius:9px;border:1px solid #555;background:#111215;color:#fff;">
-      <input id="jbRecuperarTelefonoChat" type="tel" autocomplete="tel" inputmode="tel" placeholder="WhatsApp (ej. 9 1234 5678)" style="width:100%;box-sizing:border-box;margin-bottom:10px;padding:11px;border-radius:9px;border:1px solid #555;background:#111215;color:#fff;">
+      <input id="jbRecuperarTelefonoChat" type="tel" autocomplete="tel" inputmode="tel" placeholder="WhatsApp (ej. +56 9 1234 5678)" style="width:100%;box-sizing:border-box;margin-bottom:10px;padding:11px;border-radius:9px;border:1px solid #555;background:#111215;color:#fff;">
       <div style="display:flex;gap:8px;">
         <button id="jbRecuperarEnviarChat" type="button" style="flex:1;padding:11px;border:0;border-radius:9px;background:#0ea5e9;color:#fff;font-weight:700;cursor:pointer;">Buscar reservas</button>
         <button id="jbRecuperarCerrarChat" type="button" style="padding:11px;border:1px solid #666;border-radius:9px;background:transparent;color:#ddd;cursor:pointer;">Cerrar</button>
@@ -4633,7 +4634,7 @@ const firebaseConfig = window.__jbFirebaseConfig || {
             : firebase.initializeApp(firebaseConfig);
         const db = jbFirebaseApp.database();
 
-        const JB_NTFY_TOPIC = 'james-barber-shop-2026';
+        const JB_NTFY_TOPIC = '';
         function jbEnviarNotificacionNtfy(reserva, accion) {
             try {
                 const nombre = String(reserva?.nombre || '').trim().split(/\s+/)[0] || 'Cliente';
@@ -7018,9 +7019,10 @@ function playTone(freq, dur, vol){
   <div id="jbTyping">Escribiendo<span>.</span><span>.</span><span>.</span></div>
   <div id="jbQuickActions">
     <button style="display: none;" type="button" class="jbQuickBtn jbBtnReservar" onclick="jbPedirHora()">📅 Reservar hora</button>
-    <button type="button" class="jbQuickBtn" onclick="jbAbrirCancelarDesdeBoton()">❌ Cancelar o modificar hora</button>
+    <button type="button" class="jbQuickBtn" onclick="jbAbrirCancelarDesdeBoton()">📋 Ver / cancelar / cambiar reserva</button>
     <button id="jbQuickCambiar" type="button" class="jbQuickBtn" style="display:none;" onclick="jbPreguntarQueCambiar()">✏️ Cambiar selección</button>
-    <button type="button" class="jbQuickBtn" onclick="jbAbrirRecuperacion()">🔐 Recuperar reservas</button>
+    <button type="button" class="jbQuickBtn" onclick="jbAbrirRecuperacion()">🔐 Buscar mis reservas</button>
+    <button type="button" class="jbQuickBtn" onclick="jbMostrarAyudaCliente()">ℹ️ ¿Cómo funciona?</button>
     <button type="button" class="jbQuickBtn" onclick="window.open('https://wa.me/56954527837','_blank')">💬 Contactar por WhatsApp</button>
   </div>
   <div style="display: none !important;" id="jbChatInputBar">
@@ -9314,7 +9316,8 @@ function jbMostrarFormularioWhatsapp(){
   btn.textContent = 'Continuar ➜';
 
   function normalizarTelefonoChat(valor){
-    let n = String(valor || '').replace(/\D/g, '');
+    let n = String(valor || '').trim().replace(/[^\d]/g, '');
+    if (n.startsWith('00')) n = n.slice(2);
 
     if (n.startsWith('56') && n.length === 11) {
       return n;
@@ -9322,10 +9325,6 @@ function jbMostrarFormularioWhatsapp(){
 
     if (n.startsWith('9') && n.length === 9) {
       return '56' + n;
-    }
-
-    if (n.startsWith('569') && n.length === 11) {
-      return n;
     }
 
     return '';
@@ -10728,6 +10727,44 @@ async function jbLiberarBloqueoReserva(r){
     }
   }
 
+  window.jbMostrarAyudaCliente = function(){
+    const body = document.getElementById('jbChatBody');
+    const panel = document.getElementById('jbChatPanel');
+    if(panel && !panel.classList.contains('jbOpen')) panel.classList.add('jbOpen');
+    if(!body) return;
+
+    const anterior = document.getElementById('jbAyudaCliente');
+    if(anterior) anterior.remove();
+
+    const card = document.createElement('div');
+    card.id = 'jbAyudaCliente';
+    card.style.cssText = [
+      'align-self:flex-start',
+      'width:94%',
+      'max-width:420px',
+      'box-sizing:border-box',
+      'background:#1e1f24',
+      'border:1px solid rgba(228,166,79,.45)',
+      'border-radius:14px',
+      'padding:14px',
+      'color:#ddd',
+      'font-size:.9rem',
+      'line-height:1.45'
+    ].join(';');
+    card.innerHTML = `
+      <div style="color:#e4a64f;font-weight:700;font-size:1rem;margin-bottom:8px;">ℹ️ Así de fácil</div>
+      <div>1. Elige servicio, día y hora.</div>
+      <div>2. Si te equivocas, usa <b>Atrás</b> en tu celular o toca <b>Cambiar selección</b>.</div>
+      <div>3. Para cancelar o cambiar una hora, toca <b>Ver / cancelar / cambiar reserva</b>.</div>
+      <div>4. Para consultar tus reservas, toca <b>Buscar mis reservas</b> e ingresa tu nombre y WhatsApp.</div>
+      <div style="margin-top:9px;color:#aaa;font-size:.84rem;">La reserva queda confirmada solo cuando aparece el mensaje de confirmación.</div>
+      <button type="button" style="margin-top:11px;width:100%;padding:10px;border:1px solid rgba(228,166,79,.5);border-radius:9px;background:transparent;color:#e4a64f;font-weight:700;cursor:pointer;">Entendido</button>
+    `;
+    card.querySelector('button').onclick = () => card.remove();
+    body.appendChild(card);
+    jbScrollBottom();
+  };
+
   function jbPrepararHistorialNavegacion(){
     if(jbHistorialNavegacionListo) return;
     const estado = history.state;
@@ -10923,7 +10960,7 @@ async function jbLiberarBloqueoReserva(r){
       const btnRecuperar = document.createElement('button');
       btnRecuperar.type = 'button';
       btnRecuperar.style.cssText = 'background:rgba(14,165,233,.12);width:100%;padding:12px;color:#7dd3fc;border:1px solid rgba(14,165,233,.45);border-radius:14px;font-size:.92rem;font-weight:700;cursor:pointer;';
-      btnRecuperar.innerHTML = '🔐 &nbsp;Recuperar reservas con nombre y WhatsApp';
+      btnRecuperar.innerHTML = '🔐 &nbsp;Buscar mis reservas con nombre y WhatsApp';
       btnRecuperar.onclick = ()=>{ wrap.remove(); jbAbrirRecuperacion(); };
       wrap.appendChild(btnRecuperar);
 
@@ -12387,10 +12424,22 @@ window.addEventListener('load', function() {
     const conexion = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     const reducirVideo = window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
         Boolean(conexion && (conexion.saveData || /^(slow-2g|2g)$/.test(conexion.effectiveType || '')));
-    const fuentes = reducirVideo ? sources.slice(0, 1) : sources;
+    const esPantallaMovil = window.matchMedia('(max-width: 600px)').matches;
+    const fuentes = reducirVideo || esPantallaMovil ? ['videovisosjames1.mp4'] : sources;
     let activePlayer = null;
     let nextSourceIndex = 0;
     let switching = false;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        players.forEach(player => {
+            if (!player) return;
+            player.pause();
+            player.removeAttribute('src');
+            player.load();
+            player.style.display = 'none';
+        });
+        return;
+    }
 
     function loadAndPlay(player, source) {
         player.pause();
@@ -13773,5 +13822,49 @@ window.addEventListener('load', function() {
     }
   }
 </style>
+<style>
+  body {
+    padding-bottom: 82px;
+  }
+
+  .jbBottomBar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99997;
+    box-sizing: border-box;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: rgba(11, 11, 13, .96);
+    border-top: 1px solid rgba(228, 166, 79, .35);
+    text-align: center;
+  }
+
+  .jbBottomBar button {
+    width: min(100%, 420px);
+    padding: 13px 20px;
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #e4a64f, #ff6f00);
+    color: #fff;
+    font: 700 1rem 'Poppins', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(255, 111, 0, .28);
+  }
+
+  .jbBottomBar button:hover {
+    filter: brightness(1.08);
+  }
+
+  #jbChatBubble {
+    bottom: 88px;
+  }
+</style>
+
+<div class="jbBottomBar">
+  <button type="button" onclick="jbAbrirChatDesdeBanner()">
+    📅 Reservar nueva hora
+  </button>
+</div>
 </body>
 </html>
