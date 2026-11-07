@@ -4784,6 +4784,7 @@ function renderGaleriaClientes(imagenes) {
         let modoBloqueoDias = false;
         let modoGestionHorarios = false;
         let diasBloqueados = [];
+        let diasSemanaCerrados = [];
         let horariosPersonalizados = {};
         let reservasPorDia = {};
         let bloqueosPorDia = {};
@@ -4810,6 +4811,12 @@ function renderGaleriaClientes(imagenes) {
         // Escuchar configuración base en tiempo real
         configRef.child("horarioSemana").on("value", s => { if(s.val()) horarioSemana = s.val(); actualizarBarraMes(); actualizarHorasAbiertasEnTiempoReal(); });
         configRef.child("horarioDomingo").on("value", s => { if(s.val()) horarioDomingo = s.val(); actualizarBarraMes(); actualizarHorasAbiertasEnTiempoReal(); });
+        configRef.child("diasSemanaCerrados").on("value", s => {
+          const dias = s.val();
+          diasSemanaCerrados = Array.isArray(dias) ? dias.map(Number).filter(Number.isInteger) : [];
+          actualizarBarraMes();
+          actualizarHorasAbiertasEnTiempoReal();
+        });
 
         // Escuchar reservas en tiempo real
         reservasRef.on("value", snapshot => {
@@ -4910,6 +4917,10 @@ function obtenerHorario(fechaStr) {
     const fechaObj = new Date(anio, mes - 1, dia);
     const diaSemana = fechaObj.getDay();
 
+    if (diasSemanaCerrados.includes(diaSemana)) {
+      return [];
+    }
+
     if (horariosPersonalizados[fechaStr]) {
         return horariosPersonalizados[fechaStr];
     }
@@ -4965,7 +4976,7 @@ const fechaCelda = new Date(anio, mes - 1, dia);
 const diaSemana = fechaCelda.getDay(); // Esto obtiene el día de la semana (0=Domingo, 1=Lunes, etc.)
 
 // Modifique la línea siguiente:
-const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0 || diasDeLaSemanaBloqueados.includes(diaSemana);
+const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0 || diasSemanaCerrados.includes(diaSemana);
 
 // ...
         const estaOcupado = horasReservadas.length >= horarioDelDia.length;
@@ -5025,8 +5036,6 @@ const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.leng
             iniciarPresionDia(celda, fechaActual, 1000);
         }
 }
-
-const diasDeLaSemanaBloqueados = [];
 
 function cerrarDiaDeLaSemana(dia) {
     if (!diasSemanaCerrados.includes(dia)) {
