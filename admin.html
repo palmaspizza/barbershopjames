@@ -2632,7 +2632,8 @@ function jbRenderMetricaFacilidad(){
             });
             
             db.ref('config/diasSemanaCerrados').on('value', snapshot => {
-                diasSemanaCerrados = snapshot.val() || [];
+                const dias = snapshot.val();
+                diasSemanaCerrados = Array.isArray(dias) ? dias.map(Number).filter(Number.isInteger) : [];
                 renderDiasSemanaConfig();
                 renderCalendario();
                 renderBotonDomingos();
