@@ -1027,8 +1027,11 @@
 .jbLic--activo .jbLic-dot,.jbLic--porvencer .jbLic-dot{animation:jbLicPulse 2s ease-in-out infinite}
 @keyframes jbLicPulse{0%,100%{opacity:1}50%{opacity:.35}}
 .jbLic-body{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.jbLic-amount small,.jbLic-count small{display:block;font-size:.74rem;color:#8b8d96;margin-bottom:2px}
+.jbLic-amount small,.jbLic-count small{display:block;font-size:.74rem;color:#ffa200;margin-bottom:2px}
 .jbLic-amount strong{font-size:1.9rem;font-weight:700;color:#fff;line-height:1.1;font-variant-numeric:tabular-nums}
+.jbLic-charge{display:block;max-width:290px;margin-top:5px;font-size:.72rem;line-height:1.5;color:#c5c7ce}
+.jbLic-charge-base{color:#55d98a;font-weight:700}
+.jbLic-charge-extra{color:#f3a64a;font-weight:700}
 .jbLic-count{text-align:right}
 .jbLic-count strong{font-size:1.9rem;font-weight:700;line-height:1.1;color:var(--lic-c);font-variant-numeric:tabular-nums}
 .jbLic-bar{height:6px;border-radius:999px;background:rgba(255,255,255,.07);margin:14px 0 10px;overflow:hidden}
@@ -4772,6 +4775,8 @@ function formatearFechaImg(fechaISO) {
   // ⚠️ CAMBIA ESTE NÚMERO por tu WhatsApp (código de país + número, sin + ni espacios). Chile: 569XXXXXXXX
   const WHATSAPP_PALMA = '56954998792';
   const NOMBRE_NEGOCIO = 'Barbería James';
+  const RECARGO_VENCIMIENTO = '2026-11-17';
+  const RECARGO_SERVICIO = 5000;
   const DEFAULTS = { activo: true, vencimiento: '2026-10-17', monto: 20000, periodoDias: 30 };
   const WA_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12 0C5.4 0 .1 5.3.1 11.9c0 2.1.6 4.1 1.6 5.9L0 24l6.4-1.7a11.9 11.9 0 0 0 5.6 1.4c6.6 0 11.9-5.3 11.9-11.9 0-3.2-1.2-6.2-3.4-8.3zM12 21.7c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 0 1-1.5-5.2C2.1 6.4 6.5 2 12 2c2.6 0 5.1 1 6.9 2.9a9.7 9.7 0 0 1 2.9 6.9c0 5.4-4.4 9.9-9.8 9.9zm5.4-7.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1l-.9 1.1c-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.3-.6-.4z"/></svg>';
 
@@ -4783,6 +4788,13 @@ function formatearFechaImg(fechaISO) {
     return Math.round((Date.UTC(y2,m2-1,d2) - Date.UTC(y1,m1-1,d1)) / 86400000);
   }
   const money = n => '$' + Number(n||0).toLocaleString('es-CL');
+  const montoPeriodo = l => Number(l.monto || 0) + (l.vencimiento === RECARGO_VENCIMIENTO ? RECARGO_SERVICIO : 0);
+  const detalleRecargo = l => l.vencimiento === RECARGO_VENCIMIENTO
+    ? `Noviembre: ${money(l.monto)} licencia + ${money(RECARGO_SERVICIO)} servicio WhatsApp Business ya realizado.`
+    : '';
+  const detalleRecargoHtml = l => l.vencimiento === RECARGO_VENCIMIENTO
+    ? `<small class="jbLic-charge"><span class="jbLic-charge-base">Licencia ${money(l.monto)}</span> + <span class="jbLic-charge-extra">Servicio realizado ${money(RECARGO_SERVICIO)}</span><br>WhatsApp Business</small>`
+    : '';
   function fechaLarga(s){
     const [y,m,d] = s.split('-').map(Number);
     const t = new Date(y, m-1, d).toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
@@ -4790,8 +4802,8 @@ function formatearFechaImg(fechaISO) {
   }
   function waLink(l, tipo){
     const msg = tipo === 'pagar'
-      ? `Hola Palma, quiero pagar la cuota de ${money(l.monto)} del bot de ${NOMBRE_NEGOCIO}. ¿Cómo realizo el pago?`
-      : `Hola Palma, quiero reactivar el bot de ${NOMBRE_NEGOCIO} por ${money(l.monto)}. ¿Cómo realizo el pago?`;
+      ? `Hola Palma, quiero pagar el total de ${money(montoPeriodo(l))} del bot de ${NOMBRE_NEGOCIO}. ${detalleRecargo(l)} ¿Cómo realizo el pago?`
+      : `Hola Palma, quiero reactivar el bot de ${NOMBRE_NEGOCIO} por ${money(montoPeriodo(l))}. ${detalleRecargo(l)} ¿Cómo realizo el pago?`;
     return `https://wa.me/${WHATSAPP_PALMA}?text=${encodeURIComponent(msg)}`;
   }
   function calcular(l){
@@ -4816,7 +4828,7 @@ function formatearFechaImg(fechaISO) {
       const hace = Math.abs(c.dias);
       alerta = `<div class="jbLic-alert">${c.estado === 'suspendido'
         ? 'El asistente fue desactivado. Solicita la reactivación para volver a recibir reservas automáticas.'
-        : `La cuota venció ${hace === 0 ? 'hoy' : hace === 1 ? 'ayer' : 'hace ' + hace + ' días'}. El asistente está desactivado hasta registrar el pago de <b>${money(l.monto)}</b>.`}</div>`;
+        : `La cuota venció ${hace === 0 ? 'hoy' : hace === 1 ? 'ayer' : 'hace ' + hace + ' días'}. El asistente está desactivado hasta registrar el pago de <b>${money(montoPeriodo(l))}</b>.`}</div>`;
       boton = `<a class="jbLic-btn" href="${waLink(l)}" target="_blank" rel="noopener">${WA_ICON}Pedir reactivación</a>`;
     }
     return `<div class="jbLic jbLic--${c.estado}" role="status">
@@ -4825,7 +4837,7 @@ function formatearFechaImg(fechaISO) {
         <span class="jbLic-pill"><i class="jbLic-dot"></i>${pill}</span>
       </div>
       <div class="jbLic-body">
-        <div class="jbLic-amount"><small>Cuota mensual</small><strong>${money(l.monto)}</strong></div>
+        <div class="jbLic-amount"><small>${detalleRecargo(l) ? 'Total noviembre' : 'Cuota mensual'}</small><strong>${money(montoPeriodo(l))}</strong>${detalleRecargoHtml(l)}</div>
         <div class="jbLic-count"><small>${off ? 'Estado' : 'Tiempo'}</small><strong>${countNum}</strong><small style="margin:2px 0 0">${countLbl}</small></div>
       </div>
       <div class="jbLic-bar"><span style="width:${pct}%"></span></div>
@@ -4874,14 +4886,14 @@ function formatearFechaImg(fechaISO) {
     const titulo = off ? 'El bot está desactivado' : c.dias === 0 ? 'Tu cuota vence hoy' : c.dias === 1 ? 'Tu cuota vence mañana' : `Tu cuota vence en ${c.dias} días`;
     const texto = off
       ? 'Tus clientes ya están reservando con el calendario de siempre. Pide la reactivación para volver al asistente automático.'
-      : `Para que el asistente siga atendiendo a tus clientes, paga la cuota antes del <b>${fechaLarga(l.vencimiento)}</b>.`;
+      : `Para que el asistente siga atendiendo a tus clientes, paga el total de <b>${money(montoPeriodo(l))}</b> antes del <b>${fechaLarga(l.vencimiento)}</b>. ${detalleRecargo(l)}`;
     const m = document.createElement('div');
     m.className = 'jbMod'; m.id = 'jbMod';
     m.setAttribute('role','dialog'); m.setAttribute('aria-modal','true'); m.setAttribute('aria-labelledby','jbModT');
     m.innerHTML = `<div class="jbMod-box ${off ? 'off' : ''}">
       <div class="jbMod-ico">${off ? '⛔' : '🔔'}</div>
       <h3 id="jbModT">${titulo}</h3><p>${texto}</p>
-      <div class="jbMod-dato"><div><small>Cuota</small><b>${money(l.monto)}</b></div><div><small>${off ? 'Venció' : 'Vence'}</small><b>${l.vencimiento.split('-').reverse().join('-')}</b></div></div>
+      <div class="jbMod-dato"><div><small>${detalleRecargo(l) ? 'Total período' : 'Cuota'}</small><b>${money(montoPeriodo(l))}</b></div><div><small>${off ? 'Venció' : 'Vence'}</small><b>${l.vencimiento.split('-').reverse().join('-')}</b></div></div>
       <a class="jbLic-btn" style="margin-top:0" href="${waLink(l, off ? 'reactivar' : 'pagar')}" target="_blank" rel="noopener">${WA_ICON}${off ? 'Pedir reactivación' : 'Pagar con Palma Codes'}</a>
       <button type="button" class="jbMod-later">Entendido</button></div>`;
     document.body.appendChild(m);
@@ -4970,6 +4982,8 @@ window.addEventListener('load', function(){
   const box = document.getElementById('jbCtl'); if(!box) return;
   const btn = document.getElementById('jbCtlBtn'), est = document.getElementById('jbCtlEstado'), det = document.getElementById('jbCtlDetalle');
   const ref = db.ref('config/asistente');
+  const RECARGO_VENCIMIENTO = '2026-11-17';
+  const RECARGO_SERVICIO = 5000;
   const hoyCL = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
   const dias = (a,b) => { const [y1,m1,d1]=a.split('-').map(Number),[y2,m2,d2]=b.split('-').map(Number); return Math.round((Date.UTC(y2,m2-1,d2)-Date.UTC(y1,m1-1,d1))/864e5); };
   const masDias = (s,n) => { const [y,m,d]=s.split('-').map(Number); return new Date(Date.UTC(y,m-1,d+n)).toISOString().slice(0,10); };
@@ -5003,12 +5017,15 @@ window.addEventListener('load', function(){
   pagoBtn.addEventListener('click', async function(){
     try{
       const venc = (data && data.vencimiento) || hoyCL(), monto = (data && data.monto) || 20000;
+      const recargo = venc === RECARGO_VENCIMIENTO ? RECARGO_SERVICIO : 0;
+      const montoPago = Number(monto) + recargo;
       const base = dias(hoyCL(), venc) >= 0 ? venc : hoyCL();   // si paga antes, no pierde días
       const nuevo = masMes(base, 1);   // mismo día del mes siguiente (17 oct → 17 nov)
-      if(!confirm(`Registrar pago de $${Number(monto).toLocaleString('es-CL')}.\nNuevo vencimiento: ${nuevo}\n¿Confirmar?`)) return;
+      const detalleRecargo = recargo ? `\nIncluye $5.000 por el servicio acordado ya realizado de WhatsApp Business.` : '';
+      if(!confirm(`Registrar pago de $${montoPago.toLocaleString('es-CL')}.${detalleRecargo}\nNuevo vencimiento: ${nuevo}\n¿Confirmar?`)) return;
       pagoBtn.disabled = true;
       await ref.update({ activo:true, vencimiento:nuevo, ultimoPago:hoyCL() });
-      await db.ref('config/asistente_pagos').push({ fecha:hoyCL(), monto:monto, vencimiento:nuevo });
+      await db.ref('config/asistente_pagos').push({ fecha:hoyCL(), monto:montoPago, vencimiento:nuevo });
       window.location.reload();
     }catch(e){ alert('No se pudo guardar: ' + e.message); }
     pagoBtn.disabled = false;
