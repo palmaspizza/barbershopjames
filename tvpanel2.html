@@ -1862,7 +1862,7 @@ window.addEventListener('popstate', () => {
   tvBackStep();
 });
 function handleKioskKeydown(event) {
-  tvUnmuteYoutube();
+  tvUnmuteYoutube(true);
   const key = getKioskRemoteKey(event);
   const isMediaModeKey = key.toLowerCase() === 'info'
     || key.toLowerCase() === 'i'
@@ -2179,11 +2179,26 @@ function resumeTvBackgroundVideo() {
   });
 }
 
-let tvYoutubeUnmuted = false;
-function tvUnmuteYoutube() {
-  if (tvYoutubeUnmuted || !tvYoutubePlayerReady || !tvYoutubePlayer) return;
-  try { tvYoutubePlayer.unMute(); tvYoutubePlayer.setVolume(100); tvYoutubeUnmuted = true; } catch (e) {}
+let tvUserTouched = false;
+function tvUnmuteYoutube(fromKey) {
+  if (fromKey) tvUserTouched = true;
+  if (!tvUserTouched || !tvYoutubePlayerReady || !tvYoutubePlayer) return;
+  try {
+    if (tvYoutubePlayer.isMuted()) { tvYoutubePlayer.unMute(); tvYoutubePlayer.setVolume(100); }
+  } catch (e) {}
 }
+
+// Vigilante: reanuda si se pausa o no arranca, y reintenta el sonido hasta lograrlo
+setInterval(() => {
+  if (!tvYoutubePlayerReady || !tvYoutubePlayer || tvMediaModeIndex === 0) return;
+  try {
+    const st = tvYoutubePlayer.getPlayerState();
+    const YTS = window.YT.PlayerState;
+    if (st !== YTS.PLAYING && st !== YTS.BUFFERING) tvYoutubePlayer.playVideo();
+    if (tvUserTouched) tvUnmuteYoutube();
+    else if (st === YTS.PLAYING && tvYoutubePlayer.isMuted()) showTvMediaNotice('Pulsa cualquier tecla del control para activar el sonido', 4000);
+  } catch (e) {}
+}, 3000);
 
 function loadTvYoutubeApi() {
   if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
@@ -2645,7 +2660,7 @@ window.addEventListener('load', () => {
   };
   window.addEventListener('keydown', unlockTvAudio, { once: true });
   window.addEventListener('pointerdown', unlockTvAudio, { once: true });
-  window.addEventListener('pointerdown', tvUnmuteYoutube);
+  window.addEventListener('pointerdown', () => tvUnmuteYoutube(true));
   window.addEventListener('keydown', handleKioskKeydown);
   document.getElementById('tv-kiosk-launcher').addEventListener('click', openKioskPhoneDialog);
   document.getElementById('tv-booking-phone-delete').addEventListener('click', deleteKioskPhoneDigit);
