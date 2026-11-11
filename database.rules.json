@@ -1,0 +1,46 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "config": {
+      ".read": true,
+      ".write": "auth != null",
+      "horarioSemana": { ".validate": "newData.isArray()" },
+      "horarioDomingo": { ".validate": "newData.isArray()" },
+      "horariosEspecificos": { "$fecha": { ".validate": "newData.isArray()" } },
+      "diasSemanaCerrados": { ".validate": "newData.isArray()" }
+    },
+    "diasCerrados": { ".read": true, ".write": "auth != null" },
+    "estadoBarberia": { ".read": true, ".write": "auth != null" },
+    "mensajeCierre": { ".read": true, ".write": "auth != null" },
+    "bloqueos": {
+      ".read": true,
+      "$fecha": {
+        "$hora": {
+          ".write": "auth != null || (!data.exists() && newData.hasChildren(['reservaId', 'timestamp']))",
+          ".validate": "newData.hasChildren(['reservaId', 'timestamp']) && newData.child('reservaId').isString() && newData.child('timestamp').isNumber()"
+        }
+      }
+    },
+    "reservas": {
+      "$id": {
+        ".read": "auth != null",
+        ".write": "auth != null || (!data.exists() && newData.hasChildren(['nombre', 'fecha', 'hora', 'servicios', 'total', 'telefono', 'acepta_contacto_whatsapp']))",
+        ".validate": "newData.hasChildren(['nombre', 'fecha', 'hora', 'servicios', 'total', 'telefono', 'acepta_contacto_whatsapp']) && newData.child('nombre').isString() && newData.child('fecha').isString() && newData.child('hora').isString() && newData.child('servicios').isString() && newData.child('total').isString() && newData.child('telefono').isString() && newData.child('acepta_contacto_whatsapp').isBoolean()"
+      }
+    },
+    "reservas_archivadas": { ".read": "auth != null", ".write": "auth != null" },
+    "clientes": { ".read": "auth != null", ".write": "auth != null" },
+    "chats": { ".read": "auth != null", ".write": "auth != null" },
+    "galeria": { ".read": true, ".write": "auth != null" },
+    "resenas": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "auth != null || (!data.exists() && newData.child('visible').val() == false && newData.child('estado').val() == 'pendiente')",
+        ".validate": "newData.hasChildren(['clienteId', 'nombre', 'estrellas', 'texto', 'visible', 'estado']) && newData.child('clienteId').isString() && newData.child('nombre').isString() && newData.child('estrellas').isNumber() && newData.child('estrellas').val() >= 1 && newData.child('estrellas').val() <= 5 && newData.child('texto').isString() && newData.child('texto').val().length <= 500 && newData.child('visible').isBoolean() && newData.child('estado').val() == 'pendiente'"
+      }
+    },
+    "metricas_experiencia": { ".read": "auth != null", ".write": true },
+    "webpush": { ".read": "auth != null", ".write": "auth != null" }
+  }
+}

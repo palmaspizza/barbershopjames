@@ -76,7 +76,7 @@ test('incluye una orientación segura para el aviso de respaldo existente', () =
 test('explica el horario de reservas sin confundirlo con el horario de soporte', () => {
     const answer = support.HELP_TOPICS.find(item => item.id === 'hours');
     assert.ok(answer);
-    assert.match(support.answerQuestion('¿Cuándo responde Palma Codes?').join(' '), /atención humana/);
+    assert.match(support.answerQuestion('¿Cuándo responde Soporte Demo?').join(' '), /atención humana/);
 });
 
 test('valida campos requeridos, límites y datos sensibles', () => {
@@ -123,7 +123,7 @@ test('salir se puede cancelar sin perder respuestas y confirmar descarta el reco
     assert.deepEqual(support.confirmExit(confirmation), support.createWizardState());
 });
 
-test('pasar desde una orientación a Diego conserva el tema para poder volver', () => {
+test('pasar desde una orientación a Equipo Demo conserva el tema para poder volver', () => {
     let state = support.startFlow(support.createWizardState(), 'help');
     state = support.advance(state, 'help-answer', { helpTopic: 'agenda' });
     state = support.startFlow(state, 'contact', true);
@@ -207,7 +207,7 @@ test('las áreas incluidas de clientes y Android incluyen orientaciones prudente
     assert.ok(!support.HELP_TOPICS.some(item => ['gallery', 'notifications'].includes(item.id)));
     assert.match(support.answerQuestion('¿Qué hago si faltan datos de un cliente?').join(' '), /No incluyas nombres, teléfonos/);
     assert.match(support.answerQuestion('¿Cómo arreglo las notificaciones web push?').join(' '), /no tengo una guía verificada para esta función en el plan actual/i);
-    assert.match(support.answerQuestion('¿Cómo funciona la app Android?').join(' '), /Diego debe confirmar/);
+    assert.match(support.answerQuestion('¿Cómo funciona la app Android?').join(' '), /Equipo Demo debe confirmar/);
 });
 
 test('el contacto directo adjunta el contexto de la consulta ya recopilado', () => {
@@ -218,7 +218,7 @@ test('el contacto directo adjunta el contexto de la consulta ya recopilado', () 
         errorText: 'Mensaje temporal',
         outcome: 'unsure'
     });
-    const message = support.buildMessage(state, 'Necesito hablar con Diego.');
+    const message = support.buildMessage(state, 'Necesito hablar con Equipo Demo.');
     assert.match(message, /Resumen del problema: La agenda no muestra las reservas/);
     assert.match(message, /Mensaje de error: Mensaje temporal/);
     assert.match(message, /Resultado indicado: no está seguro/);
@@ -235,6 +235,24 @@ test('el contacto libre etiqueta y separa una solicitud mixta', () => {
     assert.match(message, /cobertura contractual/);
 });
 
+test('todos los tickets incluyen el enlace del administrador en la primera línea', () => {
+    const helpState = support.advance(
+        support.startFlow(support.createWizardState(), 'help'),
+        'help-answer',
+        { helpTopic: 'agenda', helpQuestion: '¿Cómo reviso la agenda?' }
+    );
+    const messages = [
+        support.buildMessage(support.startFlow(support.createWizardState(), 'issue')),
+        support.buildMessage(support.startFlow(support.createWizardState(), 'change')),
+        support.buildMessage(helpState),
+        support.buildMessage(support.startFlow(support.createWizardState(), 'contact'))
+    ];
+
+    for (const message of messages) {
+        assert.equal(message.split('\n')[0], 'https://barberia-demo.example/admin');
+    }
+});
+
 test('el reporte de mantención incluye negocio, sección, resultado y clasificación provisional', () => {
     const state = support.advance(
         support.startFlow(support.createWizardState(), 'issue'),
@@ -242,7 +260,7 @@ test('el reporte de mantención incluye negocio, sección, resultado y clasifica
         { issue: 'agenda', symptom: 'No aparece ninguna reserva', check: 'tried', outcome: 'no' }
     );
     const message = support.buildMessage(state);
-    assert.match(message, /posible problema de mantención de Barbería James/);
+    assert.match(message, /posible problema de mantención de Barbería Demo/);
     assert.match(message, /Clasificación provisional: posible incidencia de mantención/);
     assert.match(message, /Sección afectada: Calendario de Reservas/);
     assert.match(message, /Problema: No aparece ninguna reserva/);
@@ -275,12 +293,12 @@ test('los botones del asistente llevan SVG decorativos y no ofrecen funciones fu
 });
 
 test('solo prepara enlaces del dominio real de WhatsApp', () => {
-    const message = 'Hola Diego, consulta: áéíóú ñ ¿sí?\nLínea & signo';
-    const safe = support.getWhatsAppUrl(message, { href: 'https://wa.me/56954998792?text=anterior' });
+    const message = 'Hola Equipo Demo, consulta: áéíóú ñ ¿sí?\nLínea & signo';
+    const safe = support.getWhatsAppUrl(message, { href: 'https://wa.me/56900000001?text=anterior' });
     assert.equal(new URL(safe).searchParams.get('text'), message);
-    assert.equal(new URL(safe).pathname, '/56954998792');
+    assert.equal(new URL(safe).pathname, '/56900000001');
     assert.equal(support.getWhatsAppUrl(message, { href: 'https://example.com/contact' }), null);
-    assert.equal(support.getWhatsAppUrl(message, { href: 'https://evil.wa.me/56954998792' }), null);
+    assert.equal(support.getWhatsAppUrl(message, { href: 'https://evil.wa.me/56900000001' }), null);
     assert.equal(support.getWhatsAppUrl(message, { href: 'https://wa.me/' }), null);
     assert.equal(support.getWhatsAppUrl(message, { href: 'https://wa.me/1234' }), null);
     assert.equal(support.getWhatsAppUrl(message, { href: 'https://wa.me/00000000000' }), null);

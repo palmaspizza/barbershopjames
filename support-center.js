@@ -4,8 +4,8 @@
     if (root) root.JBSupport = support;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
     const SERVICE_POLICY = Object.freeze({
-        provider: 'Palma Codes',
-        developer: 'Diego',
+        provider: 'Soporte Demo',
+        developer: 'Equipo Demo',
         monthlyReference: '$20.000 CLP mensuales',
         monthlyAnswer: 'La mantención busca conservar el funcionamiento de los componentes incluidos en el acuerdo vigente. Los nuevos desarrollos, integraciones y servicios adicionales se evalúan según el alcance contratado. La referencia informada para la mantención es de $20.000 CLP mensuales.',
         newWork: 'Las nuevas funciones y los cambios que amplían el alcance del sistema se evalúan y cotizan por separado de la mantención mensual, salvo que ya estén incluidos en el acuerdo vigente. Enviar esta solicitud no implica aceptar el desarrollo ni su precio.',
@@ -165,7 +165,7 @@
         login: [
             'Usa el correo autorizado para el panel.',
             'Escribe la contraseña con cuidado. No la compartas por el Centro de Ayuda.',
-            'Si el acceso sigue siendo rechazado o la pantalla queda cargando, puedes preparar un reporte para Diego.'
+            'Si el acceso sigue siendo rechazado o la pantalla queda cargando, puedes preparar un reporte para Equipo Demo.'
         ],
         agenda: [
             'Busca la sección «Calendario de Reservas».',
@@ -190,17 +190,17 @@
         android: [
             'El sitio incluye una integración con Android para consultar y gestionar reservas locales, pero esta carpeta no contiene la aplicación Android ni sus instrucciones de uso.',
             'Indica qué esperabas ver y qué ocurrió; no borres datos de la aplicación ni repitas una operación de reserva.',
-            'Diego debe confirmar si la aplicación y esa integración forman parte del soporte vigente.'
+            'Equipo Demo debe confirmar si la aplicación y esa integración forman parte del soporte vigente.'
         ],
         hours: [
             'En «Configuración Rápida», revisa «Horarios de atención». Allí aparecen los horarios de lunes a sábado y los del domingo.',
             'Para editar un horario, usa el botón «Editar HORARIO» que corresponde a ese grupo.',
-            'Estos son los horarios de la barbería para las reservas; no indican el horario de atención humana de Palma Codes.'
+            'Estos son los horarios de la barbería para las reservas; no indican el horario de atención humana de Soporte Demo.'
         ],
         backup: [
             'Si aparece «Aviso anual de copia de seguridad», revisa el mensaje que muestra el panel.',
             'Si corresponde enviar el aviso, usa «Abrir WhatsApp y enviar aviso» y envíalo desde WhatsApp.',
-            'Vuelve al panel y pulsa «Ya envié el aviso» solo después de haberlo enviado. Palma Codes gestiona la descarga de la copia; no elimines ni modifiques datos.'
+            'Vuelve al panel y pulsa «Ya envié el aviso» solo después de haberlo enviado. Soporte Demo gestiona la descarga de la copia; no elimines ni modifiques datos.'
         ],
         service: SERVICE_ANSWER
     };
@@ -266,7 +266,7 @@
 
         if (!text) return result('ambiguous', 'No se describió la solicitud.', 'Cuéntanos qué esperabas que ocurriera y qué pasó.', 'ask');
         if (/\b(?:galer[ií]as?|notificaciones?|web\s*push|push)\b/i.test(String(input || ''))) {
-            return result('ambiguous', 'La solicitud se refiere a una función fuera de las rutas de soporte disponibles para este plan.', 'Puedes consultar con Palma Codes si es posible evaluar esa función por separado.', 'scope_review');
+            return result('ambiguous', 'La solicitud se refiere a una función fuera de las rutas de soporte disponibles para este plan.', 'Puedes consultar con Soporte Demo si es posible evaluar esa función por separado.', 'scope_review');
         }
         if (/\b(?:que incluye|incluye|mantencion mensual|tarifa mensual|pago mensual|servicio contratado|costo mensual|valor mensual|cuanto cuesta)\b/.test(text)) {
             return result('service', 'Pregunta sobre el alcance o la tarifa del servicio.', '', 'service_scope');
@@ -312,11 +312,11 @@
 
     function answerQuestion(question) {
         const text = normalizeText(question);
-        if (!text) return 'No tengo información suficiente para responder con seguridad. Puedes preparar una consulta para Diego.';
+        if (!text) return 'No tengo información suficiente para responder con seguridad. Puedes preparar una consulta para Equipo Demo.';
         if (/\b(?:galer[ií]as?|notificaciones?|web\s*push|push)\b/i.test(String(question || ''))) {
-            return ['No tengo una guía verificada para esta función en el plan actual.', 'Si quieres, puedes consultar a Palma Codes si es posible evaluarla por separado.'];
+            return ['No tengo una guía verificada para esta función en el plan actual.', 'Si quieres, puedes consultar a Soporte Demo si es posible evaluarla por separado.'];
         }
-        if (/\b(?:palma codes|diego|atencion humana|horario de soporte|cuando atiende|cuando responde)\b/.test(text)) {
+        if (/\b(?:soporte demo|diego|atencion humana|horario de soporte|cuando atiende|cuando responde)\b/.test(text)) {
             return [`${SERVICE_POLICY.hours} Zona horaria: ${SERVICE_POLICY.timezone}.`];
         }
         if (/\b(?:respaldo|copia de seguridad|aviso anual)\b/.test(text)) return HELP_ANSWERS.backup;
@@ -326,7 +326,7 @@
         if (result.category === 'service') return SERVICE_ANSWER;
         if (result.category === 'mixed') return ['Parece que hay dos temas distintos: un posible fallo de una función existente y una mejora nueva.', 'Conviene describirlos por separado. La mejora no descarta que el posible fallo se revise.'];
         if (result.category === 'improvement') return [SERVICE_POLICY.newWork, 'No se genera una cotización ni una fecha de entrega automáticamente.'];
-        if (result.category === 'design') return ['Podemos preparar tu solicitud para que Palma Codes evalúe el alcance y la cotización correspondiente.', 'Si se trata de un defecto en una función existente, descríbelo como un problema para revisarlo antes de clasificarlo.'];
+        if (result.category === 'design') return ['Podemos preparar tu solicitud para que Soporte Demo evalúe el alcance y la cotización correspondiente.', 'Si se trata de un defecto en una función existente, descríbelo como un problema para revisarlo antes de clasificarlo.'];
         if (result.category === 'commercial') return ['Podemos evaluar las funciones que necesitas y compararlas con el alcance actual del sistema.', 'Las funciones nuevas se revisan por separado de la mantención mensual.'];
         if (result.category === 'technical') return [SERVICE_POLICY.issueScope, 'Indica qué sección falla y qué esperabas que ocurriera.'];
         if (result.category === 'ambiguous') return [`Necesito un poco más de contexto. ${result.followUp}`];
@@ -335,14 +335,14 @@
         if (/\b(?:estadistica|ingreso|total)\b/.test(text)) return HELP_ANSWERS.stats;
         if (/\b(?:agenda|calendario|reserva|cita|fecha|hora)\b/.test(text)) return HELP_ANSWERS.agenda;
         if (/\b(?:chat|bot|asistente|whatsapp|mensaje)\b/.test(text)) return HELP_ANSWERS.assistant;
-        return 'No tengo información suficiente para responder con seguridad. Puedes preparar una consulta para Diego.';
+        return 'No tengo información suficiente para responder con seguridad. Puedes preparar una consulta para Equipo Demo.';
     }
 
     function validateText(value, maximum) {
         const text = String(value || '').trim()
             .replace(/([\uD800-\uDBFF][\uDC00-\uDFFF])|[\uD800-\uDFFF]/g, (character, pair) => pair || '\uFFFD');
         if (!text) return { valid: false, error: 'Escribe un poco de información para continuar.' };
-        if (text.length < 10) return { valid: false, error: 'Añade un poco más de detalle para que Diego pueda orientarte.' };
+        if (text.length < 10) return { valid: false, error: 'Añade un poco más de detalle para que Equipo Demo pueda orientarte.' };
         if (text.length > maximum) return { valid: false, error: `El texto no puede superar ${maximum} caracteres.` };
         if (/\b(?:password|contrase(?:n|ñ)a|clave|pin|token|api[\s_-]?key|cvv|cvc|codigo de acceso|codigo de verificacion|codigo sms)\s*(?::|=|\bes\b)\s*\S+/i.test(text)
             || /\b(?:\d[ -]?){13,19}\b/.test(text)
@@ -499,7 +499,7 @@
                     'Resultado observado: sigue fallando o no está claro si se solucionó.'
                 ].join('\n');
                 const mixed = answers.mixedDetected || classifyRequest(summary).category === 'mixed';
-                return `${headingMarkup('Ya tengo el resumen', 'chat')}<p class="jb-support-screen-description">Vamos a enviarle a Diego los detalles para que pueda revisar el problema. WhatsApp abrirá el mensaje preparado y tú decides si lo envías.</p>${mixed ? `<div class="jb-support-notice">${iconMarkup('alert')}<span>Detecté un fallo y una mejora. Primero enviaremos el fallo; luego podrás pedir la cotización por separado.</span></div>` : ''}${fieldLabel('jbSupportReportText', 'Resumen (puedes corregirlo)', 'search')}<textarea id="jbSupportReportText" data-field="reportText" maxlength="2000">${escapeHtml(summary)}</textarea>${fieldLabel('jbSupportErrorText', 'Error en pantalla (opcional)', 'alert')}<textarea id="jbSupportErrorText" data-field="errorText" maxlength="500" placeholder="Copia el texto, si aparece">${escapeHtml(answers.errorText || '')}</textarea>${mixed ? `${fieldLabel('jbSupportSeparateImprovement', 'Mejora para cotizar después (opcional)', 'sparkle')}<textarea id="jbSupportSeparateImprovement" data-field="separateImprovement" maxlength="1000" placeholder="¿Qué mejora quieres pedir?">${escapeHtml(answers.separateImprovement || '')}</textarea>` : ''}<p id="jbSupportError" class="jb-support-field-error" role="alert"></p><div class="jb-support-actions">${actionButtonMarkup('prepare-issue', 'Enviar detalles a Diego por WhatsApp', 'is-primary', 'chat')}</div>`;
+                return `${headingMarkup('Ya tengo el resumen', 'chat')}<p class="jb-support-screen-description">Vamos a enviarle a Equipo Demo los detalles para que pueda revisar el problema. WhatsApp abrirá el mensaje preparado y tú decides si lo envías.</p>${mixed ? `<div class="jb-support-notice">${iconMarkup('alert')}<span>Detecté un fallo y una mejora. Primero enviaremos el fallo; luego podrás pedir la cotización por separado.</span></div>` : ''}${fieldLabel('jbSupportReportText', 'Resumen (puedes corregirlo)', 'search')}<textarea id="jbSupportReportText" data-field="reportText" maxlength="2000">${escapeHtml(summary)}</textarea>${fieldLabel('jbSupportErrorText', 'Error en pantalla (opcional)', 'alert')}<textarea id="jbSupportErrorText" data-field="errorText" maxlength="500" placeholder="Copia el texto, si aparece">${escapeHtml(answers.errorText || '')}</textarea>${mixed ? `${fieldLabel('jbSupportSeparateImprovement', 'Mejora para cotizar después (opcional)', 'sparkle')}<textarea id="jbSupportSeparateImprovement" data-field="separateImprovement" maxlength="1000" placeholder="¿Qué mejora quieres pedir?">${escapeHtml(answers.separateImprovement || '')}</textarea>` : ''}<p id="jbSupportError" class="jb-support-field-error" role="alert"></p><div class="jb-support-actions">${actionButtonMarkup('prepare-issue', 'Enviar detalles a Equipo Demo por WhatsApp', 'is-primary', 'chat')}</div>`;
             }
         }
 
@@ -515,7 +515,7 @@
                 const lines = Array.isArray(response) ? response : [response];
                 const classification = classifyRequest(`${answers.helpQuestion || ''} ${answers.helpTopic || ''}`);
                 const issueHint = classification.category === 'technical' || /\b(?:fall|no funciona|no aparece|no carga|error)\b/.test(normalizeText(answers.helpQuestion || ''));
-                return `${headingMarkup(answers.helpQuestion ? 'Orientación para tu consulta' : 'Prueba estos pasos', 'book')}${answers.helpQuestion ? '' : `<p class="jb-support-screen-description">${iconMarkup(optionIcon(`help:${answers.helpTopic}`, ''))}<span>${escapeHtml((HELP_TOPICS.find(item => item.id === answers.helpTopic) || { label: 'Esta función' }).label)}</span></p>`}<div class="jb-support-guidance"><ol>${lines.map(line => `<li>${iconMarkup('check')}<span>${escapeHtml(line)}</span></li>`).join('')}</ol></div>${issueHint ? `<div class="jb-support-notice">${iconMarkup('alert')}<span>Si una función que ya existía dejó de funcionar, podemos pasar al reporte de un posible problema.</span></div>` : ''}<p class="jb-support-screen-description">La orientación no modifica reservas ni confirma que el problema esté resuelto.</p><div class="jb-support-options">${optionButton('Sí, gracias', '', 'help:done', true)}${optionButton(issueHint ? 'Sigue fallando' : 'Necesito más ayuda', '', issueHint ? 'help:issue' : 'help:contact')}${optionButton('Quiero hablar con Diego', '', 'help:contact')}</div>`;
+                return `${headingMarkup(answers.helpQuestion ? 'Orientación para tu consulta' : 'Prueba estos pasos', 'book')}${answers.helpQuestion ? '' : `<p class="jb-support-screen-description">${iconMarkup(optionIcon(`help:${answers.helpTopic}`, ''))}<span>${escapeHtml((HELP_TOPICS.find(item => item.id === answers.helpTopic) || { label: 'Esta función' }).label)}</span></p>`}<div class="jb-support-guidance"><ol>${lines.map(line => `<li>${iconMarkup('check')}<span>${escapeHtml(line)}</span></li>`).join('')}</ol></div>${issueHint ? `<div class="jb-support-notice">${iconMarkup('alert')}<span>Si una función que ya existía dejó de funcionar, podemos pasar al reporte de un posible problema.</span></div>` : ''}<p class="jb-support-screen-description">La orientación no modifica reservas ni confirma que el problema esté resuelto.</p><div class="jb-support-options">${optionButton('Sí, gracias', '', 'help:done', true)}${optionButton(issueHint ? 'Sigue fallando' : 'Necesito más ayuda', '', issueHint ? 'help:issue' : 'help:contact')}${optionButton('Quiero hablar con Equipo Demo', '', 'help:contact')}</div>`;
             }
         }
 
@@ -598,10 +598,11 @@
 
     function buildMessage(state, customText) {
         const answers = state.answers;
+        const adminUrl = 'https://barberia-demo.example/admin';
         const opening = state.flow === 'issue'
-            ? 'Hola Diego, necesito ayuda con un posible problema de mantención de Barbería James.'
-            : 'Hola Diego, te escribo desde el Centro de Ayuda de Barbería James.';
-        const lines = [opening];
+            ? 'Hola Equipo Demo, necesito ayuda con un posible problema de mantención de Barbería Demo.'
+            : 'Hola Equipo Demo, te escribo desde el Centro de Ayuda de Barbería Demo.';
+        const lines = [adminUrl, '', opening];
         if (state.flow === 'issue') {
             const report = customText || buildIssueSummary(answers);
             const classification = classifyRequest(report);
@@ -695,7 +696,7 @@
                 lines.push(`Detalle: ${answers.symptom || answers.symptomOther || answers.otherProblem}`);
             }
             if (answers.errorText) lines.push(`Mensaje de error: ${answers.errorText}`);
-            if (answers.outcome) lines.push(`Resultado indicado: ${answers.outcome === 'yes' ? 'James indicó que ahora funciona' : answers.outcome === 'no' ? 'sigue fallando' : 'no está seguro'}.`);
+            if (answers.outcome) lines.push(`Resultado indicado: ${answers.outcome === 'yes' ? 'Demo indicó que ahora funciona' : answers.outcome === 'no' ? 'sigue fallando' : 'no está seguro'}.`);
             if (answers.helpQuestion) lines.push(`Consulta: ${answers.helpQuestion}`);
             if (answers.helpTopic && !answers.helpQuestion) {
                 const topic = HELP_TOPICS.find(item => item.id === answers.helpTopic);
@@ -737,18 +738,18 @@
             return 'Aclaremos primero si algo dejó de funcionar o si quieres agregar algo.';
         }
         if (category === 'design' && changeType === 'video') {
-            return 'El trabajo audiovisual es adicional a la mantención. Palma Codes evaluará el alcance y, si corresponde, cotizará. Pedir evaluación no te obliga a aceptar precio ni fecha.';
+            return 'El trabajo audiovisual es adicional a la mantención. Soporte Demo evaluará el alcance y, si corresponde, cotizará. Pedir evaluación no te obliga a aceptar precio ni fecha.';
         }
-        return 'Parece una mejora adicional a la mantención mensual. Palma Codes evaluará el alcance y, si corresponde, cotizará. Pedir evaluación no te obliga a aceptar precio ni fecha.';
+        return 'Parece una mejora adicional a la mantención mensual. Soporte Demo evaluará el alcance y, si corresponde, cotizará. Pedir evaluación no te obliga a aceptar precio ni fecha.';
     }
 
     function getChangeActionLabel(category) {
         if (category === 'technical') return 'Preparar reporte de problema';
-        if (category === 'usage' || category === 'service' || category === 'commercial') return 'Preparar consulta para Diego';
+        if (category === 'usage' || category === 'service' || category === 'commercial') return 'Preparar consulta para Equipo Demo';
         if (category === 'mixed') return 'Reportar primero el fallo';
         if (category === 'other') return 'Aclaremos la solicitud';
         if (category === 'improvement') return 'Preparar solicitud de mejora';
-        return 'Preparar solicitud para Diego';
+        return 'Preparar solicitud para Equipo Demo';
     }
 
     function getWhatsAppUrl(message, contactLink) {
@@ -956,7 +957,7 @@
             if (choice.startsWith('outcome:')) {
                 const outcome = choice.split(':')[1];
                 if (outcome === 'yes') {
-                    state = Object.assign({}, state, { view: 'done', message: 'Según lo que indicaste, ahora funciona. Si vuelve a fallar, puedes preparar un reporte para Diego.' });
+                    state = Object.assign({}, state, { view: 'done', message: 'Según lo que indicaste, ahora funciona. Si vuelve a fallar, puedes preparar un reporte para Equipo Demo.' });
                     renderApp();
                 } else {
                     transition(advance(state, 'review', { outcome }));

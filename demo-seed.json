@@ -1,0 +1,128 @@
+{
+  "config": {
+    "horarioSemana": [
+      "11:00",
+      "12:00",
+      "13:00",
+      "14:00",
+      "16:00",
+      "17:00",
+      "18:00",
+      "19:00",
+      "20:00",
+      "21:30"
+    ],
+    "horarioDomingo": [],
+    "horariosEspecificos": {},
+    "diasSemanaCerrados": [
+      0
+    ],
+    "contadorAdmin": 3,
+    "suscripcion": {
+      "activo": true,
+      "monto": 30000,
+      "periodoDias": 30,
+      "graciaDias": 3,
+      "ultimoPago": "",
+      "proximoPago": ""
+    }
+  },
+  "estadoBarberia": "abierto",
+  "mensajeCierre": "",
+  "reservas": {
+    "demo_reserva_001": {
+      "nombre": "Catalina Soto",
+      "fecha": "2026-11-01",
+      "hora": "11:00",
+      "servicios": "Corte Clasico",
+      "total": "10000",
+      "telefono": "+56 9 0000 0000",
+      "acepta_contacto_whatsapp": true,
+      "createdAt": 1793408282664,
+      "timestamp": 1793408282664,
+      "updatedAt": 1793408282664,
+      "updatedBy": "seed-demo"
+    },
+    "demo_reserva_002": {
+      "nombre": "Matias Rojas",
+      "fecha": "2026-11-02",
+      "hora": "16:00",
+      "servicios": "Barba Express",
+      "total": "6000",
+      "telefono": "+56 9 0000 0001",
+      "acepta_contacto_whatsapp": true,
+      "createdAt": 1793408282664,
+      "timestamp": 1793408282664,
+      "updatedAt": 1793408282664,
+      "updatedBy": "seed-demo"
+    },
+    "demo_reserva_003": {
+      "nombre": "Valentina Perez",
+      "fecha": "2026-11-04",
+      "hora": "18:00",
+      "servicios": "Corte Degradado",
+      "total": "12000",
+      "telefono": "+56 9 0000 0002",
+      "acepta_contacto_whatsapp": true,
+      "createdAt": 1793408282664,
+      "timestamp": 1793408282664,
+      "updatedAt": 1793408282664,
+      "updatedBy": "seed-demo"
+    }
+  },
+  "reservas_archivadas": {},
+  "bloqueos": {
+    "2026-11-01": {
+      "11-00": {
+        "reservaId": "demo_reserva_001",
+        "timestamp": 1793408282664
+      }
+    },
+    "2026-11-02": {
+      "16-00": {
+        "reservaId": "demo_reserva_002",
+        "timestamp": 1793408282664
+      }
+    },
+    "2026-11-04": {
+      "18-00": {
+        "reservaId": "demo_reserva_003",
+        "timestamp": 1793408282664
+      }
+    }
+  },
+  "clientes": {
+    "demo_cliente_001": {
+      "nombre": "Catalina Soto",
+      "nombreDisplay": "Catalina Soto",
+      "nombreNormalizado": "catalina soto",
+      "telefono": "+56 9 0000 0000",
+      "ultimaReservaServicio": "Corte Clasico",
+      "ultimaReservaFecha": "2026-11-01"
+    },
+    "demo_cliente_002": {
+      "nombre": "Matias Rojas",
+      "nombreDisplay": "Matias Rojas",
+      "nombreNormalizado": "matias rojas",
+      "telefono": "+56 9 0000 0001",
+      "ultimaReservaServicio": "Barba Express",
+      "ultimaReservaFecha": "2026-11-02"
+    },
+    "demo_cliente_003": {
+      "nombre": "Valentina Perez",
+      "nombreDisplay": "Valentina Perez",
+      "nombreNormalizado": "valentina perez",
+      "telefono": "+56 9 0000 0002",
+      "ultimaReservaServicio": "Corte Degradado",
+      "ultimaReservaFecha": "2026-11-04"
+    }
+  },
+  "chats": {},
+  "resenas": {},
+  "galeria": {},
+  "metricas_experiencia": {
+    "facilidad": {},
+    "dificultad": {},
+    "tiempos": {}
+  }
+}
