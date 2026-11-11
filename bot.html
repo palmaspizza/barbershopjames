@@ -153,6 +153,43 @@
   @media (max-width: 480px) {
     .jbBannerCard { max-width: 100%; flex: 1 1 100%; }
   }
+  @property --jb-reserva-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+  @keyframes jbReservaBordeDorado {
+    to { --jb-reserva-angle: 360deg; }
+  }
+  @keyframes jbReservaResplandor {
+    from { box-shadow: 0 0 12px rgba(228,166,79,.22), 0 8px 24px rgba(0,0,0,.4); }
+    to { box-shadow: 0 0 27px rgba(255,190,85,.48), 0 8px 28px rgba(0,0,0,.48); }
+  }
+  .jbBannerCard.jbBannerChat {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(160deg, #23200f, #17140a) padding-box,
+      conic-gradient(
+        from var(--jb-reserva-angle),
+        rgba(228,166,79,.22) 0deg,
+        rgba(228,166,79,.22) 245deg,
+        transparent 270deg,
+        transparent 294deg,
+        #f4d18c 310deg,
+        #fff4d5 326deg,
+        #ffad37 342deg,
+        rgba(228,166,79,.22) 360deg
+      ) border-box;
+    box-shadow: 0 0 18px rgba(228,166,79,.3), 0 8px 24px rgba(0,0,0,.4);
+    animation: jbReservaBordeDorado 5s linear infinite, jbReservaResplandor 2.4s ease-in-out infinite alternate;
+  }
+  .jbBannerCard.jbBannerChat:hover {
+    border-color: transparent;
+    box-shadow: 0 0 30px rgba(255,190,85,.55), 0 12px 30px rgba(0,0,0,.5);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .jbBannerCard.jbBannerChat { animation: none; border-color: #e4a64f; }
+  }
 </style>
 <div id="jbBanner">
   <div class="jbBannerRow">
@@ -2112,6 +2149,71 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
     </div>
 </div>
 
+<section id="jbReviews" class="jb-reviews" aria-labelledby="jbReviewsTitle">
+  <div class="jb-reviews-heading">
+    <p>JAMES BARBERSHOP · EXPERIENCIAS REALES</p>
+    <h2 id="jbReviewsTitle">Tu opinión nos importa</h2>
+    <span>Comparte cómo fue tu visita. Las reseñas de 4 o más estrellas se publican automáticamente.</span>
+  </div>
+  <div id="jbReviewsLatest" class="jb-reviews-latest" aria-live="polite">
+    <p class="jb-reviews-empty">Cargando opiniones…</p>
+  </div>
+  <form id="jbReviewForm" class="jb-review-form">
+    <label for="jbReviewName">Tu nombre</label>
+    <input id="jbReviewName" name="nombre" maxlength="120" autocomplete="name" required placeholder="¿Cómo te llamas?">
+    <p class="jb-review-name-preview">Tu reseña aparecerá como <strong id="jbReviewNamePreview">Tu nombre</strong></p>
+    <fieldset>
+      <legend>¿Cuántas estrellas nos das?</legend>
+      <div id="jbReviewStars" class="jb-review-stars" role="group" aria-label="Calificación de 1 a 5 estrellas">
+        <button type="button" data-rating="1" aria-label="1 estrella" aria-pressed="false">★</button>
+        <button type="button" data-rating="2" aria-label="2 estrellas" aria-pressed="false">★</button>
+        <button type="button" data-rating="3" aria-label="3 estrellas" aria-pressed="false">★</button>
+        <button type="button" data-rating="4" aria-label="4 estrellas" aria-pressed="false">★</button>
+        <button type="button" data-rating="5" aria-label="5 estrellas" aria-pressed="false">★</button>
+      </div>
+    </fieldset>
+    <label for="jbReviewText">Cuéntanos un poco de tu experiencia</label>
+    <textarea id="jbReviewText" name="texto" maxlength="500" required rows="4" placeholder="Tu reseña (máximo 500 caracteres)"></textarea>
+    <button class="jb-review-submit" type="submit">Enviar reseña</button>
+    <p id="jbReviewStatus" role="status" aria-live="polite"></p>
+  </form>
+</section>
+<style>
+  .jb-reviews {
+    max-width: 1040px;
+    margin: 46px auto;
+    padding: clamp(22px, 4vw, 42px);
+    border: 1px solid rgba(228,166,79,.32);
+    border-radius: 22px;
+    background: linear-gradient(145deg, #1d1b18, #111215 68%);
+    box-shadow: 0 22px 60px rgba(0,0,0,.38);
+    color: #f5f2eb;
+  }
+  .jb-reviews-heading { text-align:center; }
+  .jb-reviews-heading p { color:#e4a64f; font-size:.72rem; font-weight:800; letter-spacing:.18em; }
+  .jb-reviews-heading h2 { margin:10px 0; color:#f1c887; font:700 clamp(1.7rem,4vw,2.7rem) 'Playfair Display',serif; }
+  .jb-reviews-heading span { color:#b9b9b9; }
+  .jb-reviews-latest { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin:24px 0; }
+  .jb-review-card { padding:16px; border:1px solid rgba(255,255,255,.1); border-radius:14px; background:#ffffff08; }
+  .jb-review-card strong { color:#e4a64f; }
+  .jb-review-card p { margin:9px 0 0; color:#e8e5de; line-height:1.55; overflow-wrap:anywhere; }
+  .jb-review-card .jb-review-card-stars { color:#f1c887; letter-spacing:2px; }
+  .jb-reviews-empty { grid-column:1/-1; color:#aaa; text-align:center; }
+  .jb-review-form { display:grid; gap:9px; max-width:650px; margin:0 auto; }
+  .jb-review-form label,.jb-review-form legend { color:#f1c887; font-size:.9rem; font-weight:700; }
+  .jb-review-form input,.jb-review-form textarea { width:100%; padding:12px 14px; border:1px solid #49433a; border-radius:10px; background:#0d0e10; color:#fff; font:inherit; }
+  .jb-review-name-preview { margin:-3px 0 2px; color:#aaa; font-size:.82rem; }
+  .jb-review-name-preview strong { color:#e4a64f; }
+  .jb-review-form fieldset { border:0; margin:5px 0; }
+  .jb-review-stars { display:flex; gap:8px; margin-top:7px; }
+  .jb-review-stars button { border:0; background:transparent; color:#68635b; font-size:2rem; cursor:pointer; }
+  .jb-review-stars button[aria-pressed="true"],.jb-review-stars button.is-selected { color:#e4a64f; }
+  .jb-review-form button:focus-visible { outline:3px solid #f1c887; outline-offset:3px; }
+  .jb-review-submit { min-height:48px; border:0; border-radius:11px; background:linear-gradient(135deg,#e4a64f,#ff6f00); color:#20170a; font-weight:800; cursor:pointer; }
+  #jbReviewStatus { min-height:1.4em; color:#f1c887; }
+  @media(max-width:600px) { .jb-reviews { margin:28px 12px; } }
+</style>
+
 <!-- Toast de notificaciones -->
 <div class="toast-cliente" id="toastCliente"></div>
 <style>/* ============================================
@@ -2699,6 +2801,8 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
 let nombreClienteActual = '';
 let reservasClienteActuales = [];
 let reservaPendienteCancelar = null;
+const JB_RESERVA_DIRECTA_ID = new URLSearchParams(window.location.search).get('reserva') || '';
+let jbReservaDirectaCargando = false;
 
 // ============================================
 // PERSISTENCIA LOCAL (localStorage)
@@ -2812,6 +2916,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================
 
 function cargarMisReservasAutomatico() {
+    if (JB_RESERVA_DIRECTA_ID) {
+        cargarReservaDesdeEnlace(JB_RESERVA_DIRECTA_ID);
+        return;
+    }
+
     const reservasLocales = obtenerMisReservasLocales();
     const miNombre = obtenerNombreGuardado();
     
@@ -2826,6 +2935,54 @@ function cargarMisReservasAutomatico() {
         // No hay reservas guardadas: solo la opción de reservar hora
         mostrarEstadoSinReservas();
     }
+}
+
+function cargarReservaDesdeEnlace(reservaId) {
+    const seccionIdentificacion = document.getElementById('identificacionCliente');
+    const seccionReservas = document.getElementById('listaReservasCliente');
+    const contenedor = document.getElementById('contenedorReservasCliente');
+    const sinReservas = document.getElementById('sinReservas');
+    const estadoVacio = document.getElementById('misReservasVacio');
+
+    if (seccionIdentificacion) seccionIdentificacion.classList.add('hidden');
+    if (seccionReservas) seccionReservas.classList.remove('hidden');
+    if (sinReservas) sinReservas.classList.add('hidden');
+    if (contenedor) contenedor.innerHTML = '';
+    if (estadoVacio) {
+        estadoVacio.classList.remove('hidden');
+        estadoVacio.textContent = '⏳ Cargando los datos de tu reserva...';
+    }
+
+    if (!/^[A-Za-z0-9_-]{10,128}$/.test(reservaId)) {
+        if (estadoVacio) estadoVacio.textContent = '⚠️ El enlace de la reserva no es válido.';
+        return;
+    }
+    if (jbReservaDirectaCargando) return;
+    jbReservaDirectaCargando = true;
+
+    db.ref(`reservas/${reservaId}`).once('value')
+        .then(snapshot => {
+            if (!snapshot.exists()) {
+                if (estadoVacio) estadoVacio.textContent = 'No encontramos esta reserva. Puede que ya se haya cancelado o que el enlace haya vencido.';
+                return;
+            }
+
+            reservasClienteActuales = [{
+                ...snapshot.val(),
+                id: snapshot.key,
+                reservaId: snapshot.key
+            }];
+            if (estadoVacio) estadoVacio.classList.add('hidden');
+            renderizarMisReservas(reservasClienteActuales);
+            document.getElementById('misReservasSection')?.scrollIntoView({ behavior: 'smooth' });
+        })
+        .catch(error => {
+            console.error('No se pudo cargar la reserva desde su enlace:', error);
+            if (estadoVacio) estadoVacio.textContent = 'No pudimos cargar la reserva. Revisa tu conexión e inténtalo nuevamente.';
+        })
+        .finally(() => {
+            jbReservaDirectaCargando = false;
+        });
 }
 
 function cargarReservasPorIds(reservasLocales) {
@@ -3166,13 +3323,16 @@ function renderizarMisReservas(reservas) {
                 ${reserva.total ? `<div class="reserva-total">💰 ${reserva.total}</div>` : ''}
                 
                 ${!esPasada ? `
-                    <button 
-                        class="btn-cancelar-reserva" 
+                    <button
+                        class="btn-cancelar-reserva"
                         onclick="solicitarCancelacion('${reserva.id}')"
                         id="btn-cancelar-${reserva.id}"
-                    >
-                        🗑️ CANCELAR RESERVA
-                    </button>
+                    >❌ CANCELAR RESERVA</button>
+                    <button
+                        class="btn-cancelar-reserva"
+                        style="margin-top:8px;background:#176b4b;"
+                        onclick="window.jbReagendarReservaDesdeEnlace('${reserva.id}')"
+                    >📅 REAGENDAR</button>
                 ` : '<button class="btn-cancelar-reserva" disabled>✅ Reserva completada</button>'}
             </div>
         `;
@@ -7875,21 +8035,23 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       'Encontré tu reserva:<br><br>' +
       '\u2702\uFE0F <b>' + (r.servicios || r.servicio || '\u2014') + '</b><br>' +
       '\uD83D\uDCC5 ' + jbFormatFechaLegible(r.fecha) + ' a las <b>' + r.hora + '</b><br><br>' +
-      'Para reagendar cancelo esta y hacemos una nueva. \u00BFContinuo?'
+      '¿Qué quieres hacer con esta reserva? Si eliges reagendar, primero cancelaremos esta hora y después podrás elegir otra.'
     );
     setTimeout(() => {
       jbMostrarOpciones([
-        { emoji:'\u2705', texto:'S\u00ED, reagendar', valor:'si', estilo:'green' },
-        { emoji:'\u274C', texto:'No, mantener',   valor:'no', estilo:'red'   }
+        { emoji:'\u2705', texto:'Sí, reagendar', valor:'si', estilo:'green' },
+        { emoji:'\u274C', texto:'Cancelar reserva', valor:'cancelar', estilo:'red' },
+        { emoji:'\u21A9\uFE0F', texto:'Mantener mi reserva', valor:'no', estilo:'teal' }
       ], async valor => {
-        if (valor === 'si') {
+        if (valor === 'si' || valor === 'cancelar') {
           const rid = r.reservaId || r.id;
           if (rid && !String(rid).startsWith('local_')) {
             try {
-              await window.jbArchivarReservaCliente(rid, r, 'reagendada_por_cliente');
+              const motivo = valor === 'si' ? 'reagendada_por_cliente' : 'cancelada_por_cliente';
+              await window.jbArchivarReservaCliente(rid, r, motivo);
             } catch (error) {
-              console.error('No se pudo archivar la reserva al reagendar:', error);
-              jbBot('No se pudo cancelar la hora anterior. Conservé tu reserva; intenta nuevamente o contáctanos.');
+              console.error('No se pudo cancelar la reserva:', error);
+              jbBot('No se pudo cancelar la reserva. La mantuve activa; intenta nuevamente o contáctanos.');
               return;
             }
           }
@@ -7901,14 +8063,30 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
           try { if(typeof registrarReservaCancelada === 'function') registrarReservaCancelada(rid); } catch(e){}
           jbCancelacionExterna({ ...r, reservaId: rid }, { limpiarChat: false });
           try { if(typeof cargarMisReservasAutomatico === 'function') cargarMisReservasAutomatico(); } catch(e){}
-          jbBot('\u2705 Cancelada. Ahora elige tu nueva hora \uD83D\uDC47');
-          setTimeout(() => jbIniciarFlujoReserva(), 600);
+          if (valor === 'si') {
+            jbBot('\u2705 Hora anterior cancelada. Ahora elige tu nueva hora \uD83D\uDC47');
+            setTimeout(() => jbIniciarFlujoReserva(), 600);
+          } else {
+            jbBot('\u2705 Tu reserva quedó cancelada. No se reservó otra hora.');
+          }
         } else {
           jbBot('Perfecto, tu reserva sigue en pie \uD83D\uDC4D \u00BFNecesitas algo m\u00E1s?');
         }
       });
     }, 300);
   }
+
+  window.jbReagendarReservaDesdeEnlace = function(reservaId) {
+    const reserva = reservasClienteActuales.find(item => item.id === reservaId);
+    if (!reserva) {
+      mostrarToastCliente('No encontramos esta reserva para reagendar.', true);
+      return;
+    }
+
+    const panel = document.getElementById('jbChatPanel');
+    if (panel) panel.classList.add('jbOpen');
+    jbBuscarYReagendarChat([reserva]);
+  };
 
     function jbMostrarInputIdentificacion() {
     jbBloquearInput();
@@ -13876,5 +14054,155 @@ window.addEventListener('load', function() {
     📅 Reservar nueva hora
   </button>
 </div>
+<script>
+(() => {
+  const form = document.getElementById('jbReviewForm');
+  if (!form || !window.firebase) return;
+
+  const database = firebase.database();
+  const nameInput = document.getElementById('jbReviewName');
+  const namePreview = document.getElementById('jbReviewNamePreview');
+  const textInput = document.getElementById('jbReviewText');
+  const status = document.getElementById('jbReviewStatus');
+  const stars = Array.from(document.querySelectorAll('#jbReviewStars [data-rating]'));
+  let selectedRating = 0;
+  let profile = null;
+  try {
+    profile = JSON.parse(localStorage.getItem('jb_perfil') || 'null');
+  } catch (error) {
+    console.error('No se pudo leer el perfil del cliente para la reseña:', error);
+  }
+  if (profile && profile.nombreDisplay) nameInput.value = profile.nombreDisplay;
+  const updateNamePreview = () => {
+    namePreview.textContent = nameInput.value.trim() || 'Tu nombre';
+  };
+  nameInput.addEventListener('input', updateNamePreview);
+  updateNamePreview();
+
+  function setRating(rating) {
+    selectedRating = rating;
+    stars.forEach(button => {
+      const selected = Number(button.dataset.rating) <= rating;
+      button.classList.toggle('is-selected', selected);
+      button.setAttribute('aria-pressed', String(Number(button.dataset.rating) === rating));
+    });
+  }
+
+  stars.forEach(button => button.addEventListener('click', () => setRating(Number(button.dataset.rating))));
+
+  function renderReviews(snapshot) {
+    const container = document.getElementById('jbReviewsLatest');
+    const reviews = [];
+    snapshot.forEach(child => {
+      const review = child.val();
+      if (review && Number(review.estrellas) >= 1 && Number(review.estrellas) <= 5 && review.texto) {
+        reviews.push(review);
+      }
+    });
+    reviews.sort((a, b) => Number(b.aprobadaEn) - Number(a.aprobadaEn));
+    container.replaceChildren();
+    if (!reviews.length) {
+      const empty = document.createElement('p');
+      empty.className = 'jb-reviews-empty';
+      empty.textContent = 'Aún no hay opiniones publicadas. Puedes compartir la primera.';
+      container.appendChild(empty);
+      return;
+    }
+
+    reviews.slice(0, 6).forEach(review => {
+      const card = document.createElement('article');
+      card.className = 'jb-review-card';
+      const author = document.createElement('strong');
+      author.textContent = review.nombre || 'Cliente';
+      const rating = document.createElement('div');
+      rating.className = 'jb-review-card-stars';
+      rating.textContent = `${'★'.repeat(Number(review.estrellas))}${'☆'.repeat(5 - Number(review.estrellas))}`;
+      const text = document.createElement('p');
+      text.textContent = review.texto;
+      card.append(author, rating, text);
+      container.appendChild(card);
+    });
+  }
+
+  database.ref('resenas_publicas')
+    .orderByChild('aprobadaEn')
+    .limitToLast(12)
+    .on('value', renderReviews, error => {
+      console.error('No se pudieron cargar las reseñas publicadas:', error);
+      document.getElementById('jbReviewsLatest').textContent = 'No fue posible cargar las opiniones en este momento.';
+    });
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const nombre = nameInput.value.trim();
+    const texto = textInput.value.trim();
+    const rating = selectedRating;
+    if (!nombre || !rating || !texto) {
+      status.textContent = 'Completa tu nombre, las estrellas y tu opinión.';
+      return;
+    }
+
+    const button = form.querySelector('[type="submit"]');
+    button.disabled = true;
+    status.textContent = 'Enviando tu reseña…';
+    const review = {
+      nombre,
+      estrellas: rating,
+      texto,
+      estado: 'pendiente',
+      createdAt: firebase.database.ServerValue.TIMESTAMP
+    };
+    if (profile && profile.clienteId) review.clienteId = String(profile.clienteId);
+
+    const reviewRef = database.ref('resenas').push();
+    let reviewSaved = false;
+    try {
+      await reviewRef.set(review);
+      reviewSaved = true;
+      if (rating >= 4) {
+        const reviewId = reviewRef.key;
+        const publicReview = {
+          nombre,
+          estrellas: rating,
+          texto,
+          aprobadaEn: firebase.database.ServerValue.TIMESTAMP
+        };
+        const updates = {
+          [`resenas/${reviewId}/estado`]: 'aprobada',
+          [`resenas/${reviewId}/aprobadaEn`]: firebase.database.ServerValue.TIMESTAMP,
+          [`resenas_publicas/${reviewId}`]: publicReview
+        };
+        try {
+          await database.ref().update(updates);
+        } catch (publicationError) {
+          console.error('La reseña se guardó, pero no pudo publicarse automáticamente:', publicationError);
+          form.reset();
+          setRating(0);
+          updateNamePreview();
+          status.textContent = 'Recibimos tu reseña, pero no se pudo publicar automáticamente. Quedó pendiente para revisión.';
+          return;
+        }
+      }
+      form.reset();
+      setRating(0);
+      updateNamePreview();
+      status.textContent = rating >= 4
+        ? '¡Gracias! Tu reseña de 4 o más estrellas se aprobó y publicó automáticamente.'
+        : '¡Gracias! Tu reseña quedó enviada y aparecerá al ser aprobada.';
+    } catch (error) {
+      console.error('No se pudo enviar la reseña:', error);
+      status.textContent = reviewSaved
+        ? 'Recibimos tu reseña, pero no se pudo completar su publicación automática. Quedó pendiente para revisión.'
+        : `No se pudo enviar tu reseña: ${error.message}`;
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  if (new URLSearchParams(location.search).get('resena') === '1') {
+    window.setTimeout(() => document.getElementById('jbReviews').scrollIntoView({ behavior: 'smooth' }), 500);
+  }
+})();
+</script>
 </body>
 </html>
