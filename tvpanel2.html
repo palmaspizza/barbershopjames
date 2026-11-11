@@ -2157,6 +2157,7 @@ function playNextTvBackground() {
   video.onended = () => scheduleNext(250);
   video.onerror = () => {
     console.error(`No se pudo reproducir el video de fondo: ${sources[tvBackgroundIndex]}`);
+    if (tvMediaModeIndex === 0) { setTvMediaMode(1, 'Video de fondo no disponible · Playlist'); void startTvYoutubePlaylist(); return; }
     scheduleNext(3000);
   };
   video.play().catch(error => {
@@ -2179,26 +2180,29 @@ function resumeTvBackgroundVideo() {
   });
 }
 
-let tvUserTouched = false;
+let tvSoundState = 'muted'; // muted | trying | on | blocked
 function tvUnmuteYoutube(fromKey) {
-  if (fromKey) tvUserTouched = true;
-  if (!tvUserTouched || !tvYoutubePlayerReady || !tvYoutubePlayer) return;
-  try {
-    if (tvYoutubePlayer.isMuted()) { tvYoutubePlayer.unMute(); tvYoutubePlayer.setVolume(100); }
-  } catch (e) {}
+  if (!fromKey || tvSoundState !== 'muted' || !tvYoutubePlayerReady || !tvYoutubePlayer || tvMediaModeIndex === 0) return;
+  tvSoundState = 'trying';
+  try { tvYoutubePlayer.unMute(); tvYoutubePlayer.setVolume(100); } catch (e) {}
+  setTimeout(() => {
+    try {
+      const YTS = window.YT.PlayerState;
+      if (tvYoutubePlayer.getPlayerState() === YTS.PLAYING && !tvYoutubePlayer.isMuted()) { tvSoundState = 'on'; return; }
+      tvYoutubePlayer.mute(); tvYoutubePlayer.playVideo(); tvSoundState = 'blocked';
+      showTvMediaNotice('Esta TV bloquea el sonido de YouTube sin interacción directa', 7000);
+    } catch (e) { tvSoundState = 'blocked'; }
+  }, 2000);
 }
 
-// Vigilante: reanuda si se pausa o no arranca, y reintenta el sonido hasta lograrlo
+// Reanuda solo si el video quedo pausado/sin iniciar (no interfiere con el intento de sonido)
 setInterval(() => {
-  if (!tvYoutubePlayerReady || !tvYoutubePlayer || tvMediaModeIndex === 0) return;
+  if (!tvYoutubePlayerReady || !tvYoutubePlayer || tvMediaModeIndex === 0 || tvSoundState === 'trying') return;
   try {
     const st = tvYoutubePlayer.getPlayerState();
-    const YTS = window.YT.PlayerState;
-    if (st !== YTS.PLAYING && st !== YTS.BUFFERING) tvYoutubePlayer.playVideo();
-    if (tvUserTouched) tvUnmuteYoutube();
-    else if (st === YTS.PLAYING && tvYoutubePlayer.isMuted()) showTvMediaNotice('Pulsa cualquier tecla del control para activar el sonido', 4000);
+    if (st === 2 || st === -1 || st === 5) tvYoutubePlayer.playVideo();
   } catch (e) {}
-}, 3000);
+}, 5000);
 
 function loadTvYoutubeApi() {
   if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
@@ -3472,6 +3476,8 @@ html, body { overflow: hidden; }
 #stage .app { height: 1080px; }
 .tv-youtube-shell, .tv-youtube-shell iframe { pointer-events: none; }
 .tv-youtube-shell.interleave-mini { bottom: 56px; right: 24px; }
+#tv-youtube-shell.tv-youtube-shell { display: block !important; visibility: hidden; }
+#tv-youtube-shell.tv-youtube-shell.is-visible { visibility: visible; }
 </style>
 </body>
 </html>
