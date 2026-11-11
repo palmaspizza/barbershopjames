@@ -12,6 +12,7 @@ window.DEMO_BRAND = Object.freeze({
   logoUrl: 'https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg',
   websiteUrl: 'https://barberiajames.cl',
   reviewUrl: 'https://barberiajames.cl/bot?resena=1#jbReviews',
+  tvPlaylistId: 'PLY_9AJLM-1eY',
   tvVideos: [
     'tv_bg_4.mp4',
     'tv_bg_2.mp4',

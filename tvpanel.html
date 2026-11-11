@@ -46,6 +46,67 @@ html, body {
   background: var(--bg);
 }
 
+.tv-youtube-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: none;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+}
+
+.tv-youtube-shell.is-visible { display: block; }
+
+#tv-youtube-player,
+#tv-youtube-player iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.tv-youtube-shell.interleave-mini {
+  inset: auto;
+  right: clamp(12px, 1.8vw, 28px);
+  bottom: clamp(12px, 1.8vh, 22px);
+  z-index: 12;
+  width: clamp(200px, 22vw, 380px);
+  height: clamp(200px, 22vh, 250px);
+  overflow: hidden;
+  border: 1px solid rgba(228,166,79,.75);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.65);
+}
+
+body.tv-youtube-background .tv-background-video { visibility: hidden; }
+
+.tv-media-notice {
+  position: fixed;
+  top: clamp(12px, 2vh, 24px);
+  left: 50%;
+  z-index: 130;
+  max-width: calc(100vw - 32px);
+  padding: 9px 15px;
+  border: 1px solid rgba(228,166,79,.7);
+  border-radius: 999px;
+  background: rgba(14,15,18,.94);
+  color: #f0f0f0;
+  font-size: clamp(11px, .9vw, 14px);
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,.4);
+  transform: translate(-50%, -12px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .2s ease, transform .2s ease, visibility .2s ease;
+  pointer-events: none;
+}
+
+.tv-media-notice.is-visible {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  visibility: visible;
+}
+
 .tv-background-overlay {
   position: fixed;
   inset: 0;
@@ -818,7 +879,10 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
 
 <video autoplay muted playsinline preload="none" id="bg-video" class="tv-background-video" aria-hidden="true"></video>
 <div class="tv-background-overlay" aria-hidden="true"></div>
-<audio id="tv-ambient-music" src="james-ambient.mp3" preload="none" loop></audio>
+<div id="tv-youtube-shell" class="tv-youtube-shell" aria-label="Playlist de YouTube">
+  <div id="tv-youtube-player"></div>
+</div>
+<div id="tv-media-notice" class="tv-media-notice" role="status" aria-live="polite"></div>
 <div class="bg"></div>
 <div class="bg-lines"></div>
 <div class="flash" id="flash"></div>
@@ -1119,7 +1183,6 @@ function showKioskStep(step) {
 }
 
 function openKioskPhoneDialog() {
-  startAmbientMusic();
   const overlay = document.getElementById('tv-booking-overlay');
   overlay.hidden = false;
   document.body.classList.add('kiosk-active');
@@ -1779,8 +1842,15 @@ function kioskBackOneStep() {
 
 function handleKioskKeydown(event) {
   const key = getKioskRemoteKey(event);
-  if (kioskState === 'closed' && (key === 'Enter' || event.code === 'NumpadEnter' || /^\d$/.test(key))) {
-    startAmbientMusic();
+  const isMediaModeKey = key.toLowerCase() === 'info'
+    || key.toLowerCase() === 'i'
+    || event.code === 'Info'
+    || event.keyCode === 165
+    || event.keyCode === 457;
+  if (kioskState === 'closed' && isMediaModeKey && !event.repeat) {
+    event.preventDefault();
+    cycleTvMediaMode();
+    return;
   }
   if ((key === 'Escape' || key === 'BrowserBack') && kioskSaving) {
     event.preventDefault();
@@ -1994,8 +2064,44 @@ function initCarrusel() {
   });
 }
 
+const TV_MEDIA_MODES = Object.freeze([
+  { id: 'videos', label: 'Solo videos de fondo' },
+  { id: 'playlist', label: 'Playlist de YouTube' },
+  { id: 'interleaved', label: 'Playlist + videos · alterna cada 15 s' }
+]);
+const TV_INTERLEAVE_INTERVAL_MS = 15000;
+let tvMediaModeIndex = 0;
+let tvInterleaveTimer = null;
+let tvInterleaveShowsPlaylist = true;
 let tvBackgroundTimer = null;
 let tvBackgroundIndex = -1;
+let tvYoutubeApiPromise = null;
+let tvYoutubePlayer = null;
+let tvYoutubePlayerReadyPromise = null;
+let tvMediaNoticeTimer = null;
+
+function isTvBackgroundVisible() {
+  return tvMediaModeIndex === 0
+    || (tvMediaModeIndex === 2 && !tvInterleaveShowsPlaylist);
+}
+
+function showTvMediaNotice(message, duration = 3500) {
+  const notice = document.getElementById('tv-media-notice');
+  if (!notice) return;
+  notice.textContent = message;
+  notice.classList.add('is-visible');
+  if (tvMediaNoticeTimer !== null) window.clearTimeout(tvMediaNoticeTimer);
+  tvMediaNoticeTimer = window.setTimeout(() => {
+    notice.classList.remove('is-visible');
+    tvMediaNoticeTimer = null;
+  }, duration);
+}
+
+function clearTvBackgroundTimer() {
+  if (tvBackgroundTimer !== null) window.clearTimeout(tvBackgroundTimer);
+  tvBackgroundTimer = null;
+}
+
 function playNextTvBackground() {
   const video = document.getElementById('bg-video');
   const sources = window.DEMO_BRAND.tvVideos || [
@@ -2003,11 +2109,9 @@ function playNextTvBackground() {
     'tv_bg_2.mp4',
     'tv_bg_3.mp4',
     'tv_bg_4_2.mp4'
-    
-    
   ];
-  if (!video || !sources.length) return;
-  if (tvBackgroundTimer !== null) window.clearTimeout(tvBackgroundTimer);
+  if (!video || !sources.length || !isTvBackgroundVisible()) return;
+  clearTvBackgroundTimer();
   tvBackgroundIndex = (tvBackgroundIndex + 1) % sources.length;
   video.pause();
   video.removeAttribute('src');
@@ -2015,10 +2119,10 @@ function playNextTvBackground() {
   video.src = sources[tvBackgroundIndex];
   video.load();
   const scheduleNext = delay => {
-    if (tvBackgroundTimer !== null) window.clearTimeout(tvBackgroundTimer);
+    clearTvBackgroundTimer();
     tvBackgroundTimer = window.setTimeout(() => {
       tvBackgroundTimer = null;
-      playNextTvBackground();
+      if (isTvBackgroundVisible()) playNextTvBackground();
     }, delay);
   };
   video.onended = () => scheduleNext(250);
@@ -2032,18 +2136,183 @@ function playNextTvBackground() {
   });
 }
 
-let tvReviewTimer = null;
-let ambientMusicStarted = false;
-function startAmbientMusic() {
-  const music = document.getElementById('tv-ambient-music');
-  if (!music || ambientMusicStarted) return;
-  music.volume = 0.18;
-  music.play().then(() => {
-    ambientMusicStarted = true;
-  }).catch(error => {
-    console.warn('No se pudo iniciar la música ambiental:', error);
+function resumeTvBackgroundVideo() {
+  const video = document.getElementById('bg-video');
+  if (!video || !isTvBackgroundVisible()) return;
+  if (!video.getAttribute('src') || video.ended) {
+    playNextTvBackground();
+    return;
+  }
+  video.play().catch(error => {
+    if (isTvBackgroundVisible()) {
+      console.error('El navegador no permitió reanudar el video de fondo:', error);
+    }
   });
 }
+
+function loadTvYoutubeApi() {
+  if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
+  if (tvYoutubeApiPromise) return tvYoutubeApiPromise;
+
+  tvYoutubeApiPromise = new Promise((resolve, reject) => {
+    const previousCallback = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      resolve(window.YT);
+      if (typeof previousCallback === 'function') previousCallback();
+    };
+    const script = document.createElement('script');
+    script.src = 'https://www.youtube.com/iframe_api';
+    script.async = true;
+    script.onerror = () => {
+      tvYoutubeApiPromise = null;
+      reject(new Error('No se pudo cargar el reproductor de YouTube.'));
+    };
+    document.head.appendChild(script);
+  });
+  return tvYoutubeApiPromise;
+}
+
+async function ensureTvYoutubePlayer() {
+  const playlistId = window.DEMO_BRAND.tvPlaylistId;
+  if (!playlistId) throw new Error('Falta configurar el ID de la playlist de YouTube.');
+  const api = await loadTvYoutubeApi();
+  if (!tvYoutubePlayerReadyPromise) {
+    tvYoutubePlayerReadyPromise = new Promise((resolve, reject) => {
+      let playerReady = false;
+      tvYoutubePlayer = new api.Player('tv-youtube-player', {
+        width: '100%',
+        height: '100%',
+        playerVars: {
+          listType: 'playlist',
+          list: playlistId,
+          autoplay: 0,
+          controls: 1,
+          playsinline: 1,
+          rel: 0,
+          origin: window.location.origin
+        },
+        events: {
+          onReady: () => {
+            playerReady = true;
+            resolve(tvYoutubePlayer);
+          },
+          onStateChange: event => {
+            if (event.data === api.PlayerState.PLAYING && tvMediaModeIndex === 2) {
+              startTvInterleaveTimer();
+            }
+            const playlist = tvYoutubePlayer.getPlaylist();
+            const playlistIndex = tvYoutubePlayer.getPlaylistIndex();
+            const playlistFinished = Array.isArray(playlist)
+              && playlist.length > 0
+              && playlistIndex === playlist.length - 1;
+            if (event.data === api.PlayerState.ENDED && playlistFinished && tvMediaModeIndex !== 0) {
+              setTvMediaMode(0, 'Playlist terminada · Solo videos de fondo');
+            }
+          },
+          onError: event => {
+            const error = new Error(`YouTube no pudo reproducir esta playlist (${event.data}).`);
+            console.error(error.message);
+            if (!playerReady) reject(error);
+            else if (tvMediaModeIndex !== 0) {
+              setTvMediaMode(0, 'No se pudo reproducir YouTube · Solo videos de fondo');
+            }
+          }
+        }
+      });
+    }).catch(error => {
+      tvYoutubePlayerReadyPromise = null;
+      throw error;
+    });
+  }
+  return tvYoutubePlayerReadyPromise;
+}
+
+function updateTvMediaPresentation() {
+  const mode = TV_MEDIA_MODES[tvMediaModeIndex].id;
+  const video = document.getElementById('bg-video');
+  const youtubeShell = document.getElementById('tv-youtube-shell');
+  if (!video || !youtubeShell) return;
+
+  if (mode === 'videos') {
+    if (tvInterleaveTimer !== null) window.clearInterval(tvInterleaveTimer);
+    tvInterleaveTimer = null;
+    youtubeShell.classList.remove('is-visible', 'interleave-mini');
+    document.body.classList.remove('tv-youtube-background');
+    clearTvBackgroundTimer();
+    if (tvYoutubePlayer) tvYoutubePlayer.pauseVideo();
+    resumeTvBackgroundVideo();
+    return;
+  }
+
+  clearTvBackgroundTimer();
+  video.pause();
+  youtubeShell.classList.add('is-visible');
+  document.body.classList.add('tv-youtube-background');
+
+  if (mode === 'playlist') {
+    if (tvInterleaveTimer !== null) window.clearInterval(tvInterleaveTimer);
+    tvInterleaveTimer = null;
+    youtubeShell.classList.remove('interleave-mini');
+    return;
+  }
+
+  if (tvInterleaveShowsPlaylist) {
+    youtubeShell.classList.remove('interleave-mini');
+    return;
+  }
+
+  document.body.classList.remove('tv-youtube-background');
+  youtubeShell.classList.add('interleave-mini');
+  resumeTvBackgroundVideo();
+}
+
+function startTvInterleaveTimer() {
+  if (tvMediaModeIndex !== 2) return;
+  if (tvInterleaveTimer !== null) window.clearInterval(tvInterleaveTimer);
+  tvInterleaveShowsPlaylist = true;
+  updateTvMediaPresentation();
+  tvInterleaveTimer = window.setInterval(() => {
+    if (tvMediaModeIndex !== 2) {
+      window.clearInterval(tvInterleaveTimer);
+      tvInterleaveTimer = null;
+      return;
+    }
+    tvInterleaveShowsPlaylist = !tvInterleaveShowsPlaylist;
+    updateTvMediaPresentation();
+  }, TV_INTERLEAVE_INTERVAL_MS);
+}
+
+async function startTvYoutubePlaylist() {
+  try {
+    const player = await ensureTvYoutubePlayer();
+    if (tvMediaModeIndex === 0) return;
+    player.playVideo();
+    if (tvMediaModeIndex === 2 && player.getPlayerState() === window.YT.PlayerState.PLAYING) {
+      startTvInterleaveTimer();
+    }
+  } catch (error) {
+    console.error('No se pudo iniciar la playlist de YouTube:', error);
+    if (tvMediaModeIndex !== 0) {
+      setTvMediaMode(0, 'YouTube no está disponible · Solo videos de fondo');
+    }
+  }
+}
+
+function setTvMediaMode(index, notice = '') {
+  tvMediaModeIndex = index;
+  tvInterleaveShowsPlaylist = true;
+  updateTvMediaPresentation();
+  if (notice) showTvMediaNotice(notice, 5000);
+}
+
+function cycleTvMediaMode() {
+  tvMediaModeIndex = (tvMediaModeIndex + 1) % TV_MEDIA_MODES.length;
+  const mode = TV_MEDIA_MODES[tvMediaModeIndex];
+  setTvMediaMode(tvMediaModeIndex, `${mode.label} · INFO para cambiar`);
+  if (tvMediaModeIndex !== 0) void startTvYoutubePlaylist();
+}
+
+let tvReviewTimer = null;
 
 function renderTvReviews(snapshot) {
   const reviews = Object.values(snapshot.val() || {})
