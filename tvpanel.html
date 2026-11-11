@@ -2078,6 +2078,7 @@ let tvBackgroundIndex = -1;
 let tvYoutubeApiPromise = null;
 let tvYoutubePlayer = null;
 let tvYoutubePlayerReadyPromise = null;
+let tvYoutubePlayerReady = false;
 let tvMediaNoticeTimer = null;
 
 function isTvBackgroundVisible() {
@@ -2194,6 +2195,7 @@ async function ensureTvYoutubePlayer() {
         events: {
           onReady: () => {
             playerReady = true;
+            tvYoutubePlayerReady = true;
             resolve(tvYoutubePlayer);
           },
           onStateChange: event => {
@@ -2216,11 +2218,15 @@ async function ensureTvYoutubePlayer() {
             else if (tvMediaModeIndex !== 0) {
               setTvMediaMode(0, 'No se pudo reproducir YouTube · Solo videos de fondo');
             }
+          },
+          onAutoplayBlocked: () => {
+            showTvMediaNotice('Pulsa OK sobre el reproductor de YouTube para iniciar la música', 7000);
           }
         }
       });
     }).catch(error => {
       tvYoutubePlayerReadyPromise = null;
+      tvYoutubePlayerReady = false;
       throw error;
     });
   }
@@ -2282,20 +2288,26 @@ function startTvInterleaveTimer() {
   }, TV_INTERLEAVE_INTERVAL_MS);
 }
 
-async function startTvYoutubePlaylist() {
-  try {
-    const player = await ensureTvYoutubePlayer();
-    if (tvMediaModeIndex === 0) return;
-    player.playVideo();
-    if (tvMediaModeIndex === 2 && player.getPlayerState() === window.YT.PlayerState.PLAYING) {
-      startTvInterleaveTimer();
-    }
-  } catch (error) {
+function playTvYoutubePlaylist(player) {
+  if (tvMediaModeIndex === 0) return;
+  player.playVideo();
+  if (tvMediaModeIndex === 2 && player.getPlayerState() === window.YT.PlayerState.PLAYING) {
+    startTvInterleaveTimer();
+  }
+}
+
+function startTvYoutubePlaylist() {
+  if (tvYoutubePlayerReady && tvYoutubePlayer) {
+    playTvYoutubePlaylist(tvYoutubePlayer);
+    return;
+  }
+  showTvMediaNotice('YouTube se está cargando; espera un momento e inténtalo de nuevo', 5000);
+  void ensureTvYoutubePlayer().then(playTvYoutubePlaylist).catch(error => {
     console.error('No se pudo iniciar la playlist de YouTube:', error);
     if (tvMediaModeIndex !== 0) {
       setTvMediaMode(0, 'YouTube no está disponible · Solo videos de fondo');
     }
-  }
+  });
 }
 
 function setTvMediaMode(index, notice = '') {
@@ -2580,6 +2592,9 @@ function render(reservas) {
 window.addEventListener('load', () => {
   initCarrusel();
   playNextTvBackground();
+  void ensureTvYoutubePlayer().catch(error => {
+    console.error('No se pudo preparar la playlist de YouTube:', error);
+  });
   document.getElementById('tv-kiosk-launcher').focus();
   const unlockTvAudio = () => {
     try {
