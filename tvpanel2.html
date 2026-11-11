@@ -2180,24 +2180,57 @@ function resumeTvBackgroundVideo() {
   });
 }
 
-let tvSoundState = 'muted'; // muted | trying | on | blocked
-function tvUnmuteYoutube(fromKey) {
-  if (!fromKey || tvSoundState !== 'muted' || !tvYoutubePlayerReady || !tvYoutubePlayer || tvMediaModeIndex === 0) return;
+let tvSoundState = 'muted'; // muted | trying | ask | on | blocked
+function tvFocusPanel() {
+  window.focus();
+  if (kioskState === 'closed') document.getElementById('tv-kiosk-launcher')?.focus();
+}
+function tvTrySound(inAsk) {
   tvSoundState = 'trying';
   try { tvYoutubePlayer.unMute(); tvYoutubePlayer.setVolume(100); } catch (e) {}
   setTimeout(() => {
+    let ok = false;
     try {
-      const YTS = window.YT.PlayerState;
-      if (tvYoutubePlayer.getPlayerState() === YTS.PLAYING && !tvYoutubePlayer.isMuted()) { tvSoundState = 'on'; return; }
-      tvYoutubePlayer.mute(); tvYoutubePlayer.playVideo(); tvSoundState = 'blocked';
-      showTvMediaNotice('Esta TV bloquea el sonido de YouTube sin interacción directa', 7000);
-    } catch (e) { tvSoundState = 'blocked'; }
+      ok = tvYoutubePlayer.getPlayerState() === 1 && !tvYoutubePlayer.isMuted();
+      if (!ok) { tvYoutubePlayer.mute(); tvYoutubePlayer.playVideo(); }
+    } catch (e) {}
+    if (ok) {
+      tvSoundState = 'on';
+      document.getElementById('tv-media-notice')?.classList.remove('is-visible');
+      tvFocusPanel();
+      return;
+    }
+    if (inAsk) tvSoundState = 'ask'; else tvAskSoundInFrame();
   }, 2000);
+}
+// Le pasa el foco al reproductor de YouTube para que un OK del control le llegue directo
+function tvAskSoundInFrame() {
+  const frame = document.querySelector('#tv-youtube-shell iframe');
+  if (!frame) { tvSoundState = 'blocked'; return; }
+  tvSoundState = 'ask';
+  const until = Date.now() + 25000;
+  try { frame.setAttribute('tabindex', '0'); frame.focus(); } catch (e) {}
+  showTvMediaNotice('Pulsa OK una vez para activar el sonido', 25000);
+  const timer = setInterval(() => {
+    if (tvSoundState === 'on') { clearInterval(timer); return; }
+    if (Date.now() > until) {
+      clearInterval(timer);
+      tvSoundState = 'blocked';
+      showTvMediaNotice('Sin sonido: este navegador lo bloquea', 6000);
+      tvFocusPanel();
+      return;
+    }
+    if (tvSoundState === 'ask') tvTrySound(true);
+  }, 3000);
+}
+function tvUnmuteYoutube(fromKey) {
+  if (!fromKey || tvSoundState !== 'muted' || !tvYoutubePlayerReady || !tvYoutubePlayer || tvMediaModeIndex === 0) return;
+  tvTrySound(false);
 }
 
 // Reanuda solo si el video quedo pausado/sin iniciar (no interfiere con el intento de sonido)
 setInterval(() => {
-  if (!tvYoutubePlayerReady || !tvYoutubePlayer || tvMediaModeIndex === 0 || tvSoundState === 'trying') return;
+  if (!tvYoutubePlayerReady || !tvYoutubePlayer || tvMediaModeIndex === 0 || tvSoundState === 'trying' || tvSoundState === 'ask') return;
   try {
     const st = tvYoutubePlayer.getPlayerState();
     if (st === 2 || st === -1 || st === 5) tvYoutubePlayer.playVideo();
