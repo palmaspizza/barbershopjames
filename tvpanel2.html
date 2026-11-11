@@ -2274,8 +2274,7 @@ function loadTvYoutubeApi() {
 }
 
 async function ensureTvYoutubePlayer() {
-  const playlistId = window.DEMO_BRAND.tvPlaylistId;
-  if (!playlistId) throw new Error('Falta configurar el ID de la playlist de YouTube.');
+  const videoId = '47Cda27DDOY';
   const api = await loadTvYoutubeApi();
   if (!tvYoutubePlayerReadyPromise) {
     tvYoutubePlayerReadyPromise = new Promise((resolve, reject) => {
@@ -2283,9 +2282,10 @@ async function ensureTvYoutubePlayer() {
       tvYoutubePlayer = new api.Player('tv-youtube-player', {
         width: '100%',
         height: '100%',
+        videoId: videoId,
         playerVars: {
-          listType: 'playlist',
-          list: playlistId,
+          loop: 1,
+          playlist: videoId,
           autoplay: 1,
           controls: 1,
           iv_load_policy: 3,
