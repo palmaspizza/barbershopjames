@@ -1,0 +1,3116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel TV - James Barbershop</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="brand.config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold:      #e4a64f;
+  --gold-dim:  rgba(228,166,79,0.10);
+  --gold-glow: rgba(228,166,79,0.3);
+  --bg:        #07080a;
+  --surface:   #0e0f12;
+  --surface2:  #13141a;
+  --border:    rgba(255,255,255,0.06);
+  --text:      #f0f0f0;
+  --muted:     #555;
+  --muted2:    #888;
+  --green:     #3ecf8e;
+  --red:       #ff5c5c;
+  --radius:    14px;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: transparent;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(12px, 1.1vw, 18px);
+}
+
+.tv-background-video {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--bg);
+}
+
+.tv-background-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, .72);
+  pointer-events: none;
+}
+
+/* ── FONDO ── */
+.bg {
+  position: fixed; inset: 0; z-index: 2;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(228,166,79,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 90%, rgba(62,207,142,0.04) 0%, transparent 60%);
+  animation: bgPulse 12s ease-in-out infinite alternate;
+}
+
+@keyframes bgPulse {
+  from { opacity: 0.7; }
+  to   { opacity: 1; }
+}
+
+.bg-lines {
+  position: fixed; inset: 0; z-index: 2;
+  background-image: repeating-linear-gradient(
+    -45deg, transparent, transparent 100px,
+    rgba(228,166,79,0.012) 100px, rgba(228,166,79,0.012) 101px
+  );
+}
+
+/* ── LAYOUT PRINCIPAL ── */
+.app {
+  position: relative; z-index: 3;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 0;
+}
+
+/* ── HEADER ── */
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: clamp(10px,1.2vh,20px) clamp(20px,3vw,56px);
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(228,166,79,0.05) 0%, transparent 100%);
+}
+
+.brand { display: flex; align-items: center; gap: clamp(10px,1.2vw,18px); }
+
+.brand-icon img{
+  width: clamp(46px,3.5vw,52px); height: clamp(46px,3.5vw,52px);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(228,166,79,0.22), rgba(228,166,79,0.06));
+  border: 1px solid rgba(228,166,79,0.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(16px,1.8vw,26px);
+  box-shadow: 0 0 20px rgba(228,166,79,0.15);
+}
+
+.brand-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(18px,2vw,30px);
+  letter-spacing: 3px; color: var(--gold);
+}
+
+.brand-sub {
+  font-size: clamp(8px,0.7vw,11px); color: var(--muted);
+  letter-spacing: 2px; text-transform: uppercase; margin-top: 1px;
+}
+
+.clock-block { text-align: center; }
+
+.clock {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(36px,5vw,72px);
+  letter-spacing: 6px; color: var(--text); line-height: 1;
+  text-shadow: 0 0 60px rgba(228,166,79,0.2);
+}
+
+.clock-date {
+  font-size: clamp(9px,0.8vw,13px); color: var(--muted2);
+  letter-spacing: 2.5px; text-transform: uppercase; margin-top: 2px;
+}
+
+.stats { display: flex; align-items: center; justify-content: flex-end; gap: clamp(16px,2vw,32px); }
+
+.stat { text-align: right; }
+
+.stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(28px,3.5vw,48px); color: var(--gold); line-height: 1;
+}
+
+.stat-label {
+  font-size: clamp(8px,0.65vw,11px); color: var(--muted);
+  letter-spacing: 1.5px; text-transform: uppercase;
+}
+
+.divider-v { width: 1px; height: 36px; background: var(--border); }
+
+/* ── CARRUSEL ── */
+.carrusel-wrap {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+  border-bottom: 1px solid var(--border);
+  height: clamp(140px, 22vh, 260px);
+}
+
+.carrusel-gradient-l {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 80px; z-index: 3;
+  background: linear-gradient(90deg, var(--bg), transparent);
+  pointer-events: none;
+}
+
+.carrusel-gradient-r {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 80px; z-index: 3;
+  background: linear-gradient(270deg, var(--bg), transparent);
+  pointer-events: none;
+}
+
+.carrusel-track {
+  display: flex;
+  gap: clamp(8px,1vw,16px);
+  padding: clamp(10px,1.5vh,20px) clamp(20px,2vw,40px);
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.corte-card {
+  flex-shrink: 0;
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  cursor: default;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  background: var(--surface2);
+  width: clamp(100px, 14vw, auto);
+}
+
+.corte-card.activa {
+  border-color: var(--gold);
+  box-shadow: 0 0 24px rgba(228,166,79,0.25), 0 0 60px rgba(228,166,79,0.08);
+  transform: scale(1.04) translateY(-4px);
+  z-index: 2;
+}
+
+.corte-card img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  filter: brightness(0.88) saturate(1.15);
+  transition: filter 0.3s;
+}
+
+.corte-card.activa img {
+  filter: brightness(1) saturate(1.25);
+}
+
+.corte-label {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: clamp(6px,0.8vh,12px) clamp(8px,0.8vw,12px);
+  background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, transparent 100%);
+  font-size: clamp(8px,0.7vw,11px);
+  font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--text);
+}
+
+.corte-tipo {
+  position: absolute; top: 8px; right: 8px;
+  font-size: clamp(7px,0.6vw,9px); font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 20px;
+}
+
+.review-tv-panel {
+  display: grid;
+  grid-template-columns: minmax(160px, .7fr) 1.3fr;
+  align-items: center;
+  gap: clamp(18px, 2vw, 36px);
+  min-height: 0;
+  padding: clamp(18px, 2.5vw, 38px);
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(228,166,79,.16), transparent 55%),
+    linear-gradient(145deg, #171513, #0d0e11 68%);
+}
+.review-tv-qr-column { display:grid; justify-items:center; gap:12px; text-align:center; }
+.review-tv-panel h2 { margin:0 0 8px; font-family:'Bebas Neue',sans-serif; font-size:clamp(26px,2.4vw,42px); letter-spacing:2px; color:var(--gold); }
+.review-tv-panel p { color:var(--muted2); line-height:1.55; }
+.review-tv-qr { width:min(190px,100%); aspect-ratio:1; padding:10px; background:#fff; border-radius:14px; box-shadow:0 12px 36px #0008; }
+.review-tv-prompt { color:var(--text); font-size:.86em; font-weight:700; }
+.review-tv-stars { color:var(--gold); font-size:clamp(18px,1.8vw,28px); letter-spacing:3px; }
+.review-tv-score { margin-top:5px; color:var(--text); font-size:.78em; }
+.review-tv-quote { min-height:3.2em; margin:14px 0 10px; color:var(--text)!important; font-family:Georgia,serif; font-size:clamp(16px,1.4vw,22px); font-style:italic; }
+.review-tv-author { color:var(--gold); font-size:.88em; font-weight:700; }
+.review-tv-link { margin-top:18px; color:var(--muted2); font-size:.72em; letter-spacing:.12em; }
+.review-tv-link strong { display:block; margin-top:5px; color:var(--gold); font-size:1.18em; }
+.review-tv-indicators { display:flex; gap:5px; margin-top:14px; }
+.review-tv-indicators i { width:5px; height:5px; border-radius:50%; background:#ffffff40; }
+.review-tv-indicators i.active { background:var(--gold); }
+
+.tipo-fade { background: rgba(228,166,79,0.85); color: #000; }
+.tipo-bob  { background: rgba(62,207,142,0.85); color: #000; }
+
+/* ── BODY RESERVAS ── */
+.body {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+  padding: clamp(10px,1.5vh,20px) clamp(20px,3vw,56px) clamp(8px,1vh,14px);
+  gap: clamp(8px,1.2vh,16px);
+  min-height: 0;
+}
+
+/* PRÓXIMO */
+.proximo {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, rgba(228,166,79,0.10), rgba(228,166,79,0.03), transparent);
+  border: 1px solid rgba(79, 228, 86, 0.35);
+  border-radius: var(--radius);
+  padding: clamp(12px,1.5vh,20px) clamp(16px,2vw,32px);
+  display: flex; align-items: center;
+  gap: clamp(14px,2vw,28px);
+}
+
+.proximo::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--gold), rgba(79, 228, 111, 0.3));
+  border-radius: 4px 0 0 4px;
+}
+
+.proximo::after {
+  content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(228,166,79,0.04), transparent);
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+@keyframes shimmer { 0% { left: -100%; } 100% { left: 200%; } }
+
+.proximo-tag {
+  font-size: clamp(8px,0.65vw,10px); font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase; color: var(--gold);
+  background: rgba(228,166,79,0.15); border: 1px solid rgba(228,166,79,0.3);
+  padding: clamp(3px,0.4vh,6px) clamp(8px,0.8vw,14px); border-radius: 20px;
+  white-space: nowrap; flex-shrink: 0;
+}
+
+.proximo-info { flex: 1; min-width: 0; }
+
+.proximo-nombre {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(154px,3.5vw,52px); letter-spacing: 2px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.proximo-servicio { font-size: clamp(350%,0.8vw,13px); color: var(--muted2); margin-top: 2px; }
+
+.proximo-hora {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(28px,4.5vw,60px); color: var(--gold); letter-spacing: 3px;
+  flex-shrink: 0; text-shadow: 0 0 30px var(--gold-glow);
+}
+
+/* LISTA */
+.lista-header {
+  display: grid;
+  grid-template-columns: clamp(60px,7vw,100px) 1fr auto clamp(80px,10vw,130px);
+  gap: clamp(8px,1.2vw,18px);
+  padding: 0 clamp(10px,1.2vw,22px) clamp(6px,0.8vh,10px);
+  font-size: clamp(8px,0.65vw,10px); font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+  border-bottom: 1px solid var(--border); margin-bottom: 6px;
+}
+
+.lista-scroll {
+  overflow-y: auto; flex: 1; display: flex; flex-direction: column;
+  gap: clamp(4px,0.6vh,8px); scrollbar-width: none; min-height: 0; height: 100%;
+}
+
+.lista-scroll::-webkit-scrollbar { display: none; }
+
+.r-item {
+  display: grid;
+  grid-template-columns: clamp(60px,7vw,100px) 1fr auto clamp(80px,10vw,130px);
+  align-items: center; gap: clamp(8px,1.2vw,18px);
+  padding: clamp(8px,1vh,16px) clamp(10px,1.2vw,22px);
+  border-radius: 12px; border: 1px solid transparent;
+  background: var(--surface); transition: all 0.3s ease;
+  position: relative; overflow: hidden;
+}
+
+.r-item.pasada {
+  opacity: 0.42; background: var(--surface); border-color: var(--border); filter: grayscale(0.25);
+}
+
+.r-item.pasada .r-hora { color: var(--muted2); text-decoration: line-through; text-decoration-color: rgba(255,255,255,0.15); }
+.r-item.pasada .r-nombre { color: var(--muted2); }
+
+.r-item.actual {
+  background: linear-gradient(135deg, rgba(228,166,79,0.12), rgba(228,166,79,0.04));
+  border-color: rgba(228,166,79,0.4);
+  box-shadow: 0 0 24px rgba(228,166,79,0.08), inset 0 0 30px rgba(228,166,79,0.03);
+}
+
+.r-item.actual::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--gold);
+}
+
+.r-item.proxima { border-color: var(--border); }
+
+.r-hora {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(18px,2.2vw,32px); letter-spacing: 1px; color: var(--gold);
+}
+
+.r-nombre { font-size: clamp(12px,1.2vw,19px); font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-servicio { font-size: clamp(9px,0.7vw,12px); color: var(--muted2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-total { font-size: clamp(12px,1.1vw,17px); font-weight: 600; color: var(--green); text-align: center; }
+.r-item.pasada .r-total { color: var(--muted); }
+
+.r-badge {
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(8px,0.65vw,10px); font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: clamp(3px,0.4vh,6px) clamp(8px,0.8vw,14px); border-radius: 20px; white-space: nowrap;
+}
+
+.badge-pasada  { background: rgba(255,255,255,0.04); color: var(--muted); }
+.badge-actual  { background: rgba(228,166,79,0.18);  color: var(--gold); }
+.badge-proxima { background: rgba(62,207,142,0.10);  color: var(--green); }
+
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 16px; color: var(--muted);
+}
+.empty-icon { font-size: clamp(32px,4vw,56px); opacity: 0.3; }
+.empty-text { font-size: clamp(12px,1.1vw,18px); letter-spacing: 1px; }
+
+.sin-mas {
+  margin-top: 8px; padding: clamp(12px,1.5vh,20px) clamp(16px,2vw,32px);
+  background: rgba(62,207,142,0.06); border: 1px solid rgba(62,207,142,0.18);
+  border-radius: 12px; color: var(--green);
+  font-size: clamp(11px,0.9vw,15px); font-weight: 600; letter-spacing: 1px; text-align: center;
+}
+
+/* ── FOOTER ── */
+.footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(20px,3vw,56px);
+  height: clamp(32px,4vh,48px);
+  border-top: 1px solid var(--border);
+  font-size: clamp(8px,0.65vw,11px); color: var(--muted);
+  letter-spacing: 1.5px; text-transform: uppercase;
+  background: linear-gradient(0deg, rgba(228,166,79,0.02) 0%, transparent 100%);
+}
+
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+  display: inline-block; margin-right: 7px;
+  animation: blink 2.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--green); }
+  50%       { opacity: 0.2; box-shadow: none; }
+}
+
+/* ── FLASH ── */
+.flash {
+  position: fixed; inset: 0; z-index: 90; pointer-events: none;
+  border: 3px solid transparent; opacity: 0; transition: opacity 0.2s;
+}
+.flash.active {
+  opacity: 1; border-color: var(--gold);
+  box-shadow: inset 0 0 80px rgba(228,166,79,0.08);
+  animation: flashPulse 1s ease forwards;
+}
+@keyframes flashPulse { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: clamp(40px,5vh,70px); right: clamp(20px,3vw,56px);
+  z-index: 200; background: var(--surface2); border: 1.5px solid var(--gold);
+  border-radius: 16px; padding: clamp(14px,1.8vh,22px) clamp(18px,2vw,30px);
+  display: flex; align-items: flex-start; gap: 18px;
+  box-shadow: 0 12px 50px rgba(0,0,0,0.7), 0 0 40px var(--gold-glow);
+  transform: translateY(140px) scale(0.95); opacity: 0;
+  transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+  max-width: clamp(260px,28vw,420px); min-width: 260px;
+}
+.toast.show { transform: translateY(0) scale(1); opacity: 1; }
+.toast-icon { font-size: clamp(22px,2.5vw,32px); flex-shrink: 0; margin-top: 2px; }
+.toast-tag { font-size: clamp(8px,0.65vw,10px); font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.toast-nombre { font-family: 'Bebas Neue', sans-serif; font-size: clamp(20px,2.2vw,28px); letter-spacing: 1px; color: var(--text); line-height: 1; }
+.toast-detalle { font-size: clamp(10px,0.8vw,13px); color: var(--muted2); margin-top: 4px; }
+
+.dashboard-grid{display:grid;grid-template-columns:48% 52%;gap:18px;flex:1;min-height:0}
+.left-panel{display:flex;flex-direction:column;gap:14px;min-height:0}
+.video-panel{flex:1;background:#0b1020;border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden}
+.video-panel video{width:100%;height:100%;object-fit:cover}
+.right-panel{display:flex;flex-direction:column;min-height:0}
+.reservas-panel{display:flex;flex-direction:column;min-height:0;flex:1}
+@media (min-width:1600px){.dashboard-grid{grid-template-columns:44% 56%}}
+
+.tv-booking-overlay[hidden] { display: none; }
+.tv-booking-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 3vw, 36px);
+  background: rgba(0, 0, 0, .88);
+}
+.tv-booking-dialog {
+  width: min(960px, 100%);
+  max-height: min(94vh, 980px);
+  overflow: auto;
+  padding: clamp(20px, 3vw, 40px);
+  border: 1px solid var(--gold-glow);
+  border-radius: 22px;
+  background: linear-gradient(145deg, #17181d, #0d0e11);
+  box-shadow: 0 24px 90px #000b, 0 0 36px var(--gold-dim);
+}
+.tv-booking-step[hidden] { display:none!important; }
+.tv-booking-phone-tools {
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin:20px auto;
+}
+.tv-booking-phone-tools .tv-booking-key { min-width:180px; }
+.tv-booking-key, .tv-booking-continue {
+  min-height:clamp(56px,8vh,78px);
+  border:1px solid var(--gold-glow);
+  border-radius:14px;
+  background:linear-gradient(145deg,#24252a,#15161a);
+  color:var(--text);
+  font:700 clamp(20px,2.2vw,30px) 'Inter',sans-serif;
+  cursor:pointer;
+}
+.tv-booking-key:focus-visible, .tv-booking-continue:focus-visible,
+.tv-booking-key:hover, .tv-booking-continue:hover {
+  outline:3px solid var(--gold);
+  outline-offset:2px;
+  background:var(--gold);
+  color:#17120a;
+}
+.tv-booking-key.utility { color:var(--gold); font-size:clamp(13px,1.2vw,17px); }
+.tv-booking-continue {
+  display:block;
+  width:min(100%,520px);
+  min-height:60px;
+  margin:0 auto 12px;
+  background:var(--gold);
+  color:#17120a;
+  font-size:clamp(16px,1.5vw,21px);
+}
+.tv-booking-continue:disabled { opacity:.4; cursor:not-allowed; }
+.tv-booking-shortcuts { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:14px 0; color:var(--muted2); font-size:.85em; }
+.tv-booking-shortcuts span { padding:7px 10px; border:1px solid var(--border); border-radius:8px; }
+.tv-booking-service:focus-visible, .tv-booking-date:focus-visible, .tv-booking-hour:focus-visible,
+.tv-booking-action:focus-visible { outline:3px solid var(--gold); outline-offset:3px; }
+.tv-kiosk-launcher {
+  position: fixed;
+  z-index: 300;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 4vw, 56px);
+  width: min(980px, calc(100vw - 48px));
+  min-height: clamp(220px, 34vh, 360px);
+  padding: clamp(20px, 4vw, 48px);
+  border: 3px solid var(--gold);
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(38,31,17,.98), rgba(11,12,15,.98));
+  color: var(--text);
+  box-shadow: 0 18px 70px #000e, 0 0 48px rgba(228,166,79,.34);
+  font: inherit;
+  font-size: clamp(18px, 2vw, 28px);
+  text-align: left;
+  justify-content: flex-start;
+  cursor: pointer;
+  animation: kioskLauncherGlow 2.4s ease-in-out infinite alternate;
+}
+.tv-kiosk-launcher:focus-visible { outline: 5px solid #fff; outline-offset: 6px; }
+.tv-kiosk-launcher strong { display:block; color: var(--gold); font-size: clamp(38px, 6vw, 76px); line-height: .95; letter-spacing: .03em; }
+.tv-kiosk-launcher-copy { display:grid; gap:12px; }
+.tv-kiosk-launcher-eyebrow { color:#fff; font-size:clamp(13px,1.4vw,19px); font-weight:800; letter-spacing:.2em; }
+.tv-kiosk-launcher-help { color:#e7e1d5; font-size:clamp(15px,1.6vw,22px); line-height:1.35; }
+.tv-kiosk-remote {
+  display:block;
+  width:clamp(108px, 13vw, 156px);
+  height:clamp(190px, 29vh, 280px);
+  flex:none;
+  object-fit:contain;
+  filter:drop-shadow(0 12px 24px rgba(0,0,0,.8));
+}
+.tv-kiosk-launcher-key {
+  display: grid;
+  place-items: center;
+  min-width: clamp(64px, 7vw, 92px);
+  min-height: clamp(64px, 7vw, 92px);
+  border:3px solid #fff4d8;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #17120a;
+  font-size:clamp(22px,2.4vw,32px);
+  font-weight: 900;
+  box-shadow:0 0 0 8px rgba(228,166,79,.16), 0 0 30px rgba(228,166,79,.5);
+}
+@keyframes kioskLauncherGlow {
+  from { box-shadow: 0 18px 70px #000e, 0 0 28px rgba(228,166,79,.24); }
+  to { box-shadow: 0 18px 70px #000e, 0 0 58px rgba(228,166,79,.52); }
+}
+body.kiosk-active .tv-kiosk-launcher { display: none; }
+.tv-booking-eyebrow {
+  color: var(--gold);
+  font-size: .82em;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.tv-control-guide {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+.tv-control-guide-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 66px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255,255,255,.025);
+  color: var(--muted2);
+  font-size: clamp(11px, .9vw, 14px);
+  font-weight: 700;
+}
+.tv-control-guide-item img {
+  display: block;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 8px;
+  object-fit: contain;
+}
+.tv-booking-dialog h2 {
+  margin: 10px 0 8px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 400;
+  letter-spacing: .04em;
+}
+.tv-booking-help, .tv-booking-status, .tv-booking-note {
+  color: var(--muted2);
+  line-height: 1.5;
+}
+.tv-booking-phone {
+  margin: 28px 0 12px;
+  color: var(--gold);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(32px, 6vw, 64px);
+  letter-spacing: .08em;
+  text-align: center;
+}
+.tv-booking-status {
+  min-height: 1.5em;
+  margin: 14px 0;
+}
+.tv-booking-status[data-error="true"] { color: var(--red); }
+.tv-booking-services, .tv-booking-dates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin: 22px 0;
+}
+.tv-booking-service, .tv-booking-date {
+  position: relative;
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 92px;
+  padding: 14px;
+  border: 1px solid var(--gold-glow);
+  border-radius: 14px;
+  background: #e4a64f12;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.tv-booking-service:hover, .tv-booking-service:focus-visible,
+.tv-booking-date:hover, .tv-booking-date:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+  background: #e4a64f2b;
+}
+.tv-booking-service-key {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--gold);
+  color: #17120a;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 30px;
+}
+.tv-booking-service-photo {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.tv-booking-service-art {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: 1px solid var(--gold-glow);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #e4a64f30, #e4a64f0a);
+  color: var(--gold);
+}
+.tv-booking-service-art svg { width: 38px; height: 38px; }
+.tv-booking-service-name, .tv-booking-date-name { display: block; font-weight: 800; }
+.tv-booking-service-meta, .tv-booking-date-meta { display: block; margin-top: 5px; color: var(--muted2); font-size: .85em; }
+.tv-booking-date { grid-template-columns: 1fr; min-height: 82px; text-align: center; }
+.tv-booking-dates { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.tv-booking-date.priority { grid-column: span 2; min-height: 118px; }
+.tv-booking-date.priority .tv-booking-date-name { font-size: clamp(24px, 2.2vw, 34px); }
+.tv-booking-date.today {
+  border-color: #3ecf8e;
+  background: linear-gradient(145deg, #3ecf8e2c, #3ecf8e0b);
+}
+.tv-booking-date.today .tv-booking-date-name { color: #55e5a0; }
+.tv-booking-date.unavailable,
+.tv-booking-date:disabled {
+  border-color: #4a4242;
+  background: #181719;
+  color: #827a7a;
+  text-decoration: line-through;
+  cursor: not-allowed;
+  opacity: .66;
+}
+.tv-booking-date.unavailable .tv-booking-date-meta,
+.tv-booking-date:disabled .tv-booking-date-meta {
+  color: #d18484;
+  text-decoration: none;
+}
+.tv-booking-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 14px 0;
+  color: var(--muted2);
+  font-size: .88em;
+}
+.tv-booking-controls span {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.tv-booking-hours {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin: 22px 0;
+}
+.tv-booking-hour, .tv-booking-action {
+  min-height: 58px;
+  border: 1px solid var(--gold-glow);
+  border-radius: 12px;
+  background: #e4a64f12;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tv-booking-hour:hover, .tv-booking-hour:focus-visible,
+.tv-booking-action:hover, .tv-booking-action:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+  background: #e4a64f2b;
+}
+.tv-booking-hour:disabled { opacity: .4; cursor: not-allowed; }
+.tv-booking-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.tv-booking-actions .tv-booking-action { flex: 1 1 180px; padding: 12px 18px; }
+.tv-booking-action.primary { background: var(--gold); color: #17120a; }
+.tv-booking-action.secondary { background: transparent; }
+.tv-booking-action.danger {
+  border-color: #ff5c5c;
+  background: linear-gradient(145deg, #9f2424, #551616);
+  color: #fff;
+}
+.tv-booking-action.danger:hover, .tv-booking-action.danger:focus-visible {
+  outline-color: #ff7777;
+  background: #b52e2e;
+}
+.tv-booking-summary {
+  margin: 22px 0;
+  padding: 18px;
+  border: 1px solid var(--gold-glow);
+  border-radius: 14px;
+  background: #e4a64f0d;
+  line-height: 1.8;
+}
+.tv-site-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--gold-glow);
+  border-radius: 999px;
+  color: var(--gold);
+  font-size: .75em;
+  font-weight: 700;
+  text-decoration: none;
+}
+.tv-site-link:hover, .tv-site-link:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+@media (max-width: 560px) {
+  .tv-kiosk-launcher { width:calc(100vw - 24px); min-height:0; gap:12px; padding:16px; border-radius:18px; }
+  .tv-kiosk-remote { width:72px; height:132px; }
+  .tv-kiosk-launcher-copy { gap:8px; }
+  .tv-kiosk-launcher strong { font-size:clamp(28px, 8vw, 44px); }
+  .tv-kiosk-launcher-key { min-width:54px; min-height:54px; border-width:2px; }
+  .tv-booking-overlay { padding: 12px; }
+  .tv-booking-dialog { padding: 22px 18px; }
+  .tv-booking-hours { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tv-booking-services, .tv-booking-dates { grid-template-columns: 1fr; }
+  .tv-booking-date.priority { grid-column: auto; }
+  .tv-control-guide { gap: 6px; }
+  .tv-control-guide-item { flex-direction: column; gap: 4px; min-height: 76px; padding: 6px 3px; font-size: 10px; text-align: center; }
+  .tv-control-guide-item img { width: 42px; height: 42px; }
+  .review-tv-panel { grid-template-columns:1fr; }
+  .review-tv-qr { width:min(128px,100%); }
+}
+
+</style>
+
+
+</head>
+<body>
+
+<video autoplay muted playsinline preload="none" id="bg-video" class="tv-background-video" aria-hidden="true"></video>
+<div class="tv-background-overlay" aria-hidden="true"></div>
+<audio id="tv-ambient-music" src="assets/audio/james-ambient.mp3" preload="none" loop></audio>
+<div class="bg"></div>
+<div class="bg-lines"></div>
+<div class="flash" id="flash"></div>
+
+<div class="toast" id="toast">
+  <div class="toast-icon">✂️</div>
+  <div>
+    <div class="toast-tag">⚡ Nueva reserva</div>
+    <div class="toast-nombre" id="toast-nombre">—</div>
+    <div class="toast-detalle" id="toast-detalle">—</div>
+  </div>
+</div>
+
+<div class="tv-reminder-alert" id="tv-reminder-alert" role="status" aria-live="polite">
+  <span class="tv-reminder-icon" aria-hidden="true">◉</span>
+  <div>
+    <div class="tv-reminder-tag">RECORDATORIO DE WHATSAPP</div>
+    <div class="tv-reminder-name" id="tv-reminder-name"></div>
+    <div class="tv-reminder-detail" id="tv-reminder-detail"></div>
+  </div>
+</div>
+
+<div class="tv-booking-overlay" id="tv-booking-overlay" hidden>
+  <section class="tv-booking-dialog" id="tv-booking-dialog" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="tv-booking-title">
+    <p class="tv-booking-eyebrow">Reserva fácil · James Barbershop</p>
+    <div class="tv-control-guide" aria-label="Guía visual del control remoto">
+      <div class="tv-control-guide-item">
+        <img src="assets/control-numbers.png" alt="" width="48" height="48">
+        <span>Escribe tu número</span>
+      </div>
+      <div class="tv-control-guide-item">
+        <img src="assets/control-arrows-ok.png" alt="" width="48" height="48">
+        <span>Muévete y pulsa OK</span>
+      </div>
+      <div class="tv-control-guide-item">
+        <img src="assets/control-back.png" alt="" width="48" height="48">
+        <span>Volver atrás</span>
+      </div>
+    </div>
+    <div class="tv-booking-step" id="tv-booking-phone-step">
+      <h2 id="tv-booking-title">Escribe tu WhatsApp</h2>
+      <p class="tv-booking-help">Paso 1 de 5 · Escribe el WhatsApp con los números físicos del control, no con botones numéricos en pantalla. Usa las flechas y OK para las opciones.</p>
+      <div class="tv-booking-phone" id="tv-booking-phone" aria-live="polite">+56 9 ____ ____</div>
+      <p class="tv-booking-status" id="tv-booking-phone-status" aria-live="polite">Esperando número…</p>
+      <div class="tv-booking-phone-tools" role="group" aria-label="Acciones para corregir el número">
+        <button type="button" class="tv-booking-key utility" id="tv-booking-phone-delete">⌫ Borrar último</button>
+        <button type="button" class="tv-booking-key utility" id="tv-booking-phone-clear">Limpiar número</button>
+      </div>
+      <button type="button" class="tv-booking-continue" id="tv-booking-phone-continue" disabled>Continuar</button>
+    </div>
+    <div class="tv-booking-step" id="tv-booking-service-step" hidden>
+      <h2>Paso 2 de 5 · Elige un servicio</h2>
+      <p class="tv-booking-help">Muévete por los servicios con las flechas y pulsa OK para elegir.</p>
+      <div class="tv-booking-services" id="tv-booking-services" role="group" aria-label="Servicios disponibles"></div>
+      <p class="tv-booking-status" id="tv-booking-service-status" aria-live="polite"></p>
+    </div>
+    <div class="tv-booking-step" id="tv-booking-date-step" hidden>
+      <h2>Paso 3 de 5 · Elige el día</h2>
+      <p class="tv-booking-help">Muévete con las flechas. Hoy y Mañana están destacados.</p>
+      <div class="tv-booking-dates" id="tv-booking-dates" role="group" aria-label="Próximos días disponibles"></div>
+      <p class="tv-booking-status" id="tv-booking-date-status" aria-live="polite"></p>
+      <div class="tv-booking-actions">
+        <button type="button" class="tv-booking-action secondary" id="tv-booking-back-service">Volver a servicios</button>
+      </div>
+    </div>
+    <div class="tv-booking-step" id="tv-booking-hours-step" hidden>
+      <h2>Paso 4 de 5 · Elige la hora</h2>
+      <p class="tv-booking-help" id="tv-booking-date"></p>
+      <p class="tv-booking-help" id="tv-booking-selected-service"></p>
+      <p class="tv-booking-help">Elige una hora con las flechas y confirma con OK.</p>
+      <div class="tv-booking-hours" id="tv-booking-hours" role="group" aria-label="Horarios disponibles"></div>
+      <p class="tv-booking-status" id="tv-booking-hours-status" aria-live="polite"></p>
+      <div class="tv-booking-actions">
+        <button type="button" class="tv-booking-action secondary" id="tv-booking-back-dates">Volver a fechas</button>
+      </div>
+    </div>
+    <div class="tv-booking-step" id="tv-booking-details-step" hidden>
+      <h2>Paso 5 de 5 · Confirma tu hora</h2>
+      <div class="tv-booking-summary" id="tv-booking-summary"></div>
+      <p class="tv-booking-note">Usaremos tu número para vincular la reserva a tu ficha. No enviaremos WhatsApp desde la pantalla.</p>
+      <div class="tv-booking-actions">
+        <button type="button" class="tv-booking-action secondary" id="tv-booking-back-hours">Volver a horarios</button>
+        <button type="button" class="tv-booking-action primary" id="tv-booking-save">Confirmar reserva</button>
+      </div>
+      <p class="tv-booking-status" id="tv-booking-details-status" aria-live="polite"></p>
+    </div>
+    <div class="tv-booking-actions">
+      <button type="button" class="tv-booking-action danger" id="tv-booking-cancel">Cancelar reserva</button>
+    </div>
+  </section>
+</div>
+
+<button type="button" class="tv-kiosk-launcher" id="tv-kiosk-launcher" autofocus>
+  <img class="tv-kiosk-remote" src="assets/control-remote.svg" alt="Control remoto con teclas OK y numéricas">
+  <span class="tv-kiosk-launcher-key" aria-hidden="true">OK</span>
+  <span class="tv-kiosk-launcher-copy">
+    <span class="tv-kiosk-launcher-eyebrow">JAMES BARBERSHOP · RESERVA EN LA TV</span>
+    <strong>PULSA OK<br>PARA RESERVAR</strong>
+    <span class="tv-kiosk-launcher-help">Usa el botón OK de tu control y agenda tu próximo corte aquí mismo.</span>
+  </span>
+</button>
+
+<div class="app">
+
+  <div class="header">
+    <div class="brand">
+      <div class="brand-icon"><img src="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" alt=""></div>
+      <div>
+        <div class="brand-name">James Barbershop</div>
+        <div class="brand-sub">Panel de reservas en vivo</div>
+        <a class="tv-site-link" href="https://barberiajames.cl" target="_blank" rel="noopener noreferrer">barberiajames.cl ↗</a>
+      </div>
+    </div>
+    <div class="clock-block">
+      <div class="clock" id="clock">00:00</div>
+      <div class="clock-date" id="clock-date">—</div>
+    </div>
+
+
+
+
+
+
+
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num" id="stat-hoy">0</div>
+        <div class="stat-label">Reservas hoy</div><!-- BOTÓN TEMPORAL DE REINICIO EN TIEMPO REAL -->
+
+      </div>
+      <div class="divider-v"></div>
+      <div class="stat">
+        <div class="stat-num" id="stat-pend" style="color:var(--green)">0</div>
+        <div class="stat-label">Pendientes</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="left-panel">
+      <section class="video-panel showreel-panel" aria-label="James Barbershop">
+        <div class="showreel-content">
+          <span class="showreel-eyebrow">JAMES BARBERSHOP · EXPERIENCIA EN VIVO</span>
+          <h2>Tu estilo.<br>Nuestro sello.</h2>
+          <p>Un buen corte empieza con una buena experiencia.</p>
+        </div>
+        <div class="showreel-mark" aria-hidden="true">JB</div>
+      </section>
+
+      <div class="carruseles-dobles">
+        <div class="carousel-heading">
+          <span>ESTILOS DESTACADOS</span>
+          <span>INSPÍRATE · ELIGE TU PRÓXIMO LOOK</span>
+        </div>
+        <div class="carrusel-wrap" aria-label="Carrusel de estilos">
+          <span class="carousel-label">LOOKS</span>
+          <div class="carrusel-gradient-l"></div>
+          <div class="carrusel-gradient-r"></div>
+          <div class="carrusel-track" id="track-mujeres"></div>
+        </div>
+        <div class="carrusel-wrap" aria-label="Carrusel de cortes">
+          <span class="carousel-label">CORTES</span>
+          <div class="carrusel-gradient-l"></div>
+          <div class="carrusel-gradient-r"></div>
+          <div class="carrusel-track" id="track-hombres"></div>
+        </div>
+      </div>
+
+      <section class="video-panel review-tv-panel" aria-label="Reseñas y código para compartir tu opinión">
+        <div class="review-tv-qr-column">
+          <div class="review-tv-qr">
+            <img id="tv-review-qr" src="assets/james-review-qr.png" alt="Código QR para dejar una reseña de James Barbershop" width="768" height="768" decoding="async">
+          </div>
+          <p class="review-tv-prompt">ESCANEA Y<br>CUÉNTANOS</p>
+        </div>
+        <div class="review-tv-content">
+          <span class="review-tv-eyebrow">LA COMUNIDAD JAMES</span>
+          <div class="review-tv-stars" id="tv-review-average-stars">★★★★★</div>
+          <p class="review-tv-score" id="tv-review-average">Reseñas de nuestra comunidad</p>
+          <p class="review-tv-quote" id="tv-review-quote">Tu opinión ayuda a que James Barbershop siga creciendo.</p>
+          <p class="review-tv-author" id="tv-review-author"></p>
+          <div class="review-tv-indicators" id="tv-review-indicators" aria-hidden="true"></div>
+          <p class="review-tv-link">RESERVAS Y MÁS INFORMACIÓN <strong>barberiajames.cl</strong></p>
+        </div>
+      </section>
+    </div>
+
+    <div class="right-panel">
+      <div class="reservas-panel">
+        <div class="agenda-heading">
+          <div>
+            <span>AGENDA EN TIEMPO REAL</span>
+            <h2>Reservas de hoy</h2>
+          </div>
+          <span class="agenda-date" id="agenda-date">HOY</span>
+        </div>
+        <div class="proximo" id="proximo-wrap">
+          <span class="proximo-tag">PRÓXIMA CITA</span>
+          <div class="proximo-info">
+            <div class="proximo-nombre" id="proximo-nombre">Sin reservas pendientes</div>
+            <div class="proximo-servicio" id="proximo-servicio"></div>
+          </div>
+          <div class="proximo-hora" id="proximo-hora"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;overflow:hidden;min-height:0;flex:1;">
+          <div class="lista-header">
+            <span>Hora</span><span>Cliente</span>
+            <span style="text-align:center">Total</span>
+            <span style="text-align:center">Estado</span>
+          </div>
+          <div class="lista-scroll" id="lista"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <div><span class="live-dot"></span><span id="tv-connection-label">Conectando…</span></div>
+    <div id="footer-fecha">—</div>
+    <div id="tv-brand-footer">James Barbershop</div>
+  </div>
+
+</div>
+<script>
+// ── IMÁGENES ──
+const CORTES = {
+  looks: Array.from({ length: 25 }, (_, index) => ({
+    src: `assets/cortes/women_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
+    alt: 'Estilo de cabello'
+  })),
+  cortes: Array.from({ length: 20 }, (_, index) => ({
+    src: `assets/cortes/men_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
+    alt: 'Corte de barbería'
+  }))
+};
+
+// ── FIREBASE ──
+const firebaseConfig = {
+  apiKey: window.DEMO_BRAND.firebase.apiKey,
+  databaseURL: window.DEMO_BRAND.firebase.databaseURL,
+  projectId: window.DEMO_BRAND.firebase.projectId,
+  authDomain: window.DEMO_BRAND.firebase.authDomain,
+  storageBucket: window.DEMO_BRAND.firebase.storageBucket,
+  messagingSenderId: window.DEMO_BRAND.firebase.messagingSenderId
+};
+
+let phoneBuffer = "";
+let bufferTimer = null;
+let tvDatabase = null;
+let kioskState = 'closed';
+let kioskPhoneDigits = '';
+let kioskCustomerId = '';
+let kioskCustomerName = '';
+let kioskService = null;
+let kioskDate = '';
+let kioskSelectedHour = '';
+let kioskAvailableHours = [];
+let kioskLockToken = '';
+let kioskOwnReservationKey = '';
+let kioskSaving = false;
+
+function formatPhoneBuffer(digits) {
+  const subscriber = digits.padEnd(8, '_');
+  return `+56 9 ${subscriber.slice(0, 4)} ${subscriber.slice(4, 8)}`;
+}
+
+function setKioskStatus(id, message, isError = false) {
+  const status = document.getElementById(id);
+  if (!status) return;
+  status.textContent = message;
+  status.dataset.error = String(isError);
+}
+
+function setTvConnectionStatus(message, state = 'online') {
+  const label = document.getElementById('tv-connection-label');
+  const dot = document.querySelector('.live-dot');
+  if (label) label.textContent = message;
+  if (dot) {
+    dot.style.backgroundColor = state === 'error'
+      ? 'var(--red)'
+      : state === 'offline'
+        ? 'var(--muted2)'
+        : 'var(--green)';
+  }
+}
+
+function showKioskStep(step) {
+  document.querySelectorAll('.tv-booking-step').forEach(section => {
+    section.hidden = section.id !== `tv-booking-${step}-step`;
+  });
+  kioskState = step;
+}
+
+function openKioskPhoneDialog() {
+  startAmbientMusic();
+  const overlay = document.getElementById('tv-booking-overlay');
+  overlay.hidden = false;
+  document.body.classList.add('kiosk-active');
+  showKioskStep('phone');
+  try {
+    initAudio();
+  } catch (error) {
+    console.warn('El sonido requiere compatibilidad con Web Audio:', error);
+  }
+  document.getElementById('tv-booking-phone-delete').focus();
+  updateKioskPhoneDisplay();
+}
+
+function clearKioskBufferTimer() {
+  if (bufferTimer !== null) {
+    window.clearTimeout(bufferTimer);
+    bufferTimer = null;
+  }
+}
+
+function resetKioskBufferTimer() {
+  clearKioskBufferTimer();
+  bufferTimer = window.setTimeout(() => {
+    bufferTimer = null;
+    phoneBuffer = '';
+    updateKioskPhoneDisplay();
+    setKioskStatus('tv-booking-phone-status', 'El número se borró por inactividad. Intenta de nuevo.');
+  }, 30000);
+}
+
+function updateKioskPhoneDisplay() {
+  const display = document.getElementById('tv-booking-phone');
+  if (display) display.textContent = formatPhoneBuffer(phoneBuffer);
+  const continueButton = document.getElementById('tv-booking-phone-continue');
+  if (continueButton) continueButton.disabled = !/^\d{8}$/.test(phoneBuffer);
+  if (continueButton && /^\d{8}$/.test(phoneBuffer)) continueButton.focus();
+  if (kioskState === 'phone') {
+    setKioskStatus(
+      'tv-booking-phone-status',
+      phoneBuffer.length
+        ? `${phoneBuffer.length} de 8 dígitos`
+        : 'Escribe los 8 dígitos que vienen después de +56 9.'
+    );
+  }
+}
+
+function addKioskPhoneDigit(digit) {
+  if (!/^\d$/.test(String(digit)) || phoneBuffer.length >= 8) return;
+  phoneBuffer += String(digit);
+  updateKioskPhoneDisplay();
+  resetKioskBufferTimer();
+}
+
+function deleteKioskPhoneDigit() {
+  phoneBuffer = phoneBuffer.slice(0, -1);
+  updateKioskPhoneDisplay();
+  resetKioskBufferTimer();
+}
+
+function clearKioskPhone() {
+  phoneBuffer = '';
+  updateKioskPhoneDisplay();
+  clearKioskBufferTimer();
+}
+
+function closeKioskBooking() {
+  if (kioskSaving) return;
+  clearKioskBufferTimer();
+  phoneBuffer = '';
+  kioskPhoneDigits = '';
+  kioskCustomerId = '';
+  kioskCustomerName = '';
+  kioskService = null;
+  kioskDate = '';
+  kioskSelectedHour = '';
+  kioskAvailableHours = [];
+  kioskLockToken = '';
+  kioskState = 'closed';
+  document.getElementById('tv-booking-overlay').hidden = true;
+  document.body.classList.remove('kiosk-active');
+  document.getElementById('tv-booking-services').replaceChildren();
+  document.getElementById('tv-booking-dates').replaceChildren();
+  document.getElementById('tv-booking-hours').replaceChildren();
+  updateKioskPhoneDisplay();
+  document.getElementById('tv-kiosk-launcher').focus();
+}
+
+function chileDateAndTime() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Santiago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23'
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return {
+    date: `${values.year}-${values.month}-${values.day}`,
+    minutes: Number(values.hour) * 60 + Number(values.minute)
+  };
+}
+
+function kioskWeekday(dateString) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
+function normalizeKioskTime(value) {
+  const match = String(value || '').match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return '';
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (hour > 23 || minute > 59) return '';
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+function normalizeLockTime(value) {
+  return normalizeKioskTime(String(value || '').replace(/[-_]/g, ':'));
+}
+
+function isKioskDayClosed(snapshot, dateString) {
+  let closed = false;
+  snapshot.forEach(child => {
+    const value = child.val();
+    if (value === dateString || (value && value.fecha === dateString) || child.key === dateString) {
+      closed = true;
+    }
+  });
+  return closed;
+}
+
+function formatPhoneDigits(digits) {
+  const subscriber = normalizeKioskPhone(digits);
+  return subscriber ? `+56 9 ${subscriber.slice(1, 5)} ${subscriber.slice(5, 9)}` : '';
+}
+
+function normalizeKioskPhone(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  if (digits.length === 9 && digits.startsWith('9')) return digits;
+  if (digits.length === 11 && digits.startsWith('569')) return digits.slice(2);
+  return '';
+}
+
+function kioskPhoneSearchValues(phoneDigits) {
+  const countryNumber = `56${phoneDigits}`;
+  const subscriber = phoneDigits;
+  const localFormatted = `9 ${subscriber.slice(1, 5)} ${subscriber.slice(5)}`;
+  const internationalFormatted = `+56 9 ${subscriber.slice(1, 5)} ${subscriber.slice(5)}`;
+  const internationalNoPlus = `56 9 ${subscriber.slice(1, 5)} ${subscriber.slice(5)}`;
+  return [...new Set([
+    countryNumber,
+    `+${countryNumber}`,
+    subscriber,
+    localFormatted,
+    internationalFormatted,
+    internationalNoPlus
+  ])];
+}
+
+async function findKioskCustomer(phoneDigits) {
+  const searchValues = kioskPhoneSearchValues(phoneDigits);
+  for (const phone of searchValues) {
+    const snapshot = await tvDatabase.ref('clientes').orderByChild('telefono').equalTo(phone).once('value');
+    let customer = null;
+    snapshot.forEach(child => {
+      const profile = child.val() || {};
+      if (normalizeKioskPhone(profile.telefono) !== phoneDigits) return;
+      customer = {
+        id: child.key,
+        name: profile.nombreDisplay || profile.nombre || `Cliente ${phoneDigits.slice(-4)}`
+      };
+    });
+    if (customer) return customer;
+  }
+
+  for (const phone of searchValues) {
+    const snapshot = await tvDatabase.ref('reservas').orderByChild('telefono').equalTo(phone).once('value');
+    let customer = null;
+    const reservations = [];
+    snapshot.forEach(child => reservations.push(child.val() || {}));
+    for (const reservation of reservations) {
+      if (normalizeKioskPhone(reservation.telefono) !== phoneDigits || !reservation.clienteId) continue;
+      const profileSnapshot = await tvDatabase.ref(`clientes/${reservation.clienteId}`).once('value');
+      const profile = profileSnapshot.val();
+      if (!profile) continue;
+      customer = {
+        id: String(reservation.clienteId),
+        name: profile.nombreDisplay || profile.nombre || reservation.nombre || `Cliente ${phoneDigits.slice(-4)}`
+      };
+      break;
+    }
+    if (customer) return customer;
+  }
+
+  return null;
+}
+
+async function startKioskReservation(phoneDigits) {
+  clearKioskBufferTimer();
+  const normalizedPhone = normalizeKioskPhone(phoneDigits);
+  if (!normalizedPhone) {
+    setKioskStatus('tv-booking-phone-status', 'Completa los 8 dígitos después de +56 9.', true);
+    return;
+  }
+  if (!tvDatabase) {
+    setKioskStatus('tv-booking-phone-status', 'La base de datos aún no está conectada. Intenta nuevamente.', true);
+    return;
+  }
+
+  kioskPhoneDigits = normalizedPhone;
+  setKioskStatus('tv-booking-phone-status', 'Buscando tu ficha…');
+  try {
+    const customer = await findKioskCustomer(normalizedPhone);
+    if (kioskState !== 'phone') return;
+    kioskCustomerId = customer ? customer.id : '';
+    kioskCustomerName = customer ? customer.name : `Cliente ${normalizedPhone.slice(-4)}`;
+    renderKioskServices();
+    showKioskStep('service');
+    setKioskStatus(
+      'tv-booking-service-status',
+      customer ? `Hola, ${kioskCustomerName}. Elige un servicio.` : 'Primera reserva: crearemos tu ficha usando este número.'
+    );
+    document.querySelector('#tv-booking-services .tv-booking-service')?.focus();
+  } catch (error) {
+    console.error('No se pudo buscar la ficha del cliente por teléfono:', error);
+    setKioskStatus('tv-booking-phone-status', `No se pudo buscar tu ficha: ${error.message}`, true);
+  }
+}
+
+function renderKioskServices() {
+  const container = document.getElementById('tv-booking-services');
+  container.replaceChildren();
+  (window.DEMO_BRAND.services || []).slice(0, 9).forEach((service, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'tv-booking-service';
+    button.dataset.serviceIndex = String(index);
+    button.setAttribute('aria-label', `${service.label || service.nombre}, ${formatTotal(service.precio)}`);
+
+    if (service.foto) {
+      const image = document.createElement('img');
+      image.className = 'tv-booking-service-photo';
+      image.src = service.foto;
+      image.alt = '';
+      image.loading = 'lazy';
+      button.appendChild(image);
+    } else {
+      const art = document.createElement('span');
+      art.className = 'tv-booking-service-art';
+      art.setAttribute('aria-hidden', 'true');
+      art.innerHTML = kioskServiceIllustration(service);
+      button.appendChild(art);
+    }
+
+    const info = document.createElement('span');
+    const name = document.createElement('span');
+    name.className = 'tv-booking-service-name';
+    name.textContent = service.label || service.nombre || `Servicio ${index + 1}`;
+    const meta = document.createElement('span');
+    meta.className = 'tv-booking-service-meta';
+    meta.textContent = `${formatTotal(service.precio)} · ${Number(service.tiempo) || 30} min`;
+    info.append(name, meta);
+    button.append(info);
+    button.addEventListener('click', () => selectKioskService(index));
+    container.appendChild(button);
+  });
+}
+
+function kioskServiceIllustration(service) {
+  const category = `${service.grupo || ''} ${service.nombre || ''}`.toLocaleLowerCase('es-CL');
+  if (/color|tinte/.test(category)) {
+    return '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7h14l-2 8H19l-2-8Z"/><path d="M19 15v23h10V15"/><path d="M22 22h4M22 27h4"/><path d="M21 7V4h6v3"/></svg>';
+  }
+  if (/riz|ondul|permanente/.test(category)) {
+    return '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10 19c0-6 10-6 10 0s-10 6-10 12 10 6 10 0"/><path d="M26 14c0-6 10-6 10 0s-10 6-10 12 10 6 10 0"/><path d="M18 39h18"/></svg>';
+  }
+  if (/barba|bigote/.test(category)) {
+    return '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 19c5-5 11-5 16 0 5-5 11-5 16 0-1 7-7 9-13 5l-3-3-3 3c-6 4-12 2-13-5Z"/><path d="M13 29c1 9 5 14 11 14s10-5 11-14"/><path d="M19 30v5m10-5v5"/></svg>';
+  }
+  return '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="17" r="8"/><circle cx="30" cy="31" r="8"/><path d="m23 22 17-17M27 8l5 5M34 15l5 5M10 22l16 16"/></svg>';
+}
+
+function selectKioskService(index) {
+  const service = window.DEMO_BRAND.services[index];
+  if (!service || !Number.isFinite(Number(service.precio))) return;
+  kioskService = service;
+  renderKioskDates();
+  showKioskStep('date');
+  setKioskStatus(
+    'tv-booking-date-status',
+    `${service.label || service.nombre} · ${formatTotal(service.precio)} · Elige el día.`
+  );
+  document.querySelector('#tv-booking-dates .tv-booking-date')?.focus();
+}
+
+function formatKioskDateShort(dateString) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Intl.DateTimeFormat('es-CL', {
+    timeZone: 'UTC',
+    weekday: 'short',
+  }).format(new Date(Date.UTC(year, month - 1, day, 12)));
+}
+
+function formatKioskDateDetail(dateString) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Intl.DateTimeFormat('es-CL', {
+    timeZone: 'UTC',
+    day: 'numeric',
+    month: 'long'
+  }).format(new Date(Date.UTC(year, month - 1, day, 12)));
+}
+
+function renderKioskDates() {
+  const container = document.getElementById('tv-booking-dates');
+  container.replaceChildren();
+  const [year, month, day] = hoyStr().split('-').map(Number);
+  for (let offset = 0; offset < 7; offset += 1) {
+    const date = new Date(Date.UTC(year, month - 1, day + offset, 12));
+    const dateString = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `tv-booking-date${offset < 2 ? ' priority' : ''}${offset === 0 ? ' today' : ''}`;
+    button.dataset.date = dateString;
+    button.dataset.dateIndex = String(offset);
+    const title = document.createElement('span');
+    title.className = 'tv-booking-date-name';
+    const weekday = formatKioskDateShort(dateString);
+    title.textContent = offset === 0 ? 'Hoy' : offset === 1 ? 'Mañana' : weekday.charAt(0).toLocaleUpperCase('es-CL') + weekday.slice(1);
+    const details = document.createElement('span');
+    details.className = 'tv-booking-date-meta';
+    details.textContent = formatKioskDateDetail(dateString);
+    button.append(title, details);
+    button.addEventListener('click', () => void abrirSeleccionHorarios(dateString));
+    container.appendChild(button);
+  }
+}
+
+function renderKioskHours(hours, occupiedHours, currentMinutes) {
+  const container = document.getElementById('tv-booking-hours');
+  container.replaceChildren();
+  kioskAvailableHours = hours.filter(hour => !occupiedHours.has(hour) && h2m(hour) > currentMinutes);
+
+  kioskAvailableHours.forEach(hour => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'tv-booking-hour';
+    const index = kioskAvailableHours.indexOf(hour);
+    button.dataset.hourIndex = String(index);
+    button.textContent = hour;
+    button.addEventListener('click', () => selectKioskHour(hour));
+    container.appendChild(button);
+  });
+
+  if (!kioskAvailableHours.length) {
+    const unavailableDate = document.querySelector(`#tv-booking-dates [data-date="${kioskDate}"]`);
+    if (unavailableDate) {
+      unavailableDate.disabled = true;
+      unavailableDate.classList.add('unavailable');
+      unavailableDate.querySelector('.tv-booking-date-meta').textContent = 'Sin horas';
+    }
+    showKioskStep('date');
+    setKioskStatus('tv-booking-date-status', `${formatFecha(kioskDate)}: no quedan horas disponibles. Elige otro día.`, true);
+    document.querySelector('#tv-booking-dates .tv-booking-date:not(:disabled)')?.focus();
+    return;
+  }
+
+  setKioskStatus('tv-booking-hours-status', `${kioskAvailableHours.length} horarios disponibles.`);
+  container.querySelector('button')?.focus();
+}
+
+async function abrirSeleccionHorarios(dateString) {
+  kioskDate = dateString;
+  kioskSelectedHour = '';
+  showKioskStep('hours');
+  document.getElementById('tv-booking-date').textContent = formatFecha(kioskDate);
+  document.getElementById('tv-booking-selected-service').textContent =
+    `${kioskService.label || kioskService.nombre} · ${formatTotal(kioskService.precio)}`;
+  setKioskStatus('tv-booking-hours-status', 'Consultando horarios…');
+  document.getElementById('tv-booking-hours').replaceChildren();
+
+  try {
+    const [configSnapshot, closedSnapshot, locksSnapshot, reservationsSnapshot] = await Promise.all([
+      tvDatabase.ref('config').once('value'),
+      tvDatabase.ref('diasCerrados').once('value'),
+      tvDatabase.ref(`bloqueos/${kioskDate}`).once('value'),
+      tvDatabase.ref('reservas').orderByChild('fecha').equalTo(kioskDate).once('value')
+    ]);
+    if (kioskState !== 'hours' || kioskDate !== dateString) return;
+    const config = configSnapshot.val() || {};
+    const weekday = kioskWeekday(kioskDate);
+    const weeklyClosed = Array.isArray(config.diasSemanaCerrados)
+      && config.diasSemanaCerrados.some(day => Number(day) === weekday);
+
+    if (weeklyClosed || isKioskDayClosed(closedSnapshot, kioskDate)) {
+      kioskAvailableHours = [];
+      const closedDate = document.querySelector(`#tv-booking-dates [data-date="${kioskDate}"]`);
+      if (closedDate) {
+        closedDate.disabled = true;
+        closedDate.classList.add('unavailable');
+        closedDate.querySelector('.tv-booking-date-meta').textContent = 'Cerrado';
+      }
+      showKioskStep('date');
+      setKioskStatus('tv-booking-date-status', `${formatFecha(kioskDate)}: la barbería está cerrada. Elige otro día.`, true);
+      document.querySelector('#tv-booking-dates .tv-booking-date:not(:disabled)')?.focus();
+      return;
+    }
+
+    const specialHours = config.horariosEspecificos && config.horariosEspecificos[kioskDate];
+    const scheduledHours = Array.isArray(specialHours)
+      ? specialHours
+      : weekday === 0
+        ? config.horarioDomingo
+        : config.horarioSemana;
+    const hours = (Array.isArray(scheduledHours) ? scheduledHours : [])
+      .map(normalizeKioskTime)
+      .filter(Boolean)
+      .sort((a, b) => h2m(a) - h2m(b));
+    const occupiedHours = new Set(
+      Object.keys(locksSnapshot.val() || {})
+        .map(normalizeLockTime)
+        .filter(Boolean)
+    );
+    reservationsSnapshot.forEach(child => {
+      const reservation = child.val() || {};
+      const reservedHour = normalizeKioskTime(reservation.hora);
+      if (reservedHour) occupiedHours.add(reservedHour);
+    });
+    const currentMinutes = kioskDate === hoyStr() ? chileDateAndTime().minutes : -1;
+    renderKioskHours(hours, occupiedHours, currentMinutes);
+  } catch (error) {
+    console.error('No se pudieron consultar los horarios del mesón:', error);
+    setKioskStatus('tv-booking-hours-status', `No se pudo consultar disponibilidad: ${error.message}`, true);
+  }
+}
+
+function selectKioskHour(hour) {
+  if (!kioskAvailableHours.includes(hour)) return;
+  kioskSelectedHour = hour;
+  showKioskStep('details');
+  const summary = document.getElementById('tv-booking-summary');
+  summary.replaceChildren();
+  [
+    `Cliente: ${kioskCustomerName}`,
+    `Teléfono: ${formatPhoneDigits(kioskPhoneDigits)}`,
+    `Servicio: ${kioskService.label || kioskService.nombre}`,
+    `Día y hora: ${formatFecha(kioskDate)} · ${hour}`,
+    `Total: ${formatTotal(kioskService.precio)}`
+  ].forEach(line => {
+    const row = document.createElement('div');
+    row.textContent = line;
+    summary.appendChild(row);
+  });
+  setKioskStatus('tv-booking-details-status', '');
+  document.getElementById('tv-booking-save').focus();
+}
+
+async function saveKioskBooking() {
+  if (kioskSaving || !tvDatabase || kioskState !== 'details' || !kioskSelectedHour || !kioskService || !kioskPhoneDigits) return;
+  if (kioskDate === hoyStr() && h2m(kioskSelectedHour) <= horaActualMin()) {
+    await abrirSeleccionHorarios(kioskDate);
+    setKioskStatus('tv-booking-hours-status', 'La hora ya pasó. Elige un horario futuro.', true);
+    return;
+  }
+  kioskSaving = true;
+  const saveButton = document.getElementById('tv-booking-save');
+  const cancelButton = document.getElementById('tv-booking-cancel');
+  const backButtons = [
+    document.getElementById('tv-booking-back-hours'),
+    document.getElementById('tv-booking-back-dates'),
+    document.getElementById('tv-booking-back-service')
+  ];
+  saveButton.disabled = true;
+  cancelButton.disabled = true;
+  backButtons.forEach(button => { button.disabled = true; });
+  setKioskStatus('tv-booking-details-status', 'Reservando tu horario…');
+  let bloqueoRef = null;
+  let bloqueoTomado = false;
+  try {
+    const reservationRef = tvDatabase.ref('reservas').push();
+    kioskOwnReservationKey = reservationRef.key;
+    const customerRef = kioskCustomerId
+      ? tvDatabase.ref(`clientes/${kioskCustomerId}`)
+      : tvDatabase.ref('clientes').push();
+    const customerId = kioskCustomerId || customerRef.key;
+    const lockToken = `meson-${reservationRef.key}`;
+    const slotKey = kioskSelectedHour.replace(':', '-');
+    bloqueoRef = tvDatabase.ref(`bloqueos/${kioskDate}/${slotKey}`);
+    const lockResult = await bloqueoRef.transaction(current => {
+      if (current === null) return { chatId: lockToken, timestamp: Date.now() };
+      return;
+    });
+    if (!lockResult.committed) {
+      await abrirSeleccionHorarios(kioskDate);
+      setKioskStatus('tv-booking-hours-status', 'Ese horario acaba de ocuparse. Elige otra hora.', true);
+      return;
+    }
+    bloqueoTomado = true;
+    kioskLockToken = lockToken;
+
+    const timestamp = firebase.database.ServerValue.TIMESTAMP;
+    const reservation = {
+      nombre: kioskCustomerName,
+      fecha: kioskDate,
+      hora: kioskSelectedHour,
+      servicios: kioskService.nombre || kioskService.label,
+      total: formatTotal(kioskService.precio),
+      telefono: `56${kioskPhoneDigits}`,
+      acepta_contacto_whatsapp: false,
+      clienteId: customerId,
+      origen: 'meson',
+      createdAt: timestamp,
+      timestamp
+    };
+    const updates = {
+      [`reservas/${reservationRef.key}`]: reservation,
+      [`bloqueos/${kioskDate}/${slotKey}`]: {
+        reservaId: reservationRef.key,
+        timestamp: Date.now()
+      }
+    };
+    if (!kioskCustomerId) {
+      updates[`clientes/${customerId}`] = {
+        clienteId: customerId,
+        nombreDisplay: kioskCustomerName,
+        nombreNormalizado: kioskCustomerName.toLocaleLowerCase('es-CL'),
+        telefono: `56${kioskPhoneDigits}`,
+        creadoEn: timestamp,
+        ultimaActividad: timestamp,
+        ultimaReservaServicio: kioskService.nombre || kioskService.label,
+        ultimaReservaFecha: kioskDate,
+        acepta_contacto_whatsapp: false
+      };
+    } else {
+      updates[`clientes/${customerId}/ultimaActividad`] = timestamp;
+      updates[`clientes/${customerId}/ultimaReservaServicio`] = kioskService.nombre || kioskService.label;
+      updates[`clientes/${customerId}/ultimaReservaFecha`] = kioskDate;
+    }
+
+    await tvDatabase.ref().update(updates);
+    bloqueoTomado = false;
+    const completedReservation = {
+      ...reservation,
+      createdAt: Date.now(),
+      timestamp: Date.now()
+    };
+    kioskSaving = false;
+    closeKioskBooking();
+    mostrarToast(completedReservation);
+  } catch (error) {
+    kioskOwnReservationKey = '';
+    console.error('No se pudo confirmar la reserva del mesón:', error);
+    setKioskStatus('tv-booking-details-status', `No se pudo guardar la reserva: ${error.message}`, true);
+    if (bloqueoTomado && bloqueoRef) {
+      try {
+        await bloqueoRef.transaction(current =>
+          current && current.chatId === kioskLockToken && !current.reservaId ? null : undefined
+        );
+      } catch (cleanupError) {
+        console.error('No se pudo liberar el horario luego de un error al guardar:', cleanupError);
+      }
+    }
+  } finally {
+    kioskSaving = false;
+    saveButton.disabled = false;
+    cancelButton.disabled = false;
+    backButtons.forEach(button => { button.disabled = false; });
+  }
+}
+
+function moveKioskFocus(selector, direction, event) {
+  const buttons = Array.from(document.querySelectorAll(selector));
+  if (!buttons.length) return;
+  const current = document.activeElement;
+  if (!buttons.includes(current)) {
+    event.preventDefault();
+    buttons[0].focus();
+    return;
+  }
+  const currentRect = current.getBoundingClientRect();
+  const currentX = currentRect.left + currentRect.width / 2;
+  const currentY = currentRect.top + currentRect.height / 2;
+  const candidates = buttons.map(button => {
+    if (button === current) return null;
+    const rect = button.getBoundingClientRect();
+    const dx = rect.left + rect.width / 2 - currentX;
+    const dy = rect.top + rect.height / 2 - currentY;
+    const forward = direction.x ? dx * direction.x > 0 : dy * direction.y > 0;
+    if (!forward) return null;
+    const primary = Math.abs(direction.x ? dx : dy);
+    const secondary = Math.abs(direction.x ? dy : dx);
+    return { button, score: primary + secondary * 2.5 };
+  }).filter(Boolean).sort((a, b) => a.score - b.score);
+  let next = candidates[0] && candidates[0].button;
+  if (!next) {
+    next = buttons.reduce((edge, button) => {
+      if (!edge) return button;
+      const a = edge.getBoundingClientRect();
+      const b = button.getBoundingClientRect();
+      const edgeValue = direction.x
+        ? (a.left + a.width / 2) * direction.x
+        : (a.top + a.height / 2) * direction.y;
+      const buttonValue = direction.x
+        ? (b.left + b.width / 2) * direction.x
+        : (b.top + b.height / 2) * direction.y;
+      return buttonValue < edgeValue ? button : edge;
+    }, null);
+  }
+  event.preventDefault();
+  next.focus();
+}
+
+function getKioskRemoteKey(event) {
+  const keyCodes = {
+    4: 'Escape',
+    8: 'Backspace',
+    13: 'Enter',
+    19: 'Pause',
+    27: 'Escape',
+    37: 'ArrowLeft',
+    38: 'ArrowUp',
+    39: 'ArrowRight',
+    40: 'ArrowDown'
+  };
+  if (event.key && event.key !== 'Unidentified') return event.key;
+  return keyCodes[event.keyCode] || '';
+}
+
+function getKioskRemoteDirection(event, key) {
+  if (key === 'ArrowLeft') return { x: -1, y: 0 };
+  if (key === 'ArrowRight') return { x: 1, y: 0 };
+  if (key === 'ArrowUp') return { x: 0, y: -1 };
+  if (key === 'ArrowDown') return { x: 0, y: 1 };
+  if (key === '+' || event.code === 'NumpadAdd') return { x: 0, y: 1 };
+  if (key === '-' || event.code === 'NumpadSubtract') return { x: 0, y: -1 };
+  return null;
+}
+
+function kioskBackOneStep() {
+  const previousStep = {
+    service: 'phone',
+    date: 'service',
+    hours: 'date',
+    details: 'hours'
+  }[kioskState];
+  if (!previousStep) return;
+  showKioskStep(previousStep);
+  const focusTargets = {
+    phone: '#tv-booking-phone-delete',
+    service: `#tv-booking-services [data-service-index="${window.DEMO_BRAND.services.indexOf(kioskService)}"]`,
+    date: `#tv-booking-dates [data-date="${kioskDate}"]`,
+    hours: `#tv-booking-hours [data-hour-index="${kioskAvailableHours.indexOf(kioskSelectedHour)}"]`
+  };
+  document.querySelector(focusTargets[previousStep])?.focus();
+}
+
+function handleKioskKeydown(event) {
+  const key = getKioskRemoteKey(event);
+  if (kioskState === 'closed' && (key === 'Enter' || event.code === 'NumpadEnter' || /^\d$/.test(key))) {
+    startAmbientMusic();
+  }
+  if ((key === 'Escape' || key === 'BrowserBack') && kioskSaving) {
+    event.preventDefault();
+    setKioskStatus('tv-booking-details-status', 'La reserva se está confirmando. Espera un momento.');
+    return;
+  }
+  const isRemoteBack = key === 'Escape'
+    || key === 'BrowserBack'
+    || key === 'Back'
+    || key === 'GoBack'
+    || event.keyCode === 4
+    || (key === 'Backspace' && kioskState !== 'phone');
+  if (isRemoteBack && kioskState !== 'closed') {
+    event.preventDefault();
+    if (kioskState === 'phone') closeKioskBooking();
+    else kioskBackOneStep();
+    return;
+  }
+
+  if (kioskState === 'closed' && (key === 'Enter' || event.code === 'NumpadEnter')) {
+    event.preventDefault();
+    openKioskPhoneDialog();
+    return;
+  }
+
+  const target = event.target;
+  const isEditable = target instanceof HTMLElement
+    && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+  if (isEditable || event.ctrlKey || event.altKey || event.metaKey || event.repeat) return;
+
+  const direction = getKioskRemoteDirection(event, key);
+
+  if (kioskState === 'service' || kioskState === 'date' || kioskState === 'hours') {
+    const selector = kioskState === 'service'
+      ? '#tv-booking-services .tv-booking-service'
+      : kioskState === 'date'
+          ? '#tv-booking-dates .tv-booking-date:not(:disabled)'
+        : '#tv-booking-hours .tv-booking-hour:not(:disabled)';
+    const buttons = Array.from(document.querySelectorAll(selector));
+    const backButtonSelector = kioskState === 'date'
+      ? '#tv-booking-back-service'
+      : kioskState === 'hours'
+        ? '#tv-booking-back-dates'
+        : '';
+    const focusSelector = [selector, backButtonSelector, '#tv-booking-cancel'].filter(Boolean).join(', ');
+    if (direction) {
+      moveKioskFocus(focusSelector, direction, event);
+      return;
+    }
+    if (key === 'Enter' || event.code === 'NumpadEnter') {
+      if (document.activeElement.id === 'tv-booking-cancel') {
+        event.preventDefault();
+        closeKioskBooking();
+        return;
+      }
+      if (document.activeElement.matches('#tv-booking-back-service, #tv-booking-back-dates')) {
+        event.preventDefault();
+        document.activeElement.click();
+        return;
+      }
+      const currentIndex = buttons.indexOf(document.activeElement);
+      if (currentIndex >= 0) {
+        event.preventDefault();
+        buttons[currentIndex].click();
+      }
+    }
+    return;
+  }
+
+  if (kioskState === 'details') {
+    const selector = '#tv-booking-back-hours, #tv-booking-save, #tv-booking-cancel';
+    if (direction) {
+      moveKioskFocus(selector, direction, event);
+      return;
+    }
+    if (key === 'Enter' || event.code === 'NumpadEnter') {
+      event.preventDefault();
+      const focusedButton = document.activeElement;
+      if (focusedButton instanceof HTMLButtonElement && !focusedButton.disabled) focusedButton.click();
+    }
+    return;
+  }
+
+  const keypadDigit = /^\d$/.test(key)
+    ? key
+    : /^Numpad[0-9]$/.test(event.code)
+      ? event.code.slice(-1)
+      : /^Digit[0-9]$/.test(event.code)
+        ? event.code.slice(-1)
+      : '';
+  if (keypadDigit) {
+    event.preventDefault();
+    if (kioskState === 'closed') openKioskPhoneDialog();
+    addKioskPhoneDigit(keypadDigit);
+  } else if ((key === 'Backspace' || event.code === 'NumpadBackspace') && kioskState === 'phone') {
+    event.preventDefault();
+    deleteKioskPhoneDigit();
+  } else if ((key === 'Enter' || event.code === 'NumpadEnter') && kioskState === 'phone') {
+    event.preventDefault();
+    if (document.activeElement.id === 'tv-booking-cancel') {
+      closeKioskBooking();
+    } else {
+      const focusedButton = document.activeElement;
+      if (focusedButton instanceof HTMLButtonElement && !focusedButton.disabled) {
+        focusedButton.click();
+      } else {
+        setKioskStatus('tv-booking-phone-status', 'Completa los 8 dígitos después de +56 9.', true);
+      }
+    }
+  } else if (direction && kioskState === 'phone') {
+    moveKioskFocus(
+      '#tv-booking-phone-delete, #tv-booking-phone-clear, #tv-booking-phone-continue:not(:disabled), #tv-booking-cancel',
+      direction,
+      event
+    );
+  }
+}
+
+// ── UTILS ──
+function hoyStr() {
+  return chileDateAndTime().date;
+}
+function horaActualMin() {
+  return chileDateAndTime().minutes;
+}
+function h2m(h) {
+  if (!h) return 0;
+  const [hh, mm] = h.split(':').map(Number);
+  return hh * 60 + (mm || 0);
+}
+function formatFecha(str) {
+  if (!str) return '—';
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const dias  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const [y,m,d] = str.split('-').map(Number);
+  const f = new Date(Date.UTC(y, m-1, d));
+  return `${dias[f.getUTCDay()]}, ${d} de ${meses[m-1]} de ${y}`;
+}
+function formatTotal(val) {
+  if (!val) return '';
+  if (typeof val === 'string' && val.includes('$')) return val;
+  const n = Number(val);
+  if (isNaN(n)) return '';
+  return `$${n.toLocaleString('es-CL')}`;
+}
+function formatServs(s) {
+  if (!s) return '';
+  if (Array.isArray(s)) return s.map(x => x.nombre || x).join(' · ');
+  if (typeof s === 'object') return Object.values(s).map(x => x.nombre || x).join(' · ');
+  return String(s);
+}
+
+// ── RELOJ ──
+let fechaHoy = hoyStr();
+function tick() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${hh}:${mm}`;
+  document.getElementById('clock-date').textContent = formatFecha(hoyStr()).toUpperCase();
+  document.getElementById('footer-fecha').textContent = hoyStr();
+  if (hoyStr() !== fechaHoy) location.reload();
+}
+setInterval(tick, 1000);
+tick();
+
+// ── CARRUSEL DE ESTILOS LOCALES ──
+function initCarrusel() {
+  const rows = [
+    { trackId: 'track-mujeres', images: CORTES.looks, reverse: false, delay: 3000 },
+    { trackId: 'track-hombres', images: CORTES.cortes, reverse: true, delay: 3600 }
+  ];
+
+  rows.forEach(({ trackId, images, reverse, delay }) => {
+    const track = document.getElementById(trackId);
+    if (!track || !images.length) return;
+    [...images, ...images].forEach((item, index) => {
+      const card = document.createElement('div');
+      card.className = 'corte-card';
+      const image = document.createElement('img');
+      image.src = item.src;
+      image.alt = item.alt;
+      image.loading = index < 6 ? 'eager' : 'lazy';
+      image.decoding = 'async';
+      card.appendChild(image);
+      track.appendChild(card);
+    });
+
+    const firstCard = track.querySelector('.corte-card');
+    const step = firstCard ? firstCard.offsetWidth + 10 : 110;
+    let index = 0;
+    const baseOffset = reverse ? -images.length * step : 0;
+    track.style.transition = 'none';
+    track.style.transform = `translateX(${baseOffset}px)`;
+
+    window.setInterval(() => {
+      index += 1;
+      const position = reverse
+        ? baseOffset + index * step
+        : -index * step;
+      track.style.transition = 'transform 750ms cubic-bezier(.2,.7,.2,1)';
+      track.style.transform = `translateX(${position}px)`;
+      if (index === images.length) {
+        window.setTimeout(() => {
+          track.style.transition = 'none';
+          index = 0;
+          track.style.transform = `translateX(${baseOffset}px)`;
+        }, 800);
+      }
+    }, delay);
+  });
+}
+
+let tvBackgroundTimer = null;
+let tvBackgroundIndex = -1;
+function playNextTvBackground() {
+  const video = document.getElementById('bg-video');
+  const sources = window.DEMO_BRAND.tvVideos || [
+    'assets/videos/tv_bg_1.mp4',
+    'assets/videos/tv_bg_2.mp4',
+    'assets/videos/tv_bg_3.mp4',
+    'assets/videos/tv_bg_4.mp4'
+  ];
+  if (!video || !sources.length) return;
+  if (tvBackgroundTimer !== null) window.clearTimeout(tvBackgroundTimer);
+  tvBackgroundIndex = (tvBackgroundIndex + 1) % sources.length;
+  video.pause();
+  video.removeAttribute('src');
+  video.load();
+  video.src = sources[tvBackgroundIndex];
+  video.load();
+  const scheduleNext = delay => {
+    if (tvBackgroundTimer !== null) window.clearTimeout(tvBackgroundTimer);
+    tvBackgroundTimer = window.setTimeout(() => {
+      tvBackgroundTimer = null;
+      playNextTvBackground();
+    }, delay);
+  };
+  video.onended = () => scheduleNext(250);
+  video.onerror = () => {
+    console.error(`No se pudo reproducir el video de fondo: ${sources[tvBackgroundIndex]}`);
+    scheduleNext(3000);
+  };
+  video.play().catch(error => {
+    console.error('El navegador no permitió reproducir el video de fondo:', error);
+    scheduleNext(3000);
+  });
+}
+
+let tvReviewTimer = null;
+let ambientMusicStarted = false;
+function startAmbientMusic() {
+  const music = document.getElementById('tv-ambient-music');
+  if (!music || ambientMusicStarted) return;
+  music.volume = 0.18;
+  music.play().then(() => {
+    ambientMusicStarted = true;
+  }).catch(error => {
+    console.warn('No se pudo iniciar la música ambiental:', error);
+  });
+}
+
+function renderTvReviews(snapshot) {
+  const reviews = Object.values(snapshot.val() || {})
+    .filter(review => review && Number(review.estrellas) >= 1 && Number(review.estrellas) <= 5 && review.texto)
+    .sort((a, b) => Number(b.aprobadaEn) - Number(a.aprobadaEn));
+  const average = reviews.length
+    ? reviews.reduce((sum, review) => sum + Number(review.estrellas), 0) / reviews.length
+    : 0;
+  document.getElementById('tv-review-average-stars').textContent = average
+    ? `${'★'.repeat(Math.round(average))}${'☆'.repeat(5 - Math.round(average))}`
+    : '★★★★★';
+  document.getElementById('tv-review-average').textContent = average
+    ? `${average.toFixed(1)} / 5 · ${reviews.length} ${reviews.length === 1 ? 'opinión' : 'opiniones'}`
+    : 'Tu opinión puede ser la primera';
+
+  const quote = document.getElementById('tv-review-quote');
+  const author = document.getElementById('tv-review-author');
+  const indicators = document.getElementById('tv-review-indicators');
+  indicators.replaceChildren();
+  if (!reviews.length) {
+    quote.textContent = '¿Te gustó tu visita? Escanea el código y comparte tu experiencia.';
+    author.textContent = '';
+    if (tvReviewTimer !== null) window.clearInterval(tvReviewTimer);
+    tvReviewTimer = null;
+    return;
+  }
+
+  reviews.forEach((review, index) => {
+    const indicator = document.createElement('i');
+    if (index === 0) indicator.className = 'active';
+    indicators.appendChild(indicator);
+  });
+
+  let index = 0;
+  const showReview = () => {
+    const review = reviews[index];
+    quote.textContent = `“${String(review.texto).trim()}”`;
+    author.textContent = `— ${String(review.nombre || 'Cliente').trim().split(/\s+/)[0]}`;
+    Array.from(indicators.children).forEach((indicator, indicatorIndex) => {
+      indicator.classList.toggle('active', indicatorIndex === index);
+    });
+  };
+  showReview();
+  if (tvReviewTimer !== null) window.clearInterval(tvReviewTimer);
+  tvReviewTimer = reviews.length > 1
+    ? window.setInterval(() => {
+        index = (index + 1) % reviews.length;
+        showReview();
+      }, 9000)
+    : null;
+}
+
+// ── SONIDO ──
+let audioCtx = null;
+function initAudio() {
+  const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextConstructor) throw new Error('Este navegador no es compatible con Web Audio.');
+  if (!audioCtx) audioCtx = new AudioContextConstructor();
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(error => console.error('No se pudo activar el sonido de confirmación:', error));
+  }
+}
+function tocarCampanilla() {
+  try {
+    initAudio();
+    [[523.25,0],[659.25,0.2],[783.99,0.4]].forEach(([freq, t]) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.type = 'sine'; osc.frequency.value = freq;
+      const s = audioCtx.currentTime + t;
+      gain.gain.setValueAtTime(0, s);
+      gain.gain.linearRampToValueAtTime(0.15, s + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, s + 0.7);
+      osc.start(s); osc.stop(s + 0.75);
+    });
+  } catch (error) {
+    console.error('No se pudo reproducir el sonido de confirmación:', error);
+  }
+}
+
+function tocarAvisoRecordatorio() {
+  try {
+    initAudio();
+    [0, 0.42].forEach(delay => {
+      const oscillator = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
+      oscillator.type = 'sine';
+      oscillator.frequency.value = 740;
+      const start = audioCtx.currentTime + delay;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.075, start + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.23);
+      oscillator.start(start);
+      oscillator.stop(start + 0.25);
+    });
+  } catch (error) {
+    console.error('No se pudo reproducir el aviso de recordatorio:', error);
+  }
+}
+
+function escapeTvHtml(value) {
+  return String(value).replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[character]);
+}
+
+// ── TOAST ──
+let toastTimer = null;
+const TV_REMINDER_MAX_AGE_MS = 5 * 60 * 1000;
+const TV_REMINDER_HIGHLIGHT_MS = 60 * 1000;
+const TV_REMINDER_PROCESSED_KEY = 'jb-tv-recordatorios-procesados-v1';
+const tvReminderProcessedIds = new Set(loadTvReminderProcessedIds());
+const tvReminderHighlightExpiries = new Map();
+const tvReminderQueue = [];
+let tvReminderVisible = false;
+let tvReminderTimer = null;
+
+function loadTvReminderProcessedIds() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(TV_REMINDER_PROCESSED_KEY) || '[]');
+    return Array.isArray(stored) ? stored.filter(value => typeof value === 'string').slice(-100) : [];
+  } catch (error) {
+    console.warn('No se pudo leer la deduplicación local de recordatorios TV:', error);
+    return [];
+  }
+}
+
+function rememberTvReminder(eventId) {
+  tvReminderProcessedIds.add(eventId);
+  const recentIds = Array.from(tvReminderProcessedIds).slice(-100);
+  tvReminderProcessedIds.clear();
+  recentIds.forEach(id => tvReminderProcessedIds.add(id));
+  try {
+    localStorage.setItem(TV_REMINDER_PROCESSED_KEY, JSON.stringify(recentIds));
+  } catch (error) {
+    console.warn('No se pudo guardar la deduplicación local de recordatorios TV:', error);
+  }
+}
+
+function mostrarSiguienteRecordatorioTv() {
+  if (tvReminderVisible || tvReminderQueue.length === 0) return;
+
+  const reserva = tvReminderQueue.shift();
+  const alertElement = document.getElementById('tv-reminder-alert');
+  document.getElementById('tv-reminder-name').textContent =
+    String(reserva.nombre || 'Cliente').trim().split(/\s+/)[0];
+  document.getElementById('tv-reminder-detail').textContent =
+    `${reserva.hora || ''} · ${formatServs(reserva.servicios) || 'Cita agendada'}`;
+  alertElement.classList.add('show');
+  tvReminderVisible = true;
+  tocarAvisoRecordatorio();
+
+  if (tvReminderTimer) window.clearTimeout(tvReminderTimer);
+  tvReminderTimer = window.setTimeout(() => {
+    alertElement.classList.remove('show');
+    tvReminderVisible = false;
+    tvReminderTimer = window.setTimeout(mostrarSiguienteRecordatorioTv, 350);
+  }, 8500);
+}
+
+function procesarRecordatoriosTv(snapshot) {
+  const now = Date.now();
+  snapshot.forEach(child => {
+    const reserva = child.val() || {};
+    const eventId = String(reserva.recordatorioTvId || '');
+    if (!eventId || tvReminderProcessedIds.has(eventId)) return;
+
+    rememberTvReminder(eventId);
+    const triggeredAt = Number(reserva.recordatorioTvAt);
+    const estado = String(reserva.estado || '').toLowerCase();
+    const isCancelled = ['cancelada', 'cancelado', 'completada'].includes(estado);
+    if (!Number.isFinite(triggeredAt) ||
+        now - triggeredAt > TV_REMINDER_MAX_AGE_MS ||
+        triggeredAt - now > 30 * 1000 ||
+        isCancelled) return;
+
+    reserva._key = child.key;
+    tvReminderHighlightExpiries.set(child.key, now + TV_REMINDER_HIGHLIGHT_MS);
+    tvReminderQueue.push(reserva);
+  });
+  mostrarSiguienteRecordatorioTv();
+}
+
+function mostrarToast(r) {
+  const flash = document.getElementById('flash');
+  flash.classList.remove('active');
+  void flash.offsetWidth;
+  flash.classList.add('active');
+  document.getElementById('toast-nombre').textContent = String(r.nombre || 'Cliente').trim().split(/\s+/)[0];
+  document.getElementById('toast-detalle').textContent =
+    `${r.fecha ? formatFecha(r.fecha) : ''} · ${r.hora || ''} · ${formatServs(r.servicios)}`;
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 5500);
+  tocarCampanilla();
+}
+
+// ── RENDER RESERVAS ──
+function render(reservas) {
+  const hoy   = hoyStr();
+  const ahora = horaActualMin();
+  const ahoraMs = Date.now();
+  for (const [reservaId, expiry] of tvReminderHighlightExpiries) {
+    if (expiry <= ahoraMs) tvReminderHighlightExpiries.delete(reservaId);
+  }
+  const deHoy = reservas.filter(r => r.fecha === hoy).sort((a,b) => h2m(a.hora) - h2m(b.hora));
+  const pendientes = deHoy.filter(r => h2m(r.hora) >= ahora - 30);
+
+  document.getElementById('stat-hoy').textContent  = deHoy.length;
+  document.getElementById('stat-pend').textContent = pendientes.length;
+
+  const proximo = pendientes[0] || null;
+  document.getElementById('proximo-nombre').textContent   = proximo
+    ? String(proximo.nombre || 'Cliente').trim().split(/\s+/)[0]
+    : 'Sin reservas pendientes';
+  document.getElementById('proximo-hora').textContent     = proximo ? (proximo.hora || '') : '';
+  document.getElementById('proximo-servicio').textContent = proximo ? formatServs(proximo.servicios) : '';
+
+  const lista = document.getElementById('lista');
+  if (deHoy.length === 0) {
+    lista.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">No hay reservas para hoy</div></div>`;
+    return;
+  }
+
+  let html = '';
+  deHoy.forEach(r => {
+    const highlightClass = tvReminderHighlightExpiries.has(r._key) ? ' recordatorio-tv' : '';
+    const minR  = h2m(r.hora);
+    const pasada = minR < ahora - 30;
+    const actual = false;
+    let cls, bCls, label;
+    if (pasada)      { cls = 'r-item pasada';  bCls = 'r-badge badge-pasada';  label = 'Atendido'; }
+    else if (actual) { cls = 'r-item actual';  bCls = 'r-badge badge-actual';  label = 'Pendiente⏰'; }
+    else             { cls = 'r-item proxima'; bCls = 'r-badge badge-proxima'; label = 'Pendiente'; }
+    const total = formatTotal(r.total);
+    const servs = formatServs(r.servicios);
+    html += `
+      <div class="${cls}${highlightClass}" data-reserva-id="${escapeTvHtml(r._key || '')}">
+        <div class="r-hora">${r.hora || '—'}</div>
+        <div>
+          <div class="r-nombre">${escapeTvHtml(String(r.nombre || 'Cliente').trim().split(/\s+/)[0])}</div>
+          ${servs ? `<div class="r-servicio">${escapeTvHtml(servs)}</div>` : ''}
+        </div>
+        <div class="r-total">${total}</div>
+        <div class="${bCls}">${label}</div>
+      </div>`;
+  });
+
+  const hayPend = deHoy.some(r => h2m(r.hora) >= ahora - 30);
+  if (!hayPend && deHoy.length > 0) {
+    html += `<div class="sin-mas">✅ ¡Listo por hoy! Buen trabajo.</div>`;
+  }
+  lista.innerHTML = html;
+}
+
+// ── FIREBASE + INIT ──
+window.addEventListener('load', () => {
+  initCarrusel();
+  playNextTvBackground();
+  document.getElementById('tv-kiosk-launcher').focus();
+  const unlockTvAudio = () => {
+    try {
+      initAudio();
+    } catch (error) {
+      console.error('No se pudo activar el audio del panel TV:', error);
+    }
+  };
+  window.addEventListener('keydown', unlockTvAudio, { once: true });
+  window.addEventListener('pointerdown', unlockTvAudio, { once: true });
+  window.addEventListener('keydown', handleKioskKeydown);
+  document.getElementById('tv-kiosk-launcher').addEventListener('click', openKioskPhoneDialog);
+  document.getElementById('tv-booking-phone-delete').addEventListener('click', deleteKioskPhoneDigit);
+  document.getElementById('tv-booking-phone-clear').addEventListener('click', clearKioskPhone);
+  document.getElementById('tv-booking-phone-continue').addEventListener('click', () => {
+    if (/^\d{8}$/.test(phoneBuffer)) void startKioskReservation(`9${phoneBuffer}`);
+    else setKioskStatus('tv-booking-phone-status', 'Completa los 8 dígitos después de +56 9.', true);
+  });
+  document.getElementById('tv-booking-cancel').addEventListener('click', closeKioskBooking);
+  document.getElementById('tv-booking-save').addEventListener('click', () => void saveKioskBooking());
+  document.getElementById('tv-booking-back-dates').addEventListener('click', () => {
+    showKioskStep('date');
+    document.querySelector(`#tv-booking-dates [data-date="${kioskDate}"]`)?.focus();
+  });
+  document.getElementById('tv-booking-back-service').addEventListener('click', () => {
+    showKioskStep('service');
+    const serviceIndex = window.DEMO_BRAND.services.indexOf(kioskService);
+    document.querySelector(`#tv-booking-services [data-service-index="${serviceIndex}"]`)?.focus();
+  });
+  document.getElementById('tv-booking-back-hours').addEventListener('click', () => {
+    showKioskStep('hours');
+    const selectedButton = document.querySelector(
+      `#tv-booking-hours [data-hour-index="${kioskAvailableHours.indexOf(kioskSelectedHour)}"]`
+    );
+    (selectedButton || document.querySelector('#tv-booking-hours .tv-booking-hour'))?.focus();
+  });
+  document.querySelector('.brand-name').textContent = window.DEMO_BRAND.name;
+  document.querySelector('.brand-sub').textContent = window.DEMO_BRAND.slogan;
+  document.getElementById('tv-brand-footer').textContent = `${window.DEMO_BRAND.name} © ${new Date().getFullYear()}`;
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  tvDatabase = db;
+  db.ref('.info/connected').on('value', snapshot => {
+    if (snapshot.val() !== true) setTvConnectionStatus('Sin conexión', 'offline');
+      else setTvConnectionStatus('Conectado', 'online');
+    });
+    db.ref('resenas_publicas')
+    .orderByChild('aprobadaEn')
+    .limitToLast(24)
+    .on('value', renderTvReviews, error => {
+      console.error('No se pudieron cargar las reseñas del panel TV:', error);
+      document.getElementById('tv-review-quote').textContent = 'Las opiniones no están disponibles en este momento.';
+    });
+  let conocidas = new Set();
+  let primera = true;
+
+  db.ref('reservas').on('value', snap => {
+    procesarRecordatoriosTv(snap);
+    const todas = [];
+    const hoy = hoyStr();
+    snap.forEach(child => {
+      const r = child.val(); r._key = child.key; todas.push(r);
+      if (!primera && !conocidas.has(child.key)) {
+        if (child.key === kioskOwnReservationKey) kioskOwnReservationKey = '';
+        else if (r.fecha === hoy) mostrarToast(r);
+      }
+      conocidas.add(child.key);
+    });
+    primera = false;
+    render(todas);
+    setTvConnectionStatus('En tiempo real', 'online');
+  }, error => {
+    console.error('No se pudieron leer las reservas del panel TV:', error);
+    setTvConnectionStatus(`Error al leer reservas: ${error.message}`, 'error');
+  });
+
+  setInterval(() => {
+    db.ref('reservas').once('value').then(snap => {
+      const todas = [];
+      snap.forEach(c => { const r = c.val(); r._key = c.key; todas.push(r); });
+      render(todas);
+    }).catch(error => {
+      console.error('No se pudieron actualizar las reservas del panel TV:', error);
+      setTvConnectionStatus(`Error al actualizar reservas: ${error.message}`, 'error');
+    });
+  }, 60000);
+});
+</script><style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold:      #e4a64f;
+  --gold-dim:  rgba(228,166,79,0.10);
+  --gold-glow: rgba(228,166,79,0.3);
+  --bg:        #07080a;
+  --surface:   #0e0f12;
+  --surface2:  #13141a;
+  --border:    rgba(255,255,255,0.06);
+  --text:      #f0f0f0;
+  --muted:     #555;
+  --muted2:    #888;
+  --green:     #3ecf8e;
+  --red:       #ff5c5c;
+  --radius:    14px;
+}
+
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+}
+.dashboard-grid {
+  zoom: 0.47;
+  height: 100%;
+}
+
+/* ── FONDO ── */
+.bg {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(228,166,79,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 90%, rgba(62,207,142,0.04) 0%, transparent 60%);
+  animation: bgPulse 12s ease-in-out infinite alternate;
+}
+
+@keyframes bgPulse { from { opacity: 0.7; } to { opacity: 1; } }
+
+.bg-lines {
+  position: fixed; inset: 0; z-index: 0;
+  background-image: repeating-linear-gradient(
+    -45deg, transparent, transparent 100px,
+    rgba(228,166,79,0.012) 100px, rgba(228,166,79,0.012) 101px
+  );
+}
+
+/* ── LAYOUT PRINCIPAL RE-ESTRUCTURADO ── */
+.app {
+  position: relative; z-index: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER ── */
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: clamp(10px,1.2vh,20px) clamp(20px,3vw,56px);
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(228,166,79,0.05) 0%, transparent 100%);
+}
+
+.brand { display: flex; align-items: center; gap: clamp(10px,1.2vw,18px); }
+.brand-icon {
+  width: clamp(36px,3.5vw,52px); height: clamp(36px,3.5vw,52px);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(228,166,79,0.22), rgba(228,166,79,0.06));
+  border: 1px solid rgba(228,166,79,0.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(16px,1.8vw,26px);
+  box-shadow: 0 0 20px rgba(228,166,79,0.15);
+}
+.brand-name { font-family: 'Bebas Neue', sans-serif; font-size: clamp(18px,2vw,30px); letter-spacing: 3px; color: var(--gold); }
+.brand-sub { font-size: clamp(8px,0.7vw,11px); color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 1px; }
+
+.clock-block { text-align: center; }
+.clock { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px,5vw,72px); letter-spacing: 6px; color: var(--text); line-height: 1; text-shadow: 0 0 60px rgba(228,166,79,0.2); }
+.clock-date { font-size: clamp(9px,0.8vw,13px); color: var(--muted2); letter-spacing: 2.5px; text-transform: uppercase; margin-top: 2px; }
+
+.stats { display: flex; align-items: center; justify-content: flex-end; gap: clamp(16px,2vw,32px); }
+.stat { text-align: right; }
+.stat-num { font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px,3.5vw,48px); color: var(--gold); line-height: 1; }
+.stat-label { font-size: clamp(8px,0.65vw,11px); color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; }
+.divider-v { width: 1px; height: 36px; background: var(--border); }
+
+/* ── GRID DE 2 COLUMNAS (DASHBOARD) ── */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 46% 54%;
+  gap: 20px;
+  flex: 1;
+  padding: 20px clamp(20px,3vw,56px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* PANEL IZQUIERDO: VIDEO + LAS 2 FILAS DE CARRUSEL */
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-height: 0;
+}
+
+.video-panel {
+  height: 42%;
+  background: #000;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.video-panel video { width: 100%; height: 100%; object-fit: cover; }
+
+/* CONTENEDOR DE LAS DOS FILAS DE CARRUSELES */
+.carruseles-dobles {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.carrusel-wrap {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  flex: 1;
+  min-height: 0;
+}
+
+.carrusel-gradient-l, .carrusel-gradient-r {
+  position: absolute; top: 0; bottom: 0; width: 40px; z-index: 3; pointer-events: none;
+}
+.carrusel-gradient-l { left: 0; background: linear-gradient(90deg, var(--surface), transparent); }
+.carrusel-gradient-r { right: 0; background: linear-gradient(270deg, var(--surface), transparent); }
+
+.carrusel-track {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  height: 100%;
+  will-change: transform;
+}
+
+.corte-card {
+  flex-shrink: 0;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  width: 110px;
+  height: 100%;
+}
+
+.corte-card.activa {
+  border-color: var(--gold);
+  box-shadow: 0 0 15px rgba(228,166,79,0.2);
+}
+
+.corte-card img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+/* PANEL DERECHO: RESERVAS */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.reservas-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  height: 100%;
+  min-height: 0;
+}
+
+/* PRÓXIMO */
+.proximo {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, rgba(228,166,79,0.10), rgba(228,166,79,0.03), transparent);
+  border: 1px solid rgba(228,166,79,0.35);
+  border-radius: var(--radius);
+  padding: 15px 25px;
+  display: flex; align-items: center;
+  gap: 20px;
+}
+.proximo::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: linear-gradient(180deg, var(--gold), rgba(228,166,79,0.3));
+  border-radius: 4px 0 0 4px;
+}
+.proximo-tag {
+  font-size: clamp(40px,0.65vw,50px); font-weight: 900; letter-spacing: 3px; text-transform: uppercase; color: var(--gold);
+  background: rgb(9, 105, 0); border: 1px solid rgba(228,166,79,0.3); padding: 4px 10px; border-radius: 20px; white-space: nowrap;
+color: #f0f0f0;
+}
+.proximo-info { flex: 1; min-width: 0; }
+.proximo-nombre { font-family: 'Bebas Neue', sans-serif; font-size: clamp(550%,3vw,46px); letter-spacing: 2px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.proximo-servicio { font-size: clamp(150%,0.8vw,13px); color: var(--muted2); margin-top: 2px; }
+.proximo-hora { font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px,4vw,52px); color: var(--gold); letter-spacing: 3px; text-shadow: 0 0 30px var(--gold-glow); }
+
+/* LISTA */
+.lista-header {
+  display: grid;
+  grid-template-columns: 80px 1fr auto 110px;
+  gap: 15px;
+  padding: 0 15px 8px;
+  font-size: clamp(8px,0.65vw,10px); font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.lista-scroll {
+  overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 6px; scrollbar-width: none; min-height: 0;
+}
+.lista-scroll::-webkit-scrollbar { display: none; }
+
+.r-item {
+  display: grid;
+  grid-template-columns: 80px 1fr auto 110px;
+  align-items: center; gap: 15px;
+  padding: 12px 15px;
+  border-radius: 12px; border: 1px solid transparent;
+  background: var(--surface); position: relative; overflow: hidden;
+}
+.r-item.pasada { opacity: 0.42; filter: grayscale(0.25); }
+.r-item.pasada .r-hora { color: var(--muted2); text-decoration: line-through; }
+.r-item.actual { background: linear-gradient(135deg, rgba(228,166,79,0.12), rgba(228,166,79,0.04)); border-color: rgba(228,166,79,0.4); }
+.r-item.actual::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--gold); }
+.r-hora { font-family: 'Bebas Neue', sans-serif; font-size: clamp(350%,2.2vw,28px); color: var(--gold); }
+.r-nombre { font-size: clamp(300%,1.2vw,17px); font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-servicio { font-size: clamp(130%,0.7vw,11px); color: var(--muted2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-total { font-size: clamp(300%,1.1vw,16px); font-weight: 600; color: var(--green); text-align: center; }
+.r-badge { width: auto !important; display: flex; align-items: center; justify-content: center; font-size: clamp(140%,0.65vw,9px); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; border-radius: 10px; }
+.badge-pasada  { background: rgba(255,255,255,0.04); color: var(--muted); }
+.badge-actual  {width: auto !important; background: rgb(30, 255, 0);  color: white; }
+.badge-proxima { background: rgba(62,207,142,0.10);  color: var(--green); }
+
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 16px; color: var(--muted); }
+.sin-mas { margin-top: 8px; padding: 15px; background: rgba(62,207,142,0.06); border: 1px solid rgba(62,207,142,0.18); border-radius: 12px; color: var(--green); font-size: 13px; font-weight: 600; text-align: center; }
+
+/* ── FOOTER ── */
+.footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(20px,3vw,56px);
+  height: 40px;
+  border-top: 1px solid var(--border);
+  font-size: clamp(8px,0.65vw,11px); color: var(--muted);   letter-spacing: 1.5px; text-transform: uppercase;
+}
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 7px; animation: blink 2.5s infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--green); } 50% { opacity: 0.2; box-shadow: none; } }
+
+.flash { position: fixed; inset: 0; z-index: 90; pointer-events: none; border: 3px solid transparent; opacity: 0; }
+.flash.active { opacity: 1; border-color: var(--gold); animation: flashPulse 1s ease forwards; }
+@keyframes flashPulse { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+.toast { position: fixed; bottom: 50px; right: 50px; z-index: 200; background: var(--surface2); border: 1.5px solid var(--gold); border-radius: 16px; padding: 20px; display: flex; gap: 15px; box-shadow: 0 12px 50px rgba(0,0,0,0.7); transform: translateY(140px); opacity: 0; transition: all 0.45s cubic-bezier(0.34,1.56,0.64,1); }
+.toast.show { transform: translateY(0); opacity: 1; }
+</style>
+<style>
+html, body { overflow: hidden; }
+.tv-background-overlay { background: rgba(0, 0, 0, .56); }
+.app {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+}
+.header {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: clamp(14px, 2vw, 36px);
+  min-height: clamp(78px, 10vh, 112px);
+  padding: 10px clamp(22px, 3vw, 56px);
+  background: linear-gradient(90deg, rgba(7, 8, 10, .9), rgba(7, 8, 10, .62));
+}
+.brand { min-width: 0; }
+.brand-icon {
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(228, 166, 79, .55);
+  box-shadow: 0 0 22px rgba(228, 166, 79, .13);
+}
+.brand-icon img { display: block; object-fit: cover; }
+.brand-name { font-size: clamp(22px, 2.25vw, 36px); letter-spacing: .12em; }
+.brand-sub { font-size: clamp(9px, .72vw, 12px); letter-spacing: .16em; }
+.tv-site-link {
+  min-height: 0;
+  padding: 3px 0;
+  border: 0;
+  border-radius: 0;
+  color: #efd1a1;
+  font-size: clamp(10px, .75vw, 13px);
+  letter-spacing: .04em;
+}
+.clock-block { min-width: 145px; }
+.clock { font-size: clamp(40px, 5vw, 72px); letter-spacing: .06em; }
+.clock-date { font-size: clamp(9px, .72vw, 12px); letter-spacing: .12em; }
+.stats { gap: clamp(12px, 1.8vw, 30px); }
+.stat-num { font-size: clamp(28px, 3vw, 46px); }
+.stat-label { font-size: clamp(8px, .65vw, 11px); letter-spacing: .12em; }
+.dashboard-grid {
+  zoom: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
+  gap: clamp(12px, 1.35vw, 24px);
+  min-height: 0;
+  padding: clamp(12px, 1.4vh, 20px) clamp(18px, 2.4vw, 44px);
+  overflow: hidden;
+}
+.left-panel {
+  display: grid;
+  grid-template-rows: minmax(0, .82fr) minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: clamp(9px, 1.1vh, 16px);
+  min-width: 0;
+  min-height: 0;
+}
+.showreel-panel {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  flex: none;
+  height: auto;
+  min-height: 0;
+  padding: clamp(18px, 2vw, 32px);
+  border: 1px solid rgba(228, 166, 79, .36);
+  border-radius: 18px;
+  background: linear-gradient(110deg, rgba(5, 7, 10, .76), rgba(8, 9, 13, .32) 70%, rgba(5, 7, 10, .6));
+  box-shadow: inset 0 0 55px rgba(0, 0, 0, .28), 0 12px 30px rgba(0, 0, 0, .2);
+}
+.showreel-content { position: relative; z-index: 1; }
+.showreel-eyebrow, .review-tv-eyebrow {
+  color: var(--gold);
+  font-size: clamp(9px, .72vw, 12px);
+  font-weight: 700;
+  letter-spacing: .2em;
+}
+.showreel-panel h2 {
+  margin: 10px 0 7px;
+  color: #fff;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(34px, 3.8vw, 58px);
+  font-weight: 400;
+  letter-spacing: .045em;
+  line-height: .96;
+  text-shadow: 0 3px 24px #000;
+}
+.showreel-panel p { color: rgba(255,255,255,.8); font-size: clamp(11px, .85vw, 14px); }
+.showreel-mark {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  color: rgba(255,255,255,.14);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(52px, 7vw, 104px);
+  line-height: 1;
+  letter-spacing: -.06em;
+}
+.carruseles-dobles {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow: hidden;
+}
+.carousel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 22px;
+  color: var(--gold);
+  font-size: clamp(9px, .72vw, 12px);
+  font-weight: 700;
+  letter-spacing: .15em;
+}
+.carousel-heading span:last-child {
+  color: rgba(255,255,255,.52);
+  font-size: .82em;
+  font-weight: 500;
+  letter-spacing: .08em;
+}
+.carrusel-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding-top: 21px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 13px;
+  background: rgba(8, 10, 13, .82);
+}
+.carousel-label {
+  position: absolute;
+  z-index: 4;
+  top: 7px;
+  left: 13px;
+  color: rgba(255,255,255,.62);
+  font-size: clamp(8px, .58vw, 10px);
+  font-weight: 700;
+  letter-spacing: .16em;
+}
+.carrusel-gradient-l, .carrusel-gradient-r { width: 30px; }
+.carrusel-gradient-l { background: linear-gradient(90deg, rgba(8,10,13,.95), transparent); }
+.carrusel-gradient-r { background: linear-gradient(270deg, rgba(8,10,13,.95), transparent); }
+.carrusel-track {
+  height: calc(100% - 21px);
+  gap: 9px;
+  padding: 0 10px 9px;
+  will-change: transform;
+}
+.corte-card {
+  width: clamp(82px, 7.6vw, 118px);
+  height: 100%;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 9px;
+  background: #17191c;
+}
+.corte-card img { object-position: center 34%; }
+.review-tv-panel {
+  display: grid;
+  grid-template-columns: clamp(112px, 10vw, 170px) minmax(0, 1fr);
+  align-items: center;
+  flex: none;
+  height: auto;
+  min-height: 0;
+  gap: clamp(14px, 1.6vw, 26px);
+  padding: clamp(12px, 1.35vw, 22px);
+  border: 1px solid rgba(228, 166, 79, .28);
+  border-radius: 18px;
+  background: linear-gradient(115deg, rgba(13, 14, 17, .94), rgba(9, 10, 13, .82));
+  box-shadow: 0 12px 28px rgba(0,0,0,.2);
+}
+.review-tv-qr-column { gap: 7px; }
+.review-tv-qr {
+  width: clamp(112px, 9.5vw, 160px);
+  max-width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid rgba(228,166,79,.45);
+  border-radius: 12px;
+  background: #101010;
+}
+.review-tv-qr img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.review-tv-prompt { font-size: clamp(8px, .62vw, 10px); font-weight: 700; letter-spacing: .12em; }
+.review-tv-content { min-width: 0; }
+.review-tv-stars { margin-top: 5px; color: var(--gold); font-size: clamp(18px, 1.55vw, 25px); letter-spacing: .12em; }
+.review-tv-score { margin-top: 1px; color: rgba(255,255,255,.72) !important; font-size: clamp(9px, .7vw, 12px); }
+.review-tv-quote {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 8px;
+  color: #fff !important;
+  font-size: clamp(11px, .9vw, 15px);
+  line-height: 1.42 !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.review-tv-author { margin-top: 4px; font-size: clamp(9px, .68vw, 11px); }
+.review-tv-indicators { display: flex; gap: 5px; margin-top: 6px; }
+.review-tv-indicators i { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.26); }
+.review-tv-indicators i.active { background: var(--gold); }
+.review-tv-link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: 8px;
+  color: rgba(255,255,255,.56) !important;
+  font-size: clamp(8px, .58vw, 10px);
+  font-weight: 700;
+  letter-spacing: .09em;
+}
+.review-tv-link strong { color: #f0c47e; font-size: 1.1em; }
+.right-panel { min-width: 0; }
+.reservas-panel { flex: 1; height: 100%; gap: clamp(10px, 1.1vh, 16px); }
+.agenda-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: clamp(44px, 6vh, 66px);
+  padding: 0 4px;
+}
+.agenda-heading span:first-child {
+  color: var(--gold);
+  font-size: clamp(9px, .7vw, 12px);
+  font-weight: 700;
+  letter-spacing: .18em;
+}
+.agenda-heading h2 {
+  margin-top: 2px;
+  color: #fff;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(24px, 2.2vw, 34px);
+  font-weight: 400;
+  letter-spacing: .06em;
+}
+.agenda-date {
+  padding: 8px 14px;
+  border: 1px solid rgba(62,207,142,.34);
+  border-radius: 999px;
+  background: rgba(62,207,142,.1);
+  color: var(--green);
+  font-size: clamp(9px, .68vw, 11px);
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.proximo {
+  min-height: clamp(82px, 11vh, 118px);
+  padding: 14px clamp(14px, 1.8vw, 28px);
+  gap: clamp(12px, 1.6vw, 24px);
+  border-color: rgba(228,166,79,.34);
+  border-radius: 16px;
+  background: linear-gradient(110deg, rgba(36, 27, 16, .86), rgba(15, 15, 16, .9));
+}
+.proximo-tag {
+  padding: 7px 10px;
+  border: 1px solid rgba(228,166,79,.28);
+  border-radius: 8px;
+  background: rgba(228,166,79,.1);
+  color: #f0c47e;
+  font-size: clamp(8px, .65vw, 11px);
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.proximo-nombre { font-size: clamp(22px, 2.3vw, 36px); letter-spacing: .04em; }
+.proximo-servicio { font-size: clamp(10px, .75vw, 13px); }
+.proximo-hora { font-size: clamp(28px, 3.4vw, 48px); }
+.lista-header {
+  grid-template-columns: clamp(56px, 6vw, 84px) minmax(0, 1fr) clamp(74px, 8vw, 112px) clamp(78px, 8.5vw, 120px);
+  align-items: center;
+  gap: clamp(7px, 1vw, 15px);
+  padding: 0 clamp(10px, 1vw, 16px) 9px;
+  color: rgba(255,255,255,.5);
+  font-size: clamp(8px, .62vw, 10px);
+  letter-spacing: .12em;
+}
+.lista-scroll { gap: 7px; }
+.r-item {
+  grid-template-columns: clamp(56px, 6vw, 84px) minmax(0, 1fr) clamp(74px, 8vw, 112px) clamp(78px, 8.5vw, 120px);
+  gap: clamp(7px, 1vw, 15px);
+  padding: clamp(9px, 1vh, 14px) clamp(10px, 1vw, 16px);
+  border-radius: 12px;
+  background: rgba(10,12,15,.88);
+}
+.r-hora { font-size: clamp(20px, 2vw, 30px); }
+.r-nombre { font-size: clamp(12px, .95vw, 16px); }
+.r-servicio { font-size: clamp(9px, .68vw, 11px); }
+.r-total { font-size: clamp(11px, .9vw, 15px); }
+.r-badge { font-size: clamp(8px, .58vw, 10px); letter-spacing: .08em; }
+.empty-state { color: rgba(255,255,255,.68); }
+.empty-icon { font-size: clamp(32px, 4vw, 58px); }
+.empty-text { font-size: clamp(13px, 1.2vw, 18px); }
+.sin-mas { padding: 12px; font-size: clamp(10px, .8vw, 13px); }
+.footer {
+  height: clamp(30px, 4vh, 44px);
+  padding: 0 clamp(22px, 3vw, 56px);
+  background: rgba(6,7,9,.78);
+  font-size: clamp(8px, .62vw, 10px);
+}
+@media (max-width: 1080px) and (orientation: landscape) {
+  .dashboard-grid { grid-template-columns: minmax(0, .42fr) minmax(0, .58fr); }
+  .header { gap: 10px; padding-right: 18px; padding-left: 18px; }
+  .stats { gap: 10px; }
+  .left-panel { grid-template-rows: minmax(0, .8fr) minmax(0, 1fr) minmax(0, 1fr); }
+  .review-tv-panel { grid-template-columns: 112px minmax(0,1fr); gap: 10px; padding: 10px; }
+  .review-tv-qr { width: 100px; }
+}
+@media (max-height: 720px) and (min-width: 1081px) {
+  .header { min-height: 68px; }
+  .dashboard-grid { padding-top: 10px; padding-bottom: 10px; }
+  .left-panel { grid-template-rows: minmax(0, .78fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+  .proximo { min-height: 76px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+}
+@property --tv-review-border-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes tvReviewBorderSweep {
+  to { --tv-review-border-angle: 360deg; }
+}
+.review-tv-panel {
+  position: relative;
+  isolation: isolate;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(115deg, rgba(13, 14, 17, .97), rgba(9, 10, 13, .94)) padding-box,
+    conic-gradient(
+      from var(--tv-review-border-angle),
+      rgba(228,166,79,.32) 0deg,
+      rgba(228,166,79,.32) 245deg,
+      transparent 270deg,
+      transparent 294deg,
+      #e4a64f 310deg,
+      #fff1c8 326deg,
+      #ffad37 342deg,
+      rgba(228,166,79,.32) 360deg
+    ) border-box;
+  box-shadow: 0 0 20px rgba(228,166,79,.22), 0 12px 28px rgba(0,0,0,.24);
+  animation: tvReviewBorderSweep 6s linear infinite;
+}
+.corte-card {
+  width: auto;
+  aspect-ratio: 147 / 212;
+}
+  .corte-card img {
+    object-fit: contain;
+    object-position: center;
+    background: #0b0c0e;
+  }
+  .carrusel-track {
+    flex: 1;
+    height: auto;
+    min-height: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .review-tv-panel { animation: none; border-color: var(--gold); }
+  }
+  @media (min-width: 1081px) {
+    .left-panel {
+      grid-template-rows: minmax(0, .55fr) minmax(0, 1.8fr) minmax(0, .8fr);
+    }
+    .showreel-panel { padding: 14px 22px; }
+    .showreel-panel h2 {
+      margin: 6px 0 4px;
+      font-size: clamp(28px, 2.2vw, 42px);
+      line-height: .92;
+    }
+  }
+  @media (max-height: 720px) and (min-width: 1081px) {
+    .showreel-panel { padding: 10px 18px; }
+    .showreel-eyebrow { font-size: 8px; }
+    .showreel-panel h2 { margin: 4px 0; font-size: clamp(24px, 2.4vw, 32px); }
+    .showreel-panel p { display: none; }
+  }
+  .tv-reminder-alert {
+    position: fixed;
+    z-index: 40;
+    top: clamp(86px, 12vh, 132px);
+    right: clamp(18px, 3vw, 54px);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: min(390px, calc(100vw - 36px));
+    padding: 16px 20px;
+    border: 1px solid rgba(240, 196, 126, .82);
+    border-radius: 16px;
+    background: linear-gradient(120deg, rgba(35, 27, 18, .97), rgba(13, 14, 17, .97));
+    box-shadow: 0 0 24px rgba(228, 166, 79, .2), 0 16px 40px rgba(0, 0, 0, .38);
+    opacity: 0;
+    transform: translateY(-10px) scale(.98);
+    pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .tv-reminder-alert.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  .tv-reminder-icon {
+    display: grid;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border: 1px solid rgba(240, 196, 126, .5);
+    border-radius: 50%;
+    background: rgba(228, 166, 79, .14);
+    color: #f0c47e;
+    font-size: 20px;
+    animation: tvReminderIconPulse 1.8s ease-in-out infinite;
+  }
+  .tv-reminder-tag {
+    color: #f0c47e;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .13em;
+  }
+  .tv-reminder-name {
+    margin-top: 4px;
+    color: #fff;
+    font-size: clamp(18px, 1.45vw, 23px);
+    font-weight: 700;
+  }
+  .tv-reminder-detail {
+    margin-top: 3px;
+    color: rgba(255,255,255,.7);
+    font-size: 13px;
+  }
+  .r-item.recordatorio-tv {
+    z-index: 1;
+    border-color: rgba(240, 196, 126, .95);
+    background: linear-gradient(110deg, rgba(100, 65, 26, .48), rgba(24, 21, 17, .95));
+    box-shadow: 0 0 22px rgba(228, 166, 79, .32), inset 0 0 20px rgba(228, 166, 79, .12);
+    animation: tvReminderRowPulse 1.8s ease-in-out infinite;
+  }
+  .r-item.recordatorio-tv .r-hora,
+  .r-item.recordatorio-tv .r-nombre { color: #ffe2ae; }
+  @keyframes tvReminderRowPulse {
+    50% { box-shadow: 0 0 30px rgba(228, 166, 79, .44), inset 0 0 26px rgba(228, 166, 79, .18); }
+  }
+  @keyframes tvReminderIconPulse {
+    50% { box-shadow: 0 0 16px rgba(228, 166, 79, .42); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tv-reminder-alert { transition: none; }
+    .tv-reminder-icon, .r-item.recordatorio-tv { animation: none; }
+  }
+</style>
+</body>
+</html>
