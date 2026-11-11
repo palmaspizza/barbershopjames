@@ -517,58 +517,63 @@ html, body {
 .tv-booking-service:focus-visible, .tv-booking-date:focus-visible, .tv-booking-hour:focus-visible,
 .tv-booking-action:focus-visible { outline:3px solid var(--gold); outline-offset:3px; }
 .tv-kiosk-launcher {
-  position: fixed;
-  z-index: 300;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: clamp(20px, 4vw, 56px);
-  width: min(980px, calc(100vw - 48px));
-  min-height: clamp(220px, 34vh, 360px);
-  padding: clamp(20px, 4vw, 48px);
-  border: 3px solid var(--gold);
-  border-radius: 28px;
-  background: linear-gradient(135deg, rgba(38,31,17,.98), rgba(11,12,15,.98));
-  color: var(--text);
-  box-shadow: 0 18px 70px #000e, 0 0 48px rgba(228,166,79,.34);
+  gap: clamp(12px, 2vw, 30px);
+  width: calc(100% - clamp(36px, 4.8vw, 88px));
+  height: clamp(88px, 12vh, 128px);
+  justify-self: center;
+  margin: 0 auto clamp(5px, .7vh, 10px);
+  padding: 10px clamp(16px, 2.4vw, 38px);
+  border: 2px solid #ffe4a8;
+  border-radius: 18px;
+  background: linear-gradient(105deg, #f0ad42, #ffca64 48%, #e8a03a);
+  color: #17120a;
+  box-shadow: 0 8px 28px rgba(0,0,0,.42), 0 0 24px rgba(228,166,79,.3);
   font: inherit;
-  font-size: clamp(18px, 2vw, 28px);
+  font-size: clamp(16px, 1.4vw, 22px);
   text-align: left;
-  justify-content: flex-start;
   cursor: pointer;
-  animation: kioskLauncherGlow 2.4s ease-in-out infinite alternate;
+  transition: filter .2s ease, box-shadow .2s ease;
 }
-.tv-kiosk-launcher:focus-visible { outline: 5px solid #fff; outline-offset: 6px; }
-.tv-kiosk-launcher strong { display:block; color: var(--gold); font-size: clamp(38px, 6vw, 76px); line-height: .95; letter-spacing: .03em; }
-.tv-kiosk-launcher-copy { display:grid; gap:12px; }
-.tv-kiosk-launcher-eyebrow { color:#fff; font-size:clamp(13px,1.4vw,19px); font-weight:800; letter-spacing:.2em; }
-.tv-kiosk-launcher-help { color:#e7e1d5; font-size:clamp(15px,1.6vw,22px); line-height:1.35; }
+.tv-kiosk-launcher:hover { filter:brightness(1.08); box-shadow:0 10px 34px rgba(0,0,0,.48), 0 0 32px rgba(228,166,79,.42); }
+.tv-kiosk-launcher:focus-visible { outline: 4px solid #fff; outline-offset: 3px; }
+.tv-kiosk-launcher strong { display:block; color:#17120a; font-size:clamp(23px, 3vw, 42px); line-height:.98; letter-spacing:.025em; }
+.tv-kiosk-launcher-copy { display:grid; gap:4px; min-width:0; }
+.tv-kiosk-launcher-eyebrow { color:#3e2810; font-size:clamp(10px, .82vw, 13px); font-weight:900; letter-spacing:.14em; }
+.tv-kiosk-launcher-help { color:#392812; font-size:clamp(12px, 1vw, 16px); line-height:1.25; }
 .tv-kiosk-remote {
   display:block;
-  width:clamp(108px, 13vw, 156px);
-  height:clamp(190px, 29vh, 280px);
+  width:clamp(42px, 4.4vw, 60px);
+  height:clamp(66px, 9.2vh, 96px);
   flex:none;
   object-fit:contain;
-  filter:drop-shadow(0 12px 24px rgba(0,0,0,.8));
+  filter:drop-shadow(0 4px 5px rgba(0,0,0,.38));
 }
 .tv-kiosk-launcher-key {
   display: grid;
   place-items: center;
-  min-width: clamp(64px, 7vw, 92px);
-  min-height: clamp(64px, 7vw, 92px);
-  border:3px solid #fff4d8;
+  min-width: clamp(52px, 5.2vw, 72px);
+  min-height: clamp(52px, 5.2vw, 72px);
+  border:2px solid #fff1d2;
   border-radius: 50%;
-  background: var(--gold);
-  color: #17120a;
-  font-size:clamp(22px,2.4vw,32px);
+  background: #17120a;
+  color: #ffca64;
+  font-size:clamp(19px,2vw,28px);
   font-weight: 900;
-  box-shadow:0 0 0 8px rgba(228,166,79,.16), 0 0 30px rgba(228,166,79,.5);
+  box-shadow:0 0 0 5px rgba(23,18,10,.12), 0 4px 12px rgba(23,18,10,.3);
 }
+.tv-kiosk-launcher-action { display:grid; justify-items:center; gap:3px; }
+.tv-kiosk-launcher-action small { color:#392812; font-size:clamp(8px,.65vw,10px); font-weight:900; letter-spacing:.08em; }
 @keyframes kioskLauncherGlow {
-  from { box-shadow: 0 18px 70px #000e, 0 0 28px rgba(228,166,79,.24); }
-  to { box-shadow: 0 18px 70px #000e, 0 0 58px rgba(228,166,79,.52); }
+  from { box-shadow: 0 8px 28px rgba(0,0,0,.42), 0 0 14px rgba(228,166,79,.22); }
+  to { box-shadow: 0 8px 30px rgba(0,0,0,.46), 0 0 26px rgba(228,166,79,.38); }
+}
+body:not(.kiosk-active) .tv-kiosk-launcher-key {
+  animation: kioskLauncherGlow 2.4s ease-in-out infinite alternate;
 }
 body.kiosk-active .tv-kiosk-launcher { display: none; }
 .tv-booking-eyebrow {
@@ -785,11 +790,14 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
 }
 .tv-site-link:hover, .tv-site-link:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 @media (max-width: 560px) {
-  .tv-kiosk-launcher { width:calc(100vw - 24px); min-height:0; gap:12px; padding:16px; border-radius:18px; }
-  .tv-kiosk-remote { width:72px; height:132px; }
-  .tv-kiosk-launcher-copy { gap:8px; }
-  .tv-kiosk-launcher strong { font-size:clamp(28px, 8vw, 44px); }
-  .tv-kiosk-launcher-key { min-width:54px; min-height:54px; border-width:2px; }
+  .tv-kiosk-launcher { width:calc(100% - 20px); height:76px; gap:8px; padding:8px 10px; border-radius:12px; }
+  .tv-kiosk-remote { width:34px; height:58px; }
+  .tv-kiosk-launcher-copy { gap:2px; }
+  .tv-kiosk-launcher strong { font-size:clamp(14px, 3.2vw, 21px); }
+  .tv-kiosk-launcher-eyebrow { font-size:8px; }
+  .tv-kiosk-launcher-help { font-size:10px; }
+  .tv-kiosk-launcher-key { min-width:42px; min-height:42px; border-width:2px; }
+  .tv-kiosk-launcher-action small { font-size:7px; }
   .tv-booking-overlay { padding: 12px; }
   .tv-booking-dialog { padding: 22px 18px; }
   .tv-booking-hours { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -810,7 +818,7 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
 
 <video autoplay muted playsinline preload="none" id="bg-video" class="tv-background-video" aria-hidden="true"></video>
 <div class="tv-background-overlay" aria-hidden="true"></div>
-<audio id="tv-ambient-music" src="assets/audio/james-ambient.mp3" preload="none" loop></audio>
+<audio id="tv-ambient-music" src="james-ambient.mp3" preload="none" loop></audio>
 <div class="bg"></div>
 <div class="bg-lines"></div>
 <div class="flash" id="flash"></div>
@@ -838,15 +846,15 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
     <p class="tv-booking-eyebrow">Reserva fácil · James Barbershop</p>
     <div class="tv-control-guide" aria-label="Guía visual del control remoto">
       <div class="tv-control-guide-item">
-        <img src="assets/control-numbers.png" alt="" width="48" height="48">
+        <img src="control-numbers.png" alt="" width="48" height="48">
         <span>Escribe tu número</span>
       </div>
       <div class="tv-control-guide-item">
-        <img src="assets/control-arrows-ok.png" alt="" width="48" height="48">
+        <img src="control-arrows-ok.png" alt="" width="48" height="48">
         <span>Muévete y pulsa OK</span>
       </div>
       <div class="tv-control-guide-item">
-        <img src="assets/control-back.png" alt="" width="48" height="48">
+        <img src="control-back.png" alt="" width="48" height="48">
         <span>Volver atrás</span>
       </div>
     </div>
@@ -902,16 +910,6 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
     </div>
   </section>
 </div>
-
-<button type="button" class="tv-kiosk-launcher" id="tv-kiosk-launcher" autofocus>
-  <img class="tv-kiosk-remote" src="assets/control-remote.svg" alt="Control remoto con teclas OK y numéricas">
-  <span class="tv-kiosk-launcher-key" aria-hidden="true">OK</span>
-  <span class="tv-kiosk-launcher-copy">
-    <span class="tv-kiosk-launcher-eyebrow">JAMES BARBERSHOP · RESERVA EN LA TV</span>
-    <strong>PULSA OK<br>PARA RESERVAR</strong>
-    <span class="tv-kiosk-launcher-help">Usa el botón OK de tu control y agenda tu próximo corte aquí mismo.</span>
-  </span>
-</button>
 
 <div class="app">
 
@@ -983,7 +981,7 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
       <section class="video-panel review-tv-panel" aria-label="Reseñas y código para compartir tu opinión">
         <div class="review-tv-qr-column">
           <div class="review-tv-qr">
-            <img id="tv-review-qr" src="assets/james-review-qr.png" alt="Código QR para dejar una reseña de James Barbershop" width="768" height="768" decoding="async">
+            <img id="tv-review-qr" src="james-review-qr.png" alt="Código QR para dejar una reseña de James Barbershop" width="768" height="768" decoding="async">
           </div>
           <p class="review-tv-prompt">ESCANEA Y<br>CUÉNTANOS</p>
         </div>
@@ -1030,6 +1028,19 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
 
   </div>
 
+  <button type="button" class="tv-kiosk-launcher" id="tv-kiosk-launcher" autofocus>
+    <img class="tv-kiosk-remote" src="control-remote.svg" alt="Control remoto con teclas OK y numéricas">
+    <span class="tv-kiosk-launcher-copy">
+      <span class="tv-kiosk-launcher-eyebrow">¿EL BARBERO ESTÁ OCUPADO?</span>
+      <strong>RESERVA TU PRÓXIMO CORTE AQUÍ MISMO</strong>
+      <span class="tv-kiosk-launcher-help">Agenda tu hora desde esta TV antes de irte.</span>
+    </span>
+    <span class="tv-kiosk-launcher-action" aria-hidden="true">
+      <span class="tv-kiosk-launcher-key">OK</span>
+      <small>EN TU CONTROL</small>
+    </span>
+  </button>
+
   <div class="footer">
     <div><span class="live-dot"></span><span id="tv-connection-label">Conectando…</span></div>
     <div id="footer-fecha">—</div>
@@ -1041,11 +1052,11 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
 // ── IMÁGENES ──
 const CORTES = {
   looks: Array.from({ length: 25 }, (_, index) => ({
-    src: `assets/cortes/women_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
+    src: `women_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
     alt: 'Estilo de cabello'
   })),
   cortes: Array.from({ length: 20 }, (_, index) => ({
-    src: `assets/cortes/men_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
+    src: `men_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
     alt: 'Corte de barbería'
   }))
 };
@@ -1988,10 +1999,10 @@ let tvBackgroundIndex = -1;
 function playNextTvBackground() {
   const video = document.getElementById('bg-video');
   const sources = window.DEMO_BRAND.tvVideos || [
-    'assets/videos/tv_bg_1.mp4',
-    'assets/videos/tv_bg_2.mp4',
-    'assets/videos/tv_bg_3.mp4',
-    'assets/videos/tv_bg_4.mp4'
+    'tv_bg_1.mp4',
+    'tv_bg_2.mp4',
+    'tv_bg_3.mp4',
+    'tv_bg_4.mp4'
   ];
   if (!video || !sources.length) return;
   if (tvBackgroundTimer !== null) window.clearTimeout(tvBackgroundTimer);
@@ -2663,7 +2674,7 @@ html, body { overflow: hidden; }
 .tv-background-overlay { background: rgba(0, 0, 0, .56); }
 .app {
   display: grid !important;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   height: 100vh;
   min-height: 0;
   overflow: hidden;
@@ -3021,6 +3032,7 @@ html, body { overflow: hidden; }
   }
   @media (prefers-reduced-motion: reduce) {
     .review-tv-panel { animation: none; border-color: var(--gold); }
+      .tv-kiosk-launcher-key { animation: none; }
   }
   @media (min-width: 1081px) {
     .left-panel {
