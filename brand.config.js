@@ -13,10 +13,11 @@ window.DEMO_BRAND = Object.freeze({
   websiteUrl: 'https://barberiajames.cl',
   reviewUrl: 'https://barberiajames.cl/bot?resena=1#jbReviews',
   tvVideos: [
-'/tv_bg_4_1.mp4',
-'/tv_bg_2.mp4',
-'/tv_bg_4_2.mp4',
-'/tv_bg_3.mp4'
+    'tv_bg_4.mp4',
+    'tv_bg_2.mp4',
+    'tv_bg_3.mp4',
+    'tv_bg_4_2.mp4'
+    
 
   ],
   firebase: {
