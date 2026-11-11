@@ -2095,10 +2095,11 @@ function initCarrusel() {
 const TV_MEDIA_MODES = Object.freeze([
   { id: 'videos', label: 'Solo videos de fondo' },
   { id: 'playlist', label: 'Playlist de YouTube' },
-  { id: 'interleaved', label: 'Playlist + videos · alterna cada 15 s' }
+  { id: 'interleaved', label: 'Playlist + videos · alterna cada 15 s' },
+  { id: 'corner', label: 'Videos de fondo + playlist en esquina' }
 ]);
 const TV_INTERLEAVE_INTERVAL_MS = 15000;
-let tvMediaModeIndex = 1;
+let tvMediaModeIndex = 3;
 let tvInterleaveTimer = null;
 let tvInterleaveShowsPlaylist = true;
 let tvBackgroundTimer = null;
@@ -2110,7 +2111,7 @@ let tvYoutubePlayerReady = false;
 let tvMediaNoticeTimer = null;
 
 function isTvBackgroundVisible() {
-  return tvMediaModeIndex === 0
+  return tvMediaModeIndex === 0 || tvMediaModeIndex === 3
     || (tvMediaModeIndex === 2 && !tvInterleaveShowsPlaylist);
 }
 
@@ -2181,13 +2182,25 @@ function resumeTvBackgroundVideo() {
 }
 
 let tvSoundState = 'muted'; // muted | trying | ask | on | blocked
+// Si TV Bro deja autoplay con sonido, la playlist ya suena; si no, cae a silencio
+function tvQuietMini() {
+  if (tvMediaModeIndex === 3) document.getElementById('tv-youtube-shell')?.classList.add('mini-quiet');
+}
+function tvCheckAutoSound() {
+  try {
+    if (tvMediaModeIndex === 0 || !tvYoutubePlayer) return;
+    if (tvYoutubePlayer.getPlayerState() === 1 && !tvYoutubePlayer.isMuted()) { tvSoundState = 'on'; tvQuietMini(); return; }
+    tvYoutubePlayer.mute(); tvYoutubePlayer.playVideo(); tvSoundState = 'muted';
+    if (tvMediaModeIndex === 3) showTvMediaNotice('Pulsa OK en el cuadro de YouTube (abajo a la derecha) para activar el sonido', 12000);
+  } catch (e) {}
+}
 function tvFocusPanel() {
   window.focus();
   if (kioskState === 'closed') document.getElementById('tv-kiosk-launcher')?.focus();
 }
 function tvTrySound(inAsk) {
   tvSoundState = 'trying';
-  try { tvYoutubePlayer.unMute(); tvYoutubePlayer.setVolume(100); } catch (e) {}
+  try { tvYoutubePlayer.unMute(); tvYoutubePlayer.setVolume(100); tvYoutubePlayer.playVideo(); } catch (e) {}
   setTimeout(() => {
     let ok = false;
     try {
@@ -2196,6 +2209,7 @@ function tvTrySound(inAsk) {
     } catch (e) {}
     if (ok) {
       tvSoundState = 'on';
+      tvQuietMini();
       document.getElementById('tv-media-notice')?.classList.remove('is-visible');
       tvFocusPanel();
       return;
@@ -2273,9 +2287,7 @@ async function ensureTvYoutubePlayer() {
           listType: 'playlist',
           list: playlistId,
           autoplay: 1,
-          mute: 1,
-          controls: 0,
-          disablekb: 1,
+          controls: 1,
           iv_load_policy: 3,
           modestbranding: 1,
           playsinline: 1,
@@ -2286,7 +2298,7 @@ async function ensureTvYoutubePlayer() {
           onReady: () => {
             playerReady = true;
             tvYoutubePlayerReady = true;
-            try { tvYoutubePlayer.mute(); tvYoutubePlayer.setLoop(true); } catch (e) {}
+            try { tvYoutubePlayer.setLoop(true); } catch (e) {}
             resolve(tvYoutubePlayer);
           },
           onStateChange: event => {
@@ -2341,6 +2353,16 @@ function updateTvMediaPresentation() {
     return;
   }
 
+  youtubeShell.classList.remove('mini-quiet');
+  if (mode === 'corner') {
+    if (tvInterleaveTimer !== null) window.clearInterval(tvInterleaveTimer);
+    tvInterleaveTimer = null;
+    youtubeShell.classList.add('is-visible', 'interleave-mini');
+    if (tvSoundState === 'on') youtubeShell.classList.add('mini-quiet');
+    document.body.classList.remove('tv-youtube-background');
+    resumeTvBackgroundVideo();
+    return;
+  }
   clearTvBackgroundTimer();
   video.pause();
   youtubeShell.classList.add('is-visible');
@@ -2393,7 +2415,7 @@ function startTvYoutubePlaylist() {
     return;
   }
   showTvMediaNotice('YouTube se está cargando; espera un momento e inténtalo de nuevo', 5000);
-  void ensureTvYoutubePlayer().then(playTvYoutubePlaylist).catch(error => {
+  void ensureTvYoutubePlayer().then(p => { playTvYoutubePlaylist(p); setTimeout(tvCheckAutoSound, 4000); }).catch(error => {
     console.error('No se pudo iniciar la playlist de YouTube:', error);
     if (tvMediaModeIndex !== 0) {
       setTvMediaMode(0, 'YouTube no está disponible · Solo videos de fondo');
@@ -3511,6 +3533,8 @@ html, body { overflow: hidden; }
 .tv-youtube-shell.interleave-mini { bottom: 56px; right: 24px; }
 #tv-youtube-shell.tv-youtube-shell { display: block !important; visibility: hidden; }
 #tv-youtube-shell.tv-youtube-shell.is-visible { visibility: visible; }
+.tv-youtube-shell.interleave-mini, .tv-youtube-shell.interleave-mini iframe { pointer-events: auto; }
+.tv-youtube-shell.mini-quiet { opacity: 0; pointer-events: none !important; }
 </style>
 </body>
 </html>
