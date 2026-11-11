@@ -1999,10 +1999,12 @@ let tvBackgroundIndex = -1;
 function playNextTvBackground() {
   const video = document.getElementById('bg-video');
   const sources = window.DEMO_BRAND.tvVideos || [
-    'tv_bg_1.mp4',
+    'tv_bg_4_1.mp4',
     'tv_bg_2.mp4',
     'tv_bg_3.mp4',
-    'tv_bg_4.mp4'
+    'tv_bg_4_2.mp4'
+    
+    
   ];
   if (!video || !sources.length) return;
   if (tvBackgroundTimer !== null) window.clearTimeout(tvBackgroundTimer);
