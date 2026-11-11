@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 0 220 440" role="img" aria-labelledby="title">
+  <title id="title">Control remoto con teclas OK y numéricas</title>
+  <defs>
+    <linearGradient id="body" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#34363a"/>
+      <stop offset=".45" stop-color="#101114"/>
+      <stop offset="1" stop-color="#050506"/>
+    </linearGradient>
+    <linearGradient id="key" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#414348"/>
+      <stop offset="1" stop-color="#121316"/>
+    </linearGradient>
+  </defs>
+  <g transform="rotate(8 80 220)">
+    <path d="M80 8C43 8 25 29 22 62L8 365c-2 42 21 66 66 67h12c45-1 68-25 66-67L138 62C135 29 117 8 80 8Z" fill="url(#body)" stroke="#55575b" stroke-width="3"/>
+    <circle cx="80" cy="48" r="13" fill="url(#key)" stroke="#08090a" stroke-width="3"/>
+    <path d="M80 39v9m-6-4a8 8 0 1 0 12 0" fill="none" stroke="#e8e8e8" stroke-linecap="round" stroke-width="2"/>
+    <circle cx="80" cy="79" r="4" fill="#060607"/>
+    <rect x="41" y="92" width="30" height="48" rx="14" fill="url(#key)" stroke="#08090a" stroke-width="3"/>
+    <rect x="89" y="92" width="30" height="48" rx="14" fill="url(#key)" stroke="#08090a" stroke-width="3"/>
+    <text x="56" y="112" fill="#eee" font-family="Arial,sans-serif" font-size="8" text-anchor="middle">VOL</text>
+    <text x="56" y="130" fill="#eee" font-family="Arial,sans-serif" font-size="9" text-anchor="middle">−  +</text>
+    <text x="104" y="112" fill="#eee" font-family="Arial,sans-serif" font-size="8" text-anchor="middle">CH</text>
+    <text x="104" y="130" fill="#eee" font-family="Arial,sans-serif" font-size="9" text-anchor="middle">−  +</text>
+    <circle cx="80" cy="159" r="20" fill="url(#key)" stroke="#090a0b" stroke-width="3"/>
+    <path d="m80 148 5 7h-10zm-11 11 7-5v10zm22 0-7 5v-10zm-11 11-5-7h10z" fill="#eee"/>
+    <circle cx="80" cy="159" r="8" fill="#d8d8d8" stroke="#111" stroke-width="2"/>
+    <text x="80" y="162" fill="#161719" font-family="Arial,sans-serif" font-size="6" font-weight="700" text-anchor="middle">OK</text>
+    <rect x="41" y="190" width="30" height="20" rx="10" fill="url(#key)" stroke="#08090a" stroke-width="2"/>
+    <rect x="89" y="190" width="30" height="20" rx="10" fill="url(#key)" stroke="#08090a" stroke-width="2"/>
+    <text x="56" y="203" fill="#eee" font-family="Arial,sans-serif" font-size="7" text-anchor="middle">ATRÁS</text>
+    <text x="104" y="203" fill="#eee" font-family="Arial,sans-serif" font-size="7" text-anchor="middle">INFO</text>
+    <rect x="63" y="218" width="34" height="20" rx="10" fill="url(#key)" stroke="#08090a" stroke-width="2"/>
+    <text x="80" y="232" fill="#eee" font-family="Arial,sans-serif" font-size="8" font-weight="700" text-anchor="middle">EXIT</text>
+    <g fill="url(#key)" stroke="#08090a" stroke-width="3">
+      <circle cx="50" cy="269" r="13"/><circle cx="80" cy="269" r="13"/><circle cx="110" cy="269" r="13"/>
+      <circle cx="50" cy="307" r="13"/><circle cx="80" cy="307" r="13"/><circle cx="110" cy="307" r="13"/>
+      <circle cx="50" cy="345" r="13"/><circle cx="80" cy="345" r="13"/><circle cx="110" cy="345" r="13"/>
+      <circle cx="80" cy="383" r="13"/>
+    </g>
+    <g fill="#f3f3f3" font-family="Arial,sans-serif" font-size="12" font-weight="700" text-anchor="middle">
+      <text x="50" y="273">1</text><text x="80" y="273">2</text><text x="110" y="273">3</text>
+      <text x="50" y="311">4</text><text x="80" y="311">5</text><text x="110" y="311">6</text>
+      <text x="50" y="349">7</text><text x="80" y="349">8</text><text x="110" y="349">9</text>
+      <text x="80" y="387">0</text>
+    </g>
+  </g>
+</svg>
