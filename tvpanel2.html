@@ -6,6 +6,30 @@
 <title>Panel TV - James Barbershop</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="brand.config.js"></script>
+<script>
+window.DEMO_BRAND = window.DEMO_BRAND || Object.freeze({
+  name: 'James Barbershop',
+  slogan: 'CORTE & ESTILO',
+  tvVideos: ['videofondo1.mp4', 'videofondo2.mp4', 'videofondo3.mp4'],
+  firebase: {
+    apiKey: 'AIzaSyBHLlV9HDfa1v-Uz4YVcbt3vQGByhNFYus',
+    authDomain: 'jeisonstyle-1530f.firebaseapp.com',
+    databaseURL: 'https://jeisonstyle-1530f-default-rtdb.firebaseio.com',
+    projectId: 'jeisonstyle-1530f',
+    storageBucket: 'jeisonstyle-1530f.firebasestorage.app',
+    messagingSenderId: '40159402096'
+  },
+  services: [
+    { nombre:'Barba Express', label:'Barba Express', precio:6000, tiempo:20 },
+    { nombre:'Barba Premium', label:'Barba Premium', precio:12000, tiempo:60 },
+    { nombre:'Corte Clásico', label:'Corte Clásico', precio:10000, tiempo:45 },
+    { nombre:'Corte Degradado', label:'Corte Degradado', precio:12000, tiempo:45 },
+    { nombre:'Corte Degradado + Lavado', label:'Corte Degradado + Lavado', precio:15000, tiempo:60 },
+    { nombre:'Color Global', label:'Color Global', precio:70000, tiempo:60 },
+    { nombre:'Rizos/Ondulaciones', label:'Rizos/Ondulaciones', precio:50000, tiempo:60 }
+  ]
+});
+</script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <style>
@@ -45,39 +69,6 @@ html, body {
   object-fit: cover;
   background: var(--bg);
 }
-
-.tv-youtube-shell {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  display: none;
-  width: calc(100 * var(--vw));
-  height: calc(100 * var(--vh));
-  background: #000;
-}
-
-.tv-youtube-shell.is-visible { display: block; }
-
-#tv-youtube-player,
-#tv-youtube-player iframe {
-  width: 100%;
-  height: 100%;
-}
-
-.tv-youtube-shell.interleave-mini {
-  inset: auto;
-  right: clamp(12px, calc(1.8 * var(--vw)), 28px);
-  bottom: clamp(12px, calc(1.8 * var(--vh)), 22px);
-  z-index: 12;
-  width: clamp(200px, calc(22 * var(--vw)), 380px);
-  height: clamp(200px, calc(22 * var(--vh)), 250px);
-  overflow: hidden;
-  border: 1px solid rgba(228,166,79,.75);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.65);
-}
-
-body.tv-youtube-background .tv-background-video { visibility: hidden; }
 
 .tv-media-notice {
   position: fixed;
@@ -879,9 +870,8 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
 
 <video autoplay muted playsinline preload="none" id="bg-video" class="tv-background-video" aria-hidden="true"></video>
 <div class="tv-background-overlay" aria-hidden="true"></div>
-<div id="tv-youtube-shell" class="tv-youtube-shell" aria-label="Playlist de YouTube">
-  <div id="tv-youtube-player"></div>
-</div>
+<audio id="tv-music" preload="auto"></audio>
+<button type="button" id="tv-music-toggle" aria-label="Cambiar a la siguiente música" title="ⓘ Cambiar al siguiente tema">ⓘ Siguiente música</button>
 <div id="stage">
 <div id="tv-media-notice" class="tv-media-notice" role="status" aria-live="polite"></div>
 <div class="bg"></div>
@@ -911,15 +901,15 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
     <p class="tv-booking-eyebrow">Reserva fácil · James Barbershop</p>
     <div class="tv-control-guide" aria-label="Guía visual del control remoto">
       <div class="tv-control-guide-item">
-        <img src="control-numbers.png" alt="" width="48" height="48">
+        <img src="assets/control-numbers.png" alt="" width="48" height="48">
         <span>Escribe tu número</span>
       </div>
       <div class="tv-control-guide-item">
-        <img src="control-arrows-ok.png" alt="" width="48" height="48">
+        <img src="assets/control-arrows-ok.png" alt="" width="48" height="48">
         <span>Muévete y pulsa OK</span>
       </div>
       <div class="tv-control-guide-item">
-        <img src="control-back.png" alt="" width="48" height="48">
+        <img src="assets/control-back.png" alt="" width="48" height="48">
         <span>Volver atrás</span>
       </div>
     </div>
@@ -974,6 +964,7 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
       <button type="button" class="tv-booking-action danger" id="tv-booking-cancel">Cancelar reserva</button>
     </div>
   </section>
+
 </div>
 
 <div class="app">
@@ -1018,10 +1009,10 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
       <section class="video-panel showreel-panel" aria-label="James Barbershop">
         <div class="showreel-content">
           <span class="showreel-eyebrow">JAMES BARBERSHOP · EXPERIENCIA EN VIVO</span>
-          <h2>Tu estilo.<br>Nuestro sello.</h2>
+          <h2>CORTE & ESTILO</h2>
           <p>Un buen corte empieza con una buena experiencia.</p>
         </div>
-        <div class="showreel-mark" aria-hidden="true">JB</div>
+
       </section>
 
       <div class="carruseles-dobles">
@@ -1043,12 +1034,22 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
         </div>
       </div>
 
-      <section class="video-panel review-tv-panel" aria-label="Reseñas y código para compartir tu opinión">
+      <section class="tv-products-panel" aria-label="Productos disponibles en la barbería">
+        <div class="tv-products-heading">
+          <span>RECOMENDADOS EN LA BARBERÍA</span>
+          <strong>Productos para tu próximo corte</strong>
+        </div>
+        <div id="tv-products-track" class="tv-products-track" aria-live="polite">
+          <p class="tv-products-empty">Descubre nuestros productos disponibles.</p>
+        </div>
+      </section>
+
+      <section class="video-panel review-tv-panel" style="height: auto !important;" aria-label="Reseñas y código para compartir tu opinión">
         <div class="review-tv-qr-column">
           <div class="review-tv-qr">
-            <img id="tv-review-qr" src="james-review-qr.png" alt="Código QR para dejar una reseña de James Barbershop" width="768" height="768" decoding="async">
+            <img id="tv-review-qr" src="assets/james-review-qr.png" alt="Código QR para dejar una reseña de James Barbershop" width="768" height="768" decoding="async">
           </div>
-          <p class="review-tv-prompt">ESCANEA Y<br>CUÉNTANOS</p>
+          <p class="review-tv-prompt">ESCANEA Y<br>CUÉNTANOS</p> 
         </div>
         <div class="review-tv-content">
           <span class="review-tv-eyebrow">LA COMUNIDAD JAMES</span>
@@ -1077,6 +1078,7 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
             <div class="proximo-nombre" id="proximo-nombre">Sin reservas pendientes</div>
             <div class="proximo-servicio" id="proximo-servicio"></div>
           </div>
+          <img id="proximo-product-image" class="tv-product-reservation-image" alt="" hidden>
           <div class="proximo-hora" id="proximo-hora"></div>
         </div>
         <div style="display:flex;flex-direction:column;overflow:hidden;min-height:0;flex:1;">
@@ -1094,7 +1096,7 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
   </div>
 
   <button type="button" class="tv-kiosk-launcher" id="tv-kiosk-launcher" autofocus>
-    <img class="tv-kiosk-remote" src="control-remote.svg" alt="Control remoto con teclas OK y numéricas">
+    <img class="tv-kiosk-remote" src="assets/control-remote.svg" alt="Control remoto con teclas OK y numéricas">
     <span class="tv-kiosk-launcher-copy">
       <span class="tv-kiosk-launcher-eyebrow">¿EL BARBERO ESTÁ OCUPADO?</span>
       <strong>RESERVA TU PRÓXIMO CORTE AQUÍ MISMO</strong>
@@ -1123,11 +1125,11 @@ fitStage();addEventListener('resize',fitStage);addEventListener('load',fitStage)
 // ── IMÁGENES ──
 const CORTES = {
   looks: Array.from({ length: 25 }, (_, index) => ({
-    src: `women_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
+    src: `assets/cortes/women_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
     alt: 'Estilo de cabello'
   })),
   cortes: Array.from({ length: 20 }, (_, index) => ({
-    src: `men_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
+    src: `assets/cortes/men_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
     alt: 'Corte de barbería'
   }))
 };
@@ -1697,6 +1699,7 @@ async function saveKioskBooking() {
       fecha: kioskDate,
       hora: kioskSelectedHour,
       servicios: kioskService.nombre || kioskService.label,
+      duracionMinutos: Number(kioskService.tiempo) || 30,
       total: formatTotal(kioskService.precio),
       telefono: `56${kioskPhoneDigits}`,
       acepta_contacto_whatsapp: false,
@@ -1862,7 +1865,6 @@ window.addEventListener('popstate', () => {
   tvBackStep();
 });
 function handleKioskKeydown(event) {
-  tvUnmuteYoutube(true);
   const key = getKioskRemoteKey(event);
   const isMediaModeKey = key.toLowerCase() === 'info'
     || key.toLowerCase() === 'i'
@@ -1871,7 +1873,7 @@ function handleKioskKeydown(event) {
     || event.keyCode === 457;
   if (kioskState === 'closed' && isMediaModeKey && !event.repeat) {
     event.preventDefault();
-    cycleTvMediaMode();
+    window.tvToggleMusic();
     return;
   }
   if ((key === 'Escape' || key === 'BrowserBack') && kioskSaving) {
@@ -2092,28 +2094,9 @@ function initCarrusel() {
   });
 }
 
-const TV_MEDIA_MODES = Object.freeze([
-  { id: 'videos', label: 'Solo videos de fondo' },
-  { id: 'playlist', label: 'Playlist de YouTube' },
-  { id: 'interleaved', label: 'Playlist + videos · alterna cada 15 s' },
-  { id: 'corner', label: 'Videos de fondo + playlist en esquina' }
-]);
-const TV_INTERLEAVE_INTERVAL_MS = 15000;
-let tvMediaModeIndex = 3;
-let tvInterleaveTimer = null;
-let tvInterleaveShowsPlaylist = true;
 let tvBackgroundTimer = null;
 let tvBackgroundIndex = -1;
-let tvYoutubeApiPromise = null;
-let tvYoutubePlayer = null;
-let tvYoutubePlayerReadyPromise = null;
-let tvYoutubePlayerReady = false;
 let tvMediaNoticeTimer = null;
-
-function isTvBackgroundVisible() {
-  return tvMediaModeIndex === 0 || tvMediaModeIndex === 3
-    || (tvMediaModeIndex === 2 && !tvInterleaveShowsPlaylist);
-}
 
 function showTvMediaNotice(message, duration = 3500) {
   const notice = document.getElementById('tv-media-notice');
@@ -2135,12 +2118,11 @@ function clearTvBackgroundTimer() {
 function playNextTvBackground() {
   const video = document.getElementById('bg-video');
   const sources = window.DEMO_BRAND.tvVideos || [
-    'tv_bg_4.mp4',
-    'tv_bg_2.mp4',
-    'tv_bg_3.mp4',
-    'tv_bg_4_2.mp4'
+    'videofondo1.mp4',
+    'videofondo2.mp4',
+    'videofondo3.mp4'
   ];
-  if (!video || !sources.length || !isTvBackgroundVisible()) return;
+  if (!video || !sources.length) return;
   clearTvBackgroundTimer();
   tvBackgroundIndex = (tvBackgroundIndex + 1) % sources.length;
   video.pause();
@@ -2152,13 +2134,12 @@ function playNextTvBackground() {
     clearTvBackgroundTimer();
     tvBackgroundTimer = window.setTimeout(() => {
       tvBackgroundTimer = null;
-      if (isTvBackgroundVisible()) playNextTvBackground();
+      playNextTvBackground();
     }, delay);
   };
   video.onended = () => scheduleNext(250);
   video.onerror = () => {
     console.error(`No se pudo reproducir el video de fondo: ${sources[tvBackgroundIndex]}`);
-    if (tvMediaModeIndex === 0) { setTvMediaMode(1, 'Video de fondo no disponible · Playlist'); void startTvYoutubePlaylist(); return; }
     scheduleNext(3000);
   };
   video.play().catch(error => {
@@ -2169,275 +2150,79 @@ function playNextTvBackground() {
 
 function resumeTvBackgroundVideo() {
   const video = document.getElementById('bg-video');
-  if (!video || !isTvBackgroundVisible()) return;
+  if (!video) return;
   if (!video.getAttribute('src') || video.ended) {
     playNextTvBackground();
     return;
   }
   video.play().catch(error => {
-    if (isTvBackgroundVisible()) {
-      console.error('El navegador no permitió reanudar el video de fondo:', error);
-    }
+    console.error('El navegador no permitió reanudar el video de fondo:', error);
   });
-}
-
-let tvSoundState = 'muted'; // muted | trying | ask | on | blocked
-// Si TV Bro deja autoplay con sonido, la playlist ya suena; si no, cae a silencio
-function tvQuietMini() {
-  if (tvMediaModeIndex === 3) document.getElementById('tv-youtube-shell')?.classList.add('mini-quiet');
-}
-function tvCheckAutoSound() {
-  try {
-    if (tvMediaModeIndex === 0 || !tvYoutubePlayer) return;
-    if (tvYoutubePlayer.getPlayerState() === 1 && !tvYoutubePlayer.isMuted()) { tvSoundState = 'on'; tvQuietMini(); return; }
-    tvYoutubePlayer.mute(); tvYoutubePlayer.playVideo(); tvSoundState = 'muted';
-    if (tvMediaModeIndex === 3) showTvMediaNotice('Pulsa OK en el cuadro de YouTube (abajo a la derecha) para activar el sonido', 12000);
-  } catch (e) {}
-}
-function tvFocusPanel() {
-  window.focus();
-  if (kioskState === 'closed') document.getElementById('tv-kiosk-launcher')?.focus();
-}
-function tvTrySound(inAsk) {
-  tvSoundState = 'trying';
-  try { tvYoutubePlayer.unMute(); tvYoutubePlayer.setVolume(100); tvYoutubePlayer.playVideo(); } catch (e) {}
-  setTimeout(() => {
-    let ok = false;
-    try {
-      ok = tvYoutubePlayer.getPlayerState() === 1 && !tvYoutubePlayer.isMuted();
-      if (!ok) { tvYoutubePlayer.mute(); tvYoutubePlayer.playVideo(); }
-    } catch (e) {}
-    if (ok) {
-      tvSoundState = 'on';
-      tvQuietMini();
-      document.getElementById('tv-media-notice')?.classList.remove('is-visible');
-      tvFocusPanel();
-      return;
-    }
-    if (inAsk) tvSoundState = 'ask'; else tvAskSoundInFrame();
-  }, 2000);
-}
-// Le pasa el foco al reproductor de YouTube para que un OK del control le llegue directo
-function tvAskSoundInFrame() {
-  const frame = document.querySelector('#tv-youtube-shell iframe');
-  if (!frame) { tvSoundState = 'blocked'; return; }
-  tvSoundState = 'ask';
-  const until = Date.now() + 25000;
-  try { frame.setAttribute('tabindex', '0'); frame.focus(); } catch (e) {}
-  showTvMediaNotice('Pulsa OK una vez para activar el sonido', 25000);
-  const timer = setInterval(() => {
-    if (tvSoundState === 'on') { clearInterval(timer); return; }
-    if (Date.now() > until) {
-      clearInterval(timer);
-      tvSoundState = 'blocked';
-      showTvMediaNotice('Sin sonido: este navegador lo bloquea', 6000);
-      tvFocusPanel();
-      return;
-    }
-    if (tvSoundState === 'ask') tvTrySound(true);
-  }, 3000);
-}
-function tvUnmuteYoutube(fromKey) {
-  if (!fromKey || tvSoundState !== 'muted' || !tvYoutubePlayerReady || !tvYoutubePlayer || tvMediaModeIndex === 0) return;
-  tvTrySound(false);
-}
-
-// Reanuda solo si el video quedo pausado/sin iniciar (no interfiere con el intento de sonido)
-setInterval(() => {
-  if (!tvYoutubePlayerReady || !tvYoutubePlayer || tvMediaModeIndex === 0 || tvSoundState === 'trying' || tvSoundState === 'ask') return;
-  try {
-    const st = tvYoutubePlayer.getPlayerState();
-    if (st === 2 || st === -1 || st === 5) tvYoutubePlayer.playVideo();
-  } catch (e) {}
-}, 5000);
-
-function loadTvYoutubeApi() {
-  if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
-  if (tvYoutubeApiPromise) return tvYoutubeApiPromise;
-
-  tvYoutubeApiPromise = new Promise((resolve, reject) => {
-    const previousCallback = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      resolve(window.YT);
-      if (typeof previousCallback === 'function') previousCallback();
-    };
-    const script = document.createElement('script');
-    script.src = 'https://www.youtube.com/iframe_api';
-    script.async = true;
-    script.onerror = () => {
-      tvYoutubeApiPromise = null;
-      reject(new Error('No se pudo cargar el reproductor de YouTube.'));
-    };
-    document.head.appendChild(script);
-  });
-  return tvYoutubeApiPromise;
-}
-
-async function ensureTvYoutubePlayer() {
-  const videoId = '47Cda27DDOY';
-  const api = await loadTvYoutubeApi();
-  if (!tvYoutubePlayerReadyPromise) {
-    tvYoutubePlayerReadyPromise = new Promise((resolve, reject) => {
-      let playerReady = false;
-      tvYoutubePlayer = new api.Player('tv-youtube-player', {
-        width: '100%',
-        height: '100%',
-        videoId: videoId,
-        playerVars: {
-          loop: 1,
-          playlist: videoId,
-          autoplay: 1,
-          controls: 1,
-          iv_load_policy: 3,
-          modestbranding: 1,
-          playsinline: 1,
-          rel: 0,
-          origin: window.location.origin
-        },
-        events: {
-          onReady: () => {
-            playerReady = true;
-            tvYoutubePlayerReady = true;
-            try { tvYoutubePlayer.setLoop(true); } catch (e) {}
-            resolve(tvYoutubePlayer);
-          },
-          onStateChange: event => {
-            if (event.data === api.PlayerState.PLAYING && tvMediaModeIndex === 2) {
-              startTvInterleaveTimer();
-            }
-            const playlist = tvYoutubePlayer.getPlaylist();
-            const playlistIndex = tvYoutubePlayer.getPlaylistIndex();
-            const playlistFinished = Array.isArray(playlist)
-              && playlist.length > 0
-              && playlistIndex === playlist.length - 1;
-            if (event.data === api.PlayerState.ENDED && playlistFinished && tvMediaModeIndex !== 0) {
-              setTvMediaMode(0, 'Playlist terminada · Solo videos de fondo');
-            }
-          },
-          onError: event => {
-            const error = new Error(`YouTube no pudo reproducir esta playlist (${event.data}).`);
-            console.error(error.message);
-            if (!playerReady) reject(error);
-            else if (tvMediaModeIndex !== 0) {
-              setTvMediaMode(0, 'No se pudo reproducir YouTube · Solo videos de fondo');
-            }
-          },
-          onAutoplayBlocked: () => {
-            showTvMediaNotice('Pulsa OK sobre el reproductor de YouTube para iniciar la música', 7000);
-          }
-        }
-      });
-    }).catch(error => {
-      tvYoutubePlayerReadyPromise = null;
-      tvYoutubePlayerReady = false;
-      throw error;
-    });
-  }
-  return tvYoutubePlayerReadyPromise;
-}
-
-function updateTvMediaPresentation() {
-  const mode = TV_MEDIA_MODES[tvMediaModeIndex].id;
-  const video = document.getElementById('bg-video');
-  const youtubeShell = document.getElementById('tv-youtube-shell');
-  if (!video || !youtubeShell) return;
-
-  if (mode === 'videos') {
-    if (tvInterleaveTimer !== null) window.clearInterval(tvInterleaveTimer);
-    tvInterleaveTimer = null;
-    youtubeShell.classList.remove('is-visible', 'interleave-mini');
-    document.body.classList.remove('tv-youtube-background');
-    clearTvBackgroundTimer();
-    if (tvYoutubePlayer) tvYoutubePlayer.pauseVideo();
-    resumeTvBackgroundVideo();
-    return;
-  }
-
-  youtubeShell.classList.remove('mini-quiet');
-  if (mode === 'corner') {
-    if (tvInterleaveTimer !== null) window.clearInterval(tvInterleaveTimer);
-    tvInterleaveTimer = null;
-    youtubeShell.classList.add('is-visible', 'interleave-mini');
-    if (tvSoundState === 'on') youtubeShell.classList.add('mini-quiet');
-    document.body.classList.remove('tv-youtube-background');
-    resumeTvBackgroundVideo();
-    return;
-  }
-  clearTvBackgroundTimer();
-  video.pause();
-  youtubeShell.classList.add('is-visible');
-  document.body.classList.add('tv-youtube-background');
-
-  if (mode === 'playlist') {
-    if (tvInterleaveTimer !== null) window.clearInterval(tvInterleaveTimer);
-    tvInterleaveTimer = null;
-    youtubeShell.classList.remove('interleave-mini');
-    return;
-  }
-
-  if (tvInterleaveShowsPlaylist) {
-    youtubeShell.classList.remove('interleave-mini');
-    return;
-  }
-
-  document.body.classList.remove('tv-youtube-background');
-  youtubeShell.classList.add('interleave-mini');
-  resumeTvBackgroundVideo();
-}
-
-function startTvInterleaveTimer() {
-  if (tvMediaModeIndex !== 2) return;
-  if (tvInterleaveTimer !== null) window.clearInterval(tvInterleaveTimer);
-  tvInterleaveShowsPlaylist = true;
-  updateTvMediaPresentation();
-  tvInterleaveTimer = window.setInterval(() => {
-    if (tvMediaModeIndex !== 2) {
-      window.clearInterval(tvInterleaveTimer);
-      tvInterleaveTimer = null;
-      return;
-    }
-    tvInterleaveShowsPlaylist = !tvInterleaveShowsPlaylist;
-    updateTvMediaPresentation();
-  }, TV_INTERLEAVE_INTERVAL_MS);
-}
-
-function playTvYoutubePlaylist(player) {
-  if (tvMediaModeIndex === 0) return;
-  player.playVideo();
-  if (tvMediaModeIndex === 2 && player.getPlayerState() === window.YT.PlayerState.PLAYING) {
-    startTvInterleaveTimer();
-  }
-}
-
-function startTvYoutubePlaylist() {
-  if (tvYoutubePlayerReady && tvYoutubePlayer) {
-    playTvYoutubePlaylist(tvYoutubePlayer);
-    return;
-  }
-  showTvMediaNotice('YouTube se está cargando; espera un momento e inténtalo de nuevo', 5000);
-  void ensureTvYoutubePlayer().then(p => { playTvYoutubePlaylist(p); setTimeout(tvCheckAutoSound, 4000); }).catch(error => {
-    console.error('No se pudo iniciar la playlist de YouTube:', error);
-    if (tvMediaModeIndex !== 0) {
-      setTvMediaMode(0, 'YouTube no está disponible · Solo videos de fondo');
-    }
-  });
-}
-
-function setTvMediaMode(index, notice = '') {
-  tvMediaModeIndex = index;
-  tvInterleaveShowsPlaylist = true;
-  updateTvMediaPresentation();
-  if (notice) showTvMediaNotice(notice, 5000);
-}
-
-function cycleTvMediaMode() {
-  tvMediaModeIndex = (tvMediaModeIndex + 1) % TV_MEDIA_MODES.length;
-  const mode = TV_MEDIA_MODES[tvMediaModeIndex];
-  setTvMediaMode(tvMediaModeIndex, `${mode.label} · INFO para cambiar`);
-  if (tvMediaModeIndex !== 0) void startTvYoutubePlaylist();
 }
 
 let tvReviewTimer = null;
+let tvProductsTimer = null;
+let tvProductIndex = 0;
+
+function renderTvProducts(snapshot) {
+  const track = document.getElementById('tv-products-track');
+  if (!track) return;
+  const products = [];
+  snapshot.forEach(child => {
+    const product = child.val() || {};
+    if (product.visible !== false && Number(product.stock) > 0) {
+      products.push({ id: child.key, ...product });
+    }
+  });
+  products.sort((a, b) => Number(b.masVendidoManual) - Number(a.masVendidoManual));
+  track.replaceChildren();
+  track.style.transform = 'translateX(0)';
+  tvProductIndex = 0;
+  if (tvProductsTimer !== null) window.clearInterval(tvProductsTimer);
+  tvProductsTimer = null;
+  if (!products.length) {
+    const empty = document.createElement('p');
+    empty.className = 'tv-products-empty';
+    empty.textContent = 'Aún no hay productos publicados con stock disponible.';
+    track.appendChild(empty);
+    return;
+  }
+  products.forEach(product => {
+    const card = document.createElement('article');
+    card.className = 'tv-product-card';
+    if (product.imagen) {
+      const image = document.createElement('img');
+      image.src = product.imagen;
+      image.alt = '';
+      image.loading = 'lazy';
+      card.appendChild(image);
+    }
+    const info = document.createElement('div');
+    info.className = 'tv-product-copy';
+    const title = document.createElement('strong');
+    title.textContent = product.nombre || 'Producto';
+    const description = document.createElement('p');
+    description.textContent = product.descripcion || 'Disponible en la barbería.';
+    const price = document.createElement('span');
+    const oferta = Number(product.precioOferta) > 0 && Number(product.precioOferta) < Number(product.precio);
+    price.textContent = `$${(oferta ? Number(product.precioOferta) : Number(product.precio) || 0).toLocaleString('es-CL')}`;
+    if (oferta) {
+      const oldPrice = document.createElement('del');
+      oldPrice.textContent = `$${Number(product.precio).toLocaleString('es-CL')}`;
+      info.append(title, description, oldPrice, price);
+    } else {
+      info.append(title, description, price);
+    }
+    card.appendChild(info);
+    track.appendChild(card);
+  });
+  if (products.length > 1) {
+    tvProductsTimer = window.setInterval(() => {
+      tvProductIndex = (tvProductIndex + 1) % products.length;
+      track.style.transform = `translateX(-${tvProductIndex * 100}%)`;
+    }, 6500);
+  }
+}
 
 function renderTvReviews(snapshot) {
   const reviews = Object.values(snapshot.val() || {})
@@ -2460,6 +2245,8 @@ function renderTvReviews(snapshot) {
   if (!reviews.length) {
     quote.textContent = '¿Te gustó tu visita? Escanea el código y comparte tu experiencia.';
     author.textContent = '';
+    quote.classList.remove('is-entering');
+    author.classList.remove('is-entering');
     if (tvReviewTimer !== null) window.clearInterval(tvReviewTimer);
     tvReviewTimer = null;
     return;
@@ -2476,6 +2263,11 @@ function renderTvReviews(snapshot) {
     const review = reviews[index];
     quote.textContent = `“${String(review.texto).trim()}”`;
     author.textContent = `— ${String(review.nombre || 'Cliente').trim().split(/\s+/)[0]}`;
+    quote.classList.remove('is-entering');
+    author.classList.remove('is-entering');
+    void quote.offsetWidth;
+    quote.classList.add('is-entering');
+    author.classList.add('is-entering');
     Array.from(indicators.children).forEach((indicator, indicatorIndex) => {
       indicator.classList.toggle('active', indicatorIndex === index);
     });
@@ -2652,17 +2444,39 @@ function render(reservas) {
     if (expiry <= ahoraMs) tvReminderHighlightExpiries.delete(reservaId);
   }
   const deHoy = reservas.filter(r => r.fecha === hoy).sort((a,b) => h2m(a.hora) - h2m(b.hora));
-  const pendientes = deHoy.filter(r => h2m(r.hora) >= ahora - 30);
+  const duracionReserva = reserva => Math.max(15, Number(reserva.duracionMinutos || reserva.duracion) || 30);
+  const atendiendo = reserva => {
+    const inicio = h2m(reserva.hora);
+    return inicio <= ahora && ahora < inicio + duracionReserva(reserva);
+  };
+  const pendientes = deHoy.filter(r => h2m(r.hora) + duracionReserva(r) > ahora);
 
   document.getElementById('stat-hoy').textContent  = deHoy.length;
   document.getElementById('stat-pend').textContent = pendientes.length;
 
-  const proximo = pendientes[0] || null;
+  const proximo = deHoy.find(atendiendo) || pendientes.find(r => h2m(r.hora) > ahora) || null;
+  const proximoTag = document.querySelector('.proximo-tag');
+  if (proximoTag) {
+    proximoTag.textContent = proximo && atendiendo(proximo) ? 'ATENDIENDO' : 'PRÓXIMA CITA';
+    proximoTag.classList.toggle('is-attending', Boolean(proximo && atendiendo(proximo)));
+  }
   document.getElementById('proximo-nombre').textContent   = proximo
     ? String(proximo.nombre || 'Cliente').trim().split(/\s+/)[0]
     : 'Sin reservas pendientes';
   document.getElementById('proximo-hora').textContent     = proximo ? (proximo.hora || '') : '';
   document.getElementById('proximo-servicio').textContent = proximo ? formatServs(proximo.servicios) : '';
+  const proximoImagen = document.getElementById('proximo-product-image');
+  if (proximoImagen) {
+    const imagenProducto = proximo && proximo.producto && proximo.producto.imagen;
+    proximoImagen.hidden = !imagenProducto;
+    if (imagenProducto) {
+      proximoImagen.src = imagenProducto;
+      proximoImagen.alt = proximo.producto.nombre ? `Producto reservado: ${proximo.producto.nombre}` : 'Producto reservado';
+    } else {
+      proximoImagen.removeAttribute('src');
+      proximoImagen.alt = '';
+    }
+  }
 
   const lista = document.getElementById('lista');
   if (deHoy.length === 0) {
@@ -2674,12 +2488,12 @@ function render(reservas) {
   deHoy.forEach(r => {
     const highlightClass = tvReminderHighlightExpiries.has(r._key) ? ' recordatorio-tv' : '';
     const minR  = h2m(r.hora);
-    const pasada = minR < ahora - 30;
-    const actual = false;
+    const actual = atendiendo(r);
+    const pasada = minR + duracionReserva(r) <= ahora;
     let cls, bCls, label;
-    if (pasada)      { cls = 'r-item pasada';  bCls = 'r-badge badge-pasada';  label = 'Atendido'; }
-    else if (actual) { cls = 'r-item actual';  bCls = 'r-badge badge-actual';  label = 'Pendiente⏰'; }
-    else             { cls = 'r-item proxima'; bCls = 'r-badge badge-proxima'; label = 'Pendiente'; }
+    if (pasada)      { cls = 'r-item pasada';  bCls = 'r-badge badge-pasada';  label = 'Atendida'; }
+    else if (actual) { cls = 'r-item actual';  bCls = 'r-badge badge-actual';  label = 'ATENDIENDO'; }
+    else             { cls = 'r-item proxima'; bCls = 'r-badge badge-proxima'; label = 'Próxima reserva'; }
     const total = formatTotal(r.total);
     const servs = formatServs(r.servicios);
     html += `
@@ -2688,13 +2502,14 @@ function render(reservas) {
         <div>
           <div class="r-nombre">${escapeTvHtml(String(r.nombre || 'Cliente').trim().split(/\s+/)[0])}</div>
           ${servs ? `<div class="r-servicio">${escapeTvHtml(servs)}</div>` : ''}
+          ${r.producto ? `<div class="r-producto-tv">${r.producto.imagen ? `<img src="${escapeTvHtml(r.producto.imagen)}" alt="" loading="lazy">` : ''}<span>${escapeTvHtml(r.producto.nombre || 'Producto reservado')}</span></div>` : ''}
         </div>
         <div class="r-total">${total}</div>
         <div class="${bCls}">${label}</div>
       </div>`;
   });
 
-  const hayPend = deHoy.some(r => h2m(r.hora) >= ahora - 30);
+  const hayPend = pendientes.length > 0;
   if (!hayPend && deHoy.length > 0) {
     html += `<div class="sin-mas">✅ ¡Listo por hoy! Buen trabajo.</div>`;
   }
@@ -2704,11 +2519,7 @@ function render(reservas) {
 // ── FIREBASE + INIT ──
 window.addEventListener('load', () => {
   initCarrusel();
-  setTvMediaMode(tvMediaModeIndex);
-  void ensureTvYoutubePlayer().then(playTvYoutubePlaylist).catch(error => {
-    console.error('No se pudo preparar la playlist de YouTube:', error);
-    setTvMediaMode(0, 'YouTube no está disponible · Solo videos de fondo');
-  });
+  playNextTvBackground();
   document.getElementById('tv-kiosk-launcher').focus();
   const unlockTvAudio = () => {
     try {
@@ -2719,7 +2530,6 @@ window.addEventListener('load', () => {
   };
   window.addEventListener('keydown', unlockTvAudio, { once: true });
   window.addEventListener('pointerdown', unlockTvAudio, { once: true });
-  window.addEventListener('pointerdown', () => tvUnmuteYoutube(true));
   window.addEventListener('keydown', handleKioskKeydown);
   document.getElementById('tv-kiosk-launcher').addEventListener('click', openKioskPhoneDialog);
   document.getElementById('tv-booking-phone-delete').addEventListener('click', deleteKioskPhoneDigit);
@@ -2763,6 +2573,10 @@ window.addEventListener('load', () => {
       console.error('No se pudieron cargar las reseñas del panel TV:', error);
       document.getElementById('tv-review-quote').textContent = 'Las opiniones no están disponibles en este momento.';
     });
+  db.ref('productos').on('value', renderTvProducts, error => {
+    console.error('No se pudieron cargar los productos del panel TV:', error);
+    document.getElementById('tv-products-track').textContent = 'No fue posible cargar los productos.';
+  });
   let conocidas = new Set();
   let primera = true;
 
@@ -3197,6 +3011,8 @@ html, body { overflow: hidden; }
 }
 .carrusel-wrap {
   position: relative;
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
   padding-top: 21px;
@@ -3428,6 +3244,7 @@ html, body { overflow: hidden; }
   }
   .carrusel-track {
     flex: 1;
+    width: 100%;
     height: auto;
     min-height: 0;
   }
@@ -3529,12 +3346,215 @@ html, body { overflow: hidden; }
 #stage { position: fixed; left: 50%; top: 50%; width: 1920px; height: 1080px; z-index: 2;
   overflow: hidden; transform-origin: center center; --vw: 19.2px; --vh: 10.8px; font-size: 18px; }
 #stage .app { height: 1080px; }
-.tv-youtube-shell, .tv-youtube-shell iframe { pointer-events: none; }
-.tv-youtube-shell.interleave-mini { bottom: 56px; right: 24px; }
-#tv-youtube-shell.tv-youtube-shell { display: block !important; visibility: hidden; }
-#tv-youtube-shell.tv-youtube-shell.is-visible { visibility: visible; }
-.tv-youtube-shell.interleave-mini, .tv-youtube-shell.interleave-mini iframe { pointer-events: auto; }
-.tv-youtube-shell.mini-quiet { opacity: 0; pointer-events: none !important; }
 </style>
+<style>
+#tv-music-toggle {
+  position: fixed;
+  top: 12px;
+  left: calc(50% + 15vw);
+  right: auto;
+  bottom: auto;
+  max-width: clamp(130px, 10vw, 180px);
+  z-index: 9999;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid rgba(228,166,79,.75);
+  border-radius: 999px;
+  background: rgba(14,15,18,.96);
+  color: #f1c887;
+  font: 700 clamp(12px, .85vw, 16px) Inter, sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,.45);
+}
+#tv-music-toggle:hover, #tv-music-toggle:focus-visible { background: #e4a64f; color: #17120a; }
+.left-panel {
+  grid-template-rows: minmax(0,.7fr) minmax(0,1.35fr) minmax(0,.62fr) minmax(0,1.05fr) !important;
+  gap: clamp(8px, calc(.75 * var(--vh)), 11px) !important;
+}
+.showreel-panel { padding: 6px 18px; }
+.showreel-panel h2 {
+  margin: 4px 0 2px;
+  font-size: clamp(26px, 2vw, 36px);
+  line-height: .92;
+}
+.showreel-panel p { font-size: clamp(11px, .75vw, 14px); }
+.r-nombre { font-size: clamp(18px, 1.15vw, 24px) !important; }
+.r-hora { font-size: clamp(24px, 1.5vw, 32px) !important; }
+.r-servicio { font-size: clamp(14px, .9vw, 18px) !important; }
+.r-total { font-size: clamp(16px, 1vw, 20px) !important; }
+.r-badge { font-size: clamp(13px, .85vw, 17px) !important; }
+.review-tv-quote {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 0;
+  margin: 6px 0;
+  font-size: clamp(20px, 1.4vw, 27px) !important;
+  line-height: 1.2 !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.review-tv-author { margin-top: 3px; font-size: clamp(14px, .9vw, 18px) !important; }
+.review-tv-indicators { margin-top: 4px; }
+.review-tv-link { margin-top: 5px; }
+.review-tv-panel { animation-duration: 3.2s !important; }
+.review-tv-panel {
+  gap: clamp(10px, 1vw, 18px);
+  padding: clamp(10px, 1vw, 18px);
+}
+.review-tv-qr {
+  width: clamp(104px, 7.3vw, 140px);
+}
+.review-tv-qr-column { gap: 5px; }
+.review-tv-stars { font-size: clamp(20px, 1.4vw, 27px); }
+.review-tv-score { font-size: clamp(11px, .8vw, 15px) !important; }
+.review-tv-stars {
+  display: inline-block;
+  transform-origin: left center;
+  animation: tvReviewStarsGlow 2.4s ease-in-out infinite;
+}
+.review-tv-quote.is-entering,
+.review-tv-author.is-entering {
+  animation: tvReviewTextIn .72s cubic-bezier(.2,.8,.2,1) both;
+}
+.review-tv-indicators i {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  transition: width .35s ease, background-color .35s ease;
+}
+.review-tv-indicators i.active {
+  width: 30px;
+  background: rgba(228,166,79,.28);
+}
+.review-tv-indicators i.active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #fff1c8, #e4a64f);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: tvReviewProgress 9s linear forwards;
+}
+@keyframes tvReviewTextIn {
+  from { opacity: 0; transform: translateY(16px); filter: blur(5px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@keyframes tvReviewStarsGlow {
+  50% { filter: drop-shadow(0 0 12px rgba(255,195,94,.85)); transform: scale(1.05); }
+}
+@keyframes tvReviewProgress {
+  to { transform: scaleX(1); }
+}
+.r-item.actual {
+  border-color: rgba(62,207,142,.9) !important;
+  background: linear-gradient(110deg, rgba(20,105,66,.42), rgba(11,25,19,.94)) !important;
+  box-shadow: 0 0 22px rgba(62,207,142,.26);
+}
+.r-item.actual::before { background: var(--green) !important; }
+.badge-actual, .proximo-tag.is-attending {
+  background: #11834c !important;
+  color: #fff !important;
+  border-color: rgba(86,255,164,.75) !important;
+  animation: tvAttendingPulse 1.8s ease-in-out infinite;
+}
+@keyframes tvAttendingPulse { 50% { box-shadow: 0 0 20px rgba(62,207,142,.55); } }
+.tv-product-reservation-image {
+  width: clamp(54px, 5vw, 92px);
+  height: clamp(54px, 5vw, 92px);
+  border: 2px solid rgba(228,166,79,.65);
+  border-radius: 12px;
+  object-fit: cover;
+  flex: none;
+}
+.r-producto-tv { display:flex; align-items:center; gap:8px; margin-top:5px; color:#f1c887; font-size:clamp(12px,.78vw,16px); }
+.r-producto-tv img { width:32px; height:32px; border-radius:6px; object-fit:cover; }
+.tv-products-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height:0;
+  overflow:hidden;
+  border:1px solid rgba(228,166,79,.4);
+  border-radius:16px;
+  padding:10px 14px;
+  background:linear-gradient(120deg,rgba(24,22,18,.96),rgba(9,10,13,.96));
+}
+.tv-products-heading { display:flex; flex-direction:column; gap:3px; margin-bottom:6px; }
+.tv-products-heading span { color:var(--gold); font-size:clamp(10px,.72vw,14px); font-weight:800; letter-spacing:.14em; }
+.tv-products-heading strong { color:#fff; font-size:clamp(15px,1vw,20px); }
+.tv-products-track { display:flex; flex:1; height:auto; min-height:0; transition:transform .75s cubic-bezier(.2,.8,.2,1); }
+.tv-product-card { display:flex; flex:0 0 100%; min-width:0; min-height:0; align-items:center; gap:16px; }
+.tv-product-card img { width:clamp(76px,5.2vw,100px); height:clamp(76px,5.2vw,100px); flex:none; border:1px solid rgba(228,166,79,.32); border-radius:12px; object-fit:contain; background:#0b0c0e; }
+.tv-product-copy { display:flex; flex-direction:column; min-width:0; gap:4px; }
+.tv-product-copy strong { color:#f1c887; font-size:clamp(16px,1vw,20px); }
+.tv-product-copy p { margin:0; color:#d5d5d5; font-size:clamp(12px,.78vw,15px); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tv-product-copy span { color:var(--green); font-size:clamp(15px,.95vw,19px); font-weight:800; }
+.tv-product-copy del { color:#aaa; font-size:clamp(12px,.8vw,16px); }
+.tv-products-empty { align-self:flex-start; margin:auto 0; color:#c5c6cc; font-size:clamp(14px,.9vw,18px); line-height:1.35; }
+.tv-products-track:has(.tv-products-empty) { align-items:center; }
+.proximo-tag { font-size:clamp(15px,1vw,20px) !important; }
+@media (prefers-reduced-motion: reduce) {
+  .review-tv-panel, .review-tv-stars, .review-tv-quote.is-entering,
+  .review-tv-author.is-entering, .review-tv-indicators i.active::after,
+  .badge-actual, .proximo-tag.is-attending { animation:none !important; }
+  .review-tv-indicators i { transition:none; }
+  .tv-products-track { transition:none; }
+}
+</style>
+<script>
+(() => {
+  const music = document.getElementById('tv-music');
+  const toggle = document.getElementById('tv-music-toggle');
+  const tracks = ['musica1.mp3', 'musica2.mp3', 'musica3.mp3'];
+  let trackIndex = 0;
+  let musicNoticeShown = false;
+  let musicStarted = false;
+  let infoPressed = false;
+
+  function updateMusicButton(playing) {
+    toggle.textContent = playing ? `ⓘ ${tracks[trackIndex]}` : 'ⓘ Siguiente música';
+    toggle.setAttribute('aria-label', `Cambiar a la siguiente música${playing ? `; sonando ${tracks[trackIndex]}` : ''}`);
+  }
+  function startTrack(index) {
+    trackIndex = (index + tracks.length) % tracks.length;
+    music.src = tracks[trackIndex];
+    music.play().then(() => {
+      musicStarted = true;
+      updateMusicButton(true);
+      musicNoticeShown = false;
+    }).catch(error => {
+      console.warn('El navegador no permitió iniciar la música del panel TV:', error);
+      updateMusicButton(false);
+      if (!musicNoticeShown) {
+        showTvMediaNotice('Pulsa ⓘ Música o la tecla INFO para activar la música.', 7000);
+        musicNoticeShown = true;
+        }
+    });
+  }
+  function advanceTrack() {
+    if ((!music.src || music.paused) && !musicStarted && !infoPressed) {
+        infoPressed = true;
+        startTrack(trackIndex);
+    } else {
+        infoPressed = true;
+        startTrack(trackIndex + 1);
+    }
+  }
+  music.addEventListener('ended', () => startTrack(trackIndex + 1));
+  music.addEventListener('error', () => {
+    updateMusicButton(false);
+    console.error(`No se pudo cargar la pista de música: ${tracks[trackIndex]}`);
+    showTvMediaNotice(`Falta el archivo ${tracks[trackIndex]}.`, 7000);
+  });
+  toggle.addEventListener('click', advanceTrack);
+  window.tvToggleMusic = advanceTrack;
+  window.addEventListener('load', () => startTrack(0), { once: true });
+})();
+</script>
 </body>
 </html>
