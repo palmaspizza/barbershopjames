@@ -1958,7 +1958,7 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
     <h2 class="mis-reservas-titulo">
         <span class="icono-titulo">📋</span>
         Mis Reservas
-    </h2><p class="hint-text">💡 tus reservas aparecerán automáticamente si las hiciste desde este dispositivo</p>
+    </h2><p class="hint-text">💡 Si usas tu perfil de cliente, tus reservas aparecerán automáticamente. En otro celular, recupéralas con el mismo nombre y WhatsApp.</p>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
 <style>
@@ -2083,25 +2083,18 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
 </script>
     <!-- Formulario de identificación (inicialmente visible) -->
     <div class="identificacion-cliente" id="identificacionCliente">
-        <p class="texto-identificacion">¿Cambiaste o perdiste tu celular? Recupera tus reservas ingresando el nombre y WhatsApp usados al reservar.</p>
+        <p class="texto-identificacion">Escribe el WhatsApp que usaste al reservar para sincronizar tus reservas, sin crear una contraseña.</p>
         <div class="input-group">
-            <input
-                type="text" 
-                id="nombreClienteBusqueda" 
-                placeholder="Nombre y apellido"
-                class="input-nombre-cliente"
-                autocomplete="name"
-            >
             <input
                 type="tel"
                 id="telefonoClienteBusqueda"
-                placeholder="WhatsApp"
+                placeholder="WhatsApp (ej. +56 9 1234 5678)"
                 class="input-nombre-cliente"
                 autocomplete="tel"
                 inputmode="tel"
             >
             <button class="btn-buscar-reservas" type="button" onclick="buscarMisReservasManual()">
-                🔐 Recuperar mis reservas perdidas
+                🔄 Sincronizar mis reservas
             </button>
         </div>
         
@@ -2153,7 +2146,7 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
   <div class="jb-reviews-heading">
     <p>JAMES BARBERSHOP · EXPERIENCIAS REALES</p>
     <h2 id="jbReviewsTitle">Tu opinión nos importa</h2>
-    <span>Comparte cómo fue tu visita. Las reseñas de 4 o más estrellas se publican automáticamente.</span>
+    <span>Comparte cómo fue tu visita. Tu reseña se publicará automáticamente.</span>
   </div>
   <div id="jbReviewsLatest" class="jb-reviews-latest" aria-live="polite">
     <p class="jb-reviews-empty">Cargando opiniones…</p>
@@ -2877,10 +2870,14 @@ function mostrarEstadoSinReservas() {
     const lista = document.getElementById('listaReservasCliente');
     const vacio = document.getElementById('misReservasVacio');
     const contenedor = document.getElementById('contenedorReservasCliente');
-    if (ident) ident.classList.add('hidden');
+    if (ident) ident.classList.remove('hidden');
     if (lista) lista.classList.add('hidden');
     if (contenedor) contenedor.innerHTML = '';
-    if (vacio) vacio.classList.remove('hidden');
+    if (vacio) {
+        vacio.classList.remove('hidden');
+        const message = vacio.querySelector('.mis-reservas-vacio-texto');
+        if (message) message.textContent = 'Aún no encontramos reservas. Recupera las tuyas con el nombre y WhatsApp que usaste al reservar.';
+    }
 }
 
 function ocultarEstadoSinReservas() {
@@ -2906,7 +2903,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarMisReservasAutomatico();
     
     // Permitir buscar con Enter
-    document.getElementById('nombreClienteBusqueda')?.addEventListener('keypress', (e) => {
+    document.getElementById('telefonoClienteBusqueda')?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') buscarMisReservasManual();
     });
 });
@@ -2923,6 +2920,48 @@ function cargarMisReservasAutomatico() {
 
     const reservasLocales = obtenerMisReservasLocales();
     const miNombre = obtenerNombreGuardado();
+    let perfil = null;
+    try { perfil = JSON.parse(localStorage.getItem('jb_perfil') || 'null'); }
+    catch (error) { console.warn('No se pudo leer el perfil guardado del cliente:', error); }
+
+    if (perfil && perfil.clienteId) {
+        const nombreInput = document.getElementById('nombreClienteBusqueda');
+        const telefonoInput = document.getElementById('telefonoClienteBusqueda');
+        if (nombreInput && perfil.nombreDisplay) nombreInput.value = perfil.nombreDisplay;
+        if (telefonoInput && perfil.telefono) telefonoInput.value = perfil.telefono;
+        db.ref('reservas').orderByChild('clienteId').equalTo(String(perfil.clienteId)).once('value')
+            .then(snapshot => {
+                const hoy = formatearFechaSimple(new Date());
+                const encontradas = [];
+                snapshot.forEach(child => {
+                    const reserva = child.val() || {};
+                    if (reserva.fecha >= hoy &&
+                        !['cancelada', 'cancelado'].includes(String(reserva.estado || '').toLowerCase())) {
+                        encontradas.push({ id: child.key, ...reserva });
+                    }
+                });
+                if (encontradas.length) {
+                    reservasClienteActuales = encontradas.sort((a, b) =>
+                        `${a.fecha || ''} ${a.hora || ''}`.localeCompare(`${b.fecha || ''} ${b.hora || ''}`)
+                    );
+                    const ident = document.getElementById('identificacionCliente');
+                    if (ident) ident.classList.add('hidden');
+                    const lista = document.getElementById('listaReservasCliente');
+                    if (lista) lista.classList.remove('hidden');
+                    ocultarEstadoSinReservas();
+                    renderizarMisReservas(reservasClienteActuales);
+                    return;
+                }
+                if (reservasLocales.length) cargarReservasPorIds(reservasLocales);
+                else mostrarEstadoSinReservas();
+            })
+            .catch(error => {
+                console.error('No se pudieron recuperar las reservas vinculadas al perfil:', error);
+                if (reservasLocales.length) cargarReservasPorIds(reservasLocales);
+                else mostrarEstadoSinReservas();
+            });
+        return;
+    }
     
     if (reservasLocales.length > 0) {
         // Poner el nombre en el input
@@ -3080,21 +3119,14 @@ function cargarReservasPorIds(reservasLocales) {
 function buscarMisReservasManual() {
     const nombreInput = document.getElementById('nombreClienteBusqueda');
     const telefonoInput = document.getElementById('telefonoClienteBusqueda');
-    const nombre = nombreInput.value.trim();
+    const nombre = nombreInput ? nombreInput.value.trim() : '';
     const telefono = normalizarTelefonoRecuperacion(telefonoInput ? telefonoInput.value : '');
-    
-    if (!nombre) {
-        mostrarToastCliente('⚠️ Escribe tu nombre y apellido', true);
-        nombreInput.focus();
-        return;
-    }
     if (!telefono) {
         mostrarToastCliente('⚠️ Ingresa un WhatsApp chileno válido', true);
         if (telefonoInput) telefonoInput.focus();
         return;
     }
     
-    localStorage.setItem('mi_nombre_barberia', nombre);
     if (telefonoInput) telefonoInput.value = telefono;
     
     const btnBuscar = document.querySelector('.btn-buscar-reservas');
@@ -3108,45 +3140,46 @@ function buscarMisReservasManual() {
         .then(async snapshot => {
             reservasClienteActuales = [];
             const hoyStr = formatearFechaSimple(new Date());
-            
+            const clientesSnapshot = await db.ref('clientes').once('value');
+            const clientesEncontrados = [];
+            clientesSnapshot.forEach(child => {
+                const cliente = child.val() || {};
+                if (normalizarTelefonoRecuperacion(cliente.telefono) === telefono) {
+                    clientesEncontrados.push({ id: child.key, ...cliente });
+                }
+            });
+            clientesEncontrados.sort((a, b) => Number(b.ultimaActividad || 0) - Number(a.ultimaActividad || 0));
+            let clienteEncontrado = clientesEncontrados[0] || null;
+            const idsClientesTelefono = new Set(clientesEncontrados.map(cliente => cliente.id));
+
             snapshot.forEach(child => {
                 const reserva = { id: child.key, ...child.val() };
+                const coincideTelefono = normalizarTelefonoRecuperacion(reserva.telefono) === telefono;
+                const coincideCliente = idsClientesTelefono.has(String(reserva.clienteId || ''));
                 if (reserva.fecha >= hoyStr &&
-                    jbNormalizar(reserva.nombre) === jbNormalizar(nombre) &&
-                    normalizarTelefonoRecuperacion(reserva.telefono) === telefono) {
+                    !['cancelada', 'cancelado'].includes(String(reserva.estado || '').toLowerCase()) &&
+                    (coincideTelefono || coincideCliente)) {
                     reservasClienteActuales.push(reserva);
                 }
             });
 
-            const clientesSnapshot = await db.ref('clientes').once('value');
-            let clienteEncontrado = null;
-            clientesSnapshot.forEach(child => {
-                const cliente = child.val() || {};
-                if (jbNormalizar(cliente.nombreDisplay || cliente.nombre) === jbNormalizar(nombre) &&
-                    normalizarTelefonoRecuperacion(cliente.telefono) === telefono) {
-                    clienteEncontrado = { id: child.key, ...cliente };
-                }
-            });
-
-            if (clienteEncontrado) {
-                window.jbGuardarSesion(
-                    clienteEncontrado.id,
-                    clienteEncontrado.nombreDisplay || nombre,
-                    clienteEncontrado.nombreNormalizado || jbNormalizar(nombre)
-                );
-                const porCliente = await db.ref('reservas')
-                    .orderByChild('clienteId')
-                    .equalTo(clienteEncontrado.id)
-                    .once('value');
-                porCliente.forEach(child => {
-                    const reserva = { id: child.key, ...child.val() };
-                    if (reserva.fecha >= hoyStr &&
-                        jbNormalizar(reserva.nombre) === jbNormalizar(nombre) &&
-                        normalizarTelefonoRecuperacion(reserva.telefono || telefono) === telefono &&
-                        !reservasClienteActuales.some(actual => actual.id === reserva.id)) {
-                        reservasClienteActuales.push(reserva);
+            if (!clienteEncontrado) {
+                const reservaVinculada = reservasClienteActuales.find(reserva => reserva.clienteId);
+                if (reservaVinculada) {
+                    const clienteSnapshot = await db.ref(`clientes/${reservaVinculada.clienteId}`).once('value');
+                    if (clienteSnapshot.exists()) {
+                        clienteEncontrado = { id: reservaVinculada.clienteId, ...clienteSnapshot.val() };
                     }
-                });
+                }
+            }
+            if (clienteEncontrado) {
+                const nombrePerfil = clienteEncontrado.nombreDisplay || clienteEncontrado.nombre || reservasClienteActuales[0]?.nombre || nombre || 'Cliente';
+                window.jbGuardarSesion(clienteEncontrado.id, nombrePerfil, clienteEncontrado.nombreNormalizado || jbNormalizar(nombrePerfil));
+                await db.ref(`clientes/${clienteEncontrado.id}`).update({ telefono, ultimaActividad: Date.now() });
+                if (typeof window.jbActualizarTelefonoSesion === 'function') window.jbActualizarTelefonoSesion(telefono);
+                localStorage.setItem('mi_nombre_barberia', nombrePerfil);
+            } else if (reservasClienteActuales[0] && reservasClienteActuales[0].nombre) {
+                localStorage.setItem('mi_nombre_barberia', reservasClienteActuales[0].nombre);
             }
             
             reservasClienteActuales.sort((a, b) => {
@@ -3156,7 +3189,10 @@ function buscarMisReservasManual() {
             });
             
             // Fusionar con lo local sin borrar reservas guardadas en este dispositivo.
-            fusionarReservasRecuperadas(reservasClienteActuales, nombre, telefono);
+            const nombreEncontrado = clienteEncontrado && (clienteEncontrado.nombreDisplay || clienteEncontrado.nombre)
+                || reservasClienteActuales[0] && reservasClienteActuales[0].nombre
+                || nombre;
+            fusionarReservasRecuperadas(reservasClienteActuales, nombreEncontrado, telefono);
             
             mostrarResultadosBusqueda();
         })
@@ -3213,7 +3249,7 @@ function fusionarReservasRecuperadas(reservas, nombre, telefono) {
         }
     });
     localStorage.setItem('mis_reservas_jamesbarber', JSON.stringify([...porId.values()]));
-    localStorage.setItem('mi_nombre_barberia', nombre);
+    if (nombre) localStorage.setItem('mi_nombre_barberia', nombre);
     if (typeof window.jbActualizarTelefonoSesion === 'function') {
         window.jbActualizarTelefonoSesion(telefono);
     }
@@ -3456,14 +3492,17 @@ function cerrarMisReservas() {
     
     document.getElementById('identificacionCliente').classList.remove('hidden');
     document.getElementById('listaReservasCliente').classList.add('hidden');
-    document.getElementById('nombreClienteBusqueda').value = '';
-    document.getElementById('nombreClienteBusqueda').focus();
+    const telefonoInput = document.getElementById('telefonoClienteBusqueda');
+    if (telefonoInput) {
+        telefonoInput.value = '';
+        telefonoInput.focus();
+    }
 }
 
 function volverABuscar() {
     document.getElementById('sinReservas').classList.add('hidden');
     document.getElementById('identificacionCliente').classList.remove('hidden');
-    document.getElementById('nombreClienteBusqueda').focus();
+    document.getElementById('telefonoClienteBusqueda')?.focus();
 }
 
 window.jbAbrirRecuperacion = function() {
@@ -3480,8 +3519,7 @@ window.jbAbrirRecuperacion = function() {
     card.style.cssText = 'align-self:flex-start;width:94%;max-width:420px;background:#1e1f24;border:1px solid rgba(14,165,233,.5);border-radius:14px;padding:14px;box-sizing:border-box;';
     card.innerHTML = `
       <div style="color:#7dd3fc;font-weight:700;margin-bottom:8px;">🔐 Recuperar mis reservas perdidas</div>
-      <div style="color:#c8c8c8;font-size:.84rem;margin-bottom:10px;">Escribe el mismo nombre y WhatsApp usados al reservar. Puedes incluir el signo +.</div>
-      <input id="jbRecuperarNombreChat" type="text" autocomplete="name" placeholder="Nombre y apellido" style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:11px;border-radius:9px;border:1px solid #555;background:#111215;color:#fff;">
+      <div style="color:#c8c8c8;font-size:.84rem;margin-bottom:10px;">Escribe el WhatsApp asociado a tus reservas. No necesitas contraseña; el número sirve para sincronizar tus datos.</div>
       <input id="jbRecuperarTelefonoChat" type="tel" autocomplete="tel" inputmode="tel" placeholder="WhatsApp (ej. +56 9 1234 5678)" style="width:100%;box-sizing:border-box;margin-bottom:10px;padding:11px;border-radius:9px;border:1px solid #555;background:#111215;color:#fff;">
       <div style="display:flex;gap:8px;">
         <button id="jbRecuperarEnviarChat" type="button" style="flex:1;padding:11px;border:0;border-radius:9px;background:#0ea5e9;color:#fff;font-weight:700;cursor:pointer;">Buscar reservas</button>
@@ -3489,19 +3527,16 @@ window.jbAbrirRecuperacion = function() {
       </div>
     `;
     body.appendChild(card);
-    const nombre = card.querySelector('#jbRecuperarNombreChat');
     const telefono = card.querySelector('#jbRecuperarTelefonoChat');
     card.querySelector('#jbRecuperarCerrarChat').onclick = () => card.remove();
     card.querySelector('#jbRecuperarEnviarChat').onclick = () => {
-        const nombrePrincipal = document.getElementById('nombreClienteBusqueda');
         const telefonoPrincipal = document.getElementById('telefonoClienteBusqueda');
-        if (nombrePrincipal) nombrePrincipal.value = nombre.value.trim();
         if (telefonoPrincipal) telefonoPrincipal.value = telefono.value.trim();
         card.remove();
         buscarMisReservasManual();
     };
     body.scrollTop = body.scrollHeight;
-    nombre.focus();
+    telefono.focus();
 };
 
 function mostrarToastCliente(mensaje, esError = false) {
@@ -4794,7 +4829,7 @@ const firebaseConfig = window.__jbFirebaseConfig || {
             : firebase.initializeApp(firebaseConfig);
         const db = jbFirebaseApp.database();
 
-        const JB_NTFY_TOPIC = '';
+        const JB_NTFY_TOPIC = 'james-barber-shop-2026';
         function jbEnviarNotificacionNtfy(reserva, accion) {
             try {
                 const nombre = String(reserva?.nombre || '').trim().split(/\s+/)[0] || 'Cliente';
@@ -4842,6 +4877,29 @@ const firebaseConfig = window.__jbFirebaseConfig || {
                 updates[`bloqueos/${current.fecha}/${String(current.hora).replace(/[^a-zA-Z0-9_-]/g, '_')}`] = null;
             }
             await db.ref().update(updates);
+            if (String(reason || '').startsWith('cancelada') && current.producto && current.producto.id) {
+                try {
+                    const productoRef = db.ref(`productos/${current.producto.id}`);
+                    const productoActual = (await productoRef.once('value')).val();
+                    if (productoActual && productoActual.lastRefundReservationId !== reservationId) {
+                        const devolucion = await productoRef.transaction(producto => {
+                            if (producto === null) return producto; // primera pasada sin caché: reintenta con el valor real
+                            if (producto.lastRefundReservationId === reservationId) return;
+                            return {
+                                ...producto,
+                                stock: Math.max(0, Number(producto.stock) || 0) + 1,
+                                lastRefundReservationId: reservationId
+                            };
+                        });
+                        if (!devolucion.committed) {
+                            throw new Error('No se pudo actualizar el stock del producto.');
+                        }
+                    }
+                } catch (error) {
+                    console.error('La reserva se canceló, pero no se pudo devolver el producto al stock:', error);
+                    mostrarToastCliente('La reserva se canceló; revisa el stock del producto en Administración.', true);
+                }
+            }
             if (String(reason || '').startsWith('cancelada')) {
                 jbEnviarNotificacionNtfy({ ...current, reservaId: reservationId }, 'cancelada');
             }
@@ -7820,6 +7878,56 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     localStorage.setItem('jb_perfil', JSON.stringify(jbSesionCliente));
   };
 
+  async function jbVincularClienteWhatsapp(telefono, aceptaContacto) {
+    const numero = String(telefono || '').replace(/[^\d]/g, '');
+    if (!/^569\d{8}$/.test(numero)) throw new Error('El WhatsApp debe ser un número chileno válido.');
+
+    const clientesSnapshot = await db.ref('clientes').once('value');
+    const clientes = [];
+    clientesSnapshot.forEach(child => {
+      const cliente = child.val() || {};
+      if (String(cliente.telefono || '').replace(/[^\d]/g, '').replace(/^00/, '') === numero) {
+        clientes.push({ id: child.key, ...cliente });
+      }
+    });
+    clientes.sort((a, b) => Number(b.ultimaActividad || 0) - Number(a.ultimaActividad || 0));
+
+    let cliente = clientes[0] || null;
+    if (cliente) {
+      const nombre = cliente.nombreDisplay || cliente.nombre || jbSesionCliente && jbSesionCliente.nombreDisplay || 'Cliente';
+      jbGuardarSesion(cliente.id, nombre, cliente.nombreNormalizado || jbNormalizar(nombre));
+    } else {
+      const perfilActual = jbSesionCliente && jbSesionCliente.clienteId
+        ? clientesSnapshot.child(jbSesionCliente.clienteId).val()
+        : null;
+      const telefonoActual = String(perfilActual && perfilActual.telefono || '').replace(/[^\d]/g, '').replace(/^00/, '');
+      if (jbSesionCliente && jbSesionCliente.clienteId &&
+          !String(jbSesionCliente.clienteId).startsWith('local_') &&
+          (!telefonoActual || telefonoActual === numero)) {
+        cliente = { id: jbSesionCliente.clienteId, ...perfilActual };
+      } else {
+        const nombre = jbSesionCliente && jbSesionCliente.nombreDisplay || 'Cliente';
+        const clienteId = await jbCrearClienteNuevo(nombre);
+        cliente = { id: clienteId, nombreDisplay: nombre, nombreNormalizado: jbNormalizar(nombre) };
+      }
+      jbGuardarSesion(cliente.id, cliente.nombreDisplay || 'Cliente', cliente.nombreNormalizado || jbNormalizar(cliente.nombreDisplay || 'Cliente'));
+    }
+
+    await db.ref(`clientes/${cliente.id}`).update({
+      telefono: numero,
+      acepta_contacto_whatsapp: aceptaContacto === true,
+      ultimaActividad: Date.now()
+    });
+    jbSesionCliente.telefono = numero;
+    localStorage.setItem('jb_perfil', JSON.stringify(jbSesionCliente));
+    await jbChatRef.update({
+      clienteId: cliente.id,
+      nombreCliente: jbSesionCliente.nombreDisplay,
+      ultimaActividad: Date.now()
+    });
+    return cliente.id;
+  }
+
   // ── BUSCAR CLIENTE EN FIREBASE ─────────────────────────────
   // Trae todos los clientes y aplica scoring bidireccional.
   // Resuelve con array de matches ordenados por score desc.
@@ -9517,7 +9625,7 @@ function jbMostrarFormularioWhatsapp(){
     return '';
   }
 
-  function continuarWhatsapp(){
+  async function continuarWhatsapp(){
     const telefono = normalizarTelefonoChat(input.value);
 
     if (!telefono) {
@@ -9534,20 +9642,20 @@ function jbMostrarFormularioWhatsapp(){
       return;
     }
 
+    btn.disabled = true;
+    try {
+      await jbVincularClienteWhatsapp(telefono, checkbox.checked);
+    } catch (syncError) {
+      console.error('No se pudo vincular el cliente por WhatsApp:', syncError);
+      error.textContent = 'No pudimos sincronizar tu número. Revisa tu conexión e inténtalo otra vez.';
+      error.style.display = 'block';
+      btn.disabled = false;
+      return;
+    }
+
     jbReserva.telefono = telefono;
     jbReserva.acepta_contacto_whatsapp = true;
     jbGuardarEstadoReserva(false);
-    if (jbSesionCliente && jbSesionCliente.clienteId) {
-      jbSesionCliente.telefono = telefono;
-      localStorage.setItem('jb_perfil', JSON.stringify(jbSesionCliente));
-
-      db.ref('clientes/' + jbSesionCliente.clienteId).update({
-        telefono: telefono,
-        acepta_contacto_whatsapp: true,
-        ultimaActividad: Date.now()
-      }).catch(() => {});
-    }
-
     form.remove();
     jbDesbloquearInput();
     jbCliente('WhatsApp proporcionado');
@@ -9582,11 +9690,135 @@ function jbMostrarFormularioWhatsapp(){
 
   setTimeout(() => input.focus(), 100);
 }
+  let jbProductoOfertaEnCurso = false;
+  async function jbMostrarOfertaProducto(){
+    const body = document.getElementById('jbChatBody');
+    let productosSnap;
+    try {
+      productosSnap = await db.ref('productos').once('value');
+    } catch (error) {
+      console.error('No se pudieron cargar los productos para la reserva:', error);
+      jbBot('No pudimos cargar las recomendaciones ahora. Sigamos con tu reserva.');
+      return null;
+    }
+
+    const productos = [];
+    productosSnap.forEach(child => {
+      const producto = child.val() || {};
+      if (producto.visible !== false && producto.ofrecerEnChat === true && Number(producto.stock) > 0) {
+        productos.push({ id: child.key, ...producto });
+      }
+    });
+    const disponibles = productos
+      .map(producto => ({
+        ...producto,
+        stockDisponible: Math.max(0, Number(producto.stock) || 0)
+      }))
+      .filter(producto => producto.stockDisponible > 0)
+      .sort((a, b) => Number(b.masVendidoManual) - Number(a.masVendidoManual))
+      .slice(0, 4);
+
+    if (!disponibles.length) return false;
+    const card = document.createElement('section');
+    card.setAttribute('aria-label', 'Productos recomendados');
+    card.style.cssText = 'width:98%;max-width:440px;align-self:flex-start;background:#17171b;border:1px solid rgba(228,166,79,.45);border-radius:16px;padding:14px;margin:4px 0;color:#f5f2eb;';
+    const title = document.createElement('strong');
+    title.textContent = 'UN EXTRA PARA TU CORTE';
+    title.style.cssText = 'display:block;color:#f1c887;font-size:1rem;margin-bottom:8px;';
+    const help = document.createElement('p');
+    help.textContent = 'Si quieres, agrega un producto a tu reserva. También puedes continuar sin comprar.';
+    help.style.cssText = 'margin:0 0 10px;color:#c5c6cc;font-size:.88rem;';
+    card.append(title, help);
+
+    disponibles.forEach(producto => {
+      const precio = Number(producto.precioOferta) > 0 && Number(producto.precioOferta) < Number(producto.precio)
+        ? Number(producto.precioOferta)
+        : Number(producto.precio);
+      const option = document.createElement('button');
+      option.type = 'button';
+      option.style.cssText = 'display:flex;align-items:center;gap:12px;width:100%;margin:8px 0;padding:10px;border:1px solid rgba(228,166,79,.3);border-radius:12px;background:#222;color:#fff;text-align:left;cursor:pointer;';
+      if (producto.imagen) {
+        const image = document.createElement('img');
+        image.src = producto.imagen;
+        image.alt = '';
+        image.loading = 'lazy';
+        image.style.cssText = 'width:64px;height:64px;object-fit:cover;border-radius:8px;flex:none;';
+        option.appendChild(image);
+      }
+      const details = document.createElement('span');
+      const name = document.createElement('strong');
+      name.textContent = `Por $${precio.toLocaleString('es-CL')} más: ${producto.nombre || 'Producto'}`;
+      const description = document.createElement('span');
+      description.textContent = producto.descripcion || 'Disponible para llevar en la barbería.';
+      description.style.cssText = 'display:block;color:#c5c6cc;font-size:.78rem;margin-top:3px;';
+      details.append(name, description);
+      option.appendChild(details);
+      option.addEventListener('click', () => {
+        card.remove();
+        jbProductoOfertaEnCurso = false;
+        jbReserva.producto = {
+          id: producto.id,
+          nombre: String(producto.nombre || '').slice(0, 120),
+          precio,
+          imagen: String(producto.imagen || ''),
+          descripcion: String(producto.descripcion || '').slice(0, 300)
+        };
+        jbReserva._productoOfertaResuelta = true;
+        jbGuardarEstadoReserva(false);
+        jbPreguntarConfirmar();
+      });
+      card.appendChild(option);
+    });
+
+    const decline = document.createElement('button');
+    decline.type = 'button';
+    decline.textContent = 'Continuar sin producto';
+    decline.style.cssText = 'width:100%;min-height:42px;margin-top:6px;border:1px solid #555;border-radius:10px;background:transparent;color:#ddd;font:inherit;cursor:pointer;';
+    decline.addEventListener('click', () => {
+      card.remove();
+      jbProductoOfertaEnCurso = false;
+      jbReserva.producto = null;
+      jbReserva._productoOfertaResuelta = true;
+      jbGuardarEstadoReserva(false);
+      jbPreguntarConfirmar();
+    });
+    card.appendChild(decline);
+    body.appendChild(card);
+    jbScrollBottom();
+    return true;
+  }
+
   function jbPreguntarConfirmar(){
-    jbRegistrarPasoHistorial('confirmar');
+    if (!jbReserva._productoOfertaResuelta && !jbProductoOfertaEnCurso) {
+      jbRegistrarPasoHistorial('confirmar');
+      jbReserva.step = 'confirmar';
+      jbGuardarEstadoReserva(false);
+      jbProductoOfertaEnCurso = true;
+      jbMostrarOfertaProducto()
+        .then(hayOferta => {
+          if (hayOferta) return;
+          jbProductoOfertaEnCurso = false;
+          jbReserva.producto = null;
+          jbReserva._productoOfertaResuelta = true;
+          jbGuardarEstadoReserva(false);
+          jbPreguntarConfirmar();
+        })
+        .catch(error => {
+          console.error('Falló la recomendación de productos:', error);
+          jbProductoOfertaEnCurso = false;
+          if (!jbReserva._productoOfertaResuelta) {
+            jbReserva.producto = null;
+            jbReserva._productoOfertaResuelta = true;
+            jbGuardarEstadoReserva(false);
+            jbPreguntarConfirmar();
+          }
+        });
+      return;
+    }
+    if (jbReserva.step !== 'confirmar') jbRegistrarPasoHistorial('confirmar');
     jbReserva.step = 'confirmar';
     jbGuardarEstadoReserva(false);
-    const total = jbReserva.servicios.reduce((a,s)=>a+s.precio,0);
+    const total = jbReserva.servicios.reduce((a,s)=>a+s.precio,0) + (Number(jbReserva.producto && jbReserva.producto.precio) || 0);
     const serviciosTexto = jbReserva.servicios.map(s=>s.label||s.nombre).join(' + ');
     const body = document.getElementById('jbChatBody');
 
@@ -9617,6 +9849,11 @@ function jbMostrarFormularioWhatsapp(){
             <div style="font-size:1.1rem;font-weight:800;color:#e4a64f;">${jbReserva.hora}</div>
           </div>
         </div>
+        ${jbReserva.producto ? `<div style="display:flex;gap:10px;align-items:center;border-top:1px solid rgba(255,255,255,.06);padding-top:8px;">
+          ${jbReserva.producto.imagen ? `<img src="${jbReserva.producto.imagen}" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">` : '<span style="font-size:1.2rem;">🧴</span>'}
+          <div><div style="font-size:.72rem;color:#888;">Producto agregado</div>
+          <div style="font-size:1rem;font-weight:700;color:#f1f1f1;">${String(jbReserva.producto.nombre || '').replace(/[&<>"']/g, '')} · $${Number(jbReserva.producto.precio).toLocaleString('es-CL')}</div></div>
+        </div>` : ''}
         <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:8px;display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:1.3rem;color:#888;">Total</span>
           <span style="font-size:1.0rem;font-weight:800;color:#e4a64f;">$${total.toLocaleString('es-CL')}</span>
@@ -9624,6 +9861,19 @@ function jbMostrarFormularioWhatsapp(){
       </div>
     `;
 
+    if (jbReserva.producto) {
+      const removeProduct = document.createElement('button');
+      removeProduct.type = 'button';
+      removeProduct.textContent = 'Quitar producto';
+      removeProduct.style.cssText = 'margin:0 12px 12px;padding:8px 10px;border:1px solid #666;border-radius:8px;background:transparent;color:#ddd;cursor:pointer;';
+      removeProduct.addEventListener('click', () => {
+        jbReserva.producto = null;
+        jbGuardarEstadoReserva(false);
+        card.remove();
+        jbPreguntarConfirmar();
+      });
+      card.appendChild(removeProduct);
+    }
     body.appendChild(card);
     jbScrollBottom();
     jbMostrarBotonesConfirmar();
@@ -10145,12 +10395,14 @@ if(!resultadoBloqueo.committed){
 
 bloqueoTomado = true;
       const serviciosTexto = jbReserva.servicios.map(s=>s.label||s.nombre).join(' + ');
-      const total = jbReserva.servicios.reduce((a,s)=>a+s.precio,0);
+      const totalServicios = jbReserva.servicios.reduce((a,s)=>a+s.precio,0);
+      const total = totalServicios + (Number(jbReserva.producto && jbReserva.producto.precio) || 0);
       const nuevaReserva = {
         nombre:   jbReserva.nombre,
         fecha:    jbReserva.fecha,
         hora:     jbReserva.hora,
         servicios: serviciosTexto,
+        duracionMinutos: jbReserva.servicios.reduce((duracion, servicio) => duracion + (Number(servicio.tiempo) || 0), 0) || 30,
         total:    '$'+total.toLocaleString('es-CL'),
         telefono: jbReserva.telefono,
         acepta_contacto_whatsapp: jbReserva.acepta_contacto_whatsapp === true,
@@ -10158,7 +10410,53 @@ bloqueoTomado = true;
         createdAt: firebase.database.ServerValue.TIMESTAMP,
         timestamp: firebase.database.ServerValue.TIMESTAMP
       };
+      if (jbReserva.producto && jbReserva.producto.id) {
+        nuevaReserva.producto = {
+          id: String(jbReserva.producto.id),
+          nombre: String(jbReserva.producto.nombre || '').slice(0, 120),
+          precio: Number(jbReserva.producto.precio) || 0,
+          imagen: String(jbReserva.producto.imagen || '')
+        };
+      }
+      if (jbSesionCliente && jbSesionCliente.clienteId) nuevaReserva.clienteId = jbSesionCliente.clienteId;
       const ref = await db.ref('reservas').push(nuevaReserva);
+      if (nuevaReserva.producto) {
+        const productoRef = db.ref(`productos/${nuevaReserva.producto.id}`);
+        let stockDisponibleReservado = false;
+        try {
+          const stockResult = await productoRef.transaction(producto => {
+            // Firebase llama primero con null si el dato no está en caché local.
+            // Si devolvemos undefined aquí, la transacción se aborta sin reintentar
+            // con el valor real del servidor (y el producto se perdía en silencio).
+            if (producto === null) return producto;
+            const precioActual = Number(producto.precioOferta) > 0 &&
+              Number(producto.precioOferta) < Number(producto.precio)
+              ? Number(producto.precioOferta)
+              : Number(producto.precio);
+            if (producto.visible === false || producto.ofrecerEnChat !== true ||
+                Number(producto.stock) < 1 || producto.lastReservationId === ref.key ||
+                precioActual !== Number(nuevaReserva.producto.precio) ||
+                String(producto.nombre || '') !== nuevaReserva.producto.nombre) return;
+            return {
+              ...producto,
+              stock: Number(producto.stock) - 1,
+              lastReservationId: ref.key
+            };
+          });
+          stockDisponibleReservado = stockResult.committed;
+        } catch (error) {
+          console.error('No se pudo reservar el stock del producto junto con la cita:', error && error.code, error);
+        }
+        if (!stockDisponibleReservado) {
+          await db.ref(`reservas/${ref.key}`).update({
+            producto: null,
+            total: '$' + totalServicios.toLocaleString('es-CL')
+          });
+          nuevaReserva.producto = null;
+          nuevaReserva.total = '$' + totalServicios.toLocaleString('es-CL');
+          jbBot('No pudimos apartar el producto ahora, pero tu hora quedó confirmada sin el producto.');
+        }
+      }
       await bloqueoRef.update({
         reservaId: ref.key
       });
@@ -10180,8 +10478,6 @@ bloqueoTomado = true;
           acepta_contacto_whatsapp: jbReserva.acepta_contacto_whatsapp === true
         }).catch(() => {});
       
-        // Vincular también la reserva con el clienteId
-        db.ref('reservas/' + ref.key).update({ clienteId: jbSesionCliente.clienteId }).catch(() => {});
       }
 
       jbBot(`✅ ¡Listo, ${jbReserva.nombre}! Tu hora quedó confirmada para el <b>${jbFormatFechaLegible(jbReserva.fecha)}</b> a las <b>${jbReserva.hora}</b>. ¡Te esperamos en Barbería James! 💈`);
@@ -14159,7 +14455,7 @@ window.addEventListener('load', function() {
     try {
       await reviewRef.set(review);
       reviewSaved = true;
-      if (rating >= 4) {
+      {
         const reviewId = reviewRef.key;
         const publicReview = {
           nombre,
@@ -14186,9 +14482,7 @@ window.addEventListener('load', function() {
       form.reset();
       setRating(0);
       updateNamePreview();
-      status.textContent = rating >= 4
-        ? '¡Gracias! Tu reseña de 4 o más estrellas se aprobó y publicó automáticamente.'
-        : '¡Gracias! Tu reseña quedó enviada y aparecerá al ser aprobada.';
+      status.textContent = '¡Gracias! Tu reseña se aprobó y publicó automáticamente.';
     } catch (error) {
       console.error('No se pudo enviar la reseña:', error);
       status.textContent = reviewSaved
