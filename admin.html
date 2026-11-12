@@ -1379,10 +1379,10 @@ window.addEventListener('load', function(){
             <p class="jb-support-privacy">No escribas contraseñas, códigos de acceso, datos bancarios ni información privada de clientes.</p>
         </section>
 <section id="jbReviewModeration" style="max-width:1400px;margin:18px auto;padding:18px;border:1px solid #6b522e;border-radius:14px;background:#18191d;color:#f5f2eb;">
-    <header style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <header hidden style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <div>
             <h2 style="margin:0 0 6px;color:#f1c887;">Reseñas de clientes</h2>
-            <p style="margin:0;color:#c5c6cc;">Aprueba las reseñas que quieras mostrar en la web y en la pantalla de TV.</p>
+            <p style="margin:0;color:#c5c6cc;">Las reseñas nuevas se publican automáticamente. Las que ya estaban pendientes se aprobarán al abrir este panel.</p>
         </div>
         <strong id="jbReviewPendingCount" style="color:#f1c887;">0 pendientes</strong>
     </header>
@@ -2249,7 +2249,29 @@ RESPONDE EN ESTE FORMATO
             if (reserva.fecha && reserva.hora) {
                 updates[`bloqueos/${reserva.fecha}/${jbReservationSlotKey(reserva.hora)}`] = null;
             }
-            return db.ref().update(updates).then(() => {
+            return db.ref().update(updates).then(async () => {
+                if ((String(motivo || '').startsWith('cancelada') || String(motivo || '').startsWith('eliminada')) &&
+                    reserva.producto && reserva.producto.id) {
+                    try {
+                        const productoRef = db.ref(`productos/${reserva.producto.id}`);
+                        const currentProduct = (await productoRef.once('value')).val();
+                        if (currentProduct && currentProduct.lastRefundReservationId !== id) {
+                            const refund = await productoRef.transaction(product => {
+                                if (product === null) return product; // primera pasada sin caché: Firebase reintenta con el valor real
+                                if (product.lastRefundReservationId === id) return;
+                                return {
+                                    ...product,
+                                    stock: Math.max(0, Number(product.stock) || 0) + 1,
+                                    lastRefundReservationId: id
+                                };
+                            });
+                            if (!refund.committed) throw new Error('No se pudo devolver el producto al stock.');
+                        }
+                    } catch (error) {
+                        console.error('La reserva se archivó, pero no se pudo restituir el stock del producto:', error);
+                        mostrarToast('Reserva archivada. Revisa manualmente el stock del producto.');
+                    }
+                }
                 if (String(motivo || '').startsWith('cancelada') || String(motivo || '').startsWith('eliminada')) {
                     jbEnviarNotificacionNtfy({ ...reserva, reservaId: id }, 'cancelada');
                 }
@@ -2462,6 +2484,7 @@ RESPONDE EN ESTE FORMATO
         }
 
         let jbReviewModerationRef = null;
+        let jbAutoApproveLegacyReviews = false;
 
         function jbRenderResenasPendientes(snapshot) {
             const queue = document.getElementById('jbReviewQueue');
@@ -2542,7 +2565,45 @@ RESPONDE EN ESTE FORMATO
         function jbIniciarModeracionResenas() {
             if (jbReviewModerationRef) return;
             jbReviewModerationRef = db.ref('resenas');
-            jbReviewModerationRef.on('value', jbRenderResenasPendientes, error => {
+            jbReviewModerationRef.on('value', snapshot => {
+                jbRenderResenasPendientes(snapshot);
+                if (jbAutoApproveLegacyReviews) return;
+                const pending = [];
+                snapshot.forEach(child => {
+                    const review = child.val();
+                    if (!review || (review.estado || 'pendiente') !== 'pendiente') return;
+                    pending.push({ id: child.key, review });
+                });
+                if (!pending.length) return;
+                jbAutoApproveLegacyReviews = true;
+                (async () => {
+                    const failedReviews = [];
+                    for (const { id, review } of pending) {
+                        const updates = {
+                            [`resenas/${id}/estado`]: 'aprobada',
+                            [`resenas/${id}/aprobadaEn`]: firebase.database.ServerValue.TIMESTAMP,
+                            [`resenas_publicas/${id}`]: {
+                                nombre: String(review.nombre || 'Cliente'),
+                                estrellas: Number(review.estrellas),
+                                texto: String(review.texto || ''),
+                                aprobadaEn: firebase.database.ServerValue.TIMESTAMP
+                            }
+                        };
+                        try {
+                            await db.ref().update(updates);
+                        } catch (error) {
+                            console.error(`No se pudo aprobar automáticamente la reseña ${id}:`, error);
+                            failedReviews.push(id);
+                        }
+                    }
+                    const status = document.getElementById('jbReviewModerationStatus');
+                    if (status && failedReviews.length) {
+                        status.textContent = `No se pudieron aprobar ${failedReviews.length} reseña(s) automáticamente. Revisa los permisos o datos históricos: ${failedReviews.join(', ')}.`;
+                    } else if (status) {
+                        status.textContent = `Se aprobaron automáticamente ${pending.length} reseña(s) pendientes.`;
+                    }
+                })().finally(() => { jbAutoApproveLegacyReviews = false; });
+            }, error => {
                 console.error('No se pudieron cargar las reseñas pendientes:', error);
                 const status = document.getElementById('jbReviewModerationStatus');
                 if (status) status.textContent = `No se pudieron cargar las reseñas: ${error.message}`;
@@ -4887,6 +4948,8 @@ function formatearFechaImg(fechaISO) {
   const NOMBRE_NEGOCIO = 'Barbería James';
   const RECARGO_VENCIMIENTO = '2026-11-17';
   const RECARGO_SERVICIO = 5000;
+  const MES_PRECIO_ESPECIAL = '2026-11';
+  const PRECIO_LICENCIA_ESPECIAL = 55000;
   const DEFAULTS = { activo: true, vencimiento: '2026-10-17', monto: 20000, periodoDias: 30 };
   const WA_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12 0C5.4 0 .1 5.3.1 11.9c0 2.1.6 4.1 1.6 5.9L0 24l6.4-1.7a11.9 11.9 0 0 0 5.6 1.4c6.6 0 11.9-5.3 11.9-11.9 0-3.2-1.2-6.2-3.4-8.3zM12 21.7c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 0 1-1.5-5.2C2.1 6.4 6.5 2 12 2c2.6 0 5.1 1 6.9 2.9a9.7 9.7 0 0 1 2.9 6.9c0 5.4-4.4 9.9-9.8 9.9zm5.4-7.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1l-.9 1.1c-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.3-.6-.4z"/></svg>';
 
@@ -4898,12 +4961,16 @@ function formatearFechaImg(fechaISO) {
     return Math.round((Date.UTC(y2,m2-1,d2) - Date.UTC(y1,m1-1,d1)) / 86400000);
   }
   const money = n => '$' + Number(n||0).toLocaleString('es-CL');
-  const montoPeriodo = l => Number(l.monto || 0) + (l.vencimiento === RECARGO_VENCIMIENTO ? RECARGO_SERVICIO : 0);
-  const detalleRecargo = l => l.vencimiento === RECARGO_VENCIMIENTO
-    ? `Noviembre: ${money(l.monto)} licencia + ${money(RECARGO_SERVICIO)} servicio WhatsApp Business ya realizado.`
+  const esMesPrecioEspecial = () => hoyCL().slice(0, 7) === MES_PRECIO_ESPECIAL;
+  const montoLicenciaActual = l => hoyCL().slice(0, 7) === MES_PRECIO_ESPECIAL
+    ? PRECIO_LICENCIA_ESPECIAL
+    : Number(l.monto || 0);
+  const montoPeriodo = l => montoLicenciaActual(l) + (!esMesPrecioEspecial() && l.vencimiento === RECARGO_VENCIMIENTO ? RECARGO_SERVICIO : 0);
+  const detalleRecargo = l => !esMesPrecioEspecial() && l.vencimiento === RECARGO_VENCIMIENTO
+    ? `Noviembre: ${money(montoLicenciaActual(l))} licencia + ${money(RECARGO_SERVICIO)} servicio WhatsApp Business ya realizado.`
     : '';
-  const detalleRecargoHtml = l => l.vencimiento === RECARGO_VENCIMIENTO
-    ? `<small class="jbLic-charge"><span class="jbLic-charge-base">Licencia ${money(l.monto)}</span> + <span class="jbLic-charge-extra">Servicio realizado ${money(RECARGO_SERVICIO)}</span><br>WhatsApp Business</small>`
+  const detalleRecargoHtml = l => !esMesPrecioEspecial() && l.vencimiento === RECARGO_VENCIMIENTO
+    ? `<small class="jbLic-charge"><span class="jbLic-charge-base">Licencia ${money(montoLicenciaActual(l))}</span> + <span class="jbLic-charge-extra">Servicio realizado ${money(RECARGO_SERVICIO)}</span><br>WhatsApp Business</small>`
     : '';
   function fechaLarga(s){
     const [y,m,d] = s.split('-').map(Number);
@@ -5126,8 +5193,10 @@ window.addEventListener('load', function(){
   }).catch(e => console.error('Historial de pagos:', e));
   pagoBtn.addEventListener('click', async function(){
     try{
-      const venc = (data && data.vencimiento) || hoyCL(), monto = (data && data.monto) || 20000;
-      const recargo = venc === RECARGO_VENCIMIENTO ? RECARGO_SERVICIO : 0;
+      const venc = (data && data.vencimiento) || hoyCL();
+      const precioEspecial = hoyCL().slice(0, 7) === '2026-11';
+      const monto = precioEspecial ? 55000 : Number((data && data.monto) || 20000);
+      const recargo = !precioEspecial && venc === RECARGO_VENCIMIENTO ? RECARGO_SERVICIO : 0;
       const montoPago = Number(monto) + recargo;
       const base = dias(hoyCL(), venc) >= 0 ? venc : hoyCL();   // si paga antes, no pierde días
       const nuevo = masMes(base, 1);   // mismo día del mes siguiente (17 oct → 17 nov)
@@ -5207,6 +5276,749 @@ window.addEventListener('load', function () {
   });
   pintarBoton();
 });
+</script>
+<style>
+body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
+#admin-panel { padding-top: calc(var(--jb-admin-sticky-height, 140px) + 16px); }
+#jbAdminStickyTop {
+  position: fixed;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 8px clamp(10px,2vw,28px);
+  border-bottom: 1px solid rgba(228,166,79,.4);
+  background: rgba(11,11,13,.97);
+  box-shadow: 0 8px 26px rgba(0,0,0,.4);
+  backdrop-filter: blur(12px);
+}
+#jbAdminStickyTop[hidden] { display:none; }
+#jbAdminNav { display:flex; align-items:center; gap:7px; flex-wrap:wrap; max-width:1420px; margin:auto; }
+#jbAdminNav button {
+  min-height:40px; padding:8px 12px; border:1px solid #494950; border-radius:9px;
+  background:#18191d; color:#f5f2eb; font:600 .82rem 'Poppins',sans-serif; cursor:pointer;
+}
+#jbAdminNav button:hover, #jbAdminNav button:focus-visible { border-color:#e4a64f; color:#f1c887; outline:2px solid rgba(228,166,79,.45); }
+#jbAdminLicense {
+  display:flex; align-items:center; gap:10px; max-width:1420px; margin:0 auto 6px;
+  color:#f1c887; font-size:.78rem; font-weight:800;
+}
+#jbAdminLicenseSlot { min-width:0; flex:1; }
+#jbAdminLicenseSlot #jbLicPanel { display:block !important; max-width:none; margin:0; padding:0; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic {
+  display:grid; grid-template-columns:minmax(0,1fr); align-items:center; gap:5px 12px;
+  margin:0 !important; padding:8px 12px !important; overflow:visible;
+}
+#jbAdminLicenseSlot #jbLicPanel .jbLic-head { margin:0; gap:10px; flex-wrap:nowrap; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-title { font-size:.9rem; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-pill { padding:4px 9px; white-space:nowrap; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-body { align-items:center; gap:10px 16px; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-amount,
+#jbAdminLicenseSlot #jbLicPanel .jbLic-count { display:flex; align-items:baseline; gap:6px; text-align:left; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-amount small,
+#jbAdminLicenseSlot #jbLicPanel .jbLic-count small { margin:0; font-size:.68rem; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-amount strong,
+#jbAdminLicenseSlot #jbLicPanel .jbLic-count strong { font-size:1.15rem; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-count small:last-child { white-space:nowrap; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-bar,
+#jbAdminLicenseSlot #jbLicPanel .jbLic-foot,
+#jbAdminLicenseSlot #jbLicPanel .jbLic-alert { display:none; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-meta { font-size:.7rem; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-btn { width:max-content; margin:0; padding:6px 10px; font-size:.75rem; }
+#jbAdminStickyTop .jbLicSlot[data-lic="preview"] { display:none; }
+.jb-admin-anchor { scroll-margin-top:calc(var(--jb-admin-sticky-height, 140px) + 12px); }
+#jbProductsSection {
+  max-width:1400px; margin:18px auto; padding:20px; border:1px solid rgba(228,166,79,.32);
+  border-radius:14px; background:#15161a; color:#f5f2eb;
+}
+.jb-admin-section-title { margin:0 0 6px; color:#f1c887; font-size:1.35rem; }
+.jb-admin-help { margin:0 0 16px; color:#c5c6cc; line-height:1.5; }
+#jbProductForm { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; padding:16px; border-radius:12px; background:#111216; }
+#jbProductForm label { display:flex; flex-direction:column; gap:5px; color:#ddd; font-size:.86rem; }
+#jbProductForm input:not([type="checkbox"]):not([type="file"]), #jbProductForm textarea {
+  width:100%; min-height:42px; padding:10px; border:1px solid #56565c; border-radius:8px;
+  background:#090a0d; color:#fff; font:inherit;
+}
+#jbProductForm textarea { min-height:78px; resize:vertical; }
+.jb-product-checks { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+.jb-product-checks label { flex-direction:row !important; align-items:center; }
+.jb-product-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.jb-admin-button {
+  min-height:42px; padding:9px 14px; border:0; border-radius:9px; background:#e4a64f;
+  color:#21180a; font-weight:800; cursor:pointer;
+}
+.jb-admin-button.secondary { border:1px solid #56565c; background:#25262b; color:#eee; }
+#jbProductStatus { min-height:1.4em; margin:10px 0; color:#f1c887; }
+#jbProductList { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin-top:14px; }
+.jb-product-admin-card { display:grid; grid-template-columns:82px 1fr; gap:12px; padding:12px; border:1px solid #3b3c42; border-radius:12px; background:#1b1c20; }
+.jb-product-admin-card img { width:82px; height:82px; object-fit:cover; border-radius:9px; background:#090a0d; }
+.jb-product-admin-copy { min-width:0; }
+.jb-product-admin-copy strong { color:#f1c887; }
+.jb-product-admin-copy p { margin:4px 0; color:#c5c6cc; font-size:.82rem; overflow-wrap:anywhere; }
+.jb-product-admin-actions { grid-column:1/-1; display:flex; gap:7px; flex-wrap:wrap; }
+.jb-product-admin-actions button { min-height:36px; padding:7px 10px; border:1px solid #555; border-radius:8px; background:#25262b; color:#fff; cursor:pointer; }
+/* ---- Navegación por secciones ---- */
+.jb-sec-off { display:none !important; }
+#jbAdminNav { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:thin; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
+#jbAdminNav button { flex:0 0 auto; white-space:nowrap; transition:background .15s, color .15s, border-color .15s; }
+#jbAdminNav button.active { background:#e4a64f; border-color:#e4a64f; color:#21180a; }
+#jbAdminNav button.active:hover, #jbAdminNav button.active:focus-visible { color:#21180a; }
+
+/* ---- Productos ---- */
+.jb-prod-head { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:6px; }
+.jb-prod-head > div { flex:1 1 280px; min-width:0; }
+.jb-add-product-btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:56px; padding:14px 26px;
+  border:0; border-radius:14px; cursor:pointer; font:800 1.05rem 'Poppins',sans-serif; letter-spacing:.04em;
+  color:#fff; background:linear-gradient(135deg,#ff3b3f,#d62a2e); box-shadow:0 8px 22px rgba(255,59,63,.35);
+  transition:transform .15s, box-shadow .15s;
+}
+.jb-add-product-btn:hover, .jb-add-product-btn:focus-visible { transform:translateY(-2px); box-shadow:0 12px 28px rgba(255,59,63,.5); outline:2px solid #fff; outline-offset:2px; }
+.jb-add-product-btn .plus { font-size:1.6rem; line-height:1; font-weight:700; }
+.jb-prod-empty { grid-column:1/-1; padding:26px 16px; text-align:center; color:#c5c6cc; border:2px dashed #3b3c42; border-radius:12px; }
+.jb-modal { position:fixed; inset:0; z-index:10000; display:flex; align-items:flex-start; justify-content:center; padding:24px 14px; overflow-y:auto; background:rgba(0,0,0,.78); backdrop-filter:blur(3px); }
+.jb-modal[hidden] { display:none !important; }
+.jb-modal-card { width:100%; max-width:620px; margin:auto; border:1px solid rgba(228,166,79,.45); border-radius:16px; background:#15161a; color:#f5f2eb; box-shadow:0 24px 60px rgba(0,0,0,.6); }
+.jb-modal-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 18px; border-bottom:1px solid #2b2c32; }
+.jb-modal-head h3 { margin:0; color:#f1c887; font-size:1.2rem; }
+.jb-modal-close { width:40px; height:40px; border:1px solid #56565c; border-radius:10px; background:#25262b; color:#fff; font-size:1.1rem; cursor:pointer; }
+#jbProductForm { border-radius:0 0 16px 16px; }
+#jbProductForm .jb-wide { grid-column:1/-1; }
+#jbProductForm input[type="file"] { width:100%; padding:10px; border:1px dashed #e4a64f; border-radius:8px; background:#090a0d; color:#ddd; font:inherit; }
+.jb-preview { display:flex; align-items:center; gap:14px; margin-top:10px; padding:10px; border:1px solid #33d17a; border-radius:12px; background:rgba(51,209,122,.08); }
+.jb-preview[hidden] { display:none !important; }
+.jb-preview img { width:96px; height:96px; object-fit:cover; border-radius:10px; background:#090a0d; flex:none; }
+.jb-preview span { color:#cdeedb; font-size:.84rem; line-height:1.4; overflow-wrap:anywhere; }
+.jb-preview.error { border-color:#ff6b6b; background:rgba(255,59,63,.1); }
+.jb-preview.error span { color:#ffb4b4; }
+.jb-product-noimg { width:82px; height:82px; display:flex; align-items:center; justify-content:center; border-radius:9px; background:#090a0d; font-size:2rem; }
+.jb-chat-hint { margin:4px 0 0; color:#f1c887; font-size:.8rem; }
+.jb-chat-hint[hidden] { display:none; }
+@media(max-width:700px) {
+  .jb-add-product-btn { width:100%; }
+  .jb-modal { padding:0; }
+  .jb-modal-card { min-height:100%; border-radius:0; }
+  .jb-preview img { width:76px; height:76px; }
+}
+@media(max-width:700px) {
+  body { padding:10px; }
+  #jbAdminLicense { display:grid; grid-template-columns:minmax(0,1fr); gap:4px; }
+  #jbAdminNav { gap:5px; }
+  #jbAdminNav button { min-height:36px; padding:7px 9px; font-size:.72rem; }
+  #jbAdminLicense { font-size:.7rem; }
+  #jbAdminLicenseSlot #jbLicPanel .jbLic-body { flex-wrap:wrap; }
+  #jbProductsSection { padding:14px; }
+}
+</style>
+<script>
+(() => {
+  const adminPanel = document.getElementById('admin-panel');
+  if (!adminPanel) return;
+  const $ = id => document.getElementById(id);
+
+  /* ============================================
+     BARRA SUPERIOR + NAVEGACIÓN POR SECCIONES
+     ============================================ */
+  const navBar = document.createElement('header');
+  navBar.id = 'jbAdminStickyTop';
+  navBar.hidden = true;
+  navBar.innerHTML = '<div id="jbAdminLicense"><span>LICENCIA MENSUAL</span><div id="jbAdminLicenseSlot"></div></div><nav id="jbAdminNav" aria-label="Secciones del panel"></nav>';
+  document.body.appendChild(navBar);
+
+  let stickyLayoutFrame = 0;
+  const updateStickyLayout = () => {
+    if (navBar.hidden) return;
+    if (stickyLayoutFrame) cancelAnimationFrame(stickyLayoutFrame);
+    stickyLayoutFrame = requestAnimationFrame(() => {
+      stickyLayoutFrame = 0;
+      document.documentElement.style.setProperty(
+        '--jb-admin-sticky-height',
+        `${Math.ceil(navBar.getBoundingClientRect().height)}px`
+      );
+    });
+  };
+  if ('ResizeObserver' in window) {
+    new ResizeObserver(updateStickyLayout).observe(navBar);
+  } else {
+    window.addEventListener('resize', updateStickyLayout);
+  }
+
+  const nav = navBar.querySelector('#jbAdminNav');
+  const license = $('jbLicPanel');
+  if (license) navBar.querySelector('#jbAdminLicenseSlot').appendChild(license);
+
+  /* ============================================
+     SECCIÓN PRODUCTOS (lista + botón + ventana)
+     ============================================ */
+  const productSection = document.createElement('section');
+  productSection.id = 'jbProductsSection';
+  productSection.setAttribute('aria-labelledby', 'jbProductsTitle');
+  productSection.innerHTML = `
+    <div class="jb-prod-head">
+      <div>
+        <h2 class="jb-admin-section-title" id="jbProductsTitle">🛍️ Productos de la barbería</h2>
+        <p class="jb-admin-help">Administra precios e inventario. Las fotos se suben a Cloudinary; el stock ingresado es el disponible para vender y las reservas descuentan una unidad.</p>
+      </div>
+      <button type="button" class="jb-add-product-btn" id="jbProductAdd"><span class="plus" aria-hidden="true">＋</span> AGREGAR PRODUCTO</button>
+    </div>
+    <p id="jbProductStatus" role="status" aria-live="polite"></p>
+    <div id="jbProductList" aria-live="polite"></div>`;
+  adminPanel.appendChild(productSection);
+
+  const productModal = document.createElement('div');
+  productModal.id = 'jbProductModal';
+  productModal.className = 'jb-modal';
+  productModal.hidden = true;
+  productModal.setAttribute('role', 'dialog');
+  productModal.setAttribute('aria-modal', 'true');
+  productModal.setAttribute('aria-labelledby', 'jbProductModalTitle');
+  productModal.innerHTML = `
+    <div class="jb-modal-card">
+      <div class="jb-modal-head">
+        <h3 id="jbProductModalTitle">Nuevo producto</h3>
+        <button type="button" class="jb-modal-close" id="jbProductClose" aria-label="Cerrar">✕</button>
+      </div>
+      <form id="jbProductForm">
+        <label class="jb-wide">Nombre del producto<input id="jbProductName" maxlength="120" required></label>
+        <label>Precio normal (CLP)<input id="jbProductPrice" type="number" min="1" step="1" required></label>
+        <label>Precio oferta (opcional)<input id="jbProductOfferPrice" type="number" min="1" step="1"></label>
+        <label>Unidades disponibles<input id="jbProductStock" type="number" min="0" step="1" required></label>
+        <label class="jb-wide">Descripción<textarea id="jbProductDescription" maxlength="500" required></textarea></label>
+        <div class="jb-wide">
+          <label for="jbProductImage">Foto del producto (Cloudinary)</label>
+          <input id="jbProductImage" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+          <div class="jb-preview" id="jbProductPreviewBox" hidden aria-live="polite">
+            <img id="jbProductPreview" alt="Vista previa de la foto del producto">
+            <span id="jbProductPreviewText"></span>
+          </div>
+        </div>
+        <div class="jb-wide">
+          <div class="jb-product-checks">
+            <label><input id="jbProductVisible" type="checkbox" checked> Visible en la TV</label>
+            <label><input id="jbProductChat" type="checkbox" checked> Ofrecer en reservas</label>
+            <label><input id="jbProductFeatured" type="checkbox"> Destacar manualmente</label>
+          </div>
+          <p class="jb-chat-hint" id="jbProductChatHint" hidden>Ya hay 4 productos ofrecidos en reservas (el máximo). Este se guardará sin esa opción; desmarca otro producto si quieres cambiarlo.</p>
+        </div>
+        <div class="jb-product-actions jb-wide">
+          <button class="jb-admin-button" type="submit" id="jbProductSave">Guardar producto</button>
+          <button class="jb-admin-button secondary" type="button" id="jbProductReset">Cancelar</button>
+        </div>
+      </form>
+    </div>`;
+  document.body.appendChild(productModal);
+
+  /* ============================================
+     SECCIONES: una a la vez desde el header
+     ============================================ */
+  const findCard = element => element && element.closest('.card');
+  const grid = adminPanel.querySelector('.admin-grid');
+  const sectionDefs = [
+    { id: 'reservas', label: '📅 Reservas', els: [findCard($('fecha-hoy')), findCard($('calendario-grid'))] },
+    { id: 'estadisticas', label: '📊 Estadísticas', els: [$('card-estadisticas'), adminPanel.querySelector('.tarjeta-animada')] },
+    { id: 'horarios', label: '⏰ Horarios', els: [findCard($('horario-semana-tags'))] },
+    { id: 'productos', label: '🛍️ Productos', els: [productSection] },
+    { id: 'resenas', label: '⭐ Reseñas', els: [$('jbReviewModeration')] },
+    { id: 'cuenta', label: '🔐 Cuenta y ayuda', els: [adminPanel.querySelector(':scope > section:not([id])'), $('jbPromptTriage'), $('jbSupportCenter'),
+      Array.from(adminPanel.querySelectorAll('p')).find(p => p.textContent.trim().startsWith('Retención:'))] }
+  ].map(def => ({ ...def, els: def.els.filter(Boolean) })).filter(def => def.els.length);
+
+  const STORAGE_KEY = 'jbAdminSeccionActiva';
+  const allSectionEls = new Set(sectionDefs.flatMap(def => def.els));
+  const navButtons = new Map();
+
+  function activateSection(id, scrollTop = true) {
+    const def = sectionDefs.find(item => item.id === id) || sectionDefs[0];
+    if (!def) return;
+    allSectionEls.forEach(el => {
+      el.classList.toggle('jb-sec-off', !def.els.includes(el));
+      el.style.gridColumn = '';
+    });
+    // Si en la sección hay un solo módulo dentro de la grilla, que use todo el ancho.
+    const inGrid = def.els.filter(el => grid && grid.contains(el));
+    if (inGrid.length === 1) inGrid[0].style.gridColumn = '1 / -1';
+    navButtons.forEach((button, buttonId) => {
+      const active = buttonId === def.id;
+      button.classList.toggle('active', active);
+      if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
+    });
+    try { localStorage.setItem(STORAGE_KEY, def.id); } catch (error) { /* modo privado: no pasa nada */ }
+    if (scrollTop) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  sectionDefs.forEach(def => {
+    def.els.forEach(el => el.classList.add('jb-admin-anchor'));
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = def.label;
+    button.addEventListener('click', () => activateSection(def.id));
+    nav.appendChild(button);
+    navButtons.set(def.id, button);
+  });
+
+  let initialSection = sectionDefs[0] && sectionDefs[0].id;
+  try { initialSection = localStorage.getItem(STORAGE_KEY) || initialSection; } catch (error) { /* ignorar */ }
+  activateSection(initialSection, false);
+
+  // El acceso directo "Centro de Ayuda" apunta a una sección que puede estar oculta.
+  const openSupport = () => {
+    activateSection('cuenta', false);
+    const target = $('jbSupportCenter');
+    if (target) requestAnimationFrame(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
+  document.addEventListener('click', event => {
+    const link = event.target.closest && event.target.closest('a[href="#jbSupportCenter"]');
+    if (!link) return;
+    event.preventDefault();
+    openSupport();
+  });
+  window.addEventListener('hashchange', () => { if (location.hash === '#jbSupportCenter') openSupport(); });
+  if (location.hash === '#jbSupportCenter') openSupport();
+
+  /* ============================================
+     VENTAS REALES + ESTADO
+     ============================================ */
+  const form = $('jbProductForm');
+  const status = $('jbProductStatus');
+  const list = $('jbProductList');
+  const products = new Map();
+  let reservations = {};
+  let archivedReservations = {};
+  let editingId = null;
+  let archiveListenerStarted = false;
+  let salesCounts = {};
+  let saving = false;
+
+  function countProductSales() {
+    const counts = {};
+    [reservations, archivedReservations].forEach(entries => {
+      Object.entries(entries || {}).forEach(([id, reservation]) => {
+        const productId = reservation && reservation.producto && reservation.producto.id;
+        const reason = String(reservation && reservation.archiveReason || '').toLowerCase();
+        if (productId && !reason.startsWith('cancelada') && !reason.startsWith('eliminada')) {
+          counts[productId] = (counts[productId] || 0) + 1;
+        }
+      });
+    });
+    salesCounts = counts;
+    renderProducts();
+  }
+
+  function setProductStatus(message, isError = false) {
+    status.textContent = message;
+    status.style.color = isError ? '#ff8b8b' : '#f1c887';
+  }
+
+  const visibilityObserver = new MutationObserver(() => {
+    navBar.hidden = getComputedStyle(adminPanel).display === 'none';
+    updateStickyLayout();
+    if (!navBar.hidden && !archiveListenerStarted && auth.currentUser) {
+      archiveListenerStarted = true;
+      db.ref('reservas_archivadas').on('value', snapshot => {
+        archivedReservations = snapshot.val() || {};
+        countProductSales();
+      }, error => {
+        console.error('No se pudieron cargar las ventas archivadas:', error);
+        setProductStatus(`No se pudieron calcular las ventas archivadas: ${error.message}`, true);
+      });
+    }
+  });
+  visibilityObserver.observe(adminPanel, { attributes: true, attributeFilter: ['style'] });
+  navBar.hidden = getComputedStyle(adminPanel).display === 'none';
+
+  /* ============================================
+     FOTO: validación + VISTA PREVIA
+     ============================================ */
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  const fileInput = $('jbProductImage');
+  const previewBox = $('jbProductPreviewBox');
+  const previewImg = $('jbProductPreview');
+  const previewText = $('jbProductPreviewText');
+  let previewUrl = null;
+  let existingImage = '';
+
+  function releasePreviewUrl() {
+    if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
+  }
+  function clearPreview() {
+    releasePreviewUrl();
+    previewImg.removeAttribute('src');
+    previewText.textContent = '';
+    previewBox.classList.remove('error');
+    previewBox.hidden = true;
+  }
+  function showExistingPreview() {
+    releasePreviewUrl();
+    previewBox.classList.remove('error');
+    if (!existingImage) { clearPreview(); return; }
+    previewImg.src = existingImage;
+    previewText.textContent = 'Foto actual del producto. Elige otra imagen solo si quieres reemplazarla.';
+    previewBox.hidden = false;
+  }
+  function showImageError(message) {
+    releasePreviewUrl();
+    previewImg.removeAttribute('src');
+    previewText.textContent = message;
+    previewBox.classList.add('error');
+    previewBox.hidden = false;
+  }
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) { existingImage ? showExistingPreview() : clearPreview(); return; }
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      fileInput.value = '';
+      showImageError('✖ Formato no válido. Usa una imagen JPG, PNG, WebP o GIF.');
+      return;
+    }
+    if (file.size > 12 * 1024 * 1024) {
+      fileInput.value = '';
+      showImageError('✖ La imagen pesa más de 12 MB. Elige una más liviana.');
+      return;
+    }
+    releasePreviewUrl();
+    previewUrl = URL.createObjectURL(file);
+    previewImg.src = previewUrl;
+    previewBox.classList.remove('error');
+    previewText.textContent = `✔ Imagen lista: ${file.name} (${Math.max(1, Math.round(file.size / 1024)).toLocaleString('es-CL')} KB). Se subirá al guardar.`;
+    previewBox.hidden = false;
+  });
+
+  async function compressProductImage(file) {
+    if (!file || !ALLOWED_TYPES.includes(file.type)) {
+      throw new Error('Selecciona una imagen JPG, PNG, WebP o GIF válida.');
+    }
+    if (file.size > 12 * 1024 * 1024) throw new Error('La imagen debe pesar menos de 12 MB.');
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () => reject(new Error('No se pudo leer la imagen.'));
+        image.src = objectUrl;
+      });
+      const scale = Math.min(1, 1000 / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise((resolve, reject) => canvas.toBlob(
+        result => result ? resolve(result) : reject(new Error('No se pudo comprimir la imagen.')),
+        'image/jpeg',
+        .78
+      ));
+      return blob;
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  }
+
+  async function uploadProductImage(file) {
+    const blob = await compressProductImage(file);
+    const formData = new FormData();
+    formData.append('file', blob, 'producto.jpg');
+    formData.append('upload_preset', 'brbshopjames');
+    formData.append('folder', 'productos');
+    const response = await fetch('https://api.cloudinary.com/v1_1/dkszomv2f/image/upload', {
+      method: 'POST',
+      body: formData
+    });
+    let result;
+    try {
+      result = await response.json();
+    } catch (error) {
+      throw new Error(`Cloudinary respondió con un formato inesperado (${response.status}).`);
+    }
+    if (!response.ok) {
+      throw new Error(result.error && result.error.message
+        ? `Cloudinary: ${result.error.message}`
+        : `Cloudinary rechazó la imagen (${response.status}).`);
+    }
+    const imageUrl = String(result.secure_url || '');
+    if (!imageUrl.startsWith('https://res.cloudinary.com/dkszomv2f/image/upload/')) {
+      throw new Error('Cloudinary no devolvió una URL segura válida.');
+    }
+    return { imageUrl, publicId: String(result.public_id || '') };
+  }
+
+  async function uploadLegacyProductImage(product) {
+    const response = await fetch(product.imagen);
+    if (!response.ok) throw new Error('No se pudo leer la foto guardada para migrarla.');
+    const blob = await response.blob();
+    if (!blob.type.startsWith('image/')) throw new Error('La foto guardada no tiene un formato de imagen válido.');
+    const uploaded = await uploadProductImage(blob);
+    return uploaded;
+  }
+
+  /* ============================================
+     VENTANA "AGREGAR / EDITAR PRODUCTO"
+     ============================================ */
+  const chatCheckbox = $('jbProductChat');
+  const chatHint = $('jbProductChatHint');
+  const saveButton = $('jbProductSave');
+
+  function offeredInChatCount(excludeId) {
+    return Array.from(products.entries()).filter(([id, product]) =>
+      product.ofrecerEnChat && id !== excludeId
+    ).length;
+  }
+
+  function openProductModal(id, product) {
+    editingId = id || null;
+    form.reset(); // restaura los valores por defecto: visible y "ofrecer en reservas" marcados
+    clearPreview();
+    chatHint.hidden = true;
+    existingImage = '';
+    if (product) {
+      $('jbProductModalTitle').textContent = 'Editar producto';
+      saveButton.textContent = 'Guardar cambios';
+      $('jbProductName').value = product.nombre || '';
+      $('jbProductPrice').value = Number(product.precio) || '';
+      $('jbProductOfferPrice').value = Number(product.precioOferta) || '';
+      $('jbProductStock').value = Number(product.stock) || 0;
+      $('jbProductDescription').value = product.descripcion || '';
+      $('jbProductVisible').checked = product.visible !== false;
+      chatCheckbox.checked = product.ofrecerEnChat === true;
+      $('jbProductFeatured').checked = product.masVendidoManual === true;
+      fileInput.required = false;
+      existingImage = product.imagen || '';
+      showExistingPreview();
+    } else {
+      $('jbProductModalTitle').textContent = 'Nuevo producto';
+      saveButton.textContent = 'Guardar producto';
+      fileInput.required = true;
+      if (offeredInChatCount(null) >= 4) {
+        chatCheckbox.checked = false;
+        chatHint.hidden = false;
+      }
+    }
+    productModal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => $('jbProductName').focus(), 50);
+  }
+
+  function closeProductModal() {
+    if (saving) return;
+    productModal.hidden = true;
+    document.body.style.overflow = '';
+    editingId = null;
+    existingImage = '';
+    form.reset();
+    clearPreview();
+  }
+
+  $('jbProductAdd').addEventListener('click', () => openProductModal(null, null));
+  $('jbProductClose').addEventListener('click', closeProductModal);
+  $('jbProductReset').addEventListener('click', closeProductModal);
+  productModal.addEventListener('mousedown', event => { if (event.target === productModal) closeProductModal(); });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !productModal.hidden) closeProductModal();
+  });
+
+  chatCheckbox.addEventListener('change', event => {
+    chatHint.hidden = true;
+    if (!event.target.checked) return;
+    if (offeredInChatCount(editingId) >= 4) {
+      event.target.checked = false;
+      chatHint.hidden = false;
+      setProductStatus('El chatbot puede mostrar como máximo 4 productos. Desmarca uno antes de agregar otro.', true);
+    }
+  });
+
+  /* ============================================
+     LISTA DE PRODUCTOS
+     ============================================ */
+  function renderProducts() {
+    list.replaceChildren();
+    if (!products.size) {
+      const empty = document.createElement('div');
+      empty.className = 'jb-prod-empty';
+      empty.textContent = 'Aún no hay productos. Toca “＋ AGREGAR PRODUCTO” para crear el primero.';
+      list.appendChild(empty);
+      return;
+    }
+    // Los más nuevos primero, para ver enseguida lo que acabas de agregar.
+    Array.from(products.entries())
+      .sort((a, b) => (Number(b[1].createdAt) || 0) - (Number(a[1].createdAt) || 0))
+      .forEach(([id, product]) => {
+        const card = document.createElement('article');
+        card.className = 'jb-product-admin-card';
+        if (product.imagen) {
+          const image = document.createElement('img');
+          image.src = product.imagen;
+          image.alt = '';
+          card.appendChild(image);
+        } else {
+          const placeholder = document.createElement('div');
+          placeholder.className = 'jb-product-noimg';
+          placeholder.textContent = '📦';
+          placeholder.setAttribute('aria-hidden', 'true');
+          card.appendChild(placeholder);
+        }
+        const copy = document.createElement('div');
+        copy.className = 'jb-product-admin-copy';
+        const title = document.createElement('strong');
+        title.textContent = product.nombre || 'Producto sin nombre';
+        const description = document.createElement('p');
+        description.textContent = product.descripcion || '';
+        const effectivePrice = Number(product.precioOferta) > 0 && Number(product.precioOferta) < Number(product.precio)
+          ? Number(product.precioOferta)
+          : Number(product.precio) || 0;
+        const details = document.createElement('p');
+        details.textContent = `$${effectivePrice.toLocaleString('es-CL')}${effectivePrice !== Number(product.precio) ? ` (normal $${Number(product.precio).toLocaleString('es-CL')})` : ''} · Quedan ${Math.max(0, Number(product.stock) || 0)} · Ventas reales ${salesCounts[id] || 0}`;
+        const flags = document.createElement('p');
+        flags.textContent = `${product.visible === false ? 'Oculto' : 'Visible en TV'} · ${product.ofrecerEnChat ? 'Se ofrece en reservas' : 'No se ofrece en reservas'}${product.masVendidoManual ? ' · Destacado manualmente' : ''}`;
+        copy.append(title, description, details, flags);
+        card.appendChild(copy);
+        const actions = document.createElement('div');
+        actions.className = 'jb-product-admin-actions';
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.textContent = 'Editar';
+        edit.addEventListener('click', () => openProductModal(id, product));
+        const visibility = document.createElement('button');
+        visibility.type = 'button';
+        visibility.textContent = product.visible === false ? 'Mostrar' : 'Ocultar';
+        visibility.addEventListener('click', () => db.ref(`productos/${id}/visible`).set(product.visible === false)
+          .catch(error => { console.error('No se pudo cambiar la visibilidad del producto:', error); setProductStatus(error.message, true); }));
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.textContent = 'Eliminar';
+        remove.addEventListener('click', () => {
+          if (!confirm(`¿Eliminar ${product.nombre || 'este producto'}?`)) return;
+          db.ref(`productos/${id}`).remove().catch(error => {
+            console.error('No se pudo eliminar el producto:', error);
+            setProductStatus(error.message, true);
+          });
+        });
+        actions.append(edit, visibility, remove);
+        if (String(product.imagen || '').startsWith('data:image/')) {
+          const migrate = document.createElement('button');
+          migrate.type = 'button';
+          migrate.textContent = 'Migrar foto a Cloudinary';
+          migrate.addEventListener('click', async () => {
+            migrate.disabled = true;
+            setProductStatus(`Subiendo la foto de ${product.nombre || 'este producto'} a Cloudinary…`);
+            try {
+              const uploaded = await uploadLegacyProductImage(product);
+              await db.ref(`productos/${id}`).update({
+                imagen: uploaded.imageUrl,
+                imagenCloudinaryPublicId: uploaded.publicId,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+              });
+              setProductStatus(`Foto de ${product.nombre || 'producto'} migrada a Cloudinary.`);
+            } catch (error) {
+              console.error('No se pudo migrar la imagen del producto a Cloudinary:', error);
+              setProductStatus(error.message || 'No se pudo migrar la foto a Cloudinary.', true);
+              migrate.disabled = false;
+            }
+          });
+          actions.appendChild(migrate);
+        }
+        card.appendChild(actions);
+        list.appendChild(card);
+      });
+  }
+
+  /* ============================================
+     GUARDAR PRODUCTO
+     ============================================ */
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (saving) return;
+    const name = $('jbProductName').value.trim();
+    const price = Number($('jbProductPrice').value);
+    const offerPrice = Number($('jbProductOfferPrice').value) || 0;
+    const stock = Number($('jbProductStock').value);
+    const description = $('jbProductDescription').value.trim();
+    const file = fileInput.files[0];
+    if (!name || !description || !Number.isInteger(stock) || stock < 0 || !Number.isFinite(price) || price <= 0) {
+      setProductStatus('Revisa el nombre, descripción, precio y stock.', true);
+      return;
+    }
+    if (offerPrice && (offerPrice <= 0 || offerPrice >= price)) {
+      setProductStatus('El precio de oferta debe ser mayor que 0 y menor al precio normal.', true);
+      return;
+    }
+    const selectedCount = offeredInChatCount(editingId) + (chatCheckbox.checked ? 1 : 0);
+    if (selectedCount > 4) {
+      setProductStatus('Selecciona hasta 4 productos para ofrecer en el chatbot.', true);
+      return;
+    }
+    saving = true;
+    saveButton.disabled = true;
+    setProductStatus('Guardando producto…');
+    try {
+      const old = editingId ? products.get(editingId) : null;
+      let image = old && old.imagen;
+      let cloudinaryPublicId = old && old.imagenCloudinaryPublicId || '';
+      if (file) {
+        setProductStatus('Subiendo foto a Cloudinary…');
+        const uploaded = await uploadProductImage(file);
+        image = uploaded.imageUrl;
+        cloudinaryPublicId = uploaded.publicId;
+      } else if (old && String(old.imagen || '').startsWith('data:image/')) {
+        setProductStatus('Migrando la foto existente a Cloudinary…');
+        const uploaded = await uploadLegacyProductImage(old);
+        image = uploaded.imageUrl;
+        cloudinaryPublicId = uploaded.publicId;
+      }
+      if (!image) throw new Error('Agrega una foto del producto.');
+      const data = {
+        nombre: name.slice(0, 120),
+        descripcion: description.slice(0, 500),
+        precio: Math.round(price),
+        precioOferta: offerPrice ? Math.round(offerPrice) : null,
+        stock: Math.floor(stock),
+        imagen: image,
+        imagenCloudinaryPublicId: cloudinaryPublicId || null,
+        visible: $('jbProductVisible').checked,
+        ofrecerEnChat: chatCheckbox.checked,
+        masVendidoManual: $('jbProductFeatured').checked,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+      };
+      if (old && old.lastReservationId) data.lastReservationId = old.lastReservationId;
+      if (old && old.lastRefundReservationId) data.lastRefundReservationId = old.lastRefundReservationId;
+      const ref = editingId ? db.ref(`productos/${editingId}`) : db.ref('productos').push();
+      await ref.set({ ...data, createdAt: old && old.createdAt || firebase.database.ServerValue.TIMESTAMP });
+      saving = false;
+      closeProductModal();
+      setProductStatus('✔ Producto guardado.');
+      if (typeof mostrarToast === 'function') mostrarToast('✔ Producto guardado');
+    } catch (error) {
+      console.error('No se pudo guardar el producto:', error);
+      setProductStatus(error.message || 'No se pudo guardar el producto.', true);
+      // La ventana sigue abierta para que el error se vea junto al formulario.
+      previewText.textContent = `✖ ${error.message || 'No se pudo guardar el producto.'}`;
+      previewBox.classList.add('error');
+      previewBox.hidden = false;
+    } finally {
+      saving = false;
+      saveButton.disabled = false;
+    }
+  });
+
+  /* ============================================
+     DATOS EN VIVO
+     ============================================ */
+  db.ref('productos').on('value', snapshot => {
+    products.clear();
+    // OJO: en Firebase, si el callback de forEach devuelve un valor "truthy" la iteración
+    // se detiene. Map.set() devuelve el Map, por eso antes solo se cargaba el primer producto.
+    snapshot.forEach(child => {
+      products.set(child.key, child.val() || {});
+    });
+    renderProducts();
+    if (status.textContent === 'Cargando productos…') setProductStatus('');
+  }, error => {
+    console.error('No se pudieron cargar los productos:', error);
+    setProductStatus(`No se pudieron cargar los productos: ${error.message}`, true);
+  });
+  db.ref('reservas').on('value', snapshot => { reservations = snapshot.val() || {}; countProductSales(); }, error => {
+    console.error('No se pudieron cargar las ventas desde las reservas:', error);
+    setProductStatus(`No se pudieron calcular las ventas reales: ${error.message}`, true);
+  });
+  setProductStatus('Cargando productos…');
+})();
 </script>
 <script src="remove-legacy-push.js"></script>
 </body>
