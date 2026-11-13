@@ -901,15 +901,15 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
     <p class="tv-booking-eyebrow">Reserva fácil · James Barbershop</p>
     <div class="tv-control-guide" aria-label="Guía visual del control remoto">
       <div class="tv-control-guide-item">
-        <img src="assets/control-numbers.png" alt="" width="48" height="48">
+        <img src="control-numbers.png" alt="" width="48" height="48">
         <span>Escribe tu número</span>
       </div>
       <div class="tv-control-guide-item">
-        <img src="assets/control-arrows-ok.png" alt="" width="48" height="48">
+        <img src="control-arrows-ok.png" alt="" width="48" height="48">
         <span>Muévete y pulsa OK</span>
       </div>
       <div class="tv-control-guide-item">
-        <img src="assets/control-back.png" alt="" width="48" height="48">
+        <img src="control-back.png" alt="" width="48" height="48">
         <span>Volver atrás</span>
       </div>
     </div>
@@ -1047,7 +1047,7 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
       <section class="video-panel review-tv-panel" style="height: auto !important;" aria-label="Reseñas y código para compartir tu opinión">
         <div class="review-tv-qr-column">
           <div class="review-tv-qr">
-            <img id="tv-review-qr" src="assets/james-review-qr.png" alt="Código QR para dejar una reseña de James Barbershop" width="768" height="768" decoding="async">
+            <img id="tv-review-qr" src="james-review-qr.png" alt="Código QR para dejar una reseña de James Barbershop" width="768" height="768" decoding="async">
           </div>
           <p class="review-tv-prompt">ESCANEA Y<br>CUÉNTANOS</p> 
         </div>
@@ -1096,7 +1096,7 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
   </div>
 
   <button type="button" class="tv-kiosk-launcher" id="tv-kiosk-launcher" autofocus>
-    <img class="tv-kiosk-remote" src="assets/control-remote.svg" alt="Control remoto con teclas OK y numéricas">
+    <img class="tv-kiosk-remote" src="control-remote.svg" alt="Control remoto con teclas OK y numéricas">
     <span class="tv-kiosk-launcher-copy">
       <span class="tv-kiosk-launcher-eyebrow">¿EL BARBERO ESTÁ OCUPADO?</span>
       <strong>RESERVA TU PRÓXIMO CORTE AQUÍ MISMO</strong>
@@ -1125,11 +1125,11 @@ fitStage();addEventListener('resize',fitStage);addEventListener('load',fitStage)
 // ── IMÁGENES ──
 const CORTES = {
   looks: Array.from({ length: 25 }, (_, index) => ({
-    src: `assets/cortes/women_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
+    src: `women_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
     alt: 'Estilo de cabello'
   })),
   cortes: Array.from({ length: 20 }, (_, index) => ({
-    src: `assets/cortes/men_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
+    src: `men_${Math.floor(index / 5) + 1}_${index % 5 + 1}.png`,
     alt: 'Corte de barbería'
   }))
 };
