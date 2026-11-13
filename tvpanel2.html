@@ -1373,7 +1373,7 @@ async function findKioskCustomer(phoneDigits) {
     const snapshot = await tvDatabase.ref('reservas').orderByChild('telefono').equalTo(phone).once('value');
     let customer = null;
     const reservations = [];
-    snapshot.forEach(child => reservations.push(child.val() || {}));
+    snapshot.forEach(child => { reservations.push(child.val() || {}); }); // con llaves: si devuelve un valor, Firebase corta la iteración
     for (const reservation of reservations) {
       if (normalizeKioskPhone(reservation.telefono) !== phoneDigits || !reservation.clienteId) continue;
       const profileSnapshot = await tvDatabase.ref(`clientes/${reservation.clienteId}`).once('value');
