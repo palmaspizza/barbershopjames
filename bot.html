@@ -2929,17 +2929,29 @@ function cargarMisReservasAutomatico() {
         const telefonoInput = document.getElementById('telefonoClienteBusqueda');
         if (nombreInput && perfil.nombreDisplay) nombreInput.value = perfil.nombreDisplay;
         if (telefonoInput && perfil.telefono) telefonoInput.value = perfil.telefono;
-        db.ref('reservas').orderByChild('clienteId').equalTo(String(perfil.clienteId)).once('value')
-            .then(snapshot => {
+        // Busca por perfil (clienteId) Y por teléfono (3 formatos: 56…, +56…, 9…),
+        // así aparecen también las reservas hechas con otro nombre.
+        const telNorm = normalizarTelefonoRecuperacion(perfil.telefono);
+        const consultas = [db.ref('reservas').orderByChild('clienteId').equalTo(String(perfil.clienteId)).once('value')];
+        if (telNorm) {
+            [telNorm, '+' + telNorm, telNorm.slice(2)].forEach(variante => {
+                consultas.push(db.ref('reservas').orderByChild('telefono').equalTo(variante).once('value'));
+            });
+        }
+        Promise.all(consultas)
+            .then(snapshots => {
                 const hoy = formatearFechaSimple(new Date());
-                const encontradas = [];
-                snapshot.forEach(child => {
-                    const reserva = child.val() || {};
-                    if (reserva.fecha >= hoy &&
-                        !['cancelada', 'cancelado'].includes(String(reserva.estado || '').toLowerCase())) {
-                        encontradas.push({ id: child.key, ...reserva });
-                    }
+                const porId = new Map();
+                snapshots.forEach(snapshot => {
+                    snapshot.forEach(child => {
+                        const reserva = child.val() || {};
+                        if (reserva.fecha >= hoy &&
+                            !['cancelada', 'cancelado'].includes(String(reserva.estado || '').toLowerCase())) {
+                            porId.set(child.key, { id: child.key, ...reserva });
+                        }
+                    });
                 });
+                const encontradas = Array.from(porId.values());
                 if (encontradas.length) {
                     reservasClienteActuales = encontradas.sort((a, b) =>
                         `${a.fecha || ''} ${a.hora || ''}`.localeCompare(`${b.fecha || ''} ${b.hora || ''}`)
@@ -5499,7 +5511,11 @@ const total = document.getElementById("eltotal")?.value || "";
     }
 
     // Guardar el teléfono normalizado (solo dígitos, con +) para usarlo luego en wa.me
-    const telefono = telefonoValor;
+    const telefono = normalizarTelefonoRecuperacion(telefonoValor);
+    if (!telefono) {
+        mostrarToastCliente("⚠️ Ingresa un WhatsApp chileno válido (ej: 9 5499 8792)", true);
+        return;
+    }
 
     // Validar formato de fecha
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaInputValor)) {
@@ -7886,7 +7902,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     const clientes = [];
     clientesSnapshot.forEach(child => {
       const cliente = child.val() || {};
-      if (String(cliente.telefono || '').replace(/[^\d]/g, '').replace(/^00/, '') === numero) {
+      if (normalizarTelefonoRecuperacion(cliente.telefono) === numero) {
         clientes.push({ id: child.key, ...cliente });
       }
     });
@@ -7900,7 +7916,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       const perfilActual = jbSesionCliente && jbSesionCliente.clienteId
         ? clientesSnapshot.child(jbSesionCliente.clienteId).val()
         : null;
-      const telefonoActual = String(perfilActual && perfilActual.telefono || '').replace(/[^\d]/g, '').replace(/^00/, '');
+      const telefonoActual = normalizarTelefonoRecuperacion(perfilActual && perfilActual.telefono);
       if (jbSesionCliente && jbSesionCliente.clienteId &&
           !String(jbSesionCliente.clienteId).startsWith('local_') &&
           (!telefonoActual || telefonoActual === numero)) {
@@ -9497,7 +9513,9 @@ function jbPreguntarWhatsapp(){
   // un atajo de un toque (Confirmar / Cambiar) en vez de forzar a re-escribir
   // el número siempre. Si el cliente pulsa "Cambiar", ahí sí mostramos el
   // formulario editable de abajo.
-  const telGuardado = (jbSesionCliente && jbSesionCliente.telefono) ? jbSesionCliente.telefono : null;
+  const telGuardado = (jbSesionCliente && jbSesionCliente.telefono)
+    ? (normalizarTelefonoRecuperacion(jbSesionCliente.telefono) || null)
+    : null;
 
   if(telGuardado){
     const telDisplay = telGuardado.startsWith('56') ? '+' + telGuardado : telGuardado;
@@ -10901,6 +10919,25 @@ async function jbLiberarBloqueoReserva(r){
       } catch(e){}
     }
 
+    // 3b. Firebase por teléfono (cubre reservas hechas con otro nombre)
+    try {
+      const telNorm = normalizarTelefonoRecuperacion(jbSesionCliente && jbSesionCliente.telefono);
+      if (telNorm) {
+        const ahora = new Date();
+        const idsYa = new Set(reservasFirebase.map(r => r.id));
+        for (const variante of [telNorm, '+' + telNorm, telNorm.slice(2)]) {
+          const snap = await db.ref('reservas').orderByChild('telefono').equalTo(variante).once('value');
+          snap.forEach(ch => {
+            const r = ch.val();
+            if (r && !idsYa.has(ch.key) && new Date(r.fecha + 'T' + (r.hora || '23:59')) > ahora) {
+              idsYa.add(ch.key);
+              reservasFirebase.push({ ...r, id: ch.key });
+            }
+          });
+        }
+      }
+    } catch(e){}
+
     // Combinar sin duplicados
     const idsVistos = new Set(reservasLocal.map(r => r.reservaId || r.id).filter(Boolean));
     reservasFirebase.forEach(r => { if (!idsVistos.has(r.id)) reservasLocal.push({ ...r, reservaId: r.id }); });
@@ -11482,7 +11519,7 @@ async function jbLiberarBloqueoReserva(r){
 
     db.ref('clientes/' + clienteId + '/cortes').orderByChild('ts').limitToLast(4).once('value', snap => {
       const cortes = [];
-      snap.forEach(h => cortes.unshift({ id: h.key, ...h.val() }));
+      snap.forEach(h => { cortes.unshift({ id: h.key, ...h.val() }); });
 
       if (cortes.length === 0) {
         jbBot('Todavía no tenemos fotos de tus cortes guardadas 😊 ¡La próxima vez que vengas, James las registrará!');
