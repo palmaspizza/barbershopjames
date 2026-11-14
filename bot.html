@@ -62,6 +62,7 @@
       };
       if (!firebase.apps.length) firebase.initializeApp(window.__jbFirebaseConfig);
     </script>
+    <script src="jb-feature-access.js"></script>
 </head>
 <body>
     <div id="jbVipSplash" role="status" aria-label="Cargando James Barbershop" style="position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:#050505;color:#f6df9b;">
@@ -4840,6 +4841,38 @@ const firebaseConfig = window.__jbFirebaseConfig || {
             ? firebase.app()
             : firebase.initializeApp(firebaseConfig);
         const db = jbFirebaseApp.database();
+        window.jbPanelTvPremiumActivo = null;
+        window.jbPanelTvPremiumAccessReady = new Promise(resolve => {
+            let resuelto = false;
+            const informarAcceso = activo => {
+                if (window.jbPanelTvPremiumActivo === activo) {
+                    if (!resuelto) {
+                        resuelto = true;
+                        resolve(activo);
+                    }
+                    return;
+                }
+                window.jbPanelTvPremiumActivo = activo;
+                window.dispatchEvent(new CustomEvent('jb-panel-tv-access', { detail:{ active:activo } }));
+                if (!resuelto) {
+                    resuelto = true;
+                    resolve(activo);
+                }
+            };
+            if (window.JBFeatureAccess) {
+                window.JBFeatureAccess.watch('panel-tv-premium-2026', informarAcceso);
+            } else {
+                console.error('No se cargó jb-feature-access.js; PanelTV PREMIUM no tiene interruptor activo.');
+                informarAcceso(true);
+            }
+        });
+        window.addEventListener('jb-panel-tv-access', event => {
+            if (event.detail.active) return;
+            const card = document.querySelector('[aria-label="Productos recomendados"]');
+            const continuar = card && Array.from(card.querySelectorAll('button'))
+                .find(button => button.textContent.trim() === 'Continuar sin producto');
+            if (continuar) continuar.click();
+        });
 
         const JB_NTFY_TOPIC = 'james-barber-shop-2026';
         function jbEnviarNotificacionNtfy(reserva, accion) {
@@ -9710,6 +9743,8 @@ function jbMostrarFormularioWhatsapp(){
 }
   let jbProductoOfertaEnCurso = false;
   async function jbMostrarOfertaProducto(){
+    const accesoActivo = await window.jbPanelTvPremiumAccessReady;
+    if (!accesoActivo || !window.jbPanelTvPremiumActivo) return false;
     const body = document.getElementById('jbChatBody');
     let productosSnap;
     try {
@@ -9772,6 +9807,10 @@ function jbMostrarFormularioWhatsapp(){
       details.append(name, description);
       option.appendChild(details);
       option.addEventListener('click', () => {
+        if (!window.jbPanelTvPremiumActivo) {
+          decline.click();
+          return;
+        }
         card.remove();
         jbProductoOfertaEnCurso = false;
         jbReserva.producto = {
@@ -14398,6 +14437,17 @@ window.addEventListener('load', function() {
   const textInput = document.getElementById('jbReviewText');
   const status = document.getElementById('jbReviewStatus');
   const stars = Array.from(document.querySelectorAll('#jbReviewStars [data-rating]'));
+  const setReviewAccess = active => {
+    const section = document.getElementById('jbReviews');
+    if (section) section.style.display = active ? '' : 'none';
+    form.querySelectorAll('input, textarea, button').forEach(control => {
+      control.disabled = !active;
+    });
+  };
+  window.addEventListener('jb-panel-tv-access', event => setReviewAccess(event.detail.active));
+  if (window.jbPanelTvPremiumAccessReady) {
+    window.jbPanelTvPremiumAccessReady.then(setReviewAccess);
+  }
   let selectedRating = 0;
   let profile = null;
   try {
@@ -14467,6 +14517,10 @@ window.addEventListener('load', function() {
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
+    if (window.jbPanelTvPremiumActivo !== true) {
+      status.textContent = 'Las reseñas no están disponibles en este momento.';
+      return;
+    }
     const nombre = nameInput.value.trim();
     const texto = textInput.value.trim();
     const rating = selectedRating;

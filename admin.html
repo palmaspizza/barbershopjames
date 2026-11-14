@@ -1733,8 +1733,38 @@ window.addEventListener('load', function(){
                 <div class="jbCtl-d" id="jbCtlDetalle"></div>
                 <div class="jbCtl-d" id="jbCtlPagos"></div>
             </div>
-            <div class="jbCtl-acts" style="display:flex;gap:10px;flex-wrap:wrap"><button class="jbCtl-btn" id="jbCtlBtn" disabled>…</button><button class="jbCtl-btn" id="jbCtlPago" style="background:linear-gradient(135deg,#e4a64f,#ff5a2a)">Registrar pago (+30 días)</button></div>
+            <div class="jbCtl-acts" style="display:flex;gap:10px;flex-wrap:wrap"><button class="jbCtl-btn" id="jbCtlBtn" disabled>…</button><button class="jbCtl-btn" id="jbCtlPago" style="background:linear-gradient(135deg,#e4a64f,#ff5a2a)">Registrar pago mensual (+1 mes)</button></div>
         </div>
+        <section class="jbFees" id="jbFees" aria-labelledby="jbFeesTitle">
+            <div class="jbFees-head">
+                <h3 id="jbFeesTitle">Mensualidad y servicios extra</h3>
+                <p>La mensualidad es independiente. El cobro de PanelTV PREMIUM está vinculado a Tienda/Productos, Reseñas y QR; vencido, bloquea solo esos módulos, no el bot.</p>
+            </div>
+            <div class="jbFees-monthly">
+                <label for="jbCtlMonto">Mensualidad (CLP)
+                    <input id="jbCtlMonto" type="number" min="1" step="1000" value="20000">
+                </label>
+                <button type="button" class="jbFees-btn jbFees-btn--save" id="jbCtlGuardarMonto">Guardar mensualidad</button>
+            </div>
+            <div class="jbFees-extra">
+                <label for="jbCtlCargoNombre">Servicio o cobro único
+                    <input id="jbCtlCargoNombre" type="text" maxlength="100" placeholder="Ej.: Servicio extra">
+                </label>
+                <label for="jbCtlCargoMonto">Monto (CLP)
+                    <input id="jbCtlCargoMonto" type="number" min="1" step="1000" placeholder="Ej.: 30000">
+                </label>
+                <label for="jbCtlCargoVencimiento">Fecha límite (pago hasta las 23:59)
+                    <input id="jbCtlCargoVencimiento" type="date">
+                </label>
+                <label for="jbCtlCargoClave">Clave del interruptor (opcional)
+                    <input id="jbCtlCargoClave" type="text" maxlength="64" pattern="[a-z0-9]+(-[a-z0-9]+)*" title="Usa minúsculas, números y guiones. Debe coincidir con la clave del código." placeholder="Ej.: opiniones-premium">
+                </label>
+                <button type="button" class="jbFees-btn jbFees-btn--add" id="jbCtlAgregarCargo">Agregar pendiente</button>
+            </div>
+            <p class="jbFees-hint">Para que el vencimiento pause un servicio, su clave debe coincidir con la del código. Sin clave, solo se registra el cobro. Mantén <code>jb-feature-access.js</code> junto a las páginas al publicarlas.</p>
+            <div class="jbFees-list" id="jbCtlCargos" aria-live="polite">Cargando cobros únicos…</div>
+            <p class="jbFees-status" id="jbCtlCargosEstado" role="status" aria-live="polite"></p>
+        </section>
         <p style="color:#888;margin:10px 0 20px;">
             Clientes que reportaron que algo les costó al reservar. Contáctalos para saber más.
         </p>
@@ -4946,14 +4976,13 @@ function formatearFechaImg(fechaISO) {
   // ⚠️ CAMBIA ESTE NÚMERO por tu WhatsApp (código de país + número, sin + ni espacios). Chile: 569XXXXXXXX
   const WHATSAPP_PALMA = '56954998792';
   const NOMBRE_NEGOCIO = 'Barbería James';
-  const RECARGO_VENCIMIENTO = '2026-11-17';
-  const RECARGO_SERVICIO = 5000;
-  const MES_PRECIO_ESPECIAL = '2026-11';
-  const PRECIO_LICENCIA_ESPECIAL = 55000;
   const DEFAULTS = { activo: true, vencimiento: '2026-10-17', monto: 20000, periodoDias: 30 };
+  const PANEL_TV_CARGO_KEY = 'panel-tv-premium-2026';
+  const PANEL_TV_CARGO_NOMBRE = 'PanelTV PREMIUM + TIENDA/PRODUCTOS + RESEÑAS + QR';
   const WA_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12 0C5.4 0 .1 5.3.1 11.9c0 2.1.6 4.1 1.6 5.9L0 24l6.4-1.7a11.9 11.9 0 0 0 5.6 1.4c6.6 0 11.9-5.3 11.9-11.9 0-3.2-1.2-6.2-3.4-8.3zM12 21.7c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 0 1-1.5-5.2C2.1 6.4 6.5 2 12 2c2.6 0 5.1 1 6.9 2.9a9.7 9.7 0 0 1 2.9 6.9c0 5.4-4.4 9.9-9.8 9.9zm5.4-7.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1l-.9 1.1c-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.3-.6-.4z"/></svg>';
 
   let lic = null;
+  let cargosServicios = [];
 
   const hoyCL = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
   function diasEntre(desde, hasta){
@@ -4961,17 +4990,54 @@ function formatearFechaImg(fechaISO) {
     return Math.round((Date.UTC(y2,m2-1,d2) - Date.UTC(y1,m1-1,d1)) / 86400000);
   }
   const money = n => '$' + Number(n||0).toLocaleString('es-CL');
-  const esMesPrecioEspecial = () => hoyCL().slice(0, 7) === MES_PRECIO_ESPECIAL;
-  const montoLicenciaActual = l => hoyCL().slice(0, 7) === MES_PRECIO_ESPECIAL
-    ? PRECIO_LICENCIA_ESPECIAL
-    : Number(l.monto || 0);
-  const montoPeriodo = l => montoLicenciaActual(l) + (!esMesPrecioEspecial() && l.vencimiento === RECARGO_VENCIMIENTO ? RECARGO_SERVICIO : 0);
-  const detalleRecargo = l => !esMesPrecioEspecial() && l.vencimiento === RECARGO_VENCIMIENTO
-    ? `Noviembre: ${money(montoLicenciaActual(l))} licencia + ${money(RECARGO_SERVICIO)} servicio WhatsApp Business ya realizado.`
-    : '';
-  const detalleRecargoHtml = l => !esMesPrecioEspecial() && l.vencimiento === RECARGO_VENCIMIENTO
-    ? `<small class="jbLic-charge"><span class="jbLic-charge-base">Licencia ${money(montoLicenciaActual(l))}</span> + <span class="jbLic-charge-extra">Servicio realizado ${money(RECARGO_SERVICIO)}</span><br>WhatsApp Business</small>`
-    : '';
+  const montoPeriodo = l => Number(l.monto || DEFAULTS.monto);
+  const estadoCargo = cargo => cargo.estado === 'pagado'
+    ? 'Pagado'
+    : cargo.estado === 'eliminado' ? 'Eliminado'
+    : cargo.fechaLimite && cargo.fechaLimite < hoyCL() ? 'Vencido' : 'Pendiente';
+  const fechaCorta = s => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s || '')) return 'Sin fecha límite';
+    const [y,m,d] = s.split('-').map(Number);
+    return new Date(y,m-1,d).toLocaleDateString('es-CL', { day:'numeric', month:'short', year:'numeric' });
+  };
+  const cobrosPendientes = () => cargosServicios.filter(cargo =>
+    cargo.estado !== 'eliminado' && cargo.estado !== 'pagado'
+  );
+  const escapeHtml = value => String(value || '').replace(/[&<>"']/g, char => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[char]));
+  function waLinkCargo(cargo){
+    const msg = `Hola Palma, quiero pagar el servicio "${cargo.descripcion}" por ${money(cargo.monto)}. Vence el ${cargo.fechaLimite || 'sin fecha límite'}. ¿Cómo realizo el pago?`;
+    return `https://wa.me/${WHATSAPP_PALMA}?text=${encodeURIComponent(msg)}`;
+  }
+  function htmlCargoPendiente(cargo){
+    const estado = estadoCargo(cargo);
+    const vencimiento = cargo.fechaLimite && /^\d{4}-\d{2}-\d{2}$/.test(cargo.fechaLimite)
+      ? diasEntre(hoyCL(), cargo.fechaLimite)
+      : null;
+    const urgencia = estado === 'Vencido' ? 'VENCIDO'
+      : vencimiento === 0 ? 'VENCE HOY'
+      : vencimiento === 1 ? 'VENCE MAÑANA'
+      : vencimiento !== null && vencimiento <= 5 ? `VENCE EN ${vencimiento} DÍAS`
+      : 'PAGO PENDIENTE';
+    return `<article class="jbLic-charge ${estado === 'Vencido' ? 'overdue' : ''}">
+      <div class="jbLic-charge-top"><span>💰 ${urgencia}</span><strong>${money(cargo.monto)}</strong></div>
+      <div class="jbLic-charge-name">${escapeHtml(cargo.descripcion)}</div>
+      <div class="jbLic-charge-due">Fecha límite: <b>${fechaCorta(cargo.fechaLimite)}</b></div>
+      <a class="jbLic-charge-btn" href="${waLinkCargo(cargo)}" target="_blank" rel="noopener">${WA_ICON}Pagar este servicio</a>
+    </article>`;
+  }
+  function htmlCargosServicios(){
+    const pendientes = cobrosPendientes();
+    const tarjetas = pendientes.map(htmlCargoPendiente).join('');
+    return `<section class="jbLic-services ${pendientes.length ? 'has-pending' : ''}" aria-label="Pagos únicos">
+      <div class="jbLic-services-head"><strong>💰 SERVICIOS EXTRA · PAGO ÚNICO</strong><span>${pendientes.length ? `${pendientes.length} PENDIENTE${pendientes.length === 1 ? '' : 'S'}` : 'AL DÍA'}</span></div>
+      ${pendientes.length
+        ? `<p class="jbLic-services-help">Estos servicios se pagan aparte de la mensualidad:</p><div class="jbLic-services-grid">${tarjetas}</div>`
+        : '<p class="jbLic-services-empty">No tienes pagos únicos pendientes.</p>'}
+      <small>La mensualidad de ${money(lic.monto)} mantiene activo el bot. Un interruptor solo pausa el servicio vinculado.</small>
+    </section>`;
+  }
   function fechaLarga(s){
     const [y,m,d] = s.split('-').map(Number);
     const t = new Date(y, m-1, d).toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
@@ -4979,8 +5045,8 @@ function formatearFechaImg(fechaISO) {
   }
   function waLink(l, tipo){
     const msg = tipo === 'pagar'
-      ? `Hola Palma, quiero pagar el total de ${money(montoPeriodo(l))} del bot de ${NOMBRE_NEGOCIO}. ${detalleRecargo(l)} ¿Cómo realizo el pago?`
-      : `Hola Palma, quiero reactivar el bot de ${NOMBRE_NEGOCIO} por ${money(montoPeriodo(l))}. ${detalleRecargo(l)} ¿Cómo realizo el pago?`;
+      ? `Hola Palma, quiero consultar el pago de mi mensualidad y los cobros únicos del bot de ${NOMBRE_NEGOCIO}. ¿Cómo pago cada uno?`
+      : `Hola Palma, quiero reactivar el bot de ${NOMBRE_NEGOCIO} por ${money(montoPeriodo(l))}. ¿Cómo realizo el pago?`;
     return `https://wa.me/${WHATSAPP_PALMA}?text=${encodeURIComponent(msg)}`;
   }
   function calcular(l){
@@ -5005,7 +5071,7 @@ function formatearFechaImg(fechaISO) {
       const hace = Math.abs(c.dias);
       alerta = `<div class="jbLic-alert">${c.estado === 'suspendido'
         ? 'El asistente fue desactivado. Solicita la reactivación para volver a recibir reservas automáticas.'
-        : `La cuota venció ${hace === 0 ? 'hoy' : hace === 1 ? 'ayer' : 'hace ' + hace + ' días'}. El asistente está desactivado hasta registrar el pago de <b>${money(montoPeriodo(l))}</b>.`}</div>`;
+        : `La mensualidad venció ${hace === 0 ? 'hoy' : hace === 1 ? 'ayer' : 'hace ' + hace + ' días'}. El asistente está desactivado hasta registrar el pago de <b>${money(montoPeriodo(l))}</b>.`}</div>`;
       boton = `<a class="jbLic-btn" href="${waLink(l)}" target="_blank" rel="noopener">${WA_ICON}Pedir reactivación</a>`;
     }
     return `<div class="jbLic jbLic--${c.estado}" role="status">
@@ -5014,9 +5080,10 @@ function formatearFechaImg(fechaISO) {
         <span class="jbLic-pill"><i class="jbLic-dot"></i>${pill}</span>
       </div>
       <div class="jbLic-body">
-        <div class="jbLic-amount"><small>${detalleRecargo(l) ? 'Total noviembre' : 'Cuota mensual'}</small><strong>${money(montoPeriodo(l))}</strong>${detalleRecargoHtml(l)}</div>
+        <div class="jbLic-amount"><small>Cuota mensual</small><strong>${money(montoPeriodo(l))}</strong></div>
         <div class="jbLic-count"><small>${off ? 'Estado' : 'Tiempo'}</small><strong>${countNum}</strong><small style="margin:2px 0 0">${countLbl}</small></div>
       </div>
+      ${htmlCargosServicios()}
       <div class="jbLic-bar"><span style="width:${pct}%"></span></div>
       <div class="jbLic-meta">${off ? 'Venció el' : 'Próximo pago:'} <b>${fechaLarga(l.vencimiento)}</b></div>
       ${alerta}${boton}
@@ -5060,18 +5127,31 @@ function formatearFechaImg(fechaISO) {
   function mostrarAviso(l, c){
     if (document.getElementById('jbMod')) return;
     const off = c.estado === 'vencido' || c.estado === 'suspendido';
-    const titulo = off ? 'El bot está desactivado' : c.dias === 0 ? 'Tu cuota vence hoy' : c.dias === 1 ? 'Tu cuota vence mañana' : `Tu cuota vence en ${c.dias} días`;
-    const texto = off
-      ? 'Tus clientes ya están reservando con el calendario de siempre. Pide la reactivación para volver al asistente automático.'
-      : `Para que el asistente siga atendiendo a tus clientes, paga el total de <b>${money(montoPeriodo(l))}</b> antes del <b>${fechaLarga(l.vencimiento)}</b>. ${detalleRecargo(l)}`;
+    const pendientes = cobrosPendientes();
+    const mensualidadUrgente = off || c.dias <= 5;
+    const hayVencido = pendientes.some(cargo => estadoCargo(cargo) === 'Vencido');
+    const cobroUnicoUrgente = pendientes.some(cargo =>
+      cargo.fechaLimite && diasEntre(hoyCL(), cargo.fechaLimite) <= 5
+    );
+    const titulo = off ? 'El bot está desactivado'
+      : hayVencido ? 'Tienes un servicio extra vencido'
+      : cobroUnicoUrgente ? 'Tienes servicios extra pendientes'
+      : mensualidadUrgente ? c.dias === 0 ? 'Tu mensualidad vence hoy' : c.dias === 1 ? 'Tu mensualidad vence mañana' : `Tu mensualidad vence en ${c.dias} días`
+      : 'Tienes un cobro próximo a vencer';
+    const textoMensualidad = off
+      ? 'La mensualidad está vencida. Paga esta cuota para reactivar el bot.'
+      : `Mensualidad: <b>${money(montoPeriodo(l))}</b>, vence el <b>${fechaLarga(l.vencimiento)}</b>.`;
+    const textoCargos = pendientes.length
+      ? `<div class="jbMod-extras"><strong>Servicios extra que debes pagar</strong><div class="jbLic-services-grid">${pendientes.map(htmlCargoPendiente).join('')}</div></div>`
+      : '<div class="jbMod-extras"><strong>Servicios extra</strong><span>No tienes pagos únicos pendientes.</span></div>';
     const m = document.createElement('div');
     m.className = 'jbMod'; m.id = 'jbMod';
     m.setAttribute('role','dialog'); m.setAttribute('aria-modal','true'); m.setAttribute('aria-labelledby','jbModT');
     m.innerHTML = `<div class="jbMod-box ${off ? 'off' : ''}">
       <div class="jbMod-ico">${off ? '⛔' : '🔔'}</div>
-      <h3 id="jbModT">${titulo}</h3><p>${texto}</p>
-      <div class="jbMod-dato"><div><small>${detalleRecargo(l) ? 'Total período' : 'Cuota'}</small><b>${money(montoPeriodo(l))}</b></div><div><small>${off ? 'Venció' : 'Vence'}</small><b>${l.vencimiento.split('-').reverse().join('-')}</b></div></div>
-      <a class="jbLic-btn" style="margin-top:0" href="${waLink(l, off ? 'reactivar' : 'pagar')}" target="_blank" rel="noopener">${WA_ICON}${off ? 'Pedir reactivación' : 'Pagar con Palma Codes'}</a>
+      <h3 id="jbModT">${titulo}</h3><div class="jbMod-message">${textoMensualidad}${textoCargos}<small>Las fechas límite cuentan hasta las 23:59; vencen a las 00:00 del día siguiente. Un cobro único vencido no apaga el bot mensual.</small></div>
+      <div class="jbMod-dato"><div><small>Mensualidad</small><b>${money(montoPeriodo(l))}</b></div><div><small>${off ? 'Venció' : 'Vence'}</small><b>${l.vencimiento.split('-').reverse().join('-')}</b></div></div>
+      <a class="jbLic-btn" style="margin-top:0" href="${waLink(l, off ? 'reactivar' : 'pagar')}" target="_blank" rel="noopener">${WA_ICON}${off ? 'Pedir reactivación' : 'Consultar pagos'}</a>
       <button type="button" class="jbMod-later">Entendido</button></div>`;
     document.body.appendChild(m);
     const cerrar = () => { m.remove(); document.removeEventListener('keydown', esc); };
@@ -5081,6 +5161,8 @@ function formatearFechaImg(fechaISO) {
     m.querySelector('.jbLic-btn').focus();
   }
   let avisoMostrado = false;
+  let cargosInicializados = false;
+  let cargoPanelTvInicializado = false;
   function htmlChip(l, c){
     const off = c.estado === 'vencido' || c.estado === 'suspendido';
     const txt = off ? (c.estado === 'vencido' ? 'Cuota vencida · asistente desactivado' : 'Asistente desactivado') : `Asistente activo · ${textoDias(c.dias)}`;
@@ -5100,7 +5182,10 @@ function formatearFechaImg(fechaISO) {
     const panel = document.getElementById('jbLicPanel');
     if (panel){ panel.style.order = [45, 25, 5, 0][nivel]; panel.dataset.nivel = nivel; }
     // Aviso al entrar (cada vez que carga el panel del barbero) desde 5 días antes
-    if (nivel >= 2 && !avisoMostrado){
+    const hayCobroUnicoUrgente = cobrosPendientes().some(cargo =>
+      cargo.fechaLimite && diasEntre(hoyCL(), cargo.fechaLimite) <= 5
+    );
+    if ((nivel >= 2 || hayCobroUnicoUrgente) && cargosInicializados && cargoPanelTvInicializado && !avisoMostrado){
       const espera = setInterval(() => {
         const ap = document.getElementById('admin-panel');
         if (ap && ap.style.display === 'block'){ clearInterval(espera); mostrarAviso(lic, calcular(lic)); }
@@ -5123,6 +5208,61 @@ function formatearFechaImg(fechaISO) {
     const ref = db.ref('config/asistente');
     // Primera vez: crea el registro con la cuota que vence el 17
     ref.once('value').then(s => { if (!s.exists()) ref.set(DEFAULTS); }).catch(e => console.error('Licencia:', e));
+    db.ref('config/asistente_cargos').on('value', snap => {
+      cargosServicios = Object.entries(snap.val() || {}).map(([id, cargo]) => ({ id, ...cargo })).reverse();
+      cargosInicializados = true;
+      render();
+    }, e => console.error('Cobros únicos:', e));
+    db.ref('config/asistente_cargos').transaction(cargos => {
+        const existentes = cargos || {};
+        const cargoGuardado = existentes[PANEL_TV_CARGO_KEY];
+        if (cargoGuardado) {
+          if (cargoGuardado.estado === 'eliminado') return existentes;
+          const actualizado = {
+            ...cargoGuardado,
+            fechaLimite:cargoGuardado.fechaLimite || '2026-11-17',
+            featureKey:PANEL_TV_CARGO_KEY
+          };
+          return cargoGuardado.fechaLimite === actualizado.fechaLimite && cargoGuardado.featureKey === actualizado.featureKey
+            ? existentes
+            : { ...existentes, [PANEL_TV_CARGO_KEY]: actualizado };
+        }
+        const cargoAnteriorEncontrado = Object.entries(existentes).find(([id, cargo]) =>
+          cargo && cargo.estado !== 'eliminado' && Number(cargo.monto) === 30000 &&
+          (id === 'cuota-unica-noviembre-2026' ||
+            (cargo.fechaLimite === '2026-11-17' && /paneltv premium|cuota única de noviembre/i.test(cargo.descripcion || '')))
+        );
+        if (cargoAnteriorEncontrado) {
+          const [idAnterior, cargoAnterior] = cargoAnteriorEncontrado;
+          const siguientes = { ...existentes };
+          delete siguientes[idAnterior];
+          siguientes[PANEL_TV_CARGO_KEY] = {
+            ...cargoAnterior,
+            descripcion:PANEL_TV_CARGO_NOMBRE,
+            fechaLimite:cargoAnterior.fechaLimite || '2026-11-17',
+            featureKey:PANEL_TV_CARGO_KEY
+          };
+          return siguientes;
+        }
+        return {
+          ...existentes,
+          [PANEL_TV_CARGO_KEY]: {
+            descripcion:PANEL_TV_CARGO_NOMBRE,
+            monto:30000,
+            fecha:hoyCL(),
+            fechaLimite:'2026-11-17',
+            estado:'pendiente',
+            featureKey:PANEL_TV_CARGO_KEY
+          }
+        };
+    }).then(() => {
+      cargoPanelTvInicializado = true;
+      render();
+    }).catch(e => {
+      cargoPanelTvInicializado = true;
+      render();
+      console.error('Cuota PanelTV PREMIUM:', e);
+    });
     ref.once('value').then(snap => {
       const v = snap.val() || DEFAULTS;
       lic = {
@@ -5152,6 +5292,54 @@ function formatearFechaImg(fechaISO) {
 .jbCtl-btn:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .jbCtl.on .jbCtl-btn{background:linear-gradient(135deg,#e4a64f,#ff3b3f)}
 .jbCtl.off .jbCtl-btn{background:linear-gradient(135deg,#33d17a,#1fa85d)}
+.jbFees{margin:8px 0 20px;padding:20px;border:1px solid rgba(51,209,122,.35);border-radius:12px;background:linear-gradient(135deg,#171b1b,#17181c);font-family:'Poppins',sans-serif;color:#f5f5f5}
+.jbFees-head h3{margin:0 0 5px;color:#75e3a2;font-size:1rem}
+.jbFees-head p,.jbFees-status{margin:0 0 14px;color:#c5c6cc;font-size:.82rem;line-height:1.5}
+.jbFees-monthly,.jbFees-extra{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-top:12px}
+.jbFees label{display:flex;flex-direction:column;gap:5px;color:#f1c887;font-size:.8rem;font-weight:700}
+.jbFees input{min-height:42px;width:min(100%,260px);padding:9px 11px;border:1px solid #45474e;border-radius:8px;background:#101114;color:#fff;font:inherit}
+.jbFees input:focus{outline:2px solid #75e3a2;outline-offset:1px}
+.jbFees-btn{min-height:42px;padding:9px 14px;border:0;border-radius:8px;color:#101114;font-weight:800;cursor:pointer}
+.jbFees-btn:disabled{opacity:.55;cursor:wait}
+.jbFees-btn--save{background:#75e3a2}
+.jbFees-btn--add{background:#f1c887}
+.jbFees-list{display:grid;gap:8px;margin-top:14px}
+.jbFees-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #363940;border-radius:8px;background:#111317;font-size:.82rem}
+.jbFees-row span{overflow-wrap:anywhere}
+.jbFees-row.paid{border-color:rgba(117,227,162,.45)}
+.jbFees-row.overdue{border-color:rgba(255,133,133,.5);color:#ffb5b5}
+.jbFees-row button{padding:7px 10px;border:0;border-radius:7px;background:#75e3a2;color:#101114;font-weight:700;cursor:pointer}
+.jbFees-row button.jbFees-delete{background:#ff8585;color:#2a1010}
+.jbFees-status{margin:10px 0 0;min-height:1.2em}
+.jbFees-hint{margin:8px 0 0;color:#aeb0b8;font-size:.74rem;line-height:1.45}
+.jbLic-services{display:grid;gap:9px;margin-top:13px;padding:13px;border:1px solid rgba(228,166,79,.3);border-radius:11px;background:linear-gradient(135deg,rgba(228,166,79,.10),rgba(255,90,42,.06))}
+.jbLic-services.has-pending{border-color:#f1a94d;box-shadow:0 0 18px rgba(241,169,77,.14)}
+.jbLic-services-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.jbLic-services-head>strong{color:#ffd27c;font-size:.86rem;letter-spacing:.035em}
+.jbLic-services-head>span{padding:4px 9px;border-radius:999px;background:#f1a94d;color:#241505;font-size:.66rem;font-weight:900}
+.jbLic-services.has-pending .jbLic-services-head>span{background:#ffb84d}
+.jbLic-services-help,.jbLic-services-empty{margin:0;color:#e3e3e6;font-size:.78rem}
+.jbLic-services>small{color:#aeb0b8;font-size:.68rem;line-height:1.4}
+.jbLic-services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px}
+.jbLic-charge{display:grid;gap:7px;padding:11px;border:1px solid rgba(241,169,77,.48);border-radius:10px;background:linear-gradient(145deg,#292117,#17181c);color:#fff}
+.jbLic-charge.overdue{border-color:#ff6969;background:linear-gradient(145deg,rgba(145,34,37,.42),#17181c)}
+.jbLic-charge-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.jbLic-charge-top>span{color:#ffd27c;font-size:.68rem;font-weight:900;letter-spacing:.04em}
+.jbLic-charge.overdue .jbLic-charge-top>span{color:#ff8585}
+.jbLic-charge-top>strong{color:#fff;font-size:1.5rem;line-height:1;font-variant-numeric:tabular-nums}
+.jbLic-charge-name{font-size:.84rem;font-weight:800;line-height:1.35;overflow-wrap:anywhere}
+.jbLic-charge-due{color:#c5c6cc;font-size:.72rem}
+.jbLic-charge-due b{color:#fff}
+.jbLic-charge-btn{display:flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 11px;border-radius:8px;background:linear-gradient(135deg,#35d17b,#168f4e);color:#082011;text-decoration:none;text-align:center;font-size:.75rem;font-weight:900}
+.jbLic-charge-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.jbLic-charge-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.jbLic-charge-btn svg{width:17px;height:17px;flex:none}
+.jbMod-message{font-size:.86rem;line-height:1.5;color:#cfd0d6;margin-bottom:16px}
+.jbMod-message>small{display:block;margin-top:8px;color:#aeb0b8;font-size:.72rem}
+.jbMod-extras{display:grid;gap:6px;margin-top:10px;padding:10px;border:1px solid rgba(228,166,79,.28);border-radius:8px;background:rgba(228,166,79,.07);text-align:left}
+.jbMod-extras>strong{color:#f1c887}
+.jbMod-extras>.jbLic-services-grid{grid-template-columns:minmax(0,1fr)}
+@media(max-width:600px){.jbFees{padding:15px}.jbFees-row{align-items:flex-start;flex-wrap:wrap}.jbLic-charge-top>strong{font-size:1.35rem}}
 </style>
 <script>
 /* Control del bot (solo panel secreto) → escribe config/asistente en Firebase */
@@ -5159,14 +5347,59 @@ window.addEventListener('load', function(){
   const box = document.getElementById('jbCtl'); if(!box) return;
   const btn = document.getElementById('jbCtlBtn'), est = document.getElementById('jbCtlEstado'), det = document.getElementById('jbCtlDetalle');
   const ref = db.ref('config/asistente');
-  const RECARGO_VENCIMIENTO = '2026-11-17';
-  const RECARGO_SERVICIO = 5000;
+  const cargosRef = db.ref('config/asistente_cargos');
+  const pagoEstado = document.getElementById('jbCtlCargosEstado');
   const hoyCL = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
   const dias = (a,b) => { const [y1,m1,d1]=a.split('-').map(Number),[y2,m2,d2]=b.split('-').map(Number); return Math.round((Date.UTC(y2,m2-1,d2)-Date.UTC(y1,m1-1,d1))/864e5); };
   const masDias = (s,n) => { const [y,m,d]=s.split('-').map(Number); return new Date(Date.UTC(y,m-1,d+n)).toISOString().slice(0,10); };
   // Suma n meses calendario respetando el día; si el mes destino no tiene ese día, usa el último (ej: 31 ene → 28 feb)
   const masMes = (s,n) => { const [y,m,d]=s.split('-').map(Number); const ult = new Date(Date.UTC(y,m-1+n+1,0)).getUTCDate(); return new Date(Date.UTC(y,m-1+n,Math.min(d,ult))).toISOString().slice(0,10); };
   let data = null;
+  let cargos = [];
+  const esc = value => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  const fechaVisible = value => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return 'Sin fecha';
+    const [y,m,d] = value.split('-').map(Number);
+    return new Date(y,m-1,d).toLocaleDateString('es-CL');
+  };
+  const estadoCargo = cargo => cargo.estado === 'pagado' ? 'Pagado'
+    : cargo.estado === 'eliminado' ? 'Eliminado'
+    : cargo.fechaLimite && cargo.fechaLimite < hoyCL() ? 'Vencido' : 'Pendiente';
+
+  function renderCargos(){
+    const lista = document.getElementById('jbCtlCargos');
+    if (!lista) return;
+    const visibles = cargos.filter(cargo => cargo.estado !== 'eliminado');
+    if (!visibles.length){ lista.textContent = 'No hay cobros únicos registrados.'; return; }
+    lista.innerHTML = visibles.map(cargo => {
+      const estado = estadoCargo(cargo);
+      const clase = estado === 'Pagado' ? 'paid' : estado === 'Vencido' ? 'overdue' : '';
+      return `<div class="jbFees-row ${clase}"><span><strong>${esc(cargo.descripcion)}</strong>${cargo.featureKey ? `<br>Interruptor: ${esc(cargo.featureKey)}` : ''}<br>${Number(cargo.monto).toLocaleString('es-CL')} · vence ${fechaVisible(cargo.fechaLimite)} · ${estado}</span><div>${estado === 'Pagado' ? '' : `<button type="button" data-paid="${esc(cargo.id)}">Marcar pagado</button>`}<button type="button" class="jbFees-delete" data-delete="${esc(cargo.id)}">Eliminar</button></div></div>`;
+    }).join('');
+  }
+  cargosRef.on('value', snap => {
+    cargos = Object.entries(snap.val() || {}).map(([id, cargo]) => ({id, ...cargo})).reverse();
+    renderCargos();
+  }, e => {
+    if (pagoEstado) pagoEstado.textContent = 'No se pudieron cargar los cobros únicos.';
+    console.error('Cobros únicos:', e);
+  });
+  document.getElementById('jbCtlCargos').addEventListener('click', async event => {
+    const pagarId = event.target.dataset.paid, eliminarId = event.target.dataset.delete;
+    if (!pagarId && !eliminarId) return;
+    try {
+      if (pagarId) {
+        await cargosRef.child(pagarId).update({estado:'pagado', fechaPago:hoyCL()});
+        if (pagoEstado) pagoEstado.textContent = 'Pago único registrado.';
+      } else if (confirm('¿Eliminar este cobro único?')) {
+        await cargosRef.child(eliminarId).update({estado:'eliminado', fechaEliminacion:hoyCL()});
+        if (pagoEstado) pagoEstado.textContent = 'Cobro único eliminado.';
+      }
+    } catch (e) {
+      if (pagoEstado) pagoEstado.textContent = 'No se pudo actualizar el cobro único.';
+      console.error('Actualizar cobro único:', e);
+    }
+  });
 
   function render(){
     if(!data) return;
@@ -5175,14 +5408,16 @@ window.addEventListener('load', function(){
     const encendido = data.activo !== false && d >= 0;
     box.className = 'jbCtl ' + (encendido ? 'on' : 'off');
     est.innerHTML = '<i></i>' + (encendido ? 'Bot encendido · los clientes ven el bot' : 'Bot apagado · los clientes ven el calendario');
-    det.textContent = d >= 0 ? `Cuota vigente hasta el ${venc} (${d} ${d===1?'día':'días'})` : `Cuota vencida el ${venc}`;
+    det.textContent = d >= 0 ? `Mensualidad de $${Number(data.monto || 20000).toLocaleString('es-CL')} vigente hasta el ${venc} (${d} ${d===1?'día':'días'})` : `Mensualidad vencida el ${venc}`;
     btn.textContent = encendido ? 'Apagar bot' : 'Encender bot';
     btn.disabled = false;
     btn.dataset.accion = encendido ? 'apagar' : 'encender';
     btn.dataset.vencida = d < 0 ? '1' : '';
   }
   ref.once('value').then(s => {
-    data = s.val() || { activo:true, vencimiento:'2026-10-17' };
+    data = s.val() || { activo:true, vencimiento:'2026-10-17', monto:20000 };
+    const inputMonto = document.getElementById('jbCtlMonto');
+    if (inputMonto) inputMonto.value = Number(data.monto) || 20000;
     render();
   }).catch(e => console.error('Control del bot:', e));
 
@@ -5191,17 +5426,76 @@ window.addEventListener('load', function(){
     const v = Object.values(s.val() || {}).reverse();
     listaPagos.textContent = v.length ? 'Últimos pagos: ' + v.map(x => `${x.fecha} ($${Number(x.monto).toLocaleString('es-CL')})`).join(' · ') : 'Sin pagos registrados';
   }).catch(e => console.error('Historial de pagos:', e));
+  document.getElementById('jbCtlGuardarMonto').addEventListener('click', async function(){
+    const input = document.getElementById('jbCtlMonto');
+    const monto = Number(input.value);
+    if (!Number.isFinite(monto) || monto < 1) {
+      pagoEstado.textContent = 'Ingresa una mensualidad válida.';
+      return;
+    }
+    try {
+      await ref.update({monto});
+      data.monto = monto;
+      render();
+      pagoEstado.textContent = 'Mensualidad actualizada. Este monto se usará en el próximo pago.';
+    } catch (e) {
+      pagoEstado.textContent = 'No se pudo guardar la mensualidad.';
+      console.error('Guardar mensualidad:', e);
+    }
+  });
+  document.getElementById('jbCtlAgregarCargo').addEventListener('click', async function(){
+    const nombre = document.getElementById('jbCtlCargoNombre').value.trim();
+    const monto = Number(document.getElementById('jbCtlCargoMonto').value);
+    const fechaLimite = document.getElementById('jbCtlCargoVencimiento').value;
+    const clave = document.getElementById('jbCtlCargoClave').value.trim();
+    if (!nombre || !Number.isFinite(monto) || monto < 1 || !/^\d{4}-\d{2}-\d{2}$/.test(fechaLimite) || fechaLimite < hoyCL()) {
+      pagoEstado.textContent = 'Completa el nombre, un monto válido y una fecha de hoy o futura.';
+      return;
+    }
+    if (clave && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(clave)) {
+      pagoEstado.textContent = 'La clave debe usar solo minúsculas, números y guiones.';
+      return;
+    }
+    try {
+      const cargo = {descripcion:nombre, monto, fecha:hoyCL(), fechaLimite, estado:'pendiente'};
+      if (clave) cargo.featureKey = clave;
+      if (!clave) {
+        await cargosRef.push(cargo);
+      } else {
+        const cargoRef = cargosRef.child(clave);
+        const anteriorSnap = await cargoRef.once('value');
+        if (anteriorSnap.exists()) {
+          const anterior = anteriorSnap.val();
+          if (anterior.estado !== 'pagado' && anterior.estado !== 'eliminado') {
+            pagoEstado.textContent = 'Ya existe un cobro pendiente con esa clave. Usa otra clave o resuelve el cobro actual.';
+            return;
+          }
+          const historialRef = db.ref('config/asistente_cargos_historial').push();
+          const cambios = {};
+          cambios[`config/asistente_cargos_historial/${historialRef.key}`] = {...anterior, featureKey:clave, archivadoEn:hoyCL()};
+          cambios[`config/asistente_cargos/${clave}`] = cargo;
+          await db.ref().update(cambios);
+        } else {
+          await cargoRef.set(cargo);
+        }
+      }
+      document.getElementById('jbCtlCargoNombre').value = '';
+      document.getElementById('jbCtlCargoMonto').value = '';
+      document.getElementById('jbCtlCargoVencimiento').value = '';
+      document.getElementById('jbCtlCargoClave').value = '';
+      pagoEstado.textContent = clave ? 'Cobro agregado y conectado a su interruptor.' : 'Cobro único agregado.';
+    } catch (e) {
+      pagoEstado.textContent = 'No se pudo agregar el cobro único.';
+      console.error('Agregar cobro único:', e);
+    }
+  });
   pagoBtn.addEventListener('click', async function(){
     try{
       const venc = (data && data.vencimiento) || hoyCL();
-      const precioEspecial = hoyCL().slice(0, 7) === '2026-11';
-      const monto = precioEspecial ? 55000 : Number((data && data.monto) || 20000);
-      const recargo = !precioEspecial && venc === RECARGO_VENCIMIENTO ? RECARGO_SERVICIO : 0;
-      const montoPago = Number(monto) + recargo;
+      const montoPago = Number((data && data.monto) || 20000);
       const base = dias(hoyCL(), venc) >= 0 ? venc : hoyCL();   // si paga antes, no pierde días
       const nuevo = masMes(base, 1);   // mismo día del mes siguiente (17 oct → 17 nov)
-      const detalleRecargo = recargo ? `\nIncluye $5.000 por el servicio acordado ya realizado de WhatsApp Business.` : '';
-      if(!confirm(`Registrar pago de $${montoPago.toLocaleString('es-CL')}.${detalleRecargo}\nNuevo vencimiento: ${nuevo}\n¿Confirmar?`)) return;
+      if(!confirm(`Registrar solo la mensualidad de $${montoPago.toLocaleString('es-CL')}.\nNuevo vencimiento: ${nuevo}\nLos cobros únicos se administran por separado.\n¿Confirmar?`)) return;
       pagoBtn.disabled = true;
       await ref.update({ activo:true, vencimiento:nuevo, ultimoPago:hoyCL() });
       await db.ref('config/asistente_pagos').push({ fecha:hoyCL(), monto:montoPago, vencimiento:nuevo });
@@ -5325,6 +5619,16 @@ body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
 #jbAdminLicenseSlot #jbLicPanel .jbLic-alert { display:none; }
 #jbAdminLicenseSlot #jbLicPanel .jbLic-meta { font-size:.7rem; }
 #jbAdminLicenseSlot #jbLicPanel .jbLic-btn { width:max-content; margin:0; padding:6px 10px; font-size:.75rem; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-services { margin:2px 0; padding:8px; gap:6px; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-services-head>strong { font-size:.7rem; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-services-head>span { padding:3px 7px; font-size:.6rem; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-services-help { font-size:.68rem; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-services>small { display:none; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-charge { padding:8px; gap:5px; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-charge-top>strong { font-size:1.15rem; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-charge-name { font-size:.72rem; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-charge-due { font-size:.65rem; }
+#jbAdminLicenseSlot #jbLicPanel .jbLic-charge-btn { min-height:34px; padding:6px 9px; font-size:.68rem; }
 #jbAdminStickyTop .jbLicSlot[data-lic="preview"] { display:none; }
 .jb-admin-anchor { scroll-margin-top:calc(var(--jb-admin-sticky-height, 140px) + 12px); }
 #jbProductsSection {

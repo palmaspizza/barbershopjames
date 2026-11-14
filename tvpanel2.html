@@ -32,6 +32,7 @@ window.DEMO_BRAND = window.DEMO_BRAND || Object.freeze({
 </script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="jb-feature-access.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -2163,10 +2164,32 @@ function resumeTvBackgroundVideo() {
 let tvReviewTimer = null;
 let tvProductsTimer = null;
 let tvProductIndex = 0;
+let tvPanelPremiumActivo = true;
+let tvProductsSnapshot = null;
+let tvReviewsSnapshot = null;
+
+function aplicarAccesoPanelTvPremium(activo) {
+  tvPanelPremiumActivo = activo;
+  const productos = document.querySelector('.tv-products-panel');
+  const resenas = document.querySelector('.review-tv-panel');
+  if (productos) productos.style.display = activo ? '' : 'none';
+  if (resenas) resenas.style.display = activo ? '' : 'none';
+  if (activo) {
+    if (tvProductsSnapshot) renderTvProducts(tvProductsSnapshot);
+    if (tvReviewsSnapshot) renderTvReviews(tvReviewsSnapshot);
+  } else {
+    if (tvProductsTimer !== null) window.clearInterval(tvProductsTimer);
+    if (tvReviewTimer !== null) window.clearInterval(tvReviewTimer);
+    tvProductsTimer = null;
+    tvReviewTimer = null;
+  }
+}
 
 function renderTvProducts(snapshot) {
+  tvProductsSnapshot = snapshot;
   const track = document.getElementById('tv-products-track');
   if (!track) return;
+  if (!tvPanelPremiumActivo) return;
   const products = [];
   snapshot.forEach(child => {
     const product = child.val() || {};
@@ -2225,6 +2248,8 @@ function renderTvProducts(snapshot) {
 }
 
 function renderTvReviews(snapshot) {
+  tvReviewsSnapshot = snapshot;
+  if (!tvPanelPremiumActivo) return;
   const reviews = Object.values(snapshot.val() || {})
     .filter(review => review && Number(review.estrellas) >= 1 && Number(review.estrellas) <= 5 && review.texto)
     .sort((a, b) => Number(b.aprobadaEn) - Number(a.aprobadaEn));
@@ -2562,6 +2587,11 @@ window.addEventListener('load', () => {
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   tvDatabase = db;
+  if (window.JBFeatureAccess) {
+    window.JBFeatureAccess.watch('panel-tv-premium-2026', aplicarAccesoPanelTvPremium);
+  } else {
+    console.error('No se cargó jb-feature-access.js; PanelTV PREMIUM no tiene interruptor activo.');
+  }
   db.ref('.info/connected').on('value', snapshot => {
     if (snapshot.val() !== true) setTvConnectionStatus('Sin conexión', 'offline');
       else setTvConnectionStatus('Conectado', 'online');
@@ -2569,11 +2599,11 @@ window.addEventListener('load', () => {
     db.ref('resenas_publicas')
     .orderByChild('aprobadaEn')
     .limitToLast(24)
-    .on('value', renderTvReviews, error => {
+    .on('value', snapshot => renderTvReviews(snapshot), error => {
       console.error('No se pudieron cargar las reseñas del panel TV:', error);
       document.getElementById('tv-review-quote').textContent = 'Las opiniones no están disponibles en este momento.';
     });
-  db.ref('productos').on('value', renderTvProducts, error => {
+  db.ref('productos').on('value', snapshot => renderTvProducts(snapshot), error => {
     console.error('No se pudieron cargar los productos del panel TV:', error);
     document.getElementById('tv-products-track').textContent = 'No fue posible cargar los productos.';
   });
