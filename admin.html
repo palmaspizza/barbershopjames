@@ -3108,15 +3108,19 @@ async function jbReservationAcquireSlot(fecha, hora, id) {
         const legacyLock = legacySnapshot.val();
         if (legacyLock && legacyLock.reservaId !== id) {
             let stale = false;
+            const timestamp = Number(legacyLock.timestamp);
+            const age = Date.now() - timestamp;
+            const lockIsFresh = Number.isFinite(timestamp) &&
+                age >= -5 * 60 * 1000 &&
+                age <= 15 * 60 * 1000;
             if (legacyLock.reservaId) {
                 const reservationSnapshot = await db.ref(`reservas/${legacyLock.reservaId}`).once('value');
                 const lockedReservation = reservationSnapshot.val();
-                stale = !lockedReservation ||
-                    String(lockedReservation.fecha || '') !== String(fecha) ||
-                    jbReservationSlotKey(lockedReservation.hora || '') !== currentKey;
+                stale = lockedReservation
+                    ? String(lockedReservation.fecha || '') !== String(fecha) ||
+                        jbReservationSlotKey(lockedReservation.hora || '') !== currentKey
+                    : !lockIsFresh;
             } else {
-                const timestamp = Number(legacyLock.timestamp);
-                const age = Date.now() - timestamp;
                 stale = !Number.isFinite(timestamp) ||
                     age < -5 * 60 * 1000 ||
                     age > 15 * 60 * 1000;
