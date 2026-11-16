@@ -5921,10 +5921,9 @@ body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
   function updateHeaderOnScroll() {
     scrollFrame = 0;
     if (navBar.hidden) return;
-    if (!window.matchMedia('(max-width: 700px)').matches) {
-      navBar.classList.remove('jbAdminStickyTop--hidden');
-      return;
-    }
+    const mobile = window.matchMedia('(max-width: 700px)').matches;
+    const hideDistance = mobile ? 18 : 34;
+    const showDistance = mobile ? 8 : 14;
     const currentY = window.scrollY;
     const delta = currentY - lastScrollY;
     lastScrollY = currentY;
@@ -5947,9 +5946,9 @@ body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
       scrollDistance = 0;
     }
     scrollDistance += Math.abs(delta);
-    if (direction > 0 && currentY > 72 && scrollDistance >= 18) {
+    if (direction > 0 && currentY > 72 && scrollDistance >= hideDistance) {
       navBar.classList.add('jbAdminStickyTop--hidden');
-    } else if (direction < 0 && scrollDistance >= 8) {
+    } else if (direction < 0 && scrollDistance >= showDistance) {
       navBar.classList.remove('jbAdminStickyTop--hidden');
     }
   }
