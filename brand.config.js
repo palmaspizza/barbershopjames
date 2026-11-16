@@ -14,12 +14,9 @@ window.DEMO_BRAND = Object.freeze({
   reviewUrl: 'https://barberiajames.cl/bot?resena=1#jbReviews',
   tvPlaylistId: 'PLY_9AJLM-1eY',
   tvVideos: [
-    'tv_bg_4.mp4',
-    'tv_bg_2.mp4',
-    'tv_bg_3.mp4',
-    'tv_bg_4_2.mp4'
-    
-
+    'videofondo1.mp4',
+    'videofondo2.mp4',
+    'videofondo3.mp4'
   ],
   firebase: {
     apiKey: 'AIzaSyBHLlV9HDfa1v-Uz4YVcbt3vQGByhNFYus',
