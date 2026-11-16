@@ -3540,6 +3540,7 @@ html, body { overflow: hidden; }
 (() => {
   const music = document.getElementById('tv-music');
   const toggle = document.getElementById('tv-music-toggle');
+  const audioBaseUrl = window.location.hostname.endsWith('.pages.dev') ? 'https://barberiajames.cl/' : '';
   const tracks = [
     { files: ['musica1.mp3'] },
     { files: ['musica2-01.mp3', 'musica2-02.mp3', 'musica2-03.mp3', 'musica2-04.mp3', 'musica2-05.mp3', 'musica2-06.mp3', 'musica2-07.mp3'] },
@@ -3577,7 +3578,7 @@ html, body { overflow: hidden; }
       };
       music.addEventListener('loadedmetadata', pendingSeekListener, { once: true });
     }
-    music.src = file;
+    music.src = `${audioBaseUrl}${file}`;
     music.play().then(() => {
       musicStarted = true;
       updateMusicButton(true);
