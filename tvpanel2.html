@@ -3540,11 +3540,19 @@ html, body { overflow: hidden; }
 (() => {
   const music = document.getElementById('tv-music');
   const toggle = document.getElementById('tv-music-toggle');
-  const tracks = ['musica1.mp3', 'musica2.mp3', 'musica3.mp3', 'musica4.mp3', 'musica5.mp3'];
+  const tracks = [
+    { files: ['musica1.mp3'] },
+    { files: ['musica2-01.mp3', 'musica2-02.mp3', 'musica2-03.mp3', 'musica2-04.mp3', 'musica2-05.mp3', 'musica2-06.mp3', 'musica2-07.mp3'] },
+    { files: ['musica3-01.mp3', 'musica3-02.mp3', 'musica3-03.mp3'] },
+    { files: ['musica4-01.mp3', 'musica4-02.mp3', 'musica4-03.mp3', 'musica4-04.mp3', 'musica4-05.mp3'] },
+    { files: ['musica5-01.mp3', 'musica5-02.mp3', 'musica5-03.mp3', 'musica5-04.mp3', 'musica5-05.mp3'] }
+  ];
   const skipSeconds = 5 * 60;
   let trackIndex = 0;
+  let partIndex = 0;
   let musicNoticeShown = false;
   let musicStarted = false;
+  let pendingSeekListener = null;
 
   function updateMusicButton(playing) {
     toggle.textContent = playing ? `ⓘ +5 min · ${trackIndex + 1}/${tracks.length}` : 'ⓘ Iniciar música';
@@ -3553,10 +3561,23 @@ html, body { overflow: hidden; }
       : 'Iniciar música');
     toggle.title = playing ? 'INFO avanza 5 minutos en la pista actual' : 'INFO inicia la música';
   }
-  function startTrack(index) {
+  function startTrack(index, nextPart = 0, seekSeconds = 0) {
     trackIndex = (index + tracks.length) % tracks.length;
+    partIndex = nextPart;
     musicStarted = false;
-    music.src = tracks[trackIndex];
+    const file = tracks[trackIndex].files[partIndex];
+    if (pendingSeekListener) {
+      music.removeEventListener('loadedmetadata', pendingSeekListener);
+      pendingSeekListener = null;
+    }
+    if (seekSeconds > 0) {
+      pendingSeekListener = () => {
+        music.currentTime = Math.min(seekSeconds, Math.max(0, music.duration - 0.1));
+        pendingSeekListener = null;
+      };
+      music.addEventListener('loadedmetadata', pendingSeekListener, { once: true });
+    }
+    music.src = file;
     music.play().then(() => {
       musicStarted = true;
       updateMusicButton(true);
@@ -3581,17 +3602,28 @@ html, body { overflow: hidden; }
     }
     const nextTime = music.currentTime + skipSeconds;
     if (nextTime >= music.duration) {
+      if (partIndex + 1 < tracks[trackIndex].files.length) {
+        startTrack(trackIndex, partIndex + 1, nextTime - music.duration);
+        return;
+      }
       startTrack(trackIndex + 1);
       return;
     }
     music.currentTime = nextTime;
   }
-  music.addEventListener('ended', () => startTrack(trackIndex + 1));
+  music.addEventListener('ended', () => {
+    if (partIndex + 1 < tracks[trackIndex].files.length) {
+      startTrack(trackIndex, partIndex + 1);
+      return;
+    }
+    startTrack(trackIndex + 1);
+  });
   music.addEventListener('error', () => {
     musicStarted = false;
     updateMusicButton(false);
-    console.error(`No se pudo cargar la pista de música: ${tracks[trackIndex]}`);
-    showTvMediaNotice(`No se pudo cargar ${tracks[trackIndex]}.`, 7000);
+    const file = tracks[trackIndex].files[partIndex];
+    console.error(`No se pudo cargar la pista de música: ${file}`);
+    showTvMediaNotice(`No se pudo cargar ${file}.`, 7000);
   });
   toggle.addEventListener('click', advanceTrack);
   window.tvToggleMusic = advanceTrack;
