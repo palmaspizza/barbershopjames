@@ -871,8 +871,8 @@ body.kiosk-active .tv-kiosk-launcher { display: none; }
 
 <video autoplay muted playsinline preload="none" id="bg-video" class="tv-background-video" aria-hidden="true"></video>
 <div class="tv-background-overlay" aria-hidden="true"></div>
-<audio id="tv-music" preload="auto"></audio>
-<button type="button" id="tv-music-toggle" aria-label="Cambiar a la siguiente música" title="ⓘ Cambiar al siguiente tema">ⓘ Siguiente música</button>
+<audio id="tv-music" preload="metadata"></audio>
+<button type="button" id="tv-music-toggle" aria-label="Iniciar música" title="INFO avanza 5 minutos">ⓘ Iniciar música</button>
 <div id="stage">
 <div id="tv-media-notice" class="tv-media-notice" role="status" aria-live="polite"></div>
 <div class="bg"></div>
@@ -3540,18 +3540,22 @@ html, body { overflow: hidden; }
 (() => {
   const music = document.getElementById('tv-music');
   const toggle = document.getElementById('tv-music-toggle');
-  const tracks = ['musica1.mp3', 'musica2.mp3', 'musica3.mp3'];
+  const tracks = ['musica1.mp3', 'musica2.mp3', 'musica3.mp3', 'musica4.mp3', 'musica5.mp3'];
+  const skipSeconds = 5 * 60;
   let trackIndex = 0;
   let musicNoticeShown = false;
   let musicStarted = false;
-  let infoPressed = false;
 
   function updateMusicButton(playing) {
-    toggle.textContent = playing ? `ⓘ ${tracks[trackIndex]}` : 'ⓘ Siguiente música';
-    toggle.setAttribute('aria-label', `Cambiar a la siguiente música${playing ? `; sonando ${tracks[trackIndex]}` : ''}`);
+    toggle.textContent = playing ? `ⓘ +5 min · ${trackIndex + 1}/${tracks.length}` : 'ⓘ Iniciar música';
+    toggle.setAttribute('aria-label', playing
+      ? `Avanzar 5 minutos en la pista ${trackIndex + 1} de ${tracks.length}`
+      : 'Iniciar música');
+    toggle.title = playing ? 'INFO avanza 5 minutos en la pista actual' : 'INFO inicia la música';
   }
   function startTrack(index) {
     trackIndex = (index + tracks.length) % tracks.length;
+    musicStarted = false;
     music.src = tracks[trackIndex];
     music.play().then(() => {
       musicStarted = true;
@@ -3563,23 +3567,31 @@ html, body { overflow: hidden; }
       if (!musicNoticeShown) {
         showTvMediaNotice('Pulsa ⓘ Música o la tecla INFO para activar la música.', 7000);
         musicNoticeShown = true;
-        }
+      }
     });
   }
   function advanceTrack() {
-    if ((!music.src || music.paused) && !musicStarted && !infoPressed) {
-        infoPressed = true;
-        startTrack(trackIndex);
-    } else {
-        infoPressed = true;
-        startTrack(trackIndex + 1);
+    if (!musicStarted) {
+      startTrack(trackIndex);
+      return;
     }
+    if (!Number.isFinite(music.duration)) {
+      showTvMediaNotice('La música aún se está cargando; inténtalo de nuevo en unos segundos.', 4000);
+      return;
+    }
+    const nextTime = music.currentTime + skipSeconds;
+    if (nextTime >= music.duration) {
+      startTrack(trackIndex + 1);
+      return;
+    }
+    music.currentTime = nextTime;
   }
   music.addEventListener('ended', () => startTrack(trackIndex + 1));
   music.addEventListener('error', () => {
+    musicStarted = false;
     updateMusicButton(false);
     console.error(`No se pudo cargar la pista de música: ${tracks[trackIndex]}`);
-    showTvMediaNotice(`Falta el archivo ${tracks[trackIndex]}.`, 7000);
+    showTvMediaNotice(`No se pudo cargar ${tracks[trackIndex]}.`, 7000);
   });
   toggle.addEventListener('click', advanceTrack);
   window.tvToggleMusic = advanceTrack;
