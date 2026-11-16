@@ -62,7 +62,6 @@
       };
       if (!firebase.apps.length) firebase.initializeApp(window.__jbFirebaseConfig);
     </script>
-    <script src="jb-feature-access.js"></script>
 </head>
 <body>
     <div id="jbVipSplash" role="status" aria-label="Cargando James Barbershop" style="position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:#050505;color:#f6df9b;">
@@ -2930,8 +2929,6 @@ function cargarMisReservasAutomatico() {
         const telefonoInput = document.getElementById('telefonoClienteBusqueda');
         if (nombreInput && perfil.nombreDisplay) nombreInput.value = perfil.nombreDisplay;
         if (telefonoInput && perfil.telefono) telefonoInput.value = perfil.telefono;
-        // Busca por perfil (clienteId) Y por teléfono (3 formatos: 56…, +56…, 9…),
-        // así aparecen también las reservas hechas con otro nombre.
         const telNorm = normalizarTelefonoRecuperacion(perfil.telefono);
         const consultas = [db.ref('reservas').orderByChild('clienteId').equalTo(String(perfil.clienteId)).once('value')];
         if (telNorm) {
@@ -4841,38 +4838,6 @@ const firebaseConfig = window.__jbFirebaseConfig || {
             ? firebase.app()
             : firebase.initializeApp(firebaseConfig);
         const db = jbFirebaseApp.database();
-        window.jbPanelTvPremiumActivo = null;
-        window.jbPanelTvPremiumAccessReady = new Promise(resolve => {
-            let resuelto = false;
-            const informarAcceso = activo => {
-                if (window.jbPanelTvPremiumActivo === activo) {
-                    if (!resuelto) {
-                        resuelto = true;
-                        resolve(activo);
-                    }
-                    return;
-                }
-                window.jbPanelTvPremiumActivo = activo;
-                window.dispatchEvent(new CustomEvent('jb-panel-tv-access', { detail:{ active:activo } }));
-                if (!resuelto) {
-                    resuelto = true;
-                    resolve(activo);
-                }
-            };
-            if (window.JBFeatureAccess) {
-                window.JBFeatureAccess.watch('panel-tv-premium-2026', informarAcceso);
-            } else {
-                console.error('No se cargó jb-feature-access.js; PanelTV PREMIUM no tiene interruptor activo.');
-                informarAcceso(true);
-            }
-        });
-        window.addEventListener('jb-panel-tv-access', event => {
-            if (event.detail.active) return;
-            const card = document.querySelector('[aria-label="Productos recomendados"]');
-            const continuar = card && Array.from(card.querySelectorAll('button'))
-                .find(button => button.textContent.trim() === 'Continuar sin producto');
-            if (continuar) continuar.click();
-        });
 
         const JB_NTFY_TOPIC = 'james-barber-shop-2026';
         function jbEnviarNotificacionNtfy(reserva, accion) {
@@ -4918,10 +4883,20 @@ const firebaseConfig = window.__jbFirebaseConfig || {
                 archiveReason: reason
             };
             updates[`reservas/${reservationId}`] = null;
-            if (current.fecha && current.hora) {
-                updates[`bloqueos/${current.fecha}/${String(current.hora).replace(/[^a-zA-Z0-9_-]/g, '_')}`] = null;
-            }
             await db.ref().update(updates);
+            if (current.fecha && current.hora) {
+                for (const clave of jbClavesBloqueoHora(current.hora)) {
+                    try {
+                        const bloqueoRef = db.ref(`bloqueos/${current.fecha}/${clave}`);
+                        await bloqueoRef.transaction(actual =>
+                            actual && actual.reservaId === reservationId ? null : undefined
+                        );
+                    } catch (error) {
+                        console.error('La reserva se canceló, pero no se pudo liberar uno de sus bloqueos:', error);
+                        mostrarToastCliente('La reserva se canceló, pero el horario puede tardar en actualizarse. Actualiza la disponibilidad o contáctanos.', true);
+                    }
+                }
+            }
             if (String(reason || '').startsWith('cancelada') && current.producto && current.producto.id) {
                 try {
                     const productoRef = db.ref(`productos/${current.producto.id}`);
@@ -4952,36 +4927,79 @@ const firebaseConfig = window.__jbFirebaseConfig || {
         };
         const reservasRef = db.ref("reservas");
 
-        async function jbLimpiarBloqueoHuerfano(fecha, hora) {
+        function jbClavesBloqueoHora(hora) {
+            const valor = String(hora || '').slice(0, 5);
+            return [...new Set([
+                valor.replace(/[^a-zA-Z0-9_-]/g, '_'),
+                valor.replace(/[^a-zA-Z0-9_-]/g, '-')
+            ])];
+        }
+
+        async function jbLimpiarBloqueoHuerfano(fecha, hora, chatIdPropio = null) {
             if (!fecha || !hora) return false;
-            const bloqueoRef = db.ref(`bloqueos/${fecha}/${String(hora).replace(/[^a-zA-Z0-9_-]/g, '_')}`);
-            const snapshot = await bloqueoRef.once('value');
-            const bloqueo = snapshot.val();
-            if (!bloqueo) return false;
+            let limpiado = false;
+            const claves = jbClavesBloqueoHora(hora);
+            for (const clave of claves) {
+                const bloqueoRef = db.ref(`bloqueos/${fecha}/${clave}`);
+                const snapshot = await bloqueoRef.once('value');
+                const bloqueo = snapshot.val();
+                if (!bloqueo) continue;
 
-            let esHuerfano = false;
-            if (bloqueo.reservaId) {
-                const reservaSnapshot = await db.ref(`reservas/${bloqueo.reservaId}`).once('value');
-                const reserva = reservaSnapshot.val();
-                esHuerfano = !reserva ||
-                    String(reserva.fecha || '') !== String(fecha) ||
-                    String(reserva.hora || '').slice(0, 5) !== String(hora).slice(0, 5);
-            } else {
-                esHuerfano = Number.isFinite(Number(bloqueo.timestamp)) &&
-                    Date.now() - Number(bloqueo.timestamp) > 15 * 60 * 1000;
-            }
-
-            if (!esHuerfano) return false;
-            const resultado = await bloqueoRef.transaction(actual => {
-                if (actual &&
-                    actual.reservaId === bloqueo.reservaId &&
-                    actual.chatId === bloqueo.chatId &&
-                    actual.timestamp === bloqueo.timestamp) {
-                    return null;
+                const timestamp = Number(bloqueo.timestamp);
+                const antiguedad = Date.now() - timestamp;
+                const bloqueoReciente = Number.isFinite(timestamp) &&
+                    antiguedad >= -5 * 60 * 1000 &&
+                    antiguedad <= 15 * 60 * 1000;
+                let esHuerfano = false;
+                if (bloqueo.reservaId) {
+                    const reservaSnapshot = await db.ref(`reservas/${bloqueo.reservaId}`).once('value');
+                    const reserva = reservaSnapshot.val();
+                    esHuerfano = reserva
+                        ? String(reserva.fecha || '') !== String(fecha) ||
+                            String(reserva.hora || '').slice(0, 5) !== String(hora).slice(0, 5)
+                        : !bloqueoReciente;
+                } else {
+                    esHuerfano = !bloqueo.chatId ||
+                        !bloqueoReciente;
+                    if (!esHuerfano && clave !== claves[0] &&
+                        (!chatIdPropio || bloqueo.chatId !== chatIdPropio)) {
+                        const error = new Error('Ese horario está siendo reservado en otro dispositivo.');
+                        error.code = 'SLOT_LOCKED';
+                        throw error;
+                    }
                 }
-                return undefined;
-            });
-            return resultado.committed;
+
+                if (!esHuerfano) {
+                    if (clave !== claves[0] &&
+                        (!chatIdPropio || bloqueo.chatId !== chatIdPropio)) {
+                        const error = new Error('Ese horario está siendo reservado en otro dispositivo.');
+                        error.code = 'SLOT_LOCKED';
+                        throw error;
+                    }
+                    continue;
+                }
+                const resultado = await bloqueoRef.transaction(actual => {
+                    if (actual &&
+                        actual.reservaId === bloqueo.reservaId &&
+                        actual.chatId === bloqueo.chatId &&
+                        actual.timestamp === bloqueo.timestamp) {
+                        return null;
+                    }
+                    return undefined;
+                });
+                if (!resultado.committed && resultado.snapshot && resultado.snapshot.exists() &&
+                    clave !== claves[0]) {
+                    const bloqueoActual = resultado.snapshot.val();
+                    if (!bloqueoActual || bloqueoActual.reservaId ||
+                        !chatIdPropio || bloqueoActual.chatId !== chatIdPropio) {
+                        const error = new Error('Ese horario está siendo reservado en otro dispositivo.');
+                        error.code = 'SLOT_LOCKED';
+                        throw error;
+                    }
+                }
+                limpiado = resultado.committed || limpiado;
+            }
+            return limpiado;
         }
         // ============================================
 // GALERÍA - CLIENTES (solo visualización)
@@ -5107,7 +5125,7 @@ function renderGaleriaClientes(imagenes) {
                     const bloqueo = horaSnapshot.val();
                     if (!bloqueo) return;
                     const fecha = diaSnapshot.key;
-                    const hora = String(horaSnapshot.key || "").replace("_", ":").slice(0, 5);
+                    const hora = String(horaSnapshot.key || "").replace(/[-_]/g, ":").slice(0, 5);
                     comprobaciones.push((async () => {
                         let valido = false;
                         if (bloqueo.reservaId) {
@@ -5117,14 +5135,25 @@ function renderGaleriaClientes(imagenes) {
                                 String(reserva.fecha || "") === String(fecha) &&
                                 horaNormalizada(reserva.hora) === hora);
                         } else {
-                            valido = Number.isFinite(Number(bloqueo.timestamp)) &&
-                                Date.now() - Number(bloqueo.timestamp) <= 15 * 60 * 1000;
+                            const antiguedad = Date.now() - Number(bloqueo.timestamp);
+                            valido = Boolean(bloqueo.chatId) &&
+                                Number.isFinite(Number(bloqueo.timestamp)) &&
+                                antiguedad >= -5 * 60 * 1000 &&
+                                antiguedad <= 15 * 60 * 1000;
                         }
                         if (valido) {
                             if (!bloqueosValidos[fecha]) bloqueosValidos[fecha] = [];
                             bloqueosValidos[fecha].push(hora);
                         } else {
-                            db.ref(`bloqueos/${fecha}/${horaSnapshot.key}`).remove().catch(error => {
+                            const bloqueoRef = db.ref(`bloqueos/${fecha}/${horaSnapshot.key}`);
+                            bloqueoRef.transaction(actual =>
+                                actual &&
+                                actual.reservaId === bloqueo.reservaId &&
+                                actual.chatId === bloqueo.chatId &&
+                                actual.timestamp === bloqueo.timestamp
+                                    ? null
+                                    : undefined
+                            ).catch(error => {
                                 console.error("No se pudo limpiar un bloqueo inválido:", error);
                             });
                         }
@@ -5569,7 +5598,7 @@ const total = document.getElementById("eltotal")?.value || "";
         let ocupada = false;
         snapshot.forEach(child => {
             const r = child.val();
-            if (`${r.fecha}-${r.hora}` === idBloque) {
+            if (`${r.fecha}-${String(r.hora || '').slice(0, 5)}` === idBloque) {
                 ocupada = true;
             }
         });
@@ -5604,12 +5633,27 @@ const total = document.getElementById("eltotal")?.value || "";
         try {
             await reservaRef.set(nuevaReserva);
         } catch (error) {
+            let snapshotVerificacion;
             try {
-                await bloqueoRef.transaction(actual => actual?.reservaId === reservaRef.key ? null : undefined);
-            } catch (cleanupError) {
-                console.error("No se pudo liberar el horario tras fallar la reserva:", cleanupError);
+                snapshotVerificacion = await reservaRef.once("value");
+            } catch (errorVerificacion) {
+                console.error("No se pudo confirmar si la reserva llegó a Firebase:", error, errorVerificacion);
+                mostrarToastCliente("No pudimos confirmar si la reserva quedó guardada. Revisa Mis reservas antes de intentarlo de nuevo.", true);
+                return;
             }
-            throw error;
+            const reservaGuardada = snapshotVerificacion.val();
+            if (reservaGuardada &&
+                reservaGuardada.fecha === fechaInputValor &&
+                String(reservaGuardada.hora || "").slice(0, 5) === String(hora).slice(0, 5)) {
+                console.warn("Firebase guardó la reserva aunque la confirmación de escritura falló:", reservaRef.key);
+            } else {
+                try {
+                    await bloqueoRef.transaction(actual => actual?.reservaId === reservaRef.key ? null : undefined);
+                } catch (cleanupError) {
+                    console.error("No se pudo liberar el horario tras fallar la reserva:", cleanupError);
+                }
+                throw error;
+            }
         }
         jbEnviarNotificacionNtfy(nuevaReserva, 'tomada');
 
@@ -5642,6 +5686,11 @@ const total = document.getElementById("eltotal")?.value || "";
         }, 800);
     } catch (error) {
         console.error("No se pudo guardar la reserva:", error);
+        if (error && error.code === "SLOT_LOCKED") {
+            document.getElementById("modal-ocupado")?.classList.remove("hidden");
+            await jbRecargarDisponibilidad(fechaInputValor);
+            return;
+        }
         mostrarToastCliente("No pudimos guardar la reserva. Revisa tu conexión e inténtalo de nuevo.", true);
     }
 }
@@ -6951,8 +7000,8 @@ function playTone(freq, dur, vol){
     border-radius: 50%; background: linear-gradient(135deg, #e4a64f, #ff6f00);
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     display: flex; align-items: center; justify-content: center; cursor: pointer;
-    z-index: 99998; font-size: 28px; animation: jbPulse 2.4s ease-in-out infinite;
-    border: 2px solid rgba(255,255,255,0.25);
+    z-index: 99998; font-size: 28px; font-family: inherit; animation: jbPulse 2.4s ease-in-out infinite;
+    border: 2px solid rgba(255,255,255,0.25); padding: 0; color: #fff;
   }
   @keyframes jbPulse {
     0%, 100% { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 0 rgba(228,166,79,0.5); }
@@ -7276,10 +7325,10 @@ function playTone(freq, dur, vol){
   }
 </style>
 
-<div id="jbChatBubble" onclick="jbToggleChat()">
-  <img src="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" alt="Chat"><div style="width: 30px; font-size: 0.76rem;" class="jbBannerBadge">24/7</div>
-  <div id="jbUnreadDot"></div>
-</div>
+<button type="button" id="jbChatBubble" aria-label="Abrir el asistente de reservas" onclick="jbToggleChat()">
+  <img src="https://i.ibb.co/JFrnTqWc/c4497cf0-2f10-43bf-b5ac-6c232c4d0e18.jpg" alt=""><span style="width: 30px; font-size: 0.76rem;" class="jbBannerBadge">24/7</span>
+  <span id="jbUnreadDot"></span>
+</button>
 
 <div id="jbChatPanel">
   <div id="jbChatHeader">
@@ -7289,7 +7338,7 @@ function playTone(freq, dur, vol){
       <div class="jbSub"><span class="jbDot"></span><span id="jbEstadoTexto">En línea</span></div>
 
    </div>
-    <button id="jbChatClose" onclick="jbToggleChat()">×</button>
+    <button id="jbChatClose" type="button" aria-label="Cerrar el asistente" onclick="jbToggleChat()">×</button>
   </div>
   <div id="jbChatBody"></div>
   <div id="jbTyping">Escribiendo<span>.</span><span>.</span><span>.</span></div>
@@ -9743,8 +9792,6 @@ function jbMostrarFormularioWhatsapp(){
 }
   let jbProductoOfertaEnCurso = false;
   async function jbMostrarOfertaProducto(){
-    const accesoActivo = await window.jbPanelTvPremiumAccessReady;
-    if (!accesoActivo || !window.jbPanelTvPremiumActivo) return false;
     const body = document.getElementById('jbChatBody');
     let productosSnap;
     try {
@@ -9807,10 +9854,6 @@ function jbMostrarFormularioWhatsapp(){
       details.append(name, description);
       option.appendChild(details);
       option.addEventListener('click', () => {
-        if (!window.jbPanelTvPremiumActivo) {
-          decline.click();
-          return;
-        }
         card.remove();
         jbProductoOfertaEnCurso = false;
         jbReserva.producto = {
@@ -10317,6 +10360,26 @@ if(!jbResponderFAQ(texto)){
 
 window._jbConfirmandoReserva = true;
     jbBot('Guardando tu hora... ⏳');
+    let bloqueoRef = null;
+    let bloqueoTomado = false;
+    let reservaIdPersistida = null;
+    let reservaPersistida = null;
+    const finalizarBloqueoReserva = async reservaId => {
+      if(!bloqueoRef) throw new Error('No hay referencia al bloqueo de la reserva.');
+      const resultado = await bloqueoRef.transaction(actual => {
+        if(actual && actual.reservaId === reservaId){
+          return { ...actual, timestamp: Date.now() };
+        }
+        if(actual && actual.chatId === jbChatId && !actual.reservaId){
+          return { ...actual, reservaId, timestamp: Date.now() };
+        }
+        return;
+      });
+      if(!resultado.committed){
+        throw new Error('El bloqueo ya no pertenece a esta reserva.');
+      }
+      bloqueoTomado = false;
+    };
     try {
       const reservasDelDia = await db.ref('reservas')
         .orderByChild('fecha')
@@ -10388,16 +10451,14 @@ window._jbConfirmandoReserva = true;
 
       const claveHora = String(jbReserva.hora).replace(/[^a-zA-Z0-9_-]/g, '_');
 
-const bloqueoRef = db.ref(
+bloqueoRef = db.ref(
   'bloqueos/' +
   jbReserva.fecha +
   '/' +
   claveHora
 );
 
-let bloqueoTomado = false;
-
-await jbLimpiarBloqueoHuerfano(jbReserva.fecha, jbReserva.hora);
+await jbLimpiarBloqueoHuerfano(jbReserva.fecha, jbReserva.hora, jbChatId);
 const resultadoBloqueo = await bloqueoRef.transaction(actual => {
 
   // Nadie la tiene todavía
@@ -10451,6 +10512,21 @@ if(!resultadoBloqueo.committed){
 }
 
 bloqueoTomado = true;
+const legacyKey = jbClavesBloqueoHora(jbReserva.hora).find(clave => clave !== claveHora);
+if(legacyKey){
+  const resultadoLegacy = await db.ref(`bloqueos/${jbReserva.fecha}/${legacyKey}`).transaction(actual =>
+    actual && actual.chatId === jbChatId && !actual.reservaId ? null : undefined
+  );
+  if(!resultadoLegacy.committed && resultadoLegacy.snapshot && resultadoLegacy.snapshot.exists()){
+    await bloqueoRef.transaction(actual =>
+      actual && actual.chatId === jbChatId && !actual.reservaId ? null : undefined
+    );
+    bloqueoTomado = false;
+    const error = new Error('Ese horario está siendo reservado en otro dispositivo.');
+    error.code = 'SLOT_LOCKED';
+    throw error;
+  }
+}
       const serviciosTexto = jbReserva.servicios.map(s=>s.label||s.nombre).join(' + ');
       const totalServicios = jbReserva.servicios.reduce((a,s)=>a+s.precio,0);
       const total = totalServicios + (Number(jbReserva.producto && jbReserva.producto.precio) || 0);
@@ -10476,7 +10552,30 @@ bloqueoTomado = true;
         };
       }
       if (jbSesionCliente && jbSesionCliente.clienteId) nuevaReserva.clienteId = jbSesionCliente.clienteId;
-      const ref = await db.ref('reservas').push(nuevaReserva);
+      const ref = db.ref('reservas').push();
+      try {
+        await ref.set(nuevaReserva);
+      } catch(errorEscritura){
+        let verificacion;
+        try {
+          verificacion = await ref.once('value');
+        } catch(errorVerificacion){
+          const error = new Error('No se pudo confirmar si la reserva llegó a Firebase.');
+          error.code = 'RESERVATION_UNCERTAIN';
+          error.cause = errorVerificacion;
+          console.error('No se pudo verificar el resultado de la reserva:', errorEscritura, errorVerificacion);
+          throw error;
+        }
+        const reservaVerificada = verificacion.val();
+        if(!reservaVerificada ||
+          reservaVerificada.fecha !== nuevaReserva.fecha ||
+          String(reservaVerificada.hora || '').slice(0, 5) !== String(nuevaReserva.hora || '').slice(0, 5)){
+          throw errorEscritura;
+        }
+        console.warn('Firebase guardó la reserva aunque la confirmación de escritura falló:', ref.key);
+      }
+      reservaIdPersistida = ref.key;
+      reservaPersistida = { ...nuevaReserva };
       if (nuevaReserva.producto) {
         const productoRef = db.ref(`productos/${nuevaReserva.producto.id}`);
         let stockDisponibleReservado = false;
@@ -10511,12 +10610,11 @@ bloqueoTomado = true;
           });
           nuevaReserva.producto = null;
           nuevaReserva.total = '$' + totalServicios.toLocaleString('es-CL');
+          reservaPersistida = { ...nuevaReserva };
           jbBot('No pudimos apartar el producto ahora, pero tu hora quedó confirmada sin el producto.');
         }
       }
-      await bloqueoRef.update({
-        reservaId: ref.key
-      });
+      await finalizarBloqueoReserva(ref.key);
       jbEnviarNotificacionNtfy(nuevaReserva, 'tomada');
       if(typeof guardarReservaLocal   === 'function') guardarReservaLocal(ref.key, nuevaReserva.nombre, nuevaReserva.fecha, nuevaReserva.hora, nuevaReserva.servicios, nuevaReserva.total);
       // Que la sección "Mis Reservas" muestre la reserva recién creada
@@ -10587,20 +10685,64 @@ bloqueoTomado = true;
 
   console.error('Error al confirmar reserva:', err);
 
+  if(!reservaIdPersistida && err && err.code === 'RESERVATION_UNCERTAIN'){
+    jbGuardarEstadoReserva(false);
+    jbBot(
+      'No pude verificar si la hora quedó guardada. Revisa “Mis Reservas” o consulta al barbero antes de intentarlo otra vez, para evitar una reserva duplicada.'
+    );
+    return;
+  }
+
+  if(!reservaIdPersistida && err && err.code === 'SLOT_LOCKED'){
+    jbBot('Esa hora acaba de ser ocupada por otra persona. Elige otra para continuar.');
+    jbReserva.hora = null;
+    jbReserva.step = 'hora';
+    jbGuardarEstadoReserva(false);
+    await jbRecargarDisponibilidad(jbReserva.fecha);
+    jbPreguntarHora();
+    return;
+  }
+
+  if(reservaIdPersistida && reservaPersistida){
+    console.error('La reserva quedó guardada; falló una tarea posterior.');
+    try {
+      await finalizarBloqueoReserva(reservaIdPersistida);
+    } catch(errorBloqueo){
+      console.error('No se pudo actualizar el bloqueo de la reserva guardada:', errorBloqueo);
+    }
+    try {
+      if(typeof guardarReservaLocal === 'function'){
+        guardarReservaLocal(
+          reservaIdPersistida,
+          reservaPersistida.nombre,
+          reservaPersistida.fecha,
+          reservaPersistida.hora,
+          reservaPersistida.servicios,
+          reservaPersistida.total
+        );
+      }
+    } catch(errorLocal){
+      console.error('No se pudo actualizar el historial local de la reserva:', errorLocal);
+    }
+    jbBot(
+      `✅ Tu hora quedó guardada para el <b>${jbFormatFechaLegible(reservaPersistida.fecha)}</b> ` +
+      `a las <b>${reservaPersistida.hora}</b>.` +
+      (reservaPersistida.producto ? ' Si el producto no aparece en el resumen, consúltalo con el barbero.' : '')
+    );
+    jbTerminarReserva();
+    return;
+  }
+
   // Si nosotros habíamos bloqueado la hora pero no logramos
   // terminar correctamente la reserva, liberar el bloqueo.
   try {
-    if(typeof bloqueoRef !== 'undefined' && bloqueoTomado){
-      const snapBloqueo = await bloqueoRef.once('value');
-      const datosBloqueo = snapBloqueo.val();
-
-      if(
-        datosBloqueo &&
-        datosBloqueo.chatId === jbChatId &&
-        !datosBloqueo.reservaId
-      ){
-        await bloqueoRef.remove();
-      }
+    if(bloqueoRef && bloqueoTomado){
+      await bloqueoRef.transaction(actual => {
+        if(actual && actual.chatId === jbChatId && !actual.reservaId){
+          return null;
+        }
+        return;
+      });
     }
   } catch(e){
     console.error('No se pudo liberar bloqueo:', e);
@@ -10758,29 +10900,18 @@ async function jbLiberarBloqueoReserva(r){
 
   try {
 
-    const claveHora = String(r.hora)
-      .replace(/[^a-zA-Z0-9_-]/g, '_');
+    const horaNormalizada = String(r.hora).slice(0, 5);
+    const claves = [...new Set([
+      horaNormalizada.replace(/[^a-zA-Z0-9_-]/g, '_'),
+      horaNormalizada.replace(/[^a-zA-Z0-9_-]/g, '-')
+    ])];
 
-    const refBloqueo = db.ref(
-      'bloqueos/' +
-      r.fecha +
-      '/' +
-      claveHora
-    );
-
-    const snap = await refBloqueo.once('value');
-    const bloqueo = snap.val();
-
-    // Solo liberar si la reserva realmente corresponde
-    // al bloqueo que estamos eliminando.
-    if(
-      bloqueo &&
-      (
-        !r.reservaId ||
-        bloqueo.reservaId === r.reservaId
-      )
-    ){
-      await refBloqueo.remove();
+    for (const claveHora of claves) {
+      const refBloqueo = db.ref(`bloqueos/${r.fecha}/${claveHora}`);
+      await refBloqueo.transaction(actual => {
+        if (actual && (!r.reservaId || actual.reservaId === r.reservaId)) return null;
+        return undefined;
+      });
     }
 
   } catch(err){
@@ -11558,7 +11689,7 @@ async function jbLiberarBloqueoReserva(r){
 
     db.ref('clientes/' + clienteId + '/cortes').orderByChild('ts').limitToLast(4).once('value', snap => {
       const cortes = [];
-      snap.forEach(h => { cortes.unshift({ id: h.key, ...h.val() }); });
+      snap.forEach(h => cortes.unshift({ id: h.key, ...h.val() }));
 
       if (cortes.length === 0) {
         jbBot('Todavía no tenemos fotos de tus cortes guardadas 😊 ¡La próxima vez que vengas, James las registrará!');
@@ -14437,17 +14568,6 @@ window.addEventListener('load', function() {
   const textInput = document.getElementById('jbReviewText');
   const status = document.getElementById('jbReviewStatus');
   const stars = Array.from(document.querySelectorAll('#jbReviewStars [data-rating]'));
-  const setReviewAccess = active => {
-    const section = document.getElementById('jbReviews');
-    if (section) section.style.display = active ? '' : 'none';
-    form.querySelectorAll('input, textarea, button').forEach(control => {
-      control.disabled = !active;
-    });
-  };
-  window.addEventListener('jb-panel-tv-access', event => setReviewAccess(event.detail.active));
-  if (window.jbPanelTvPremiumAccessReady) {
-    window.jbPanelTvPremiumAccessReady.then(setReviewAccess);
-  }
   let selectedRating = 0;
   let profile = null;
   try {
@@ -14517,10 +14637,6 @@ window.addEventListener('load', function() {
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    if (window.jbPanelTvPremiumActivo !== true) {
-      status.textContent = 'Las reseñas no están disponibles en este momento.';
-      return;
-    }
     const nombre = nameInput.value.trim();
     const texto = textInput.value.trim();
     const rating = selectedRating;
@@ -14589,5 +14705,43 @@ window.addEventListener('load', function() {
   }
 })();
 </script>
+<style>
+@media (max-width: 700px) {
+  #jbChatPanel {
+    top: max(4px, env(safe-area-inset-top)) !important;
+    right: max(4px, env(safe-area-inset-right)) !important;
+    bottom: max(4px, env(safe-area-inset-bottom)) !important;
+    left: max(4px, env(safe-area-inset-left)) !important;
+    height: auto !important;
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 8px) !important;
+    border-radius: 14px;
+  }
+  #jbQuickActions {
+    flex-wrap: nowrap;
+    max-height: 62px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 6px 8px;
+  }
+  #jbQuickActions::-webkit-scrollbar { display: none; }
+  #jbQuickActions .jbQuickBtn {
+    flex: 0 0 auto;
+    max-width: 78vw;
+    min-height: 40px;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+}
+@media (max-width: 380px) {
+  #jbChatPanel { border-radius: 10px; }
+  #jbQuickActions .jbQuickBtn { font-size: .72rem; }
+}
+@media (hover: none) {
+  #jbBanner .jbBannerCard:hover,
+  #jbChatPanel button:hover { transform: none; }
+}
+</style>
 </body>
 </html>
