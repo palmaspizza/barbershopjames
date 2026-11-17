@@ -7336,7 +7336,7 @@ function playTone(freq, dur, vol){
   <div id="jbChatBody"></div>
   <div id="jbTyping">Escribiendo<span>.</span><span>.</span><span>.</span></div>
   <div id="jbQuickActions">
-    <button style="display: none;" type="button" class="jbQuickBtn jbBtnReservar" onclick="jbPedirHora()">📅 Reservar hora</button>
+    <button type="button" class="jbQuickBtn jbBtnReservar" onclick="jbPedirHora()">📅 Reservar hora</button>
     <button type="button" class="jbQuickBtn" onclick="jbAbrirCancelarDesdeBoton()">📋 Ver / cancelar / cambiar reserva</button>
     <button id="jbQuickCambiar" type="button" class="jbQuickBtn" style="display:none;" onclick="jbPreguntarQueCambiar()">✏️ Cambiar selección</button>
     <button type="button" class="jbQuickBtn" onclick="jbAbrirRecuperacion()">🔐 Recuperar mis reservas perdidas</button>
@@ -14558,8 +14558,13 @@ window.addEventListener('load', function() {
     text-align: center;
   }
 
-  .jbBottomBar button {
+  .jbBottomBar button,
+  .jbBottomBar .jbBottomReserve {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: min(100%, 420px);
+    min-height: 48px;
     padding: 13px 20px;
     border: 0;
     border-radius: 12px;
@@ -14568,9 +14573,11 @@ window.addEventListener('load', function() {
     font: 700 1rem 'Poppins', sans-serif;
     cursor: pointer;
     box-shadow: 0 6px 18px rgba(255, 111, 0, .28);
+    text-decoration: none;
   }
 
-  .jbBottomBar button:hover {
+  .jbBottomBar button:hover,
+  .jbBottomBar .jbBottomReserve:hover {
     filter: brightness(1.08);
   }
 
@@ -14580,9 +14587,9 @@ window.addEventListener('load', function() {
 </style>
 
 <div class="jbBottomBar">
-  <button type="button" onclick="jbAbrirChatDesdeBanner()">
-    📅 Reservar nueva hora
-  </button>
+  <a class="jbBottomReserve" href="#cuadroCalendario" aria-label="Reservar directamente en el calendario, sin usar el chat" onclick="jbIrAReservaManual(event)">
+    📅 Reservar por calendario
+  </a>
 </div>
 <script>
 (() => {
@@ -14770,5 +14777,111 @@ window.addEventListener('load', function() {
   #jbChatPanel button:hover { transform: none; }
 }
 </style>
+<style>
+  body { padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px)) !important; }
+  #cuadroCalendario { scroll-margin-top: calc(16px + env(safe-area-inset-top, 0px)); }
+
+  @keyframes jbReservaManualEnfoque {
+    0%, 100% { box-shadow: 0 18px 48px rgba(0, 0, 0, .27), 0 0 0 0 rgba(244, 202, 131, 0); }
+    45% { box-shadow: 0 18px 48px rgba(0, 0, 0, .27), 0 0 0 5px rgba(244, 202, 131, .72), 0 0 32px rgba(228, 166, 79, .55); }
+  }
+  #cuadroCalendario.jbReservaManualEnfoque { animation: jbReservaManualEnfoque 1.25s ease-in-out 2; }
+
+  @media (max-width: 700px) {
+    #jbChatPanel {
+      top: max(4px, env(safe-area-inset-top, 0px)) !important;
+      right: max(4px, env(safe-area-inset-right, 0px)) !important;
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+      left: max(4px, env(safe-area-inset-left, 0px)) !important;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: min(
+        calc(var(--jb-chat-visual-height, 100dvh) - 84px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+        calc(100dvh - 84px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+      ) !important;
+    }
+
+    #jbChatHeader { flex: 0 0 auto; }
+    #jbChatBody {
+      flex: 1 1 0%;
+      min-height: 0 !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #jbQuickActions {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      flex: 0 1 auto !important;
+      min-width: 0;
+      min-height: 0;
+      max-height: min(34dvh, 250px) !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(228, 166, 79, .55) transparent;
+      padding: 8px 9px max(8px, env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    #jbQuickActions .jbQuickBtn {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      min-height: 44px;
+      margin: 0;
+      padding: 8px 9px;
+      flex: none !important;
+      box-sizing: border-box;
+      white-space: normal !important;
+      overflow-wrap: anywhere;
+      text-align: center;
+      line-height: 1.28;
+      font-size: clamp(.68rem, 2.4vw, .78rem);
+    }
+
+    #jbQuickActions .jbBtnReservar {
+      grid-column: 1 / -1;
+      min-height: 48px;
+      font-size: .86rem;
+    }
+
+    .jbBottomBar {
+      min-height: 70px;
+      padding: 8px 12px max(8px, env(safe-area-inset-bottom, 0px));
+    }
+    .jbBottomBar .jbBottomReserve { min-height: 48px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #cuadroCalendario.jbReservaManualEnfoque { animation: none; }
+  }
+</style>
+<script>
+  function jbIrAReservaManual(event) {
+    const calendar = document.getElementById('cuadroCalendario');
+    if (!calendar) return;
+    event.preventDefault();
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    calendar.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    calendar.classList.remove('jbReservaManualEnfoque');
+    void calendar.offsetWidth;
+    calendar.classList.add('jbReservaManualEnfoque');
+    window.setTimeout(() => calendar.classList.remove('jbReservaManualEnfoque'), 2600);
+  }
+
+  (function syncChatWithVisualViewport() {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const updateViewportSize = () => {
+      document.documentElement.style.setProperty('--jb-chat-visual-height', `${viewport.height}px`);
+    };
+    viewport.addEventListener('resize', updateViewportSize, { passive: true });
+    updateViewportSize();
+  })();
+</script>
 </body>
 </html>
