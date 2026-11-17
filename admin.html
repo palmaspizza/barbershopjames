@@ -6,7 +6,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Panel Admin - Barbería</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -2905,10 +2905,16 @@ function jbRenderMetricaFacilidad(){
         return;
     }
     
-    container.innerHTML = reservasHoy.map(r => `
-        <div class="reserva-item">
+    container.innerHTML = reservasHoy.map(r => {
+        const horaValida = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(String(r.hora || ''));
+        const minutosReserva = horaValida
+            ? Number(horaValida[1]) * 60 + Number(horaValida[2])
+            : -1;
+        return `
+        <div class="reserva-item" data-hora-minutos="${minutosReserva}">
             <div class="reserva-info">
                 <h4>${r.nombre || 'Sin nombre'}</h4>
+                <span class="jb-reserva-status" hidden></span>
                 <p>${r.servicios || 'Sin servicio'}</p>
                 ${r.total ? `<p style="color:var(--barber-green);font-weight:600;">${r.total}</p>` : ''}
                 ${r.telefono ? `<p style="color:#aaa;font-size:0.85rem;">📱 ${r.telefono}</p>` : ''}
@@ -2919,8 +2925,49 @@ function jbRenderMetricaFacilidad(){
                 <button class="btn-eliminar" onclick="eliminarReserva('${r.id}')">Cancelar Reserva</button>
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
+    actualizarEstadoVisualReservas();
 }
+
+function actualizarEstadoVisualReservas() {
+    const container = document.getElementById('reservas-hoy-lista');
+    if (!container) return;
+    const horaChile = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'America/Santiago',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23'
+    }).format(new Date());
+    const [hora, minuto] = horaChile.split(':').map(Number);
+    const minutosActuales = hora * 60 + minuto;
+    const tarjetas = Array.from(container.querySelectorAll('.reserva-item[data-hora-minutos]'));
+    const proxima = tarjetas.find(tarjeta => {
+        const inicio = Number(tarjeta.dataset.horaMinutos);
+        return inicio >= minutosActuales;
+    });
+
+    tarjetas.forEach(tarjeta => {
+        const esProxima = tarjeta === proxima;
+        tarjeta.classList.toggle('jb-reserva-proxima', esProxima);
+        const estado = tarjeta.querySelector('.jb-reserva-status');
+        if (!estado) return;
+        if (esProxima) {
+            const minutosRestantes = Number(tarjeta.dataset.horaMinutos) - minutosActuales;
+            estado.textContent = minutosRestantes === 0
+                ? 'PRÓXIMA · AHORA'
+                : minutosRestantes < 60
+                    ? `PRÓXIMA · EN ${minutosRestantes} MIN`
+                    : 'PRÓXIMA CITA';
+            estado.hidden = false;
+        } else {
+            estado.textContent = '';
+            estado.hidden = true;
+        }
+    });
+}
+
+window.setInterval(actualizarEstadoVisualReservas, 60000);
 
 // ============================================
 // BOTÓN DE CONTACTO DIRECTO POR WHATSAPP
@@ -5754,15 +5801,21 @@ body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
   top: 0;
   left: 0;
   width: 100%;
-  padding: 8px clamp(10px,2vw,28px);
+  padding: calc(12px + env(safe-area-inset-top, 0px)) clamp(10px,2vw,28px) 10px;
   border-bottom: 1px solid rgba(228,166,79,.4);
   background: rgba(11,11,13,.97);
   box-shadow: 0 8px 26px rgba(0,0,0,.4);
   backdrop-filter: blur(12px);
 }
 #jbAdminStickyTop[hidden] { display:none; }
-#jbAdminStickyTop { transition:transform .8s cubic-bezier(.22,.61,.36,1); }
-#jbAdminStickyTop.jbAdminStickyTop--hidden { transform:translateY(calc(-100% - 2px)); pointer-events:none; }
+#jbAdminStickyTop { transition:padding .22s ease, box-shadow .22s ease; }
+#jbAdminStickyTop.jbAdminStickyTop--compact {
+  padding-top:calc(6px + env(safe-area-inset-top, 0px));
+  padding-bottom:6px;
+  box-shadow:0 6px 20px rgba(0,0,0,.48);
+}
+#jbAdminStickyTop.jbAdminStickyTop--compact #jbAdminLicense,
+#jbAdminStickyTop.jbAdminStickyTop--compact #jbAdminQuotaSummary { display:none !important; }
 #jbAdminNav { display:flex; align-items:center; gap:7px; flex-wrap:wrap; max-width:1420px; margin:auto; }
 #jbAdminNav button {
   min-height:40px; padding:8px 12px; border:1px solid #494950; border-radius:9px;
@@ -5926,21 +5979,25 @@ body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
     scrollFrame = 0;
     if (navBar.hidden) return;
     const mobile = window.matchMedia('(max-width: 700px)').matches;
-    const hideDistance = mobile ? 18 : 34;
-    const showDistance = mobile ? 8 : 14;
+    const compactDistance = mobile ? 18 : 34;
+    const expandDistance = mobile ? 8 : 14;
     const currentY = window.scrollY;
     const delta = currentY - lastScrollY;
     lastScrollY = currentY;
     if (navBar.contains(document.activeElement)) {
-      navBar.classList.remove('jbAdminStickyTop--hidden');
+      const compact = navBar.classList.contains('jbAdminStickyTop--compact');
+      navBar.classList.remove('jbAdminStickyTop--compact');
       scrollDirection = 0;
       scrollDistance = 0;
+      if (compact) updateStickyLayout();
       return;
     }
     if (currentY <= 24) {
-      navBar.classList.remove('jbAdminStickyTop--hidden');
+      const compact = navBar.classList.contains('jbAdminStickyTop--compact');
+      navBar.classList.remove('jbAdminStickyTop--compact');
       scrollDirection = 0;
       scrollDistance = 0;
+      if (compact) updateStickyLayout();
       return;
     }
     if (!delta) return;
@@ -5950,10 +6007,13 @@ body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
       scrollDistance = 0;
     }
     scrollDistance += Math.abs(delta);
-    if (direction > 0 && currentY > 72 && scrollDistance >= hideDistance) {
-      navBar.classList.add('jbAdminStickyTop--hidden');
-    } else if (direction < 0 && scrollDistance >= showDistance) {
-      navBar.classList.remove('jbAdminStickyTop--hidden');
+    const compact = navBar.classList.contains('jbAdminStickyTop--compact');
+    if (direction > 0 && currentY > 72 && scrollDistance >= compactDistance && !compact) {
+      navBar.classList.add('jbAdminStickyTop--compact');
+      updateStickyLayout();
+    } else if (direction < 0 && scrollDistance >= expandDistance && compact) {
+      navBar.classList.remove('jbAdminStickyTop--compact');
+      updateStickyLayout();
     }
   }
   const scheduleHeaderUpdate = () => {
@@ -5962,16 +6022,19 @@ body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
   window.addEventListener('scroll', scheduleHeaderUpdate, { passive:true });
   document.addEventListener('scroll', scheduleHeaderUpdate, { passive:true, capture:true });
   window.addEventListener('resize', () => {
-    navBar.classList.remove('jbAdminStickyTop--hidden');
+    navBar.classList.remove('jbAdminStickyTop--compact');
     lastScrollY = window.scrollY;
     scrollDirection = 0;
     scrollDistance = 0;
+    updateStickyLayout();
   }, { passive:true });
   navBar.addEventListener('focusin', () => {
-    navBar.classList.remove('jbAdminStickyTop--hidden');
+    const compact = navBar.classList.contains('jbAdminStickyTop--compact');
+    navBar.classList.remove('jbAdminStickyTop--compact');
     lastScrollY = window.scrollY;
     scrollDirection = 0;
     scrollDistance = 0;
+    if (compact) updateStickyLayout();
   });
 
   let stickyLayoutFrame = 0;
@@ -6648,6 +6711,232 @@ body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
   .jbQuotaCompact { animation:none !important; }
   .jbPaymentsFooter.is-visible { animation:none; }
   .jbPayment-item-button,.jbPayment-all-button { transition:none; }
+}
+
+/* Reservas: tarjetas legibles, sin comprimir el texto en pantallas pequeñas */
+#reservas-hoy-lista,
+#reservas-dia-seleccionado {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  gap: 12px;
+}
+
+#reservas-hoy-lista {
+  max-height: min(62vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px 6px 6px 0;
+}
+
+#reservas-dia-seleccionado > h4,
+#reservas-hoy-lista > .sin-reservas {
+  grid-column: 1 / -1;
+}
+
+#reservas-hoy-lista .reserva-item,
+#reservas-dia-seleccionado .reserva-item {
+  min-width: 0;
+  margin: 0;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid rgba(228, 166, 79, .25);
+  border-left: 4px solid var(--barber-orange);
+  border-radius: 14px;
+  background: linear-gradient(145deg, #222329, #17181d);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+#reservas-hoy-lista .reserva-item:hover,
+#reservas-dia-seleccionado .reserva-item:hover {
+  transform: translateY(-3px);
+  border-color: rgba(228, 166, 79, .7);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .28);
+}
+
+#reservas-hoy-lista .reserva-info,
+#reservas-dia-seleccionado .reserva-info {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+#reservas-hoy-lista .reserva-info h4,
+#reservas-dia-seleccionado .reserva-info h4 {
+  margin-bottom: 7px;
+  color: #fff;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+#reservas-hoy-lista .reserva-info p,
+#reservas-dia-seleccionado .reserva-info p {
+  margin-top: 4px;
+  color: #c4c5ca;
+  font-size: .88rem;
+  line-height: 1.45;
+}
+
+#reservas-hoy-lista .reserva-item > div:last-child,
+#reservas-dia-seleccionado .reserva-item > div:last-child {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  text-align: left !important;
+}
+
+#reservas-hoy-lista .reserva-hora,
+#reservas-dia-seleccionado .reserva-hora {
+  flex: 1 0 100%;
+  color: #ffd18a;
+  font-size: 1.65rem;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+#reservas-hoy-lista .reserva-item a,
+#reservas-dia-seleccionado .reserva-item a,
+#reservas-hoy-lista .btn-eliminar,
+#reservas-dia-seleccionado .btn-eliminar {
+  flex: 1 1 125px;
+  min-width: 0;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
+  padding: 9px 10px;
+  border-radius: 9px;
+  text-align: center;
+  line-height: 1.25;
+}
+
+#reservas-hoy-lista .btn-eliminar,
+#reservas-dia-seleccionado .btn-eliminar {
+  font-weight: 700;
+}
+
+#reservas-hoy-lista .sin-reservas {
+  margin: 0;
+  border: 1px dashed rgba(228, 166, 79, .35);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .025);
+}
+
+#panel-dia .modal-content {
+  width: min(94vw, 860px);
+  max-width: 860px;
+}
+
+@media (max-width: 700px) {
+  #reservas-hoy-lista {
+    max-height: 52vh;
+  }
+
+  #panel-dia .modal-content {
+    width: 100%;
+    max-width: none;
+  }
+
+  #reservas-hoy-lista .reserva-item,
+  #reservas-dia-seleccionado .reserva-item {
+    padding: 14px;
+  }
+}
+
+#jbAdminStickyTop {
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  padding-bottom: 10px;
+}
+
+#jbAdminStickyTop.jbAdminStickyTop--compact {
+  padding-top: calc(7px + env(safe-area-inset-top, 0px));
+  padding-bottom: 6px;
+}
+
+#admin-panel {
+  padding-top: calc(var(--jb-admin-sticky-height, 140px) + 22px);
+}
+
+body {
+  scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 24px);
+}
+
+.jb-admin-anchor {
+  scroll-margin-top: calc(var(--jb-admin-sticky-height, 140px) + 24px);
+}
+
+.jb-reserva-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 8px;
+  padding: 5px 9px;
+  border: 1px solid rgba(255, 209, 138, .42);
+  border-radius: 999px;
+  background: rgba(228, 166, 79, .12);
+  color: #ffd18a;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  line-height: 1.2;
+}
+
+.jb-reserva-status[hidden] {
+  display: none !important;
+}
+
+.jb-reserva-status::before {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: #ffd18a;
+  content: '';
+  animation: jbReservaIndicador 1.8s ease-in-out infinite;
+}
+
+#reservas-hoy-lista .reserva-item.jb-reserva-proxima {
+  border-color: rgba(255, 209, 138, .8);
+  box-shadow: 0 0 0 1px rgba(228, 166, 79, .2);
+  animation: jbReservaDestacada 2.8s ease-in-out infinite;
+}
+
+#jbAdminNav button.active {
+  box-shadow: 0 0 0 2px rgba(228, 166, 79, .18);
+}
+
+@keyframes jbReservaIndicador {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .48; transform: scale(.78); }
+}
+
+@keyframes jbReservaDestacada {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(228, 166, 79, .18), 0 8px 22px rgba(228, 166, 79, .06); }
+  50% { box-shadow: 0 0 0 2px rgba(228, 166, 79, .34), 0 10px 28px rgba(228, 166, 79, .16); }
+}
+
+@media (max-width: 700px) {
+  #jbAdminStickyTop {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #reservas-hoy-lista .reserva-item,
+  #reservas-dia-seleccionado .reserva-item,
+  #reservas-hoy-lista .reserva-item.jb-reserva-proxima,
+  .jb-reserva-status::before {
+    transition: none;
+    animation: none;
+  }
 }
 </style>
 </body>
