@@ -1549,6 +1549,12 @@ window.addEventListener('load', function(){
                 <button class="btn-logout" onclick="logout()">Salir</button>
             </div>
         </div>
+        <section id="jbAdminRemoteRefresh" style="margin:18px 0;padding:18px;border:1px solid rgba(32,137,255,.45);border-left:5px solid var(--barber-blue);border-radius:14px;background:linear-gradient(145deg,#171c25,#111318);color:#f5f2eb;">
+            <h2 style="margin:0 0 8px;color:#a9d1ff;font-size:1.05rem;">🔄 Actualización remota del administrador</h2>
+            <p style="margin:0 0 14px;color:#c5c6cc;line-height:1.5;">Envía una señal a las sesiones autorizadas que estén conectadas. Se recargarán en 15 segundos para recibir la versión ya publicada; las sesiones con una ventana de edición abierta pausarán la recarga.</p>
+            <button id="jbAdminRemoteRefreshButton" type="button" disabled style="min-height:46px;padding:11px 16px;border:0;border-radius:10px;background:linear-gradient(135deg,#2089ff,#1766c1);color:#fff;font-weight:800;cursor:pointer;">Actualizar todos los dispositivos conectados</button>
+            <p id="jbAdminRemoteRefreshStatus" role="status" aria-live="polite" style="min-height:1.4em;margin:12px 0 0;color:#a9d1ff;">Conectando con Firebase…</p>
+        </section>
         <section id="jbBackupDeveloper" hidden style="margin:18px 0;padding:18px;border:1px solid #e4a64f;border-left:5px solid #e4a64f;border-radius:12px;background:linear-gradient(145deg,#292319,#1b1c20);color:#f5f2eb;">
             <h2 style="margin:0 0 8px;color:#f1c887;font-size:1.05rem;">🛡️ Respaldo anual — Palma Codes</h2>
             <p id="jbBackupDeveloperStatus" style="margin:0 0 12px;line-height:1.55;color:#e5e7eb;">Consultando el estado del recordatorio…</p>
@@ -1710,6 +1716,12 @@ window.addEventListener('load', function(){
             </div>
             <button id="jbDeveloperClientMore" type="button" hidden style="margin-top:12px;min-height:42px;padding:10px 14px;border:1px solid #e4a64f;border-radius:9px;background:transparent;color:#f1c887;font-weight:700;cursor:pointer;">Mostrar más</button>
             <p id="jbDeveloperClientStatus" role="status" aria-live="polite" style="margin:10px 0 0;color:#c5c6cc;"></p>
+        </section>
+        <section id="jbClientProfileMerge" style="margin:18px 0;padding:18px;border:1px solid #8a6740;border-left:5px solid #e4a64f;border-radius:14px;background:#211d18;color:#f5f2eb;">
+            <h2 style="margin:0 0 8px;color:#f1c887;">Unificar perfiles repetidos por WhatsApp</h2>
+            <p style="margin:0 0 14px;color:#d0c8ba;line-height:1.5;">Consolida solo los grupos revisados. Conserva reservas, historial, reseñas y métricas; guarda un respaldo privado de los perfiles originales antes de aplicar cambios. Disponible únicamente para Palma Codes.</p>
+            <button id="jbClientProfileMergeButton" type="button" onclick="jbConsolidarPerfilesRevisados()" style="min-height:44px;padding:10px 14px;border:0;border-radius:9px;background:#e4a64f;color:#21180a;font-weight:800;cursor:pointer;">Preparar y unificar perfiles revisados</button>
+            <p id="jbClientProfileMergeStatus" role="status" aria-live="polite" style="margin:10px 0 0;color:#f1c887;">G2 y G3 no se modificarán.</p>
         </section>
         <div class="jbCtl" id="jbCtl">
             <div>
@@ -1947,6 +1959,215 @@ window.addEventListener('load', function(){
         function jbEsAccesoDesarrollador() {
             return jbCurrentRole === 'developer'
                 && (auth.currentUser?.email || '').toLowerCase() === JB_DEVELOPER_EMAIL;
+        }
+
+        const JB_CLIENT_PROFILE_MERGE_PLAN = [
+            {
+                canonicalSuffix: 'ifRwkf',
+                sourceSuffixes: ['YE-Gjz', 'IdLXZ7', 'SWrerp', '8GtNml', 'ABptkC', 'NmY3jE', 'TQTfCA', 'XTk2RQ'],
+                displayName: 'Palma Codes'
+            },
+            {
+                canonicalSuffix: 'NfFIb2',
+                sourceSuffixes: ['RMxTfX'],
+                displayName: 'Marcelo Navarrete'
+            }
+        ];
+
+        function jbNormalizarTelefonoFusion(valor) {
+            let numero = String(valor || '').replace(/\D/g, '');
+            if (numero.startsWith('00')) numero = numero.slice(2);
+            if (numero.startsWith('56') && numero.length === 11) return numero;
+            if (/^9\d{8}$/.test(numero)) return `56${numero}`;
+            return '';
+        }
+
+        function jbNormalizarNombreFusion(valor) {
+            return String(valor || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9 ]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function jbRecolectarReferenciasClienteFusion(valor, ruta, origenADestino, actualizaciones, referenciasAntes, conteos, coleccion) {
+            if (!valor || typeof valor !== 'object') return;
+            Object.entries(valor).forEach(([clave, hijo]) => {
+                const rutaHija = `${ruta}/${clave}`;
+                const destino = clave === 'clienteId' ? origenADestino[String(hijo)] : null;
+                if (destino) {
+                    actualizaciones[rutaHija] = destino;
+                    referenciasAntes.push({ path: rutaHija, clienteId: hijo });
+                    conteos[coleccion]++;
+                } else {
+                    jbRecolectarReferenciasClienteFusion(hijo, rutaHija, origenADestino, actualizaciones, referenciasAntes, conteos, coleccion);
+                }
+            });
+        }
+
+        async function jbConsolidarPerfilesRevisados() {
+            const boton = document.getElementById('jbClientProfileMergeButton');
+            const estado = document.getElementById('jbClientProfileMergeStatus');
+            if (!jbEsAccesoDesarrollador()) {
+                if (estado) estado.textContent = 'Acción disponible solo en la sesión autorizada de Palma Codes.';
+                return;
+            }
+            if (!boton || !estado) throw new Error('No se encontró el control de consolidación de clientes.');
+
+            boton.disabled = true;
+            estado.textContent = 'Revisando perfiles y referencias; todavía no se modifican datos…';
+            try {
+                const snapshots = await Promise.all([
+                    db.ref('clientes').once('value'),
+                    db.ref('reservas').once('value'),
+                    db.ref('reservas_archivadas').once('value'),
+                    db.ref('chats').once('value'),
+                    db.ref('metricas_experiencia').once('value'),
+                    db.ref('resenas').once('value')
+                ]);
+                const clientes = snapshots[0].val() || {};
+                const colecciones = {
+                    reservas: snapshots[1].val() || {},
+                    reservas_archivadas: snapshots[2].val() || {},
+                    chats: snapshots[3].val() || {},
+                    metricas_experiencia: snapshots[4].val() || {},
+                    resenas: snapshots[5].val() || {}
+                };
+                const encontrarId = sufijo => {
+                    const coincidencias = Object.keys(clientes).filter(id => id.endsWith(sufijo));
+                    if (coincidencias.length !== 1) {
+                        throw new Error(`El perfil terminado en ${sufijo} no es único o ya no existe.`);
+                    }
+                    return coincidencias[0];
+                };
+                const grupos = JB_CLIENT_PROFILE_MERGE_PLAN.map(grupo => {
+                    const canonicalId = encontrarId(grupo.canonicalSuffix);
+                    const sourceIds = grupo.sourceSuffixes.map(encontrarId);
+                    const ids = [...new Set([canonicalId, ...sourceIds])];
+                    if (ids.length !== sourceIds.length + 1) throw new Error('El plan contiene perfiles repetidos.');
+                    const telefono = jbNormalizarTelefonoFusion(clientes[canonicalId] && clientes[canonicalId].telefono);
+                    if (!telefono || ids.some(id => jbNormalizarTelefonoFusion(clientes[id] && clientes[id].telefono) !== telefono)) {
+                        throw new Error(`Los perfiles del grupo ${grupo.displayName} ya no comparten el mismo WhatsApp.`);
+                    }
+                    return { ...grupo, canonicalId, sourceIds, telefono };
+                });
+                const origenADestino = {};
+                grupos.forEach(grupo => grupo.sourceIds.forEach(id => { origenADestino[id] = grupo.canonicalId; }));
+
+                const marcaTiempo = Date.now();
+                const claveRespaldo = `${marcaTiempo}_${Math.random().toString(36).slice(2, 8)}`;
+                const actualizaciones = {};
+                const conteos = {
+                    reservas: 0,
+                    reservas_archivadas: 0,
+                    chats: 0,
+                    metricas_experiencia: 0,
+                    metricas_estado: 0,
+                    resenas: 0
+                };
+                const perfilesAntes = {};
+                const estadosAntes = {};
+                const referenciasAntes = [];
+
+                grupos.forEach(grupo => {
+                    const ids = [grupo.canonicalId, ...grupo.sourceIds];
+                    const perfiles = ids.map(id => clientes[id]).sort((a, b) =>
+                        Number(a.ultimaActividad || 0) - Number(b.ultimaActividad || 0)
+                    );
+                    const perfilFusionado = {};
+                    const cortesFusionados = {};
+                    let ultimaActividad = 0;
+                    let creadoEn = Infinity;
+                    perfiles.forEach(perfil => {
+                        Object.entries(perfil).forEach(([clave, valor]) => {
+                            if (clave === 'cortes' && valor && typeof valor === 'object') {
+                                Object.assign(cortesFusionados, valor);
+                            } else if (clave === 'ultimaActividad') {
+                                ultimaActividad = Math.max(ultimaActividad, Number(valor) || 0);
+                            } else if (clave === 'creadoEn') {
+                                creadoEn = Math.min(creadoEn, Number(valor) || Infinity);
+                            } else {
+                                perfilFusionado[clave] = valor;
+                            }
+                        });
+                    });
+                    perfilFusionado.nombreDisplay = grupo.displayName;
+                    perfilFusionado.nombreNormalizado = jbNormalizarNombreFusion(grupo.displayName);
+                    if (Object.prototype.hasOwnProperty.call(perfilFusionado, 'nombre')) {
+                        perfilFusionado.nombre = grupo.displayName;
+                    }
+                    perfilFusionado.telefono = grupo.telefono;
+                    if (Object.keys(cortesFusionados).length) perfilFusionado.cortes = cortesFusionados;
+                    if (ultimaActividad) perfilFusionado.ultimaActividad = ultimaActividad;
+                    if (Number.isFinite(creadoEn)) perfilFusionado.creadoEn = creadoEn;
+                    actualizaciones[`clientes/${grupo.canonicalId}`] = perfilFusionado;
+
+                    ids.forEach(id => { perfilesAntes[id] = clientes[id]; });
+                    const estadoExperiencia = colecciones.metricas_experiencia.estado || {};
+                    const estadosGrupo = ids
+                        .filter(id => estadoExperiencia[id] && typeof estadoExperiencia[id] === 'object')
+                        .map(id => ({ id, valor: estadoExperiencia[id] }))
+                        .sort((a, b) => Number(a.valor.actualizado || 0) - Number(b.valor.actualizado || 0));
+                    if (estadosGrupo.length) {
+                        const estadoFusionado = Object.assign({}, ...estadosGrupo.map(item => item.valor));
+                        actualizaciones[`metricas_experiencia/estado/${grupo.canonicalId}`] = estadoFusionado;
+                        estadosGrupo.forEach(item => {
+                            estadosAntes[item.id] = item.valor;
+                            if (item.id !== grupo.canonicalId) {
+                                actualizaciones[`metricas_experiencia/estado/${item.id}`] = null;
+                                conteos.metricas_estado++;
+                            }
+                        });
+                    }
+                    grupo.sourceIds.forEach(id => {
+                        actualizaciones[`clientes/${id}`] = null;
+                    });
+                });
+
+                Object.entries(colecciones).forEach(([coleccion, datos]) => {
+                    const datosParaRecorrer = coleccion === 'metricas_experiencia' ? { ...datos } : datos;
+                    if (coleccion === 'metricas_experiencia') delete datosParaRecorrer.estado;
+                    jbRecolectarReferenciasClienteFusion(datosParaRecorrer, coleccion, origenADestino, actualizaciones, referenciasAntes, conteos, coleccion);
+                });
+
+                const cantidadReferencias = Object.values(conteos).reduce((total, cantidad) => total + cantidad, 0);
+                const cantidadPerfiles = Object.values(origenADestino).length;
+                const detalle = Object.entries(conteos)
+                    .filter(([, cantidad]) => cantidad)
+                    .map(([coleccion, cantidad]) => `${cantidad} ${coleccion}`)
+                    .join(', ') || 'sin otras referencias';
+                const confirmar = window.confirm(
+                    `Se unificarán ${cantidadPerfiles} perfiles en 2 perfiles principales y se actualizarán ${cantidadReferencias} referencias (${detalle}). ` +
+                    `G2 y G3 permanecerán intactos. Se guardará un respaldo privado de los perfiles originales. ¿Continuar?`
+                );
+                if (!confirmar) {
+                    estado.textContent = 'Consolidación cancelada; no se modificó ningún dato.';
+                    return;
+                }
+
+                actualizaciones[`clientes_merge_archive/${claveRespaldo}`] = {
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                    canonicalGroups: grupos.map(grupo => ({
+                        canonicalId: grupo.canonicalId,
+                        sourceIds: grupo.sourceIds,
+                        displayName: grupo.displayName,
+                        telefono: grupo.telefono
+                    })),
+                    profilesBefore: perfilesAntes,
+                    experienceStatesBefore: estadosAntes,
+                    referencesBefore: referenciasAntes,
+                    referenceCounts: conteos
+                };
+                await db.ref().update(actualizaciones);
+                estado.textContent = `Consolidación completada: ${cantidadPerfiles} perfiles unificados; respaldo privado ${claveRespaldo}.`;
+            } catch (error) {
+                console.error('No se pudieron consolidar los perfiles revisados:', error);
+                estado.textContent = `No se completó la consolidación: ${error.message}`;
+            } finally {
+                boton.disabled = false;
+            }
         }
 
         function jbConstruirPromptTriaje(ticket) {
@@ -2506,6 +2727,171 @@ RESPONDE EN ESTE FORMATO
             }
         }
 
+        const JB_ADMIN_REFRESH_SOURCE_ID = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        let jbAdminRefreshRef = null;
+        let jbAdminRefreshHandler = null;
+        let jbAdminRefreshTimeout = null;
+        let jbAdminRefreshPendingId = null;
+        let jbAdminRefreshReady = false;
+
+        function jbAdminRefreshSetStatus(message, isError = false) {
+            const status = document.getElementById('jbAdminRemoteRefreshStatus');
+            if (!status) return;
+            status.textContent = message;
+            status.style.color = isError ? '#ffb4b4' : '#a9d1ff';
+        }
+
+        function jbAdminRefreshHasOpenDialog() {
+            return Array.from(document.querySelectorAll('[role="dialog"], .modal-overlay.active, .jb-modal:not([hidden])'))
+                .some(element => !element.hidden && getComputedStyle(element).display !== 'none');
+        }
+
+        function jbAdminRefreshNow() {
+            if (!jbAdminRefreshPendingId) return;
+            if (jbAdminRefreshHasOpenDialog()) {
+                if (jbAdminRefreshTimeout) clearTimeout(jbAdminRefreshTimeout);
+                jbAdminRefreshTimeout = null;
+                const status = document.querySelector('#jbAdminRemoteRefreshNotice p');
+                if (status) status.textContent = 'La recarga se pausó porque hay una ventana abierta. Guarda o cierra la edición y pulsa «Actualizar ahora».';
+                return;
+            }
+            const url = new URL(window.location.href);
+            url.searchParams.set('jb-refresh', jbAdminRefreshPendingId);
+            window.location.replace(url.href);
+        }
+
+        function jbAdminRefreshShowNotice(signalId) {
+            jbAdminRefreshPendingId = signalId;
+            let notice = document.getElementById('jbAdminRemoteRefreshNotice');
+            if (!notice) {
+                notice = document.createElement('section');
+                notice.id = 'jbAdminRemoteRefreshNotice';
+                notice.setAttribute('role', 'status');
+                notice.setAttribute('aria-live', 'polite');
+                notice.style.cssText = 'position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);z-index:100001;width:min(560px,calc(100vw - 24px));padding:16px;border:1px solid rgba(32,137,255,.55);border-radius:14px;background:#171c25;color:#f5f2eb;box-shadow:0 12px 36px rgba(0,0,0,.5);font-family:Poppins,sans-serif;';
+                const message = document.createElement('p');
+                message.style.cssText = 'margin:0 0 12px;color:#dcecff;line-height:1.45;';
+                const actions = document.createElement('div');
+                actions.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;';
+                const refreshButton = document.createElement('button');
+                refreshButton.type = 'button';
+                refreshButton.textContent = 'Actualizar ahora';
+                refreshButton.style.cssText = 'min-height:42px;padding:9px 13px;border:0;border-radius:9px;background:#2089ff;color:#fff;font-weight:800;cursor:pointer;';
+                refreshButton.addEventListener('click', jbAdminRefreshNow);
+                const postponeButton = document.createElement('button');
+                postponeButton.type = 'button';
+                postponeButton.textContent = 'Posponer en este dispositivo';
+                postponeButton.style.cssText = 'min-height:42px;padding:9px 13px;border:1px solid #565e6b;border-radius:9px;background:#252a33;color:#fff;font-weight:700;cursor:pointer;';
+                postponeButton.addEventListener('click', () => {
+                    if (jbAdminRefreshTimeout) clearTimeout(jbAdminRefreshTimeout);
+                    jbAdminRefreshTimeout = null;
+                    message.textContent = 'Actualización pospuesta solo en este dispositivo. Guarda tus cambios y pulsa «Actualizar ahora» cuando estés listo.';
+                    postponeButton.disabled = true;
+                });
+                actions.append(refreshButton, postponeButton);
+                notice.append(message, actions);
+                document.body.appendChild(notice);
+            }
+            const message = notice.querySelector('p');
+            const postponeButton = notice.querySelector('button:last-child');
+            if (message) message.textContent = 'Palma Codes publicó una actualización. Esta sesión se recargará en 15 segundos; guarda cualquier cambio abierto.';
+            if (postponeButton) postponeButton.disabled = false;
+            if (jbAdminRefreshTimeout) clearTimeout(jbAdminRefreshTimeout);
+            jbAdminRefreshTimeout = window.setTimeout(jbAdminRefreshNow, 15000);
+        }
+
+        function jbAdminRefreshStopListening() {
+            if (jbAdminRefreshRef && jbAdminRefreshHandler) {
+                jbAdminRefreshRef.off('value', jbAdminRefreshHandler);
+            }
+            jbAdminRefreshRef = null;
+            jbAdminRefreshHandler = null;
+            jbAdminRefreshPendingId = null;
+            jbAdminRefreshReady = false;
+            const button = document.getElementById('jbAdminRemoteRefreshButton');
+            if (button) button.disabled = true;
+            if (jbAdminRefreshTimeout) clearTimeout(jbAdminRefreshTimeout);
+            jbAdminRefreshTimeout = null;
+            const notice = document.getElementById('jbAdminRemoteRefreshNotice');
+            if (notice) notice.remove();
+        }
+
+        function jbAdminRefreshStartListening() {
+            const user = auth.currentUser;
+            const email = (user?.email || '').toLowerCase();
+            if (!user || ![JB_BARBER_EMAIL, JB_DEVELOPER_EMAIL].includes(email) || jbAdminRefreshRef) return;
+
+            jbAdminRefreshReady = false;
+            const button = document.getElementById('jbAdminRemoteRefreshButton');
+            if (button) button.disabled = true;
+            if (jbEsAccesoDesarrollador()) jbAdminRefreshSetStatus('Conectando con Firebase…');
+            const ref = db.ref('adminRefresh');
+            let isInitialSnapshot = true;
+            let lastSignalId = null;
+            const handler = snapshot => {
+                const signal = snapshot.val();
+                const signalId = signal && typeof signal.id === 'string' ? signal.id : null;
+                if (isInitialSnapshot) {
+                    isInitialSnapshot = false;
+                    lastSignalId = signalId;
+                    jbAdminRefreshReady = true;
+                    if (jbEsAccesoDesarrollador()) {
+                        if (button) button.disabled = false;
+                        jbAdminRefreshSetStatus('Conectado. Puedes avisar a las sesiones abiertas.');
+                    }
+                    return;
+                }
+                if (!signalId || signalId === lastSignalId) return;
+                lastSignalId = signalId;
+                if (signal.sourceId === JB_ADMIN_REFRESH_SOURCE_ID) return;
+                const requestedAt = Number(signal.requestedAt);
+                if (!Number.isFinite(requestedAt) || Date.now() - requestedAt > 5 * 60 * 1000) return;
+                jbAdminRefreshShowNotice(signalId);
+            };
+            jbAdminRefreshRef = ref;
+            jbAdminRefreshHandler = handler;
+            ref.on('value', handler, error => {
+                jbAdminRefreshReady = false;
+                if (button) button.disabled = true;
+                console.error('No se pudo escuchar la señal de actualización remota:', error);
+                const message = `No se pudo recibir la actualización remota: ${error.message}`;
+                if (jbEsAccesoDesarrollador()) jbAdminRefreshSetStatus(message, true);
+                else if (typeof mostrarToast === 'function') mostrarToast(message, true);
+            });
+        }
+
+        async function jbAdminRefreshBroadcast() {
+            const button = document.getElementById('jbAdminRemoteRefreshButton');
+            if (!jbEsAccesoDesarrollador()) {
+                jbAdminRefreshSetStatus('Esta acción está disponible solo en la sesión de desarrollador.', true);
+                return;
+            }
+            if (!jbAdminRefreshReady) {
+                jbAdminRefreshSetStatus('Espera a que la conexión con Firebase esté lista.', true);
+                return;
+            }
+            if (!window.confirm('Se enviará una señal a las sesiones autorizadas conectadas. Se recargarán en 15 segundos; primero publica esta versión del admin. ¿Continuar?')) return;
+
+            button.disabled = true;
+            jbAdminRefreshSetStatus('Enviando la señal a los dispositivos conectados…');
+            try {
+                const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                await db.ref('adminRefresh').set({
+                    id,
+                    sourceId: JB_ADMIN_REFRESH_SOURCE_ID,
+                    requestedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+                jbAdminRefreshSetStatus('Señal enviada. Las sesiones conectadas recibirán el aviso y se recargarán en 15 segundos.');
+            } catch (error) {
+                console.error('No se pudo enviar la actualización remota:', error);
+                jbAdminRefreshSetStatus(`No se pudo enviar la señal: ${error.message}`, true);
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        document.getElementById('jbAdminRemoteRefreshButton').addEventListener('click', jbAdminRefreshBroadcast);
+
         let jbReviewModerationRef = null;
         let jbAutoApproveLegacyReviews = false;
 
@@ -2664,6 +3050,7 @@ RESPONDE EN ESTE FORMATO
             const adminPanel = document.getElementById('admin-panel');
             const developerPanel = document.getElementById('panel-secreto');
             const promptTriagePanel = document.getElementById('jbPromptTriage');
+            jbAdminRefreshStopListening();
             jbDetenerRegistroReservasDeveloper();
             adminPanel.style.display = 'none';
             developerPanel.style.display = 'none';
@@ -2682,10 +3069,12 @@ RESPONDE EN ESTE FORMATO
                 } catch (error) {
                     console.error('No se pudo actualizar el contador de accesos:', error);
                 }
+                jbAdminRefreshStartListening();
                 mostrarPanel();
             } else if (email === JB_DEVELOPER_EMAIL) {
                 jbCurrentRole = 'developer';
                 if (promptTriagePanel) promptTriagePanel.hidden = false;
+                jbAdminRefreshStartListening();
                 mostrarPanelSecreto();
             } else {
                 mostrarErrorLogin('Esta cuenta no está autorizada. Se cerrará la sesión.');
@@ -6153,10 +6542,14 @@ body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
   const STORAGE_KEY = 'jbAdminSeccionActiva';
   const allSectionEls = new Set(sectionDefs.flatMap(def => def.els));
   const navButtons = new Map();
+  let lastActivatedSectionId = null;
 
   function activateSection(id, scrollTop = true) {
     const def = sectionDefs.find(item => item.id === id) || sectionDefs[0];
     if (!def) return;
+    const previousIndex = sectionDefs.findIndex(item => item.id === lastActivatedSectionId);
+    const nextIndex = sectionDefs.findIndex(item => item.id === def.id);
+    const swipeOffset = previousIndex < 0 || nextIndex >= previousIndex ? '64px' : '-64px';
     allSectionEls.forEach(el => {
       el.classList.toggle('jb-sec-off', !def.els.includes(el));
       el.style.gridColumn = '';
@@ -6171,6 +6564,22 @@ body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
     });
     try { localStorage.setItem(STORAGE_KEY, def.id); } catch (error) { /* modo privado: no pasa nada */ }
     if (scrollTop) window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (scrollTop && lastActivatedSectionId !== def.id) {
+      def.els.forEach((element, index) => {
+        element.style.setProperty('--jb-admin-swipe-offset', swipeOffset);
+        element.style.setProperty('--jb-admin-swipe-delay', `${index * 65}ms`);
+        element.classList.remove('jb-admin-section-enter');
+        void element.offsetWidth;
+        element.classList.add('jb-admin-section-enter');
+        element.addEventListener('animationend', event => {
+          if (event.animationName !== 'jbAdminSectionFlow') return;
+          element.classList.remove('jb-admin-section-enter');
+          element.style.removeProperty('--jb-admin-swipe-offset');
+          element.style.removeProperty('--jb-admin-swipe-delay');
+        }, { once: true });
+      });
+    }
+    lastActivatedSectionId = def.id;
   }
 
   sectionDefs.forEach(def => {
@@ -6186,6 +6595,34 @@ body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
   let initialSection = sectionDefs[0] && sectionDefs[0].id;
   try { initialSection = localStorage.getItem(STORAGE_KEY) || initialSection; } catch (error) { /* ignorar */ }
   activateSection(initialSection, false);
+
+  let swipeStart = null;
+  const swipeIgnoreSelector = 'button, a, input, textarea, select, summary, [role="dialog"], .modal-overlay, .jb-modal, #jbAdminNav';
+  adminPanel.addEventListener('pointerdown', event => {
+    if (event.pointerType !== 'touch' || !event.isPrimary || event.button !== 0) return;
+    if (event.target.closest && event.target.closest(swipeIgnoreSelector)) return;
+    swipeStart = { x: event.clientX, y: event.clientY, id: event.pointerId, time: performance.now() };
+  }, { passive: true });
+  adminPanel.addEventListener('pointercancel', () => { swipeStart = null; }, { passive: true });
+  document.addEventListener('pointerup', event => {
+    const start = swipeStart;
+    swipeStart = null;
+    if (!start || event.pointerType !== 'touch' || event.pointerId !== start.id) return;
+    if (getComputedStyle(adminPanel).display === 'none') return;
+    const developerPanel = $('panel-secreto');
+    if (developerPanel && getComputedStyle(developerPanel).display !== 'none') return;
+
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+    if (Math.abs(deltaX) < 72 || Math.abs(deltaX) < Math.abs(deltaY) * 1.35 ||
+        performance.now() - start.time > 1000) return;
+
+    const buttons = Array.from(nav.querySelectorAll('button'));
+    const activeIndex = buttons.findIndex(button => button.classList.contains('active'));
+    const nextIndex = activeIndex + (deltaX < 0 ? 1 : -1);
+    if (activeIndex < 0 || nextIndex < 0 || nextIndex >= buttons.length) return;
+    buttons[nextIndex].click();
+  }, { passive: true });
 
   // El acceso directo "Centro de Ayuda" apunta a una sección que puede estar oculta.
   const openSupport = () => {
@@ -6937,6 +7374,46 @@ body {
     transition: none;
     animation: none;
   }
+}
+
+#admin-panel { touch-action: pan-y; }
+#jbAdminNav { touch-action: pan-x; }
+
+#reservas-hoy-lista {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  overscroll-behavior: auto !important;
+}
+
+@keyframes jbAdminSectionFlow {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--jb-admin-swipe-offset, 64px), 18px, 0) scale(.965);
+    filter: blur(8px) brightness(1.3);
+    box-shadow: 0 0 0 rgba(228, 166, 79, 0);
+  }
+  68% {
+    opacity: 1;
+    transform: translate3d(-5px, 0, 0) scale(1.012);
+    filter: blur(0) brightness(1.06);
+    box-shadow: 0 0 34px rgba(228, 166, 79, .28);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: none;
+    box-shadow: 0 0 0 rgba(228, 166, 79, 0);
+  }
+}
+
+.jb-admin-section-enter {
+  animation: jbAdminSectionFlow .68s cubic-bezier(.16, 1, .3, 1) var(--jb-admin-swipe-delay, 0ms) both;
+  will-change: transform, opacity, filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jb-admin-section-enter { animation: none; will-change: auto; }
 }
 </style>
 </body>
