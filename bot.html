@@ -3150,14 +3150,7 @@ function buscarMisReservasManual() {
         .then(async snapshot => {
             reservasClienteActuales = [];
             const hoyStr = formatearFechaSimple(new Date());
-            const clientesSnapshot = await db.ref('clientes').once('value');
-            const clientesEncontrados = [];
-            clientesSnapshot.forEach(child => {
-                const cliente = child.val() || {};
-                if (normalizarTelefonoRecuperacion(cliente.telefono) === telefono) {
-                    clientesEncontrados.push({ id: child.key, ...cliente });
-                }
-            });
+            const clientesEncontrados = await window.jbBuscarClientesPorTelefono(telefono);
             clientesEncontrados.sort((a, b) => Number(b.ultimaActividad || 0) - Number(a.ultimaActividad || 0));
             let clienteEncontrado = clientesEncontrados[0] || null;
             const idsClientesTelefono = new Set(clientesEncontrados.map(cliente => cliente.id));
@@ -5609,7 +5602,7 @@ const total = document.getElementById("eltotal")?.value || "";
         }
 
         const nuevaReserva = {
-            nombre: nombre,
+            nombre: String(nombre || '').replace(/[\u0000-\u001f<>"'`\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60),
             fecha: fechaInputValor,
             hora: hora,
             servicios: servicios,
@@ -7912,6 +7905,83 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     return 0;
   }
 
+  // ── SEGURIDAD DE IDENTIDAD (v2) ────────────────────────────
+  // La identidad ya NO se decide por el nombre: un nombre repetido no
+  // enlaza con el registro (ni el WhatsApp) de otra persona.
+  function jbLimpiarNombre(s){
+    return String(s||'').replace(/[\u0000-\u001f<>"'`\\]/g,'').replace(/\s+/g,' ').trim().slice(0,60);
+  }
+  async function jbBuscarClientesPorTelefono(numero){
+    const n = normalizarTelefonoRecuperacion(numero);
+    if (!n) return [];
+    const out = new Map();
+    for (const v of [n, '+' + n, n.slice(2)]) {
+      const snap = await db.ref('clientes').orderByChild('telefono').equalTo(v).once('value');
+      snap.forEach(ch => { if (!out.has(ch.key)) out.set(ch.key, { id: ch.key, ...(ch.val() || {}) }); });
+    }
+    return [...out.values()];
+  }
+  window.jbBuscarClientesPorTelefono = jbBuscarClientesPorTelefono;
+  window.jbLimpiarNombre = jbLimpiarNombre;
+  async function jbLimpiarClienteHuerfano(idPrevio, idActual){
+    try {
+      if (!idPrevio || idPrevio === idActual || String(idPrevio).startsWith('local_')) return;
+      const c = (await db.ref('clientes/' + idPrevio).once('value')).val();
+      if (c && !c.telefono && !c.ultimaReservaFecha && !c.reservaId && Date.now() - Number(c.creadoEn || 0) < 6*3600*1000) {
+        await db.ref('clientes/' + idPrevio).remove();
+      }
+    } catch(e) {}
+  }
+  // Nombre ya registrado → se exige el WhatsApp del titular (máx. 3 intentos)
+  function jbVerificarTelefonoChat(candidatos, nombreDisplay, nombreNorm) {
+    const conTel = candidatos.filter(c => c.telefono);
+    const primero = nombreDisplay.split(' ')[0];
+    const crearNuevo = async () => {
+      const id = await jbCrearClienteNuevo(nombreDisplay);
+      jbGuardarSesion(id, nombreDisplay, nombreNorm);
+      jbBot(`¡Bienvenido, ${primero}! 🎉 Ya te registré. ¿En qué te puedo ayudar?`);
+      jbMenuMostrado = true; jbMostrarMenuPrincipal();
+    };
+    const kLock = 'jb_vf_' + nombreNorm; let est = { n: 0, hasta: 0 };
+    try { est = JSON.parse(localStorage.getItem(kLock) || 'null') || est; } catch(e) {}
+    if (!conTel.length) return crearNuevo();
+    if (est.hasta > Date.now()) { jbBot('Por seguridad, la verificación de ese nombre está bloqueada unos minutos. Te registro como cliente nuevo 😊'); return crearNuevo(); }
+    jbBot('Ya hay un cliente registrado con ese nombre 😊 Para proteger sus datos, escribe el WhatsApp con el que reservaste. Si es tu primera vez, toca "Soy nuevo".');
+    jbBloquearInput();
+    let intentos = est.n || 0, ocupado = false;
+    const body = document.getElementById('jbChatBody');
+    const form = document.createElement('div');
+    form.style.cssText = 'display:flex;flex-direction:column;gap:8px;align-self:flex-start;max-width:96%;margin:4px 0 8px;';
+    const input = document.createElement('input');
+    input.type = 'tel'; input.placeholder = '+56 9 1234 5678'; input.autocomplete = 'tel';
+    input.className = 'jbNombreInput'; input.maxLength = 20;
+    const ok = document.createElement('button'); ok.className = 'jbNombreInputBtn'; ok.textContent = 'Verificar ➤';
+    const nuevo = document.createElement('button'); nuevo.className = 'jbHoraBtn'; nuevo.textContent = '🆕 Soy nuevo';
+    const cerrar = () => { form.remove(); jbDesbloquearInput(); };
+    ok.onclick = async () => {
+      if (ocupado) return; ocupado = true; setTimeout(() => ocupado = false, 800);
+      const tel = normalizarTelefonoRecuperacion(input.value);
+      const m = tel && conTel.find(c => c.telefono === tel);
+      if (m) {
+        try { localStorage.removeItem(kLock); } catch(e) {}
+        cerrar(); jbCliente('WhatsApp verificado');
+        jbGuardarSesion(m.clienteId, m.nombreDisplay, m.nombreNorm);
+        jbBot(`¡Hola de nuevo, ${m.nombreDisplay.split(' ')[0]}! 👋 ¿En qué te ayudo hoy?`);
+        jbMenuMostrado = true; jbMostrarMenuPrincipal();
+        return;
+      }
+      intentos++;
+      try { localStorage.setItem(kLock, JSON.stringify({ n: intentos, hasta: intentos >= 3 ? Date.now() + 15*60*1000 : 0 })); } catch(e) {}
+      if (intentos >= 3) { cerrar(); jbBot('No pudimos verificar ese número. Te registro como cliente nuevo 😊'); await crearNuevo(); return; }
+      input.style.borderColor = '#ff6b6b'; input.value = ''; input.placeholder = 'No coincide, intenta de nuevo';
+    };
+    nuevo.onclick = async () => { cerrar(); jbCliente('Soy nuevo'); await crearNuevo(); };
+    input.onkeydown = e => { if (e.key === 'Enter') ok.onclick(); };
+    form.appendChild(input); form.appendChild(ok); form.appendChild(nuevo);
+    body.appendChild(form); jbScrollBottom();
+    setTimeout(() => input.focus(), 100);
+  }
+
   // ── AVATAR DICEBEAR ────────────────────────────────────────
   // Genera URL de avatar cartoon único y consistente por nombre.
   // El color de fondo se deriva del hash del nombre.
@@ -7980,23 +8050,21 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     const numero = String(telefono || '').replace(/[^\d]/g, '');
     if (!/^569\d{8}$/.test(numero)) throw new Error('El WhatsApp debe ser un número chileno válido.');
 
-    const clientesSnapshot = await db.ref('clientes').once('value');
-    const clientes = [];
-    clientesSnapshot.forEach(child => {
-      const cliente = child.val() || {};
-      if (normalizarTelefonoRecuperacion(cliente.telefono) === numero) {
-        clientes.push({ id: child.key, ...cliente });
-      }
-    });
+    const idPrevio = jbSesionCliente && jbSesionCliente.clienteId;
+    const clientes = await jbBuscarClientesPorTelefono(numero);
     clientes.sort((a, b) => Number(b.ultimaActividad || 0) - Number(a.ultimaActividad || 0));
 
     let cliente = clientes[0] || null;
+    // Si el número ya pertenece a otra persona (nombre distinto) no se hereda su perfil ni su historial
+    if (cliente && jbSesionCliente && jbSesionCliente.clienteId && cliente.id !== jbSesionCliente.clienteId &&
+        jbScoreMatch(cliente.nombreDisplay || cliente.nombre, jbSesionCliente.nombreDisplay) === 0) cliente = null;
     if (cliente) {
       const nombre = cliente.nombreDisplay || cliente.nombre || jbSesionCliente && jbSesionCliente.nombreDisplay || 'Cliente';
       jbGuardarSesion(cliente.id, nombre, cliente.nombreNormalizado || jbNormalizar(nombre));
+      jbLimpiarClienteHuerfano(idPrevio, cliente.id);
     } else {
       const perfilActual = jbSesionCliente && jbSesionCliente.clienteId
-        ? clientesSnapshot.child(jbSesionCliente.clienteId).val()
+        ? (await db.ref('clientes/' + jbSesionCliente.clienteId).once('value')).val()
         : null;
       const telefonoActual = normalizarTelefonoRecuperacion(perfilActual && perfilActual.telefono);
       if (jbSesionCliente && jbSesionCliente.clienteId &&
@@ -8031,27 +8099,20 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
   // Resuelve con array de matches ordenados por score desc.
   async function jbBuscarCliente(textoEscrito) {
     const escrito = jbNormalizar(textoEscrito);
-    const snap = await db.ref('clientes').once('value');
-    if (!snap.exists()) return [];
-
+    if (!escrito) return [];
+    // Consulta indexada solo por nombre exacto (ya no se descarga toda la base de clientes)
+    const snap = await db.ref('clientes').orderByChild('nombreNormalizado').equalTo(escrito).once('value');
     const matches = [];
     snap.forEach(child => {
-      const c = child.val();
-      const score = jbScoreMatch(c.nombreNormalizado || c.nombre, escrito);
-      if (score > 0) {
-        matches.push({
-          clienteId:        child.key,
-          nombreDisplay:    c.nombreDisplay || c.nombre || textoEscrito,
-          nombreNorm:       c.nombreNormalizado || jbNormalizar(c.nombre || ''),
-          score,
-          ultimaReservaServicio: c.ultimaReservaServicio || null,
-          ultimaReservaFecha:    c.ultimaReservaFecha || null
-        });
-      }
+      const c = child.val() || {};
+      matches.push({
+        clienteId:     child.key,
+        nombreDisplay: c.nombreDisplay || c.nombre || textoEscrito,
+        nombreNorm:    c.nombreNormalizado || escrito,
+        score:         100,
+        telefono:      normalizarTelefonoRecuperacion(c.telefono)
+      });
     });
-
-    // Ordenar: score 100 primero, luego 70, luego por fecha de actividad
-    matches.sort((a, b) => b.score - a.score);
     return matches;
   }
 
@@ -8120,7 +8181,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
   // ── FLUJO PRINCIPAL DE IDENTIFICACIÓN ──────────────────────
   // Llamar esto al abrir el chat si no hay sesión en localStorage.
   async function jbIdentificarCliente(textoNombre) {
-    const nombreDisplay = textoNombre.trim();
+    const nombreDisplay = jbLimpiarNombre(textoNombre);
     const nombreNorm    = jbNormalizar(nombreDisplay);
 
     if (nombreNorm.length < 2) {
@@ -8144,46 +8205,9 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
         return;
       }
 
-      // CASO 1: match exacto (score 100) único → acceso directo
-      const exactos = matches.filter(m => m.score === 100);
-      if (exactos.length === 1) {
-        jbActualizarNombreSiMasCompleto(exactos[0].clienteId, exactos[0].nombreNorm, nombreNorm, nombreDisplay);
-        jbGuardarSesion(exactos[0].clienteId, exactos[0].nombreDisplay, exactos[0].nombreNorm);
-        jbBot(`¡Hola de nuevo, ${exactos[0].nombreDisplay.split(' ')[0]}! 👋 ¿En qué te ayudo hoy?`);
-        jbMenuMostrado = true;
-        jbMostrarMenuPrincipal();
-        return;
-      }
-
-      // CASO 2: match parcial (score 70) único → acceso directo + enriquece nombre
-      const parciales = matches.filter(m => m.score === 70);
-      if (exactos.length === 0 && parciales.length === 1) {
-        jbActualizarNombreSiMasCompleto(parciales[0].clienteId, parciales[0].nombreNorm, nombreNorm, nombreDisplay);
-        jbGuardarSesion(parciales[0].clienteId, parciales[0].nombreDisplay, parciales[0].nombreNorm);
-        jbBot(`¡Hola de nuevo, ${parciales[0].nombreDisplay.split(' ')[0]}! 👋 ¿En qué te ayudo hoy?`);
-        jbMenuMostrado = true;
-        jbMostrarMenuPrincipal();
-        return;
-      }
-
-      // CASO 3: varios con score exacto → desempate por servicio
-      if (exactos.length > 1) {
-        jbMostrarDesempateServicios(exactos);
-        return;
-      }
-
-      // CASO 4: varios con score 70 → desempate por servicio
-      if (parciales.length > 1) {
-        jbMostrarDesempateServicios(parciales);
-        return;
-      }
-
-      // CASO 5 (fallback): mezcla confusa → tratar como nuevo
-      const clienteId = await jbCrearClienteNuevo(nombreDisplay);
-      jbGuardarSesion(clienteId, nombreDisplay, nombreNorm);
-      jbBot(`¡Bienvenido, ${nombreDisplay.split(' ')[0]}! 🎉 ¿En qué te puedo ayudar?`);
-      jbMenuMostrado = true;
-      jbMostrarMenuPrincipal();
+      // Nombre ya existente: nunca se enlaza solo por nombre; se verifica el WhatsApp
+      jbVerificarTelefonoChat(matches, nombreDisplay, nombreNorm);
+      return;
 
     } catch(err) {
       console.error('jbIdentificarCliente error:', err);
@@ -8212,7 +8236,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     const btn = document.createElement('button');
     btn.className = 'jbNombreInputBtn'; btn.textContent = '\u2192';
     async function enviar() {
-      const val = input.value.trim();
+      const val = jbLimpiarNombre(input.value);
       if (val.length < 2) { input.style.borderColor = '#ff6b6b'; input.focus(); return; }
       form.remove(); jbDesbloquearInput(); jbCliente(val);
       await jbIdentificarCliente(val);
@@ -8349,6 +8373,12 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       if (!perfil || !perfil.clienteId || !perfil.nombreDisplay) return;
 
       jbSesionCliente = perfil;
+      // Anti-manipulación: si el clienteId guardado no corresponde al nombre registrado, se descarta la sesión
+      if (perfil.nombreNorm && !String(perfil.clienteId).startsWith('local_')) {
+        db.ref('clientes/' + perfil.clienteId + '/nombreNormalizado').once('value', sn => {
+          if (sn.val() && sn.val() !== perfil.nombreNorm) { localStorage.removeItem('jb_perfil'); jbSesionCliente = null; }
+        });
+      }
     // Restaurar teléfono guardado en la sesión del cliente
     if(perfil && perfil.clienteId && !perfil.telefono){
       db.ref('clientes/'+perfil.clienteId+'/telefono').once('value', s => {
@@ -8963,7 +8993,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     btn.textContent = 'Continuar ➤';
 
     async function confirmarNombre() {
-      const val = input.value.trim();
+      const val = jbLimpiarNombre(input.value);
       if (val.length < 2) {
         input.style.borderColor = '#ff6b6b';
         input.focus();
@@ -8987,6 +9017,11 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
           ultimaActividad:   Date.now()
         }).catch(() => {});
         jbReserva.nombre = val;
+        // Sincroniza el nuevo nombre: chat y reservas futuras del mismo cliente
+        jbChatRef.update({ nombreCliente: val }).catch(() => {});
+        db.ref('reservas').orderByChild('clienteId').equalTo(String(jbSesionCliente.clienteId)).once('value').then(sn => {
+          sn.forEach(ch => { const r = ch.val() || {}; if (new Date(r.fecha + 'T' + (r.hora || '23:59')) > new Date()) ch.ref.update({ nombre: val }).catch(() => {}); });
+        }).catch(() => {});
       } else {
         // Identificar y luego continuar con la reserva
         await jbIdentificarClienteSilencioso(val);
@@ -9013,16 +9048,8 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
   async function jbIdentificarClienteSilencioso(nombreDisplay) {
     try {
       const nombreNorm = jbNormalizar(nombreDisplay);
-      const matches    = await jbBuscarCliente(nombreDisplay);
-      let clienteId;
-
-      if (matches.length === 0) {
-        clienteId = await jbCrearClienteNuevo(nombreDisplay);
-      } else {
-        const mejor = matches[0]; // score más alto
-        jbActualizarNombreSiMasCompleto(mejor.clienteId, mejor.nombreNorm, nombreNorm, nombreDisplay);
-        clienteId = mejor.clienteId;
-      }
+      // Registro nuevo; si el WhatsApp ya existe, jbVincularClienteWhatsapp enlaza con su dueño real
+      let clienteId = await jbCrearClienteNuevo(nombreDisplay);
 
       jbGuardarSesion(clienteId, nombreDisplay, nombreNorm);
     } catch(e) {
@@ -10531,7 +10558,7 @@ if(legacyKey){
       const totalServicios = jbReserva.servicios.reduce((a,s)=>a+s.precio,0);
       const total = totalServicios + (Number(jbReserva.producto && jbReserva.producto.precio) || 0);
       const nuevaReserva = {
-        nombre:   jbReserva.nombre,
+        nombre:   jbLimpiarNombre((jbSesionCliente && jbSesionCliente.nombreDisplay) || jbReserva.nombre),
         fecha:    jbReserva.fecha,
         hora:     jbReserva.hora,
         servicios: serviciosTexto,
@@ -11078,7 +11105,7 @@ async function jbLiberarBloqueoReserva(r){
     }
 
     // 3. Firebase por nombre exacto (fallback)
-    if (reservasFirebase.length === 0 && jbSesionCliente && jbSesionCliente.nombreDisplay) {
+    if (false && jbSesionCliente && jbSesionCliente.nombreDisplay) { // desactivado: buscar por nombre exponía reservas de homónimos
       try {
         const ahora = new Date();
         const snap = await db.ref('reservas').orderByChild('nombre').equalTo(jbSesionCliente.nombreDisplay).once('value');
@@ -11099,7 +11126,7 @@ async function jbLiberarBloqueoReserva(r){
           const snap = await db.ref('reservas').orderByChild('telefono').equalTo(variante).once('value');
           snap.forEach(ch => {
             const r = ch.val();
-            if (r && !idsYa.has(ch.key) && new Date(r.fecha + 'T' + (r.hora || '23:59')) > ahora) {
+            if (r && !idsYa.has(ch.key) && (!r.clienteId || r.clienteId === jbSesionCliente.clienteId) && new Date(r.fecha + 'T' + (r.hora || '23:59')) > ahora) {
               idsYa.add(ch.key);
               reservasFirebase.push({ ...r, id: ch.key });
             }
@@ -14637,7 +14664,7 @@ window.addEventListener('load', function() {
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    const nombre = nameInput.value.trim();
+    const nombre = String((profile && profile.nombreDisplay) ? profile.nombreDisplay : nameInput.value).replace(/[\u0000-\u001f<>"'`\\]/g,'').replace(/\s+/g,' ').trim().slice(0,60);
     const texto = textInput.value.trim();
     const rating = selectedRating;
     if (!nombre || !rating || !texto) {
