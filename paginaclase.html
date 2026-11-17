@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Funciones de Convivencia Escolar Positiva · Niños de 5 a 7 años</title>
+<meta name="description" content="Funciones infantiles lúdicas para prevenir el bullying y fomentar empatía, respeto y solidaridad. Cuentos, títeres, relajación y juego.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--sky:#cfe8f7;--sky2:#a9d3ee;--mint:#d4eedd;--mint2:#9fd6b4;--coral:#ffc9bd;--coral2:#f59a86;--sun:#fff0c2;--lav:#e3dbf5;--ink:#2f3e4e;--soft:#5c6b7a;--bg:#fbfdff;--card:#fff;--r:14px;--sh:0 10px 30px rgba(80,120,160,.14)}
+*{box-sizing:border-box;margin:0}html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{font:17px/1.65 Nunito,system-ui,sans-serif;color:var(--ink);background:var(--bg)}
+h1,h2,h3{font-family:'Baloo 2',cursive;line-height:1.15}
+h2{font-size:clamp(1.8rem,4vw,2.6rem)}svg.i{width:1em;height:1em;vertical-align:-.15em}
+a{color:inherit}.wrap{max-width:1140px;margin:auto;padding:0 20px}section{padding:84px 0}
+.eyebrow{display:inline-block;background:var(--sun);padding:4px 14px;border-radius:99px;font-weight:700;font-size:.85rem;margin-bottom:10px}
+.lead{color:var(--soft);max-width:680px;margin:10px 0 36px}
+.btn{display:inline-flex;gap:8px;align-items:center;border:0;cursor:pointer;font:700 1rem Nunito;padding:13px 26px;border-radius:12px;background:var(--coral2);color:#fff;text-decoration:none;box-shadow:0 6px 16px rgba(245,154,134,.45);transition:.25s}
+.btn:hover{transform:translateY(-3px)}.btn.alt{background:#fff;color:var(--ink);box-shadow:var(--sh)}
+header{position:sticky;top:0;z-index:50;background:rgba(251,253,255,.88);backdrop-filter:blur(12px);border-bottom:1px solid #e8f0f7}
+nav{display:flex;align-items:center;justify-content:space-between;height:70px}
+.brand{display:flex;align-items:center;gap:10px;font:800 1.2rem 'Baloo 2';text-decoration:none}
+.brand img,.brand .logo-fb{height:46px;width:auto}
+nav ul{display:flex;gap:6px;list-style:none;padding:0}nav ul a{padding:8px 12px;border-radius:10px;text-decoration:none;font-weight:700;font-size:.95rem}nav ul a:hover,nav ul a.on{background:var(--sky)}
+#burger{display:none;background:var(--sky);border:0;border-radius:12px;padding:8px;font-size:1.5rem}
+#bar{position:fixed;top:0;left:0;height:4px;background:var(--coral2);width:0;z-index:99}
+.hero{background:linear-gradient(160deg,var(--sky),var(--mint) 60%,var(--sun));position:relative;overflow:hidden;padding:90px 0 110px}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.hero h1{font-size:clamp(2.2rem,5.5vw,3.8rem)}.hero p{margin:18px 0 28px;font-size:1.15rem}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}.chip{background:#fff;padding:7px 14px;border-radius:99px;font-weight:700;font-size:.9rem;box-shadow:var(--sh);display:flex;gap:6px;align-items:center}
+.blob{position:absolute;border-radius:50%;opacity:.5;filter:blur(2px);animation:fl 9s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-24px)}}
+.slot{position:relative;border-radius:var(--r);overflow:hidden;background:linear-gradient(135deg,var(--lav),var(--sky));min-height:260px;box-shadow:var(--sh);cursor:pointer}
+.slot img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}
+.slot .ph{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:16px;font-size:.85rem;color:var(--soft)}
+.slot .ph svg{width:56px;height:56px;display:block;margin:0 auto 6px}
+.grid{display:grid;gap:22px}.g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:var(--card);border-radius:var(--r);padding:26px;box-shadow:var(--sh);transition:.3s}.card:hover{transform:translateY(-6px)}
+.ico{width:60px;height:60px;border-radius:14px;display:grid;place-items:center;font-size:30px;margin-bottom:14px}
+.tl{position:relative;display:grid;gap:16px;padding-left:34px}.tl:before{content:"";position:absolute;left:14px;top:6px;bottom:6px;width:4px;border-radius:4px;background:linear-gradient(var(--sky2),var(--mint2),var(--coral2))}
+.step{background:#fff;border-radius:var(--r);padding:18px 22px;box-shadow:var(--sh);display:flex;gap:16px;align-items:center;position:relative}
+.step:before{content:"";position:absolute;left:-28px;width:16px;height:16px;border-radius:50%;background:#fff;border:4px solid var(--coral2)}
+.step .ico{margin:0;flex:none}.step b{font-family:'Baloo 2';font-size:1.15rem}.min{margin-left:auto;background:var(--sun);padding:4px 12px;border-radius:99px;font-weight:700;white-space:nowrap}
+.alt-bg{background:linear-gradient(180deg,#f2f9ff,#f3fbf6)}
+.tabs{display:inline-flex;background:var(--sky);border-radius:99px;padding:5px;margin-bottom:22px}.tabs button{border:0;background:none;padding:10px 22px;border-radius:99px;font:700 1rem Nunito;cursor:pointer}.tabs .on{background:#fff;box-shadow:var(--sh)}
+form{background:#fff;border-radius:var(--r);padding:30px;box-shadow:var(--sh);display:grid;grid-template-columns:1fr 1fr;gap:16px}
+label{font-weight:700;font-size:.92rem;display:grid;gap:6px}.full{grid-column:1/-1}
+input,select,textarea{font:inherit;padding:12px 14px;border:2px solid #dce9f3;border-radius:14px;background:#fbfdff}input:focus,select:focus,textarea:focus{outline:0;border-color:var(--sky2);box-shadow:0 0 0 4px var(--sky)}
+.err{color:#c0503a;font-size:.85rem;min-height:1em;font-weight:600}.ok{background:var(--mint);padding:20px;border-radius:var(--r);display:none;margin-top:18px;font-weight:600}
+.tw{overflow-x:auto;border-radius:var(--r);box-shadow:var(--sh);background:#fff}table{border-collapse:collapse;width:100%;min-width:720px}th,td{padding:14px 16px;text-align:center;border-bottom:1px solid #edf3f8}th{background:var(--sky);font-family:'Baloo 2'}td:first-child,th:first-child{text-align:left;font-weight:700}th.me,td.me{background:#fff8e0}
+.y{color:#3d9a63}.n{color:#c0503a}.m{color:#c99a1a}
+details{background:#fff;border-radius:12px;padding:16px 20px;box-shadow:var(--sh);margin-bottom:12px}summary{font-weight:700;cursor:pointer}details p{margin-top:10px;color:var(--soft)}
+.todo{background:var(--coral);padding:1px 8px;border-radius:8px;font-size:.85em;font-weight:700}
+footer{background:var(--ink);color:#dbe7f2;padding:50px 0 30px}footer a{opacity:.85}
+#cbBtn{position:fixed;right:20px;bottom:20px;z-index:80;width:64px;height:64px;border-radius:50%;border:0;background:var(--coral2);color:#fff;font-size:30px;cursor:pointer;box-shadow:0 8px 24px rgba(245,154,134,.6)}
+#cb{position:fixed;right:20px;bottom:96px;z-index:80;width:min(380px,calc(100vw - 40px));height:min(560px,70vh);background:#fff;border-radius:24px;box-shadow:0 20px 60px rgba(40,70,100,.28);display:none;flex-direction:column;overflow:hidden}
+#cb.open{display:flex}#cb header{position:static;background:linear-gradient(120deg,var(--sky2),var(--mint2));padding:14px 18px;font:800 1.1rem 'Baloo 2';display:flex;justify-content:space-between}
+#msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}.b{padding:10px 14px;border-radius:16px;max-width:88%;font-size:.95rem;line-height:1.5}.bot{background:var(--sky);border-bottom-left-radius:4px}.me{background:var(--sun);align-self:flex-end;border-bottom-right-radius:4px}
+#opts{padding:10px;display:flex;flex-wrap:wrap;gap:7px;border-top:1px solid #eef3f8;max-height:42%;overflow:auto}#opts button{border:2px solid var(--sky2);background:#fff;border-radius:99px;padding:6px 13px;font:700 .85rem Nunito;cursor:pointer}#opts button:hover{background:var(--sky)}
+@media(max-width:860px){.hero .wrap{grid-template-columns:1fr}form{grid-template-columns:1fr}#burger{display:block}nav ul{display:none;position:absolute;top:70px;left:0;right:0;background:#fff;flex-direction:column;padding:12px;box-shadow:var(--sh)}nav ul.open{display:flex}.step{flex-wrap:wrap}.min{margin-left:0}section{padding:60px 0}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.rv{opacity:0;transform:translateY(26px);transition:.7s}.rv.in{opacity:1;transform:none}
+
+.hero{padding:0;min-height:min(88vh,780px);display:flex;align-items:center;background:var(--sky)}
+.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(207,232,247,.96),rgba(212,238,221,.72) 55%,rgba(255,240,194,.1));pointer-events:none;z-index:1}
+.hero .wrap{position:relative;z-index:2;display:block;width:100%}.hc{max-width:640px;padding:60px 0}
+.herobg{position:absolute;inset:0;border-radius:0;box-shadow:none;min-height:0!important;z-index:0}.herobg .ph{place-items:end center}
+.bk{background:#fff;border-radius:var(--r);padding:30px;box-shadow:var(--sh);display:grid;gap:22px}
+.q>b{display:block;margin-bottom:10px;font-family:'Baloo 2';font-size:1.1rem}.opt{display:flex;flex-wrap:wrap;gap:9px}
+.opt button{border:2px solid var(--sky2);background:#fff;border-radius:12px;padding:9px 18px;font:700 .95rem Nunito;cursor:pointer;transition:.2s;display:inline-flex;gap:6px;align-items:center}
+.opt button:hover{background:var(--sky)}.opt button.on{background:var(--mint2);border-color:var(--mint2);color:#17402a;transform:scale(1.05)}
+.opt.num button{width:46px;height:46px;padding:0;justify-content:center;border-radius:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.chk{display:flex;gap:10px;font-weight:600;align-items:center}.chk input{width:20px;height:20px}
+.btn.wa{background:#5cc98a;box-shadow:0 6px 16px rgba(92,201,138,.5);justify-self:start;font-size:1.05rem}
+.guide{background:linear-gradient(120deg,var(--lav),var(--sky));border-radius:var(--r);padding:20px 26px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:22px;font-weight:700}
+dialog{border:0;border-radius:var(--r);max-width:680px;width:92vw;max-height:84vh;padding:0;box-shadow:0 30px 80px rgba(40,70,100,.35)}dialog::backdrop{background:rgba(47,62,78,.45)}
+.dh{position:sticky;top:0;background:linear-gradient(120deg,var(--sky),var(--mint));padding:18px 26px;display:flex;justify-content:space-between;align-items:center}.dh h2{font-size:1.5rem}.dh button{border:0;background:#fff;border-radius:50%;width:38px;height:38px;font-size:1.1rem;cursor:pointer}
+.db{padding:10px 26px 26px}.db h3{margin-top:18px;font-size:1.1rem}.db p{color:var(--soft)}
+#cbBtn{width:auto;height:auto;border-radius:99px;padding:10px 22px 10px 12px;display:flex;align-items:center;gap:10px;font:800 1rem 'Baloo 2';animation:pl 2.4s infinite}
+#cbBtn .av{width:44px;height:44px;border-radius:50%;background:#fff;color:var(--coral2);display:grid;place-items:center;font-size:26px}
+@keyframes pl{0%{box-shadow:0 0 0 0 rgba(245,154,134,.7)}70%{box-shadow:0 0 0 18px rgba(245,154,134,0)}100%{box-shadow:0 0 0 0 rgba(245,154,134,0)}}
+#nudge{position:fixed;right:20px;bottom:92px;z-index:79;background:#fff;border-radius:18px 18px 4px 18px;padding:14px 38px 14px 16px;box-shadow:var(--sh);font-weight:700;max-width:260px;display:none;animation:fl 3s ease-in-out infinite}
+#nudge button{position:absolute;top:4px;right:8px;border:0;background:none;cursor:pointer;font-size:1rem}
+#cb{bottom:100px}#cb header .av{width:38px;height:38px;border-radius:50%;background:#fff;display:inline-grid;place-items:center;margin-right:10px;vertical-align:middle;color:var(--coral2)}
+#cf input{border:2px solid var(--sky2);border-radius:12px;padding:8px 14px;font:inherit;min-width:0}
+@media(max-width:860px){.two{grid-template-columns:1fr}.hc{padding:40px 0}}
+.two2{display:grid;grid-template-columns:1.4fr 1fr;gap:22px;margin-top:36px}.two2 .slot{min-height:320px}
+.slot.sm{width:110px;height:80px;min-height:0;flex:none;border-radius:10px;box-shadow:none}.sm .ph svg{width:30px;height:30px;margin:0}
+.gal{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.gal .slot{min-height:240px}.gal .slot:nth-child(1),.gal .slot:nth-child(4){grid-row:span 2;min-height:496px}
+.card>.slot{margin-bottom:16px;min-height:150px;box-shadow:none}
+@media(max-width:860px){.two2,.gal{grid-template-columns:1fr 1fr}.two2{grid-template-columns:1fr}.gal .slot:nth-child(1),.gal .slot:nth-child(4){grid-row:auto;min-height:240px}}
+</style>
+</head>
+<body>
+<!-- GUÍA DE IMÁGENES: todas son .jpg dentro de la carpeta img/ junto a este archivo (más logo.png en la raíz).
+hero, que, profesional, valores, beneficio-ninos, beneficio-familias, beneficio-escuelas, galeria1..6, actividad1..7, personaje1..4.
+Si un archivo no existe se ve un recuadro con la descripción de la imagen que va ahí. -->
+<div id="bar"></div>
+<!-- ICONOS SVG (sprite) -->
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="book" viewBox="0 0 24 24"><path d="M4 5c3-1.5 6-1.5 8 .5 2-2 5-2 8-.5v13c-3-1.5-6-1.5-8 .5-2-2-5-2-8-.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 5.5V19" stroke="currentColor" stroke-width="1.8"/></symbol>
+<symbol id="brush" viewBox="0 0 24 24"><path d="M14 4l6 6-8 8c-2 2-5 1-8 2 1-3 0-6 2-8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7" cy="17" r="1.3" fill="currentColor"/></symbol>
+<symbol id="pup" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M6 21c0-6 3-8 6-8s6 2 6 8" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10.5" cy="7.5" r=".8" fill="currentColor"/><circle cx="13.5" cy="7.5" r=".8" fill="currentColor"/></symbol>
+<symbol id="lotus" viewBox="0 0 24 24"><path d="M12 5c3 3 3 9 0 13-3-4-3-10 0-13zM3 11c5 0 8 3 9 7-5 0-8-2-9-7zm18 0c-5 0-8 3-9 7 5 0 8-2 9-7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+<symbol id="ball" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3c3 4 3 14 0 18M3 12h18M5 6c4 2 10 2 14 0M5 18c4-2 10-2 14 0" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+<symbol id="apple" viewBox="0 0 24 24"><path d="M12 8c-3-2-7 0-7 5 0 4 3 8 5 8 1 0 1.5-.6 2-.6s1 .6 2 .6c2 0 5-4 5-8 0-5-4-7-7-5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 8c0-2 1-3 3-4" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+<symbol id="heart" viewBox="0 0 24 24"><path d="M12 20S3 14.5 3 8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 2.5C21 14.5 12 20 12 20z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+<symbol id="flag" viewBox="0 0 24 24"><path d="M6 21V4m0 1c5-2 7 2 12 0v8c-5 2-7-2-12 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+<symbol id="hand" viewBox="0 0 24 24"><path d="M8 13V6a1.5 1.5 0 0 1 3 0v5m0-6a1.5 1.5 0 0 1 3 0v6m0-4a1.5 1.5 0 0 1 3 0v8c0 4-3 6-6 6s-5-2-6-5l-2-4a1.5 1.5 0 0 1 3-1l2 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 14c2 3 6 3 8 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/></symbol>
+<symbol id="shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+<symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+<symbol id="cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+<symbol id="school" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6v10H3z M9 20v-6h6v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+<symbol id="chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="9" cy="10.5" r="1" fill="currentColor"/><circle cx="12.5" cy="10.5" r="1" fill="currentColor"/><circle cx="16" cy="10.5" r="1" fill="currentColor"/></symbol>
+<symbol id="bird" viewBox="0 0 24 24"><path d="M3 15c4 0 6-2 7-5 1-3 4-4 7-2l4 2-4 1c0 5-4 9-9 8-3-.5-5-2-5-4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="16" cy="9" r=".9" fill="currentColor"/></symbol>
+<symbol id="paw" viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="5" ry="4" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="5.5" cy="10.5" r="2" fill="currentColor"/><circle cx="9.5" cy="5.5" r="2" fill="currentColor"/><circle cx="14.5" cy="5.5" r="2" fill="currentColor"/><circle cx="18.5" cy="10.5" r="2" fill="currentColor"/></symbol>
+<symbol id="img" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10" r="2" fill="currentColor"/><path d="M4 18l5-5 4 4 3-3 4 4" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+<symbol id="star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.7 6.3.8-4.6 4.3 1.2 6.2L12 17l-5.6 3 1.2-6.2L3 9.5l6.3-.8z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+<symbol id="mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+<symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6M16 5a3.5 3.5 0 0 1 0 7M18 14c3 .5 4 3 4 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+</defs></svg>
+
+<header><div class="wrap"><nav>
+<a class="brand" href="#inicio">
+ <!-- LOGO: coloca tu archivo logo.png junto a este HTML -->
+ <img src="logo.png" alt="Logo" id="logo" onerror="this.style.display='none';document.getElementById('lf').style.display='block'">
+ <svg id="lf" class="logo-fb" style="display:none;color:var(--coral2)" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#cfe8f7"/><path d="M24 36S11 28 11 20a6.5 6.5 0 0 1 13-2 6.5 6.5 0 0 1 13 2c0 8-13 16-13 16z" fill="currentColor"/></svg>
+ <span id="brandName">Nombre del Proyecto</span></a>
+<button id="burger" aria-label="Menú" onclick="document.querySelector('nav ul').classList.toggle('open')">☰</button>
+<ul><li><a href="#que">¿Qué hacemos?</a></li><li><a href="#actividades">Actividades</a></li><li><a href="#valores">Valores</a></li><li><a href="#personajes">Personajes</a></li><li><a href="#galeria">Galería</a></li><li><a href="#comparativa">Comparativa</a></li><li><a href="#reservar">Reservar</a></li><li><a href="#faq">Preguntas</a></li><li><a href="#" onclick="openTC(event)">Términos</a></li></ul>
+</nav></div></header>
+
+<main>
+<section class="hero" id="inicio">
+<!-- IMAGEN PRINCIPAL (img/hero.jpg, 1920x1080, horizontal): niños y niñas felices pintando o jugando junto a ilustraciones de animales y aves de Chile. Zona izquierda más despejada porque ahí va el texto. -->
+<div class="slot herobg" data-src="img/hero.jpg" data-label="Portada: niños felices pintando y jugando con animales de Chile (img/hero.jpg, 1920×1080)"></div>
+<div class="wrap"><div class="hc">
+<span class="eyebrow">Para niños y niñas de 5 a 7 años</span>
+<h1>Aprender a convivir también puede ser un juego</h1>
+<p>Una función de 60 a 90 minutos con cuentos de animales y aves de la Región Metropolitana, títeres, pintura, relajación y juego guiado para prevenir el bullying y cultivar empatía, respeto y solidaridad.</p>
+<a class="btn" href="#reservar" onclick="openChat('bk');return false"><svg class="i"><use href="#chat"/></svg> Reservar conversando</a> <a class="btn alt" href="#reservar">Usar el formulario</a>
+<div class="chips"><span class="chip"><svg class="i"><use href="#clock"/></svg>60–90 min</span><span class="chip"><svg class="i"><use href="#users"/></svg>Máx. 12 niños</span><span class="chip"><svg class="i"><use href="#shield"/></svg>Espacio seguro</span></div>
+</div></div></section>
+
+
+<section id="que"><div class="wrap rv">
+<span class="eyebrow">¿Qué hacemos?</span><h2>Una experiencia educativa que se siente como una fiesta</h2>
+<p class="lead">Somos <span class="todo" data-todo="nombre y presentación de la psicopedagoga">[PRESENTACIÓN DE LA PROFESIONAL]</span>: psicopedagoga con formación en yoga infantil, relajación y sonoterapia. Creamos funciones donde los niños viven la convivencia positiva en lugar de escucharla en una charla.</p>
+<div class="grid g4">
+<div class="card"><div class="ico" style="background:var(--sky)"><svg class="i"><use href="#users"/></svg></div><h3>Grupo etario</h3><p>Niños y niñas de 5 a 7 años.</p></div>
+<div class="card"><div class="ico" style="background:var(--mint)"><svg class="i"><use href="#clock"/></svg></div><h3>Duración</h3><p>Entre 60 y 90 minutos, con ritmo variado.</p></div>
+<div class="card"><div class="ico" style="background:var(--coral)"><svg class="i"><use href="#shield"/></svg></div><h3>Grupos reducidos</h3><p>Hasta 12 niños para atención personalizada.</p></div>
+<div class="card"><div class="ico" style="background:var(--lav)"><svg class="i"><use href="#heart"/></svg></div><h3>Enfoque</h3><p>Prevención del bullying con juego y expresión.</p></div></div>
+<div class="two2">
+<!-- IMAGEN (img/que.jpg, horizontal): niños y niñas de 5 a 7 años sentados en círculo sobre una alfombra, escuchando atentos un cuento. Luz cálida, ambiente acogedor. -->
+<div class="slot" data-src="img/que.jpg" data-label="Niños en círculo escuchando un cuento (img/que.jpg)"></div>
+<!-- IMAGEN (img/profesional.jpg, vertical): retrato cercano y sonriente de la psicopedagoga, idealmente con un títere o un libro de cuentos en las manos. -->
+<div class="slot" data-src="img/profesional.jpg" data-label="Retrato de la psicopedagoga con un títere (img/profesional.jpg)"></div>
+</div>
+</div></section>
+
+<section id="actividades" class="alt-bg"><div class="wrap rv">
+<span class="eyebrow">Paso a paso</span><h2>Así es una función</h2><p class="lead">Cada momento tiene un propósito. Los tiempos son referenciales y se ajustan al grupo.</p>
+<div class="tl" id="tl"></div></div></section>
+
+<section id="valores"><div class="wrap rv">
+<span class="eyebrow">Valores</span><h2>Lo que los niños se llevan a casa</h2><p class="lead">Trabajamos valores actitudinales con lenguaje simple, ejemplos concretos y personajes cercanos.</p>
+<div class="grid g3" id="vals"></div>
+<!-- IMAGEN (img/valores.jpg, panorámica): niños ayudándose, abrazándose o compartiendo la colación; transmite empatía y solidaridad. -->
+<div class="slot" data-src="img/valores.jpg" data-label="Niños compartiendo y ayudándose entre sí (img/valores.jpg)" style="min-height:320px;margin-top:30px"></div>
+<h2 style="margin-top:70px;font-size:2rem">Beneficios para niños y familias</h2><br>
+<div class="grid g3">
+<div class="card">
+<!-- IMAGEN (img/beneficio-ninos.jpg): primer plano de un niño o niña sonriendo mientras pinta o muestra su dibujo. -->
+<div class="slot" data-src="img/beneficio-ninos.jpg" data-label="Niña sonriendo con su dibujo (img/beneficio-ninos.jpg)"></div><h3>Para los niños</h3><p>Reconocen emociones, aprenden a pedir ayuda, a poner límites con respeto y a incluir a otros.</p></div>
+<div class="card">
+<!-- IMAGEN (img/beneficio-familias.jpg): un adulto y un niño conversando o leyendo juntos en casa. -->
+<div class="slot" data-src="img/beneficio-familias.jpg" data-label="Padre o madre conversando con su hijo/a (img/beneficio-familias.jpg)"></div><h3>Para las familias</h3><p>Reciben lenguaje común para conversar en casa sobre trato, conflictos y cuidado mutuo. Entregamos una breve guía con ideas para conversar en casa.</p></div>
+<div class="card">
+<!-- IMAGEN (img/beneficio-escuelas.jpg): un curso completo en una sala o patio realizando la actividad con la profesional. -->
+<div class="slot" data-src="img/beneficio-escuelas.jpg" data-label="Un curso participando en la función (img/beneficio-escuelas.jpg)"></div><h3>Para las escuelas</h3><p>Actividad alineada con la convivencia escolar, apta para cursos completos. Entregamos un certificado de participación a las instituciones que lo soliciten.</p></div></div>
+</div></section>
+
+<section id="personajes" class="alt-bg"><div class="wrap rv">
+<span class="eyebrow">Nuestros personajes</span><h2>Animales y aves de la Región Metropolitana</h2><p class="lead">Cada cuento tiene un amigo de nuestra fauna local. Toca una ficha para cambiar su imagen.</p>
+<div class="grid g4" id="chars"></div></div></section>
+
+<section id="galeria"><div class="wrap rv">
+<span class="eyebrow">Galería</span><h2>Momentos de nuestras funciones</h2><p class="lead">Un vistazo a lo que se vive en cada sesión. Reemplaza estas fotos por las reales, con autorización de las familias.</p>
+<div class="gal">
+<!-- IMAGEN (img/galeria1.jpg, vertical): títeres de animales sobre una mesa con niños mirándolos con curiosidad. -->
+<div class="slot" data-src="img/galeria1.jpg" data-label="Títeres de animales con niños mirando (img/galeria1.jpg)"></div>
+<!-- IMAGEN (img/galeria2.jpg, horizontal): manos de niños pintando láminas de aves chilenas con témperas o lápices. -->
+<div class="slot" data-src="img/galeria2.jpg" data-label="Manos pintando láminas de aves (img/galeria2.jpg)"></div>
+<!-- IMAGEN (img/galeria3.jpg, horizontal): niños en postura de yoga o relajación con los ojos cerrados sobre colchonetas. -->
+<div class="slot" data-src="img/galeria3.jpg" data-label="Niños en relajación sobre colchonetas (img/galeria3.jpg)"></div>
+<!-- IMAGEN (img/galeria4.jpg, vertical): mesa con colación saludable compartida (frutas, galletas) y vasos de colores. -->
+<div class="slot" data-src="img/galeria4.jpg" data-label="Colación compartida (img/galeria4.jpg)"></div>
+<!-- IMAGEN (img/galeria5.jpg, horizontal): instrumentos de sonoterapia (cuencos, campanas, sonajeros) sobre una tela suave. -->
+<div class="slot" data-src="img/galeria5.jpg" data-label="Instrumentos de sonoterapia infantil (img/galeria5.jpg)"></div>
+<!-- IMAGEN (img/galeria6.jpg, horizontal): niños jugando en grupo y riendo durante el juego libre guiado. -->
+<div class="slot" data-src="img/galeria6.jpg" data-label="Juego libre guiado en grupo (img/galeria6.jpg)"></div>
+</div></div></section>
+
+<section id="comparativa"><div class="wrap rv">
+<span class="eyebrow">Benchmark</span><h2>¿Cómo nos comparamos?</h2><p class="lead">Comparación cualitativa con los formatos que suele usar una familia o escuela al buscar este tipo de actividades.</p>
+<div class="tw"><table><thead><tr><th>Criterio</th><th class="me">Este sitio</th><th>Web de talleres infantiles genéricos</th><th>Redes sociales (Instagram/Facebook)</th><th>Plataformas de entradas</th></tr></thead><tbody>
+<tr><td>Explica objetivos educativos</td><td class="me y">●</td><td class="m">◐</td><td class="n">○</td><td class="n">○</td></tr>
+<tr><td>Reserva con reglas propias (cupo 12, días)</td><td class="me y">●</td><td class="m">◐</td><td class="n">○</td><td class="m">◐</td></tr>
+<tr><td>Formulario separado para escuelas</td><td class="me y">●</td><td class="n">○</td><td class="n">○</td><td class="n">○</td></tr>
+<tr><td>Fichas de personajes y contenido infantil</td><td class="me y">●</td><td class="m">◐</td><td class="m">◐</td><td class="n">○</td></tr>
+<tr><td>Respuestas inmediatas (chatbot)</td><td class="me y">●</td><td class="n">○</td><td class="m">◐</td><td class="n">○</td></tr>
+<tr><td>Imagen profesional y confianza</td><td class="me y">●</td><td class="m">◐</td><td class="m">◐</td><td class="m">◐</td></tr>
+<tr><td>Control total de marca y datos</td><td class="me y">●</td><td class="y">●</td><td class="n">○</td><td class="n">○</td></tr></tbody></table></div>
+<p style="margin-top:12px;color:var(--soft);font-size:.9rem">● cumple · ◐ parcial · ○ no cumple. Evaluación de diseño de producto, no mediciones de sitios específicos.</p>
+
+<h2 style="margin-top:60px;font-size:2rem">Recomendaciones de desarrollo senior</h2><br>
+<div class="grid g3">
+<div class="card"><div class="ico" style="background:var(--mint)"><svg class="i"><use href="#shield"/></svg></div><h3>Privacidad de menores</h3><p>Pedir solo datos del adulto y edad aproximada del niño; incluir política de privacidad y casilla de consentimiento.</p></div>
+<div class="card"><div class="ico" style="background:var(--sky)"><svg class="i"><use href="#cal"/></svg></div><h3>Calendario real</h3><p>Conectar la reserva a Google Calendar/Sheets o Formspree para confirmar cupos reales y evitar sobreventas.</p></div>
+<div class="card"><div class="ico" style="background:var(--coral)"><svg class="i"><use href="#star"/></svg></div><h3>Prueba social</h3><p>Sumar testimonios de apoderados y colegios con autorización, y fotos sin rostros identificables.</p></div>
+<div class="card"><div class="ico" style="background:var(--lav)"><svg class="i"><use href="#img"/></svg></div><h3>Imágenes livianas</h3><p>Usar WebP de menos de 200 KB y atribuir fuentes (ej. Banco de Aves de Chile) respetando licencias.</p></div>
+<div class="card"><div class="ico" style="background:var(--sun)"><svg class="i"><use href="#chat"/></svg></div><h3>WhatsApp directo</h3><p>Botón de WhatsApp: en Chile es el canal preferido para confirmar reservas.</p></div>
+<div class="card"><div class="ico" style="background:var(--mint)"><svg class="i"><use href="#users"/></svg></div><h3>Accesibilidad</h3><p>Contraste, textos alternativos, navegación por teclado y opción de movimiento reducido (ya incluida).</p></div></div>
+</div></section>
+
+<section id="reservar" class="alt-bg"><div class="wrap rv">
+<span class="eyebrow">Reservas</span><h2>Reserva tu función</h2><p class="lead">Toca las opciones y te llevamos a WhatsApp con tu solicitud ya redactada. La reserva queda confirmada cuando te respondamos.</p>
+<div class="guide"><span>🐦 ¿Prefieres que te guíe? Reserva conversando con el asistente, solo tocando botones.</span><button class="btn" onclick="openChat('bk')">Reservar con el asistente</button></div>
+<div class="bk" id="f">
+<div class="q"><b>1. ¿Quién reserva?</b><div class="opt" id="o-tipo"><button data-v="fam" class="on"><svg class="i"><use href="#users"/></svg> Familia</button><button data-v="esc"><svg class="i"><use href="#school"/></svg> Escuela o jardín</button></div></div>
+<div class="q"><b>2. Elige un día disponible</b><div class="opt" id="o-dia"></div></div>
+<div class="q"><b>3. Jornada</b><div class="opt" id="o-jor"></div></div>
+<div class="q"><b>4. ¿Cuántos niños?</b><div class="opt num" id="o-n"></div></div>
+<div class="q esc" hidden><b>Datos de la institución</b><div class="two"><input id="col" placeholder="Colegio o jardín"><input id="cur" placeholder="Curso"></div></div>
+<div class="q"><b>Tus datos de contacto</b><div class="two"><input id="nom" placeholder="Tu nombre"><input id="tel" type="tel" placeholder="Tu teléfono"></div></div>
+<label class="chk"><input type="checkbox" id="tc"> <span>Acepto los <a href="#" onclick="openTC(event)"><b>términos y condiciones</b></a></span></label>
+<div><button class="btn wa" id="send"><svg class="i"><use href="#chat"/></svg> Enviar solicitud por WhatsApp</button><div class="err" id="er" style="margin-top:8px"></div></div>
+</div>
+</div></section>
+
+<section id="faq"><div class="wrap rv">
+<span class="eyebrow">Contacto</span><h2>Preguntas frecuentes</h2><br>
+<details><summary>¿Mi hijo/a debe saber leer?</summary><p>No. Todo se basa en cuentos orales, arte, juego y movimiento.</p></details>
+<details><summary>¿Pueden asistir niños con necesidades especiales?</summary><p>Conversemos antes de reservar para adaptar la actividad. Cuéntanos al reservar y adaptamos la actividad a las necesidades de tu hijo/a.</p></details>
+<details><summary>¿Hay que llevar algo?</summary><p>La colación es parte de la función. Avísanos por alergias o restricciones alimentarias.</p></details>
+<details><summary>¿Los apoderados se quedan?</summary><p>En la modalidad de familias, un adulto puede acompañar durante la bienvenida y luego esperar en la zona de espera. En escuelas, el docente a cargo permanece con el curso.</p></details>
+</div></section>
+</main>
+
+<footer><div class="wrap" style="display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between">
+<div><b style="font-family:'Baloo 2';font-size:1.3rem" id="fn">Nombre del Proyecto</b><p style="opacity:.8">Convivencia escolar positiva y segura · Región Metropolitana</p></div>
+<div><p><svg class="i"><use href="#mail"/></svg> <span class="todo" data-todo="correo">[correo]</span></p><p><svg class="i"><use href="#chat"/></svg> <span class="todo" data-todo="WhatsApp/teléfono">[WhatsApp]</span></p><p><a href="#" onclick="openTC(event)">Términos y condiciones</a></p><p><svg class="i"><use href="#school"/></svg> <span class="todo" data-todo="lugar de las funciones">[dirección / comuna]</span></p></div></div></footer>
+
+<!-- CHATBOT -->
+<div id="nudge"><button onclick="this.parentNode.remove()" aria-label="Cerrar">✕</button>¿Necesitas ayuda? 👋<br><span style="font-weight:600;color:var(--soft)">Pregúntame aquí o reserva conmigo en 1 minuto.</span></div>
+<button id="cbBtn" aria-label="Abrir asistente"><span class="av"><svg class="i"><use href="#bird"/></svg></span>¿Te ayudo?</button>
+<div id="cb" role="dialog" aria-label="Asistente virtual"><header><span><span class="av"><svg class="i"><use href="#bird"/></svg></span>Pichi, tu asistente</span><button onclick="cb.classList.remove('open')" style="border:0;background:none;font-size:1.3rem;cursor:pointer">✕</button></header><div id="msgs"></div><div id="opts"></div></div>
+<dialog id="tcd"><div class="dh"><h2>Términos y condiciones</h2><button onclick="tcd.close()" aria-label="Cerrar">✕</button></div><div class="db">
+<p><small>Última actualización: noviembre de 2026.</small></p>
+<h3>1. El servicio</h3><p>Funciones educativas y lúdicas de 60 a 90 minutos para niños y niñas de 5 a 7 años sobre convivencia positiva, empatía, respeto y solidaridad. Es una actividad educativa y no reemplaza una terapia ni un tratamiento profesional.</p>
+<h3>2. Reservas</h3><p>El formulario y el asistente generan una solicitud que se envía por WhatsApp. La reserva queda confirmada solo cuando recibas una respuesta de confirmación. Cada función admite un máximo de 12 niños.</p>
+<h3>3. Días y horarios</h3><p>Familias: viernes, sábado y domingo (jornada diurna y tarde). Escuelas y jardines: martes y miércoles, solo jornada diurna. Los horarios exactos se informan al confirmar.</p>
+<h3>4. Valores y pagos</h3><p>Los valores y medios de pago se informan al confirmar la reserva y antes de realizar cualquier pago.</p>
+<h3>5. Cambios y cancelaciones</h3><p>Para reprogramar o cancelar sin costo, avisa con al menos 48 horas de anticipación. Si la función debe suspenderse por causas de fuerza mayor, se ofrecerá una nueva fecha.</p>
+<h3>6. Salud y seguridad</h3><p>Informa con anticipación sobre alergias, restricciones alimentarias y necesidades especiales para adaptar la actividad y la colación. Los niños deben ser entregados y retirados por un adulto responsable.</p>
+<h3>7. Acompañamiento y convivencia</h3><p>La presencia de adultos se define según la modalidad. Pedimos un trato respetuoso entre todas las personas asistentes; nos reservamos el derecho de pausar la actividad si se afecta el bienestar del grupo.</p>
+<h3>8. Imágenes</h3><p>No se toman ni se publican fotografías o videos de los niños sin autorización escrita del adulto responsable.</p>
+<h3>9. Datos personales</h3><p>Usamos tus datos solo para gestionar la reserva y comunicarnos contigo, conforme a la normativa chilena de protección de datos personales. No se venden ni se comparten con terceros. Puedes pedir su corrección o eliminación cuando quieras.</p>
+<h3>10. Cambios a estos términos</h3><p>Podemos actualizar estos términos; se aplica la versión vigente al momento de reservar.</p>
+</div></dialog>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const ic=(id)=>`<svg class="i"><use href="#${id}"/></svg>`;
+/* ===== CONFIGURACIÓN: se completará con las respuestas de la clienta ===== */
+const CONFIG={nombre:"Nombre del Proyecto",whatsapp:"56900000000",email:"[correo]",precio:"Los valores se informan por WhatsApp al confirmar tu reserva.",maxEscuela:12};
+$('#brandName').textContent=$('#fn').textContent=CONFIG.nombre;
+/* Actividades */
+const ACT=[["book","Introducción y cuento","15–20 min","Un cuento con animales y aves de la RM abre el tema del respeto.","var(--sky)"],["brush","Pintar el cuento","20 min","Los niños dibujan y pintan lo que sintieron.","var(--coral)"],["pup","Títeres de valores","10 min","Los títeres muestran situaciones de trato amable y cómo resolverlas.","var(--lav)"],["lotus","Relajación","10 min","Respiración y calma al ritmo de sonidos suaves.","var(--mint)"],["ball","Juego libre guiado","15 min","Jugar juntos, compartir y turnarse.","var(--sun)"],["apple","Colación","10 min","Compartir la comida refuerza la solidaridad.","var(--coral)"],["flag","Conclusión final","5 min","Cada niño dice qué se lleva de la función.","var(--sky)"]];
+/* IMÁGENES de actividades (img/actividad1.jpg ... actividad7.jpg), formato horizontal */
+const ACTIMG=["Cuentacuentos con un libro ilustrado de animales","Niños pintando láminas del cuento","Títeres de animales representando valores","Niños relajándose con los ojos cerrados","Juego libre guiado en grupo","Colación compartida en la mesa","Círculo final donde cada niño comparte lo aprendido"];
+$('#tl').innerHTML=ACT.map((a,i)=>`<div class="step"><div class="ico" style="background:${a[4]}">${ic(a[0])}</div><div class="slot sm" data-src="img/actividad${i+1}.jpg" data-label="${ACTIMG[i]} (img/actividad${i+1}.jpg)"></div><div><b>${a[1]}</b><br><span style="color:var(--soft)">${a[3]}</span></div><span class="min">${a[2]}</span></div>`).join('');
+const VAL=[["heart","Empatía","Ponerse en el lugar del otro.","var(--coral)"],["smile","Amabilidad","Palabras y gestos que cuidan.","var(--sun)"],["hand","Respeto","Cada persona es valiosa y distinta.","var(--sky)"],["users","Solidaridad","Ayudar y acompañar a quien lo necesita.","var(--mint)"],["shield","Prevención del bullying","Reconocer, frenar y pedir ayuda.","var(--lav)"]];
+$('#vals').innerHTML=VAL.map(v=>`<div class="card"><div class="ico" style="background:${v[3]}">${ic(v[0])}</div><h3>${v[1]}</h3><p>${v[2]}</p></div>`).join('');
+/* IMÁGENES de personajes (img/personaje1.jpg ... 4.jpg): ilustración o foto cuadrada del animal, fondo limpio */
+const CHIMG=["Pequén parado en un pastizal","Zorro culpeo en un cerro de la zona central","Chincol cantando sobre una rama","Degú asomándose entre las piedras"];
+const CH=[["Pequén","Ave de pastizales","bird"],["Zorro culpeo","Zorro de la zona central","paw"],["Chincol","Pajarito cantor","bird"],["Degú","Roedor sociable","paw"]];
+$('#chars').innerHTML=CH.map((c,i)=>`<div class="card"><div class="slot" data-src="img/personaje${i+1}.jpg" data-label="${CHIMG[i]} (img/personaje${i+1}.jpg)" style="min-height:170px;margin-bottom:14px"></div><h3>${c[0]}</h3><p>${c[1]}. <span class="todo" data-todo="cuento y valor de ${c[0]}">[cuento/valor]</span></p></div>`).join('');
+/* Imágenes con reemplazo */
+$$('.slot').forEach(s=>{const img=new Image();img.alt=s.dataset.label;img.onload=()=>{s.querySelector('.ph')?.remove();s.append(img)};img.src=s.dataset.src;
+s.title=s.dataset.label;s.innerHTML=s.classList.contains('sm')?`<div class="ph">${ic('img')}</div>`:`<div class="ph"><div>${ic('img')}Reemplaza: ${s.dataset.label}<br><small>o haz clic para previsualizar una imagen</small></div></div>`;
+s.onclick=()=>{const f=document.createElement('input');f.type='file';f.accept='image/*';f.onchange=()=>{const r=new FileReader();r.onload=()=>{s.querySelector('.ph')?.remove();s.querySelector('img')?.remove();const i=new Image();i.src=r.result;s.append(i)};r.readAsDataURL(f.files[0])};f.click()}});
+/* Progreso, revelado, menú activo */
+addEventListener('scroll',()=>{$('#bar').style.width=scrollY/(document.body.scrollHeight-innerHeight)*100+'%'});
+const io=new IntersectionObserver(e=>e.forEach(x=>x.isIntersecting&&x.target.classList.add('in')),{threshold:.1});$$('.rv').forEach(e=>io.observe(e));
+$$('nav ul a').forEach(a=>a.onclick=()=>$('nav ul').classList.remove('open'));
+/* Reservas y chatbot (lógica compartida) */
+const RULES={fam:{dias:[5,6,0],txt:'viernes, sábado o domingo',jor:['Jornada diurna','Tarde'],max:12,nom:'Familia'},esc:{dias:[2,3],txt:'martes o miércoles',jor:['Jornada diurna'],max:CONFIG.maxEscuela,nom:'Escuela o jardín'}};
+function fechas(t,n){const r=[],d=new Date();d.setHours(12);for(let i=1;r.length<n&&i<120;i++){const x=new Date(d);x.setDate(d.getDate()+i);if(RULES[t].dias.includes(x.getDay()))r.push({s:x.toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'}),l:x.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'})})}return r}
+function waMsg(S){const e=S.tipo=='esc';return `*Solicitud de reserva* 🐦\n\n• Tipo: ${RULES[S.tipo].nom}\n• Fecha: ${S.fecha}\n• Jornada: ${S.jor}\n• Niños: ${S.n}\n`+(e?`• Colegio/jardín: ${S.col}\n• Curso: ${S.cur}\n`:'')+`• Nombre: ${S.nom}\n• Teléfono: ${S.tel}\n\nHe leído y acepto los términos y condiciones. ¡Quedo atento/a a la confirmación!`}
+const waUrl=S=>`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(waMsg(S))}`;
+const tcd=$('#tcd');function openTC(e){e&&e.preventDefault();tcd.showModal()}
+/* Formulario con botones */
+const F={tipo:'fam'};
+function pick(id,items,key,cb){const o=$(id);o.innerHTML=items.map(([v,l])=>`<button data-v="${v}" class="${F[key]==v?'on':''}">${l}</button>`).join('');o.querySelectorAll('button').forEach(b=>b.onclick=()=>{F[key]=b.dataset.v;o.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x==b));cb&&cb()})}
+function renderForm(){const r=RULES[F.tipo];$$('.esc').forEach(e=>e.hidden=F.tipo!='esc');pick('#o-dia',fechas(F.tipo,8).map(d=>[d.l,d.s]),'fecha');F.jor=r.jor.length==1?r.jor[0]:(r.jor.includes(F.jor)?F.jor:null);pick('#o-jor',r.jor.map(j=>[j,j]),'jor');pick('#o-n',Array.from({length:r.max},(_,i)=>[i+1,i+1]),'n')}
+$$('#o-tipo button').forEach(b=>b.onclick=()=>{F.tipo=b.dataset.v;F.fecha=F.n=null;$$('#o-tipo button').forEach(x=>x.classList.toggle('on',x==b));renderForm()});renderForm();
+$('#send').onclick=()=>{const S={...F,nom:$('#nom').value.trim(),tel:$('#tel').value.trim(),col:$('#col').value.trim(),cur:$('#cur').value.trim()},er=$('#er');
+const miss=!S.fecha?'Elige un día':!S.jor?'Elige la jornada':!S.n?'Elige cuántos niños':(S.tipo=='esc'&&(!S.col||!S.cur))?'Completa colegio y curso':!S.nom?'Escribe tu nombre':S.tel.replace(/\D/g,'').length<8?'Escribe un teléfono válido':!$('#tc').checked?'Debes aceptar los términos y condiciones':'';
+if(miss){er.textContent='👉 '+miss;return}er.textContent='';window.open(waUrl(S),'_blank')};
+/* Chatbot por botones */
+const KB={inicio:["¡Hola! Soy Pichi 🐦. ¿Necesitas ayuda? Pregúntame lo que quieras o reserva conmigo en un minuto, solo tocando botones.",["reservar","que","edad","precio","tyc","seguridad","dudas"]],
+que:["Es una función lúdica de 60 a 90 min con cuento, pintura, títeres, relajación, juego y colación para prevenir el bullying y fomentar empatía, amabilidad, respeto y solidaridad.",["actividades","edad","beneficios","reservar"]],
+actividades:["Introducción y cuento (15–20 min), pintar (20), títeres (10), relajación (10), juego guiado (15), colación (10) y conclusión (5).",["que","reservar","inicio"]],
+edad:["Para niños y niñas de 5 a 7 años, en grupos de hasta 12.",["reservar","dudas","inicio"]],
+beneficios:["Los niños reconocen emociones y aprenden a incluir a otros; las familias reciben lenguaje común para conversar en casa.",["que","reservar"]],
+fechas:["Familias: viernes, sábado y domingo (diurna y tarde). Escuelas y jardines: martes y miércoles, solo diurna.",["reservar","precio","inicio"]],
+precio:[CONFIG.precio,["reservar","inicio"]],
+seguridad:["Grupos reducidos (máx. 12), guiados por una psicopedagoga. Pedimos solo los datos del adulto responsable y no publicamos imágenes sin autorización escrita.",["tyc","dudas","inicio"]],
+tyc:["Resumen: la reserva se confirma por WhatsApp, cancelación sin costo con 48 horas de aviso, informar alergias y sin fotos sin autorización.",["leertyc","reservar","inicio"]],
+dudas:["¿Debe saber leer? No. ¿Alergias? Avísanos y adaptamos la colación. ¿Necesidades especiales? Cuéntanos y adaptamos. ¿Se queda el adulto? Familias: puede acompañar en la bienvenida.",["seguridad","reservar","inicio"]]};
+const LAB={inicio:"🏠 Inicio",reservar:"📅 Reservar ahora",que:"¿Qué es la función?",edad:"Edad y grupo",precio:"Precios",seguridad:"Seguridad",dudas:"Otras dudas",actividades:"Actividades",beneficios:"Beneficios",fechas:"Días disponibles",tyc:"Términos y condiciones",leertyc:"Leer términos completos"};
+const msgs=$('#msgs'),opts=$('#opts');let B={};
+function say(t,c){const d=document.createElement('div');d.className='b '+c;d.textContent=t;msgs.append(d);msgs.scrollTop=1e9}
+function btns(l){opts.innerHTML='';l.forEach(([t,f])=>{const b=document.createElement('button');b.textContent=t;b.onclick=()=>{say(t,'me');f()};opts.append(b)})}
+function ask(t,l){say(t,'bot');btns(l)}
+function field(t,ph,cb,type){say(t,'bot');opts.innerHTML=`<form id="cf" style="display:flex;gap:6px;width:100%"><input style="flex:1" placeholder="${ph}" type="${type||'text'}" required><button>Enviar</button></form>`;const f=$('#cf');f.querySelector('input').focus();f.onsubmit=e=>{e.preventDefault();const v=f.querySelector('input').value.trim();if(!v)return;say(v,'me');cb(v)}}
+function go(k){if(k=='reservar')return bk();if(k=='leertyc'){openTC();return}const[t,o]=KB[k];ask(t,o.map(x=>[LAB[x],()=>go(x)]))}
+function bk(){B={};ask('¡Perfecto, reservemos! 🎉 ¿Quién reserva?',[['👨‍👩‍👧 Familia',()=>{B.tipo='fam';bDia()}],['🏫 Escuela o jardín',()=>{B.tipo='esc';bDia()}],['↩ Volver',()=>go('inicio')]])}
+function bDia(){ask('Estos son los próximos días disponibles ('+RULES[B.tipo].txt+'):',fechas(B.tipo,6).map(d=>[d.s,()=>{B.fecha=d.l;bJor()}]))}
+function bJor(){const j=RULES[B.tipo].jor;if(j.length==1){B.jor=j[0];say('Jornada: '+j[0]+' (única para escuelas).','bot');return bN()}ask('¿En qué jornada?',j.map(x=>[x,()=>{B.jor=x;bN()}]))}
+function bN(){const m=RULES[B.tipo].max;ask('¿Cuántos niños asistirán? (máx. '+m+')',Array.from({length:m},(_,i)=>[String(i+1),()=>{B.n=i+1;B.tipo=='esc'?field('¿Nombre del colegio o jardín?','Colegio o jardín',v=>{B.col=v;field('¿Qué curso?','Curso',v=>{B.cur=v;bNom()})}):bNom()}]))}
+function bNom(){field('¿Cómo te llamas?','Tu nombre',v=>{B.nom=v;field('¿Y tu teléfono?','+56 9 ...',v=>{B.tel=v;bFin()},'tel')})}
+function bFin(){say('Revisemos tu solicitud:\n'+waMsg(B).replace(/\*/g,'').split('\n\n')[1],'bot');ask('¿Aceptas los términos y condiciones y envío tu solicitud por WhatsApp?',[['✅ Acepto y enviar',()=>{window.open(waUrl(B),'_blank');ask('¡Listo! Se abrió WhatsApp con tu solicitud. 💛 Envíala y te confirmaremos.',[['🏠 Inicio',()=>go('inicio')]])}],['📄 Leer términos',()=>{openTC();bFin()}],['✏️ Empezar de nuevo',bk]])}
+let started=0;function openChat(m){cb.classList.add('open');$('#nudge')?.remove();if(!started||m=='bk'){started=1;m=='bk'?bk():go('inicio')}}
+$('#cbBtn').onclick=()=>cb.classList.contains('open')?cb.classList.remove('open'):openChat();
+setTimeout(()=>{if(!started&&$('#nudge'))$('#nudge').style.display='block'},2500);
+</script>
+</body>
+</html>
