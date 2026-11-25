@@ -3812,6 +3812,7 @@ function ocultarBotonBorrar() {
  <button id="cambiar-hora-btn">
     <span style="text-shadow: #000 1px 1px 3px;"  class="icono-reloj">⏱️</span> Cambiar Hora / Día
 </button>  <input style="color: lime;" disabled type="date" id="fecha"  class="" required>
+            <p id="fecha-legible-confirmacion" style="margin:10px 0 0;font-size:1.1rem;font-weight:bold;color:#f1c887;text-shadow:#000 1px 1px 3px;"></p>
         
             <br>
 
@@ -5593,6 +5594,13 @@ const total = document.getElementById("eltotal")?.value || "";
         return;
     }
 
+    // Seguridad: la fecha a guardar debe ser la misma que el cliente vio al elegir la hora
+    if (window._jbFechaConfirmada && window._jbFechaConfirmada !== fechaInputValor) {
+        alert("La fecha cambió mientras reservabas. Elige el día y la hora nuevamente.");
+        document.getElementById("modal-hora-personalizada")?.classList.add("hidden");
+        return;
+    }
+
     // Guardar el teléfono normalizado (solo dígitos, con +) para usarlo luego en wa.me
     const telefono = normalizarTelefonoRecuperacion(telefonoValor);
     if (!telefono) {
@@ -6099,6 +6107,9 @@ const reservasRefMostrar = db.ref("reservas");
                     bloque.onclick = () => {
                         document.getElementById("hora").value = hora;
                         fechaInput.value = fecha;
+                        window._jbFechaConfirmada = fecha;
+                        const avisoFecha = document.getElementById("fecha-legible-confirmacion");
+                        if (avisoFecha) avisoFecha.textContent = `Reservarás: ${jbFormatFechaLegible(fecha)} a las ${hora}`;
                         document.getElementById("modal-hora-personalizada").classList.remove("hidden");
                         ventanaHorarios.style.display = "none";
                         fechaHorariosAbiertos = null;
@@ -6127,17 +6138,20 @@ const reservasRefMostrar = db.ref("reservas");
         }
 
         async function abrirVentanaHorarios(fecha) {
+            const miSolicitud = (window._jbSolicitudHorarios = (window._jbSolicitudHorarios || 0) + 1);
             tituloVentana.textContent = `${fecha}`;
             horariosDisponibles.innerHTML = "";
             actualizarVisibilidadHoras();
             try {
                 await jbRecargarDisponibilidad(fecha);
             } catch (error) {
+                if (miSolicitud !== window._jbSolicitudHorarios) return;
                 console.error("No se pudo actualizar la disponibilidad del día:", error);
                 horariosDisponibles.innerHTML = "<p style=\"color:#ffb4b4;text-align:center;\">No se pudo actualizar la disponibilidad. Intenta nuevamente.</p>";
                 ventanaHorarios.style.display = "block";
                 return;
             }
+            if (miSolicitud !== window._jbSolicitudHorarios) return; // llegó tarde: el cliente ya tocó otro día
             fechaHorariosAbiertos = fecha;
             renderizarHorasVentana(fecha);
             ventanaHorarios.style.display = "block";
@@ -8873,12 +8887,17 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     const nombres = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
     for(let i=0;i<7;i++){
       if(t.includes(nombres[i])){
-        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        // Fecha de hoy según Chile (no según el reloj del dispositivo)
+        const [hy,hm,hd] = jbAhoraSantiago().fecha.split('-').map(Number);
+        const hoy = new Date(hy, hm-1, hd);
         const hoyDia = hoy.getDay();
         let diff = (i - hoyDia + 7) % 7;
-        if(diff===0) diff=7; // "este lunes" = próximo lunes si hoy es lunes
         const proximo = new RegExp('proxim|siguiente|que viene').test(t);
-        if(proximo && diff<=7) diff+=7;
+        if(diff===0){
+          // Si dice el nombre del día de HOY (ej: "miércoles" un miércoles) se entiende HOY.
+          // Solo salta a la semana siguiente si dice "próximo/siguiente/que viene".
+          diff = proximo ? 7 : 0;
+        } else if(proximo && diff<=7) diff+=7;
         const target = new Date(hoy); target.setDate(hoy.getDate()+diff);
         return target;
       }
