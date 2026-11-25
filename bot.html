@@ -3151,12 +3151,21 @@ function buscarMisReservasManual() {
         btnBuscar.disabled = true;
     }
     
-    db.ref('reservas').once('value')
-        .then(async snapshot => {
+    Promise.resolve()
+        .then(async () => {
             reservasClienteActuales = [];
             const hoyStr = formatearFechaSimple(new Date());
             const clientesEncontrados = await window.jbBuscarClientesPorTelefono(telefono);
             clientesEncontrados.sort((a, b) => Number(b.ultimaActividad || 0) - Number(a.ultimaActividad || 0));
+            // Solo se piden las reservas de ese teléfono y de esos clientes (campos con índice)
+            const consultasReservas = [telefono, '+' + telefono, telefono.slice(2)].map(variante =>
+                db.ref('reservas').orderByChild('telefono').equalTo(variante).once('value'));
+            clientesEncontrados.forEach(cliente => consultasReservas.push(
+                db.ref('reservas').orderByChild('clienteId').equalTo(String(cliente.id)).once('value')));
+            const resultadosReservas = await Promise.all(consultasReservas);
+            const reservasPorId = new Map();
+            resultadosReservas.forEach(resultado => resultado.forEach(child => { reservasPorId.set(child.key, child.val()); }));
+            const snapshot = { forEach: fn => reservasPorId.forEach((valor, key) => fn({ key, val: () => valor })) };
             const idSesionActual = (typeof jbSesionCliente !== 'undefined' && jbSesionCliente) ? jbSesionCliente.clienteId : null;
             let clienteEncontrado = window.jbElegirClientePorTelefono(clientesEncontrados, nombre, idSesionActual);
             // Número compartido con otra persona: solo se consulta, no se cambia la sesión.
@@ -4930,6 +4939,14 @@ const firebaseConfig = window.__jbFirebaseConfig || {
             return true;
         };
         const reservasRef = db.ref("reservas");
+        // Para pintar horas ocupadas solo hacen falta las reservas desde ayer en adelante.
+        // (el margen de un día cubre diferencias de zona horaria del dispositivo)
+        const jbReservasDesdeFecha = (() => {
+            const d = new Date();
+            d.setDate(d.getDate() - 1);
+            return d.toLocaleDateString('sv-SE', { timeZone: 'America/Santiago' });
+        })();
+        const reservasFuturasRef = reservasRef.orderByChild("fecha").startAt(jbReservasDesdeFecha);
 
         function jbClavesBloqueoHora(hora) {
             const valor = String(hora || '').slice(0, 5);
@@ -5104,7 +5121,7 @@ function renderGaleriaClientes(imagenes) {
         });
 
         // Escuchar reservas en tiempo real
-        reservasRef.on("value", snapshot => {
+        reservasFuturasRef.on("value", snapshot => {
             reservasPorDia = {};
             snapshot.forEach(child => {
                 const val = child.val();
@@ -5515,7 +5532,7 @@ setTimeout(() => {
             iniciarPresionLenta(logoCerrado);
         }
 
-        reservasRef.on("child_removed", (snapshot) => {
+        reservasFuturasRef.on("child_removed", (snapshot) => {
             const {
                 fecha,
                 hora
@@ -7360,7 +7377,7 @@ function marcarHorasOcupadasPorDuracion() {
   <div id="jbQuickActions" role="group" aria-label="Opciones de reserva">
       <div class="jbQuickActionsTitle">¿Qué necesitas?</div>
       <button type="button" class="jbQuickBtn jbBtnReservar" onclick="jbPedirHora()">📅 Reservar una hora</button>
-      <button type="button" class="jbQuickBtn" onclick="jbAbrirCancelarDesdeBoton()">📋 Ver mis reserva</button>
+      <button type="button" class="jbQuickBtn" onclick="jbAbrirCancelarDesdeBoton()">📋 Mi reserva</button>
       <button id="jbQuickCambiar" type="button" class="jbQuickBtn" style="display:none;" onclick="jbPreguntarQueCambiar()">✏️ Cambiar opciones</button>
       <button type="button" class="jbQuickBtn" onclick="jbAbrirRecuperacion()">🔎 No encuentro mi reserva</button>
       <button type="button" class="jbQuickBtn" onclick="jbMostrarAyudaCliente()">💡 Ayuda</button>
@@ -7408,6 +7425,7 @@ function marcarHorasOcupadasPorDuracion() {
   // ESTADO GLOBAL DEL CHAT
   // ============================================
   let jbReserva       = null;   // datos de la reserva en curso
+  window.jbHayReservaEnCurso = function(){ return !!jbReserva; };
   let jbReservaCancelada = false; // true tras cancelar: frena cualquier guardado/restauración automática
   let jbRestaurandoHistorial = false;
   let jbHistorialNavegacionListo = false;
@@ -15189,6 +15207,46 @@ window.addEventListener('load', function() {
     };
     viewport.addEventListener('resize', updateViewportSize, { passive: true });
     updateViewportSize();
+  })();
+</script>
+<script>
+  // Ahorro de conexiones de Firebase: si la pestaña queda en segundo plano 120 s seguidos,
+  // se cierra el socket; al volver se reconecta solo. Nunca desconecta mientras la pestaña
+  // está visible, hay una reserva en curso o el chat está abierto.
+  (function jbAhorroConexionFirebase() {
+    const ESPERA_MS = 120000;
+    let temporizador = null;
+    let desconectado = false;
+
+    const hayActividadQueProteger = () => {
+      try {
+        if (typeof window.jbHayReservaEnCurso === 'function' && window.jbHayReservaEnCurso()) return true;
+        const panel = document.getElementById('jbChatPanel');
+        return !!(panel && panel.classList.contains('jbOpen'));
+      } catch (e) { return true; }
+    };
+
+    const programar = () => {
+      clearTimeout(temporizador);
+      temporizador = setTimeout(() => {
+        if (!document.hidden) return;                 // volvió justo a tiempo
+        if (hayActividadQueProteger()) { programar(); return; } // reintenta en otros 120 s
+        try { firebase.database().goOffline(); desconectado = true; }
+        catch (e) { console.warn('No se pudo desconectar Firebase:', e); }
+      }, ESPERA_MS);
+    };
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        programar();
+      } else {
+        clearTimeout(temporizador);
+        if (desconectado) {
+          try { firebase.database().goOnline(); } catch (e) { console.warn('No se pudo reconectar Firebase:', e); }
+          desconectado = false;
+        }
+      }
+    });
   })();
 </script>
 </body>
