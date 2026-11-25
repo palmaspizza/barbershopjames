@@ -2108,10 +2108,11 @@ if (typeof firebase.auth === 'function') firebase.auth().onAuthStateChanged((use
 
     <!-- Lista de reservas (inicialmente oculta) -->
     <div class="lista-reservas-cliente hidden" id="listaReservasCliente">
+        <div id="jbPerfilSeccion"></div>
         <div class="reservas-header">
             <h3>Tus reservas activas</h3>
             <button onclick="cerrarMisReservas()" class="btn-cambiar-nombre">
-                ✏️ Cambiar nombre / Cerrar sesión
+                🚪 Cerrar sesión
             </button>
         </div>
         
@@ -3305,6 +3306,7 @@ function renderizarMisReservas(reservas) {
     const contenedor = document.getElementById('contenedorReservasCliente');
     const sinReservas = document.getElementById('sinReservas');
     
+    if (typeof window.jbRenderPerfilSeccion === 'function') window.jbRenderPerfilSeccion();
     if (!contenedor) return;
     
     if (reservas.length === 0) {
@@ -7993,7 +7995,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     // cuando la identificación terminó de verdad; si no, se muestra el menú principal.
     const terminar = () => {
       jbMenuMostrado = true;
-      if (typeof alTerminar === 'function') { try { alTerminar(); } catch(e) { console.error(e); } }
+      if (typeof alTerminar === 'function') { jbMostrarTarjetaPerfil(); try { alTerminar(); } catch(e) { console.error(e); } }
       else jbMostrarMenuPrincipal();
     };
     const crearNuevo = async () => {
@@ -8283,7 +8285,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
         jbGuardarSesion(clienteId, nombreDisplay, nombreNorm);
         jbBot(`¡Bienvenido, ${nombreDisplay.split(' ')[0]}! 🎉 Ya te registré. ¿En qué te puedo ayudar?`);
         jbMenuMostrado = true;
-        if (typeof alTerminar === 'function') alTerminar(); else jbMostrarMenuPrincipal();
+        if (typeof alTerminar === 'function') { jbMostrarTarjetaPerfil(); alTerminar(); } else jbMostrarMenuPrincipal();
         return;
       }
 
@@ -8298,7 +8300,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       jbGuardarSesion(clienteId, nombreDisplay, nombreNorm);
       jbBot(`¡Hola, ${nombreDisplay.split(' ')[0]}! 😊 ¿En qué te ayudo?`);
       jbMenuMostrado = true;
-      if (typeof alTerminar === 'function') alTerminar(); else jbMostrarMenuPrincipal();
+      if (typeof alTerminar === 'function') { jbMostrarTarjetaPerfil(); alTerminar(); } else jbMostrarMenuPrincipal();
     }
   }
 
@@ -9111,8 +9113,11 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
           : val;
       }
 
+      // Tras corregir (o ingresar) el nombre se vuelve a confirmar el WhatsApp
+      jbReserva.telefono = '';
+      jbReserva.acepta_contacto_whatsapp = false;
       jbGuardarEstadoReserva(false);
-      jbPreguntarConfirmar();
+      jbPreguntarWhatsapp();
     }
 
     btn.onclick = confirmarNombre;
@@ -9694,10 +9699,12 @@ function irAConfirmar() {
       jbMostrarInputNombreApellido();
     }
   }
-function jbPreguntarWhatsapp(){
-  jbRegistrarPasoHistorial('whatsapp');
-  jbReserva.step = 'whatsapp';
-  jbGuardarEstadoReserva(false);
+function jbPreguntarWhatsapp(_forzar, alContinuar){
+  if (jbReserva) {
+    jbRegistrarPasoHistorial('whatsapp');
+    jbReserva.step = 'whatsapp';
+    jbGuardarEstadoReserva(false);
+  }
 
   // Si ya tenemos un WhatsApp guardado en el perfil del cliente, ofrecemos
   // un atajo de un toque (Confirmar / Cambiar) en vez de forzar a re-escribir
@@ -9709,7 +9716,7 @@ function jbPreguntarWhatsapp(){
 
   if(telGuardado){
     const telDisplay = telGuardado.startsWith('56') ? '+' + telGuardado : telGuardado;
-    jbBot(`📱 Tu número guardado es <b>${telDisplay}</b>`);
+    jbBot(`📱 Este es tu WhatsApp: <b>${telDisplay}</b><br>¿Es correcto?`);
     const bodyAtajo = document.getElementById('jbChatBody');
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;gap:8px;align-self:flex-start;width:98%;max-width:380px;margin:2px 0 8px;';
@@ -9719,11 +9726,13 @@ function jbPreguntarWhatsapp(){
     btnOk.textContent = '✅ Confirmar';
     btnOk.onclick = ()=>{
       row.remove();
-      jbReserva.telefono = telGuardado;
-      jbReserva.acepta_contacto_whatsapp = true;
+      if (jbReserva) {
+        jbReserva.telefono = telGuardado;
+        jbReserva.acepta_contacto_whatsapp = true;
+      }
 
       jbCliente('Confirmar número');
-      jbPreguntarConfirmar();
+      if (alContinuar) alContinuar(); else jbPreguntarConfirmar();
     };
 
     const btnCambiar = document.createElement('button');
@@ -9731,7 +9740,7 @@ function jbPreguntarWhatsapp(){
     btnCambiar.textContent = '✏️ Cambiar';
     // "Cambiar" cae directamente al formulario editable de abajo,
     // saltándonos el atajo (pasamos forzarFormulario = true).
-    btnCambiar.onclick = ()=>{ row.remove(); jbCliente('Cambiar número'); jbMostrarFormularioWhatsapp(); };
+    btnCambiar.onclick = ()=>{ row.remove(); jbCliente('Cambiar número'); jbMostrarFormularioWhatsapp(alContinuar); };
 
     row.appendChild(btnOk);
     row.appendChild(btnCambiar);
@@ -9740,18 +9749,20 @@ function jbPreguntarWhatsapp(){
     return;
   }
 
-  jbMostrarFormularioWhatsapp();
+  jbMostrarFormularioWhatsapp(alContinuar);
 }
 
 // Formulario editable de WhatsApp: se usa cuando el cliente no tiene
 // número guardado, o cuando pulsó "Cambiar" en el atajo de arriba.
-function jbMostrarFormularioWhatsapp(){
+function jbMostrarFormularioWhatsapp(alContinuar){
   let telefonoInicial = '';
   if (jbSesionCliente && jbSesionCliente.telefono) {
     telefonoInicial = jbSesionCliente.telefono;
   }
 
-  jbBot('Antes de confirmar, necesito tu WhatsApp 📱 para enviarte el recordatorio de tu hora. Lo usaremos solo para gestionar esta reserva y avisarte si ocurre algún cambio.');
+  jbBot(alContinuar
+    ? 'Escribe tu WhatsApp 📱 Lo usaremos solo para gestionar tus reservas y avisarte si ocurre algún cambio.'
+    : 'Antes de confirmar, necesito tu WhatsApp 📱 para enviarte el recordatorio de tu hora. Lo usaremos solo para gestionar esta reserva y avisarte si ocurre algún cambio.');
 
   jbBloquearInput();
 
@@ -9861,13 +9872,15 @@ function jbMostrarFormularioWhatsapp(){
       return;
     }
 
-    jbReserva.telefono = telefono;
-    jbReserva.acepta_contacto_whatsapp = true;
-    jbGuardarEstadoReserva(false);
+    if (jbReserva) {
+      jbReserva.telefono = telefono;
+      jbReserva.acepta_contacto_whatsapp = true;
+      jbGuardarEstadoReserva(false);
+    }
     form.remove();
     jbDesbloquearInput();
     jbCliente('WhatsApp proporcionado');
-    jbPreguntarConfirmar();
+    if (alContinuar) alContinuar(); else jbPreguntarConfirmar();
   }
 
   input.addEventListener('input', () => {
@@ -10044,6 +10057,14 @@ function jbMostrarFormularioWhatsapp(){
     card.innerHTML = `
       <div style="background:#1a1a2e;padding:10px 14px;font-size:0.8rem;color:#e4a64f;font-weight:700;letter-spacing:0.05em;">📋 RESUMEN DE TU RESERVA</div>
       <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:10px;align-items:center;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.06);">
+          <span style="font-size:1.2rem;">👤</span>
+          <div>
+            <div style="font-size:0.72rem;color:#888;">Reserva a nombre de</div>
+            <div style="font-size:1.9rem;font-weight:800;color:#e4a64f;line-height:1.15;word-break:break-word;">${String(jbReserva.nombre || (jbSesionCliente && jbSesionCliente.nombreDisplay) || '').replace(/[&<>"']/g, '')}</div>
+            <div style="font-size:.9rem;color:#bbb;margin-top:2px;">📱 +${String(jbReserva.telefono).slice(0,2)} ${String(jbReserva.telefono).slice(2,3)} ${String(jbReserva.telefono).slice(3,7)} ${String(jbReserva.telefono).slice(7)}</div>
+          </div>
+        </div>
         <div style="display:flex;gap:10px;align-items:center;">
           <span style="font-size:1.2rem;">✂️</span>
           <div>
@@ -11182,7 +11203,52 @@ async function jbLiberarBloqueoReserva(r){
 }
 
   // Muestra las opciones de cancelar (por IA o abriendo Mis Reservas)
-  async function jbBotCancelarOpciones(){
+  // Busca las reservas del cliente por su WhatsApp (no depende de cómo escribió el nombre).
+  function jbBuscarReservasPorWhatsappChat(){
+    jbBot('Escribe el WhatsApp con el que reservaste y busco tus reservas 📱');
+    jbBloquearInput();
+    const body = document.getElementById('jbChatBody');
+    const form = document.createElement('div');
+    form.style.cssText = 'display:flex;flex-direction:column;gap:8px;align-self:flex-start;max-width:96%;margin:4px 0 8px;';
+    const input = document.createElement('input');
+    input.type = 'tel'; input.placeholder = '+56 9 1234 5678'; input.autocomplete = 'tel';
+    input.inputMode = 'tel'; input.className = 'jbNombreInput'; input.maxLength = 20;
+    const btn = document.createElement('button');
+    btn.className = 'jbNombreInputBtn'; btn.textContent = 'Buscar ➤';
+    let ocupado = false;
+    const buscar = async () => {
+      if (ocupado) return;
+      const tel = normalizarTelefonoRecuperacion(input.value);
+      if (!tel) {
+        input.style.borderColor = '#ff6b6b'; input.value = ''; input.placeholder = 'Escribe un WhatsApp chileno válido';
+        return;
+      }
+      ocupado = true;
+      form.remove(); jbDesbloquearInput(); jbCliente('Buscar con mi WhatsApp');
+      jbBot('Un momento… 🔍');
+      try {
+        const clientes = await window.jbBuscarClientesPorTelefono(tel);
+        const ses = jbSesionCliente;
+        const c = window.jbElegirClientePorTelefono(clientes, ses && ses.nombreDisplay, ses && ses.clienteId);
+        if (c && (!ses || c.id !== ses.clienteId)) {
+          // Es tu perfil original (ej. "Juan Perez Mallea"): se enlaza y se recuperan tus reservas
+          const nom = c.nombreDisplay || c.nombre || (ses && ses.nombreDisplay) || 'Cliente';
+          jbGuardarSesion(c.id, nom, c.nombreNormalizado || jbNormalizar(nom));
+          window.jbActualizarTelefonoSesion(tel);
+          jbBot(`Te encontré, ${nom.split(' ')[0]} 👋`);
+          jbMostrarTarjetaPerfil();
+        }
+      } catch(e) { console.error(e); }
+      await jbBotCancelarOpciones(tel);
+    };
+    btn.onclick = buscar;
+    input.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); buscar(); } };
+    form.appendChild(input); form.appendChild(btn);
+    body.appendChild(form); jbScrollBottom();
+    setTimeout(() => input.focus(), 100);
+  }
+
+  async function jbBotCancelarOpciones(telefonoExtra){
     // 1. localStorage (rápido)
     let reservasLocal = [];
     try {
@@ -11218,7 +11284,7 @@ async function jbLiberarBloqueoReserva(r){
 
     // 3b. Firebase por teléfono (cubre reservas hechas con otro nombre)
     try {
-      const telNorm = normalizarTelefonoRecuperacion(jbSesionCliente && jbSesionCliente.telefono);
+      const telNorm = normalizarTelefonoRecuperacion(typeof telefonoExtra === 'string' && telefonoExtra ? telefonoExtra : (jbSesionCliente && jbSesionCliente.telefono));
       if (telNorm) {
         const ahora = new Date();
         const idsYa = new Set(reservasFirebase.map(r => r.id));
@@ -11261,16 +11327,19 @@ async function jbLiberarBloqueoReserva(r){
       const n = jbSesionCliente ? jbSesionCliente.nombreDisplay.split(' ')[0] : '';
       jbBot(
         (n ? `${n}, no` : 'No') + ' encontré reservas activas a tu nombre 🔍<br><br>' +
-        '¿Puede ser que hayas reservado con otro nombre? Escríbelo y lo busco 👇'
+        'Puedo buscarla con tu <b>WhatsApp</b> (lo más seguro) o con otro nombre 👇'
       );
       // Ofrecer buscar con otro nombre
       setTimeout(() => {
         jbMostrarOpciones([
+          { emoji:'📱', texto:'Buscar con mi WhatsApp', valor:'telefono', estilo:'green' },
           { emoji:'🔍', texto:'Buscar con otro nombre', valor:'otro' },
           { emoji:'📋', texto:'Ver sección Mis Reservas', valor:'modal' },
           { emoji:'➕', texto:'Reservar una nueva hora', valor:'reservar', estilo:'green' }
         ], valor => {
-          if (valor === 'otro') {
+          if (valor === 'telefono') {
+            jbBuscarReservasPorWhatsappChat();
+          } else if (valor === 'otro') {
             jbBot('¿Con qué nombre hiciste la reserva?');
             jbMostrarInputIdentificacionConCallback(() => jbBotCancelarOpciones());
           } else if (valor === 'reservar') {
@@ -11749,7 +11818,239 @@ async function jbLiberarBloqueoReserva(r){
   }
 
 
+  // ── TARJETA DE PERFIL: nombre grande y visible + "Cambiar nombre" ─────────────
+  function jbMostrarTarjetaPerfil(){
+    try {
+      if (!jbSesionCliente || !jbSesionCliente.nombreDisplay) return;
+      const body = document.getElementById('jbChatBody');
+      if (!body) return;
+      const previa = document.getElementById('jbTarjetaPerfil');
+      if (previa) previa.remove();
+      const card = document.createElement('div');
+      card.id = 'jbTarjetaPerfil';
+      card.style.cssText = 'width:98%;max-width:380px;align-self:flex-start;background:#141422;border:1px solid rgba(228,166,79,.5);border-radius:16px;padding:14px 16px;margin:2px 0 8px;display:flex;flex-direction:column;gap:6px;';
+      const et = document.createElement('div');
+      et.style.cssText = 'font-size:.72rem;color:#e4a64f;font-weight:700;letter-spacing:.06em;';
+      et.textContent = 'TU NOMBRE EN LAS RESERVAS';
+      const nom = document.createElement('div');
+      nom.style.cssText = 'font-size:1.9rem;font-weight:800;color:#f1f1f1;line-height:1.15;word-break:break-word;';
+      nom.textContent = jbSesionCliente.nombreDisplay;
+      const ayuda = document.createElement('div');
+      ayuda.style.cssText = 'font-size:.82rem;color:#aaa;';
+      ayuda.textContent = '¿Está bien escrito? Si no, puedes corregirlo.';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.style.cssText = 'margin-top:4px;padding:11px;background:transparent;color:#e4a64f;border:1.5px solid rgba(228,166,79,.5);border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;';
+      btn.textContent = '✏️ Cambiar nombre';
+      btn.onclick = () => { card.remove(); jbCliente('Cambiar nombre'); jbCambiarNombrePerfil(); };
+      card.append(et, nom, ayuda, btn);
+      body.appendChild(card);
+      jbScrollBottom();
+    } catch(e) { console.error(e); }
+  }
+  window.jbMostrarTarjetaPerfil = jbMostrarTarjetaPerfil;
+
+  // ── PERFIL EN "MIS RESERVAS": nombre grande + Cambiar nombre + confirmar WhatsApp ──
+  let jbPerfilMensajePendiente = '';
+  function jbRenderPerfilSeccion(mensaje){
+    try {
+      const cont = document.getElementById('jbPerfilSeccion');
+      if (!cont) return;
+      cont.replaceChildren();
+      if (!jbSesionCliente || !jbSesionCliente.nombreDisplay) return;
+      if (typeof mensaje !== 'string') mensaje = jbPerfilMensajePendiente;
+      jbPerfilMensajePendiente = '';
+
+      const card = document.createElement('div');
+      card.style.cssText = 'background:#141422;border:1px solid rgba(228,166,79,.5);border-radius:16px;padding:16px;margin:0 0 18px;display:flex;flex-direction:column;gap:8px;';
+      cont.appendChild(card);
+
+      const mk = (tag, css, txt) => { const e = document.createElement(tag); if (css) e.style.cssText = css; if (txt != null) e.textContent = txt; return e; };
+      const btn = (txt, css, fn) => { const b = mk('button', css, txt); b.type = 'button'; b.onclick = fn; return b; };
+      const estInput = 'width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #555;background:#111215;color:#fff;font-size:1rem;';
+      const estPrim = 'padding:12px;background:linear-gradient(135deg,#e4a64f,#d4903a);color:#16130a;border:none;border-radius:12px;font-size:1rem;font-weight:800;cursor:pointer;';
+      const estSec = 'padding:12px;background:transparent;color:#e4a64f;border:1.5px solid rgba(228,166,79,.5);border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;';
+      const estErr = 'display:none;color:#ff6b6b;font-size:.9rem;';
+      const telTexto = () => {
+        const t = normalizarTelefonoRecuperacion(jbSesionCliente && jbSesionCliente.telefono);
+        return t ? '+' + t : '';
+      };
+
+      // Vista normal: el nombre grande y visible
+      const vistaNombre = (msg) => {
+        card.replaceChildren(
+          mk('div', 'font-size:.72rem;color:#e4a64f;font-weight:700;letter-spacing:.06em;', 'TU NOMBRE EN LAS RESERVAS'),
+          mk('div', 'font-size:1.9rem;font-weight:800;color:#f1f1f1;line-height:1.15;word-break:break-word;', jbSesionCliente.nombreDisplay),
+          mk('div', 'font-size:.85rem;color:#aaa;', '¿Está bien escrito? Si no, puedes corregirlo.')
+        );
+        if (msg) card.appendChild(mk('div', 'font-size:.9rem;color:#7be0a0;', msg));
+        card.appendChild(btn('✏️ Cambiar nombre', estSec, vistaEditarNombre));
+      };
+
+      // Editar el nombre
+      const vistaEditarNombre = () => {
+        const input = mk('input', estInput); input.type = 'text'; input.autocomplete = 'name'; input.maxLength = 60;
+        input.value = jbSesionCliente.nombreDisplay || '';
+        input.oninput = () => { input.value = input.value.replace(/\d/g, ''); err.style.display = 'none'; };
+        const err = mk('div', estErr);
+        let ocupado = false;
+        const guardar = async () => {
+          if (ocupado) return;
+          const val = jbLimpiarNombre(input.value);
+          if (val.length < 2) { err.textContent = 'Escribe tu nombre (mínimo 2 letras).'; err.style.display = 'block'; input.focus(); return; }
+          ocupado = true; ok.disabled = true;
+          try {
+            const nuevoNorm = jbNormalizar(val);
+            jbSesionCliente.nombreDisplay = val;
+            jbSesionCliente.nombreNorm = nuevoNorm;
+            jbSesionCliente.avatarUrl = jbGenerarAvatarUrl(nuevoNorm);
+            localStorage.setItem('jb_perfil', JSON.stringify(jbSesionCliente));
+            localStorage.setItem('mi_nombre_barberia', val);
+            if (!String(jbSesionCliente.clienteId).startsWith('local_')) {
+              await db.ref('clientes/' + jbSesionCliente.clienteId).update({
+                nombreDisplay: val, nombreNormalizado: nuevoNorm, avatarUrl: jbSesionCliente.avatarUrl, ultimaActividad: Date.now()
+              });
+            }
+            jbChatRef.update({ nombreCliente: val, avatarUrl: jbSesionCliente.avatarUrl }).catch(() => {});
+            jbMostrarAvatarEnHeader(jbSesionCliente.avatarUrl, val);
+          } catch (e) {
+            console.error('No se pudo guardar el nombre:', e);
+            err.textContent = 'No pude guardar el cambio. Revisa tu conexión e inténtalo otra vez.';
+            err.style.display = 'block'; ocupado = false; ok.disabled = false;
+            return;
+          }
+          vistaWhatsapp(true);
+        };
+        const ok = btn('Guardar ➤', estPrim, guardar);
+        const cancelar = btn('Cancelar', estSec, () => vistaNombre());
+        input.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); guardar(); } };
+        card.replaceChildren(
+          mk('div', 'font-size:.72rem;color:#e4a64f;font-weight:700;letter-spacing:.06em;', 'ESCRIBE TU NOMBRE CORREGIDO'),
+          input, err, ok, cancelar
+        );
+        setTimeout(() => { input.focus(); input.select(); }, 50);
+      };
+
+      // Confirmar WhatsApp: "Este es tu WhatsApp" + Confirmar / Cambiar
+      const vistaWhatsapp = (tras) => {
+        const tel = telTexto();
+        if (!tel) { vistaCambiarWhatsapp(); return; }
+        card.replaceChildren(
+          mk('div', 'font-size:.9rem;color:#7be0a0;', tras ? '✅ Nombre actualizado: ' + jbSesionCliente.nombreDisplay : ''),
+          mk('div', 'font-size:.72rem;color:#e4a64f;font-weight:700;letter-spacing:.06em;', '📱 ESTE ES TU WHATSAPP'),
+          mk('div', 'font-size:1.6rem;font-weight:800;color:#f1f1f1;', tel),
+          mk('div', 'font-size:.85rem;color:#aaa;', '¿Es correcto?')
+        );
+        const fila = mk('div', 'display:flex;gap:8px;');
+        const bOk = btn('✅ Confirmar', estPrim + 'flex:1;', () => vistaNombre('✅ Listo, tu nombre y tu WhatsApp quedaron sincronizados.'));
+        const bCambiar = btn('✏️ Cambiar', estSec + 'flex:1;', vistaCambiarWhatsapp);
+        fila.append(bOk, bCambiar);
+        card.appendChild(fila);
+      };
+
+      // Cambiar el WhatsApp y sincronizar
+      const vistaCambiarWhatsapp = () => {
+        const input = mk('input', estInput); input.type = 'tel'; input.autocomplete = 'tel'; input.inputMode = 'tel';
+        input.placeholder = '+56 9 1234 5678'; input.maxLength = 16; input.value = telTexto();
+        const err = mk('div', estErr);
+        input.oninput = () => { err.style.display = 'none'; };
+        let ocupado = false;
+        const guardar = async () => {
+          if (ocupado) return;
+          const t = normalizarTelefonoRecuperacion(input.value);
+          if (!t) { err.textContent = 'Ingresa un WhatsApp chileno válido, por ejemplo: +56 9 1234 5678'; err.style.display = 'block'; input.focus(); return; }
+          ocupado = true; ok.disabled = true; ok.textContent = 'Sincronizando…';
+          try {
+            await jbVincularClienteWhatsapp(t, true);
+          } catch (e) {
+            console.error('No se pudo vincular el WhatsApp:', e);
+            err.textContent = 'No pudimos sincronizar tu número. Revisa tu conexión e inténtalo otra vez.';
+            err.style.display = 'block'; ocupado = false; ok.disabled = false; ok.textContent = 'Guardar y sincronizar ➤';
+            return;
+          }
+          // Recarga las reservas con el número nuevo (la tarjeta se vuelve a dibujar con el mensaje)
+          jbPerfilMensajePendiente = '✅ Listo, tu nombre y tu WhatsApp quedaron sincronizados.';
+          const campoTel = document.getElementById('telefonoClienteBusqueda');
+          if (campoTel) campoTel.value = t;
+          if (typeof window.buscarMisReservasManual === 'function') window.buscarMisReservasManual();
+          vistaNombre(jbPerfilMensajePendiente);
+        };
+        const ok = btn('Guardar y sincronizar ➤', estPrim, guardar);
+        const cancelar = btn('Cancelar', estSec, () => telTexto() ? vistaWhatsapp(false) : vistaNombre());
+        input.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); guardar(); } };
+        card.replaceChildren(
+          mk('div', 'font-size:.72rem;color:#e4a64f;font-weight:700;letter-spacing:.06em;', '📱 ESCRIBE TU WHATSAPP'),
+          input,
+          mk('div', 'font-size:.8rem;color:#aaa;', 'Al guardar autorizas usar este número para gestionar tus reservas y avisarte si hay cambios.'),
+          err, ok, cancelar
+        );
+        setTimeout(() => input.focus(), 50);
+      };
+
+      vistaNombre(mensaje);
+    } catch (e) { console.error(e); }
+  }
+  window.jbRenderPerfilSeccion = jbRenderPerfilSeccion;
+
+  // Cambiar nombre desde el perfil (fuera de una reserva). Luego se confirma el WhatsApp.
+  function jbCambiarNombrePerfil(){
+    if (!jbSesionCliente || !jbSesionCliente.clienteId) { jbBot('Primero necesito identificarte 😊'); return; }
+    jbBot('Escribe tu nombre corregido 👇');
+    jbBloquearInput();
+    const body = document.getElementById('jbChatBody');
+    const form = document.createElement('div');
+    form.style.cssText = 'display:flex;flex-direction:column;gap:8px;align-self:flex-start;max-width:96%;margin:4px 0 8px;';
+    const input = document.createElement('input');
+    input.type = 'text'; input.autocomplete = 'name'; input.className = 'jbNombreInput';
+    input.maxLength = 60; input.value = jbSesionCliente.nombreDisplay || '';
+    input.oninput = () => { input.value = input.value.replace(/\d/g, ''); };
+    const ok = document.createElement('button');
+    ok.className = 'jbNombreInputBtn'; ok.textContent = 'Guardar ➤';
+    const cancelar = document.createElement('button');
+    cancelar.className = 'jbHoraBtn'; cancelar.textContent = 'Cancelar';
+    let ocupado = false;
+    const guardar = async () => {
+      if (ocupado) return;
+      const val = jbLimpiarNombre(input.value);
+      if (val.length < 2) { input.style.borderColor = '#ff6b6b'; input.focus(); return; }
+      ocupado = true;
+      form.remove(); jbDesbloquearInput(); jbCliente(val);
+      try {
+        const nuevoNorm = jbNormalizar(val);
+        jbSesionCliente.nombreDisplay = val;
+        jbSesionCliente.nombreNorm = nuevoNorm;
+        jbSesionCliente.avatarUrl = jbGenerarAvatarUrl(nuevoNorm);
+        localStorage.setItem('jb_perfil', JSON.stringify(jbSesionCliente));
+        localStorage.setItem('mi_nombre_barberia', val);
+        if (!String(jbSesionCliente.clienteId).startsWith('local_')) {
+          await db.ref('clientes/' + jbSesionCliente.clienteId).update({
+            nombreDisplay: val, nombreNormalizado: nuevoNorm, avatarUrl: jbSesionCliente.avatarUrl, ultimaActividad: Date.now()
+          });
+        }
+        jbChatRef.update({ nombreCliente: val, avatarUrl: jbSesionCliente.avatarUrl }).catch(() => {});
+        jbMostrarAvatarEnHeader(jbSesionCliente.avatarUrl, val);
+      } catch(e) {
+        console.error('No se pudo guardar el nombre:', e);
+        jbBot('No pude guardar el cambio 😕 Revisa tu conexión e inténtalo otra vez.');
+        jbMenuMostrado = true; jbMostrarMenuPrincipal();
+        return;
+      }
+      jbBot(`Perfecto, ahora figuras como <b>${val.replace(/[&<>"']/g, '')}</b> ✅ Confirmemos también tu WhatsApp:`);
+      jbPreguntarWhatsapp(false, () => {
+        jbBot('✅ Listo, tu nombre y tu WhatsApp quedaron sincronizados.');
+        jbMenuMostrado = true; jbMostrarMenuPrincipal();
+      });
+    };
+    ok.onclick = guardar;
+    cancelar.onclick = () => { form.remove(); jbDesbloquearInput(); jbCliente('Cancelar'); jbMenuMostrado = true; jbMostrarMenuPrincipal(); };
+    input.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); guardar(); } };
+    form.append(input, ok, cancelar);
+    body.appendChild(form); jbScrollBottom();
+    setTimeout(() => { input.focus(); input.select(); }, 100);
+  }
+
   function jbMostrarMenuPrincipal() {
+    jbMostrarTarjetaPerfil();
     const clienteId = jbSesionCliente && jbSesionCliente.clienteId;
     const body = document.getElementById('jbChatBody');
 
