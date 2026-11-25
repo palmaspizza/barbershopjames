@@ -8551,9 +8551,22 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
   // ============================================
   // HELPERS DE FECHA/HORA
   // ============================================
+  // Fecha y minutos actuales en hora de Chile (no depende del reloj/zona del dispositivo)
+  function jbAhoraSantiago(){
+    try {
+      const p = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+      }).formatToParts(new Date());
+      const g = t => p.find(x => x.type === t).value;
+      return { fecha: `${g('year')}-${g('month')}-${g('day')}`, minutos: parseInt(g('hour'),10)*60 + parseInt(g('minute'),10) };
+    } catch(e){
+      const h = new Date();
+      return { fecha: `${h.getFullYear()}-${String(h.getMonth()+1).padStart(2,'0')}-${String(h.getDate()).padStart(2,'0')}`, minutos: h.getHours()*60 + h.getMinutes() };
+    }
+  }
   function jbFechaHoy(){
-    const h = new Date();
-    return `${h.getFullYear()}-${String(h.getMonth()+1).padStart(2,'0')}-${String(h.getDate()).padStart(2,'0')}`;
+    return jbAhoraSantiago().fecha;
   }
   function jbHorarioHoy(){
     try {
@@ -8591,12 +8604,9 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     const horasDia = horasDiaParam || jbHorasHabilitadasVisibles(fechaStr);
     const ocupadasNormalizadas = horasOcupadasDelDia(fechaStr);
     let libres = horasDia.filter(h => !ocupadasNormalizadas.includes(String(h).slice(0, 5)));
-    const [anio, mes, dia] = fechaStr.split('-').map(Number);
-    const fechaObj = new Date(anio, mes - 1, dia);
-    const hoy = new Date(); hoy.setHours(0,0,0,0);
-    if (fechaObj.getTime() === hoy.getTime()){
-      const ahoraMin = new Date().getHours()*60 + new Date().getMinutes();
-      libres = libres.filter(h => { const [hh,mm] = h.split(':').map(Number); return (hh*60+mm) > ahoraMin; });
+    const ahoraCL = jbAhoraSantiago();
+    if (fechaStr === ahoraCL.fecha){
+      libres = libres.filter(h => { const [hh,mm] = String(h).split(':').map(Number); return (hh*60+mm) > ahoraCL.minutos; });
     }
     return libres;
   }
@@ -8609,11 +8619,11 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     const fechaObj = new Date(anio, mes - 1, dia);
     if (typeof diasDeLaSemanaBloqueados !== 'undefined' &&
         diasDeLaSemanaBloqueados.map(Number).includes(fechaObj.getDay())) return [];
-    if (fechaObj.toDateString() === new Date().toDateString()) {
-      const ahoraMin = new Date().getHours() * 60 + new Date().getMinutes();
+    const ahoraCL = jbAhoraSantiago();
+    if (String(fechaStr) === ahoraCL.fecha) {
       return horasDia.filter(h => {
-        const [hh, mm] = h.split(':').map(Number);
-        return (hh * 60 + mm) > ahoraMin;
+        const [hh, mm] = String(h).split(':').map(Number);
+        return (hh * 60 + mm) > ahoraCL.minutos;
       });
     }
     return horasDia;
