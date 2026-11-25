@@ -1196,12 +1196,7 @@ window.addEventListener('load', function(){
     const d = new Date(ts), hoy = new Date();
     return d.getFullYear()===hoy.getFullYear() && d.getMonth()===hoy.getMonth() && d.getDate()===hoy.getDate();
   }
-  db.ref('chats').on('value', snap => {
-    const chats = snap.val() || {};
-    const hoyCount = Object.values(chats).filter(c => jbEsHoy(c.ultimaActividad)).length;
-    const el = document.getElementById('jbEstadoConversacionesHoy');
-    if(el) el.textContent = hoyCount;
-  });
+  // (Se quitó el contador de conversaciones de hoy: ya no existe en pantalla y bajaba todos los chats.)
   db.ref('reservas').on('value', snap => {
     const reservas = snap.val() || {};
     const haceUnaSemana = Date.now() - 7*24*60*60*1000;
@@ -1671,6 +1666,7 @@ window.addEventListener('load', function(){
                 </label>
             </div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
+                <button id="jbDevCargarHistorial" type="button" style="min-height:42px;padding:10px 14px;border:1px solid #e4a64f;border-radius:9px;background:transparent;color:#f1c887;font-weight:700;cursor:pointer;">🔎 Cargar / actualizar historial y clientes</button>
                 <button id="jbAuditExport" type="button" style="min-height:42px;padding:10px 14px;border:0;border-radius:9px;background:#e4a64f;color:#21180a;font-weight:800;cursor:pointer;">Exportar todas a CSV</button>
                 <span id="jbAuditCount" style="color:#c5c6cc;" aria-live="polite"></span>
             </div>
@@ -1711,7 +1707,7 @@ window.addEventListener('load', function(){
                     <thead><tr style="background:#111216;color:#f1c887;">
                         <th style="padding:10px;">Cliente</th><th style="padding:10px;">Teléfono</th><th style="padding:10px;">Reservas</th><th style="padding:10px;">Última reserva</th><th style="padding:10px;">Próxima cita</th><th style="padding:10px;">Acciones / historial</th>
                     </tr></thead>
-                    <tbody id="jbDeveloperClientRows"><tr><td colspan="6" style="padding:14px;color:#bbb;">Cargando clientes…</td></tr></tbody>
+                    <tbody id="jbDeveloperClientRows"><tr><td colspan="6" style="padding:14px;color:#bbb;">Escribe en el buscador o toca «Cargar historial y clientes» para ver los clientes.</td></tr></tbody>
                 </table>
             </div>
             <button id="jbDeveloperClientMore" type="button" hidden style="margin-top:12px;min-height:42px;padding:10px 14px;border:1px solid #e4a64f;border-radius:9px;background:transparent;color:#f1c887;font-weight:700;cursor:pointer;">Mostrar más</button>
@@ -1823,6 +1819,9 @@ window.addEventListener('load', function(){
         let tipoHorarioEditando = null;
         let jbAuditReservas = [];
         let jbDeveloperClients = [];
+        let jbDevHistorialPromesa = null;   // carga bajo demanda de archivo + clientes
+        let jbDevHistorialTs = 0;
+        const JB_DEV_HISTORIAL_TTL_MS = 3 * 60 * 1000;
         let jbAuditPagina = 1;
         let jbDeveloperClientPagina = 1;
         const JB_AUDIT_PAGINA_TAMANO = 100;
@@ -4030,7 +4029,7 @@ function jbDeveloperClientRender() {
     count.textContent = `Mostrando ${shown.length} de ${filtered.length} cliente(s)`;
     more.hidden = shown.length >= filtered.length;
     if (!shown.length) {
-        rows.innerHTML = `<tr><td colspan="6" style="padding:14px;color:#bbb;">${jbDeveloperClients.length ? 'No hay coincidencias con estos filtros.' : 'No se encontraron clientes guardados.'}</td></tr>`;
+        rows.innerHTML = `<tr><td colspan="6" style="padding:14px;color:#bbb;">${jbDeveloperClients.length ? 'No hay coincidencias con estos filtros.' : (jbDevHistorialPromesa ? 'No se encontraron clientes guardados.' : 'Escribe en el buscador o toca «Cargar historial y clientes» para ver los clientes.')}</td></tr>`;
         return;
     }
 
@@ -4107,7 +4106,6 @@ function jbDeveloperClientExportar() {
 function jbDetenerRegistroReservasDeveloper() {
     if (jbAuditListener) {
 db.ref('reservas').off('value', jbAuditListener);
-db.ref('reservas_archivadas').off('value');
 jbAuditListener = null;
     }
     if (jbDeveloperClientListener) {
@@ -4116,6 +4114,9 @@ jbAuditListener = null;
     }
     jbAuditReservas = [];
     jbDeveloperClients = [];
+    jbDevHistorialPromesa = null;
+    jbDevHistorialTs = 0;
+    window.jbDevAsegurarHistorial = null;
 }
 
 function jbIniciarRegistroReservasDeveloper() {
@@ -4132,14 +4133,27 @@ function jbIniciarRegistroReservasDeveloper() {
     if (!search.dataset.bound) {
 search.addEventListener('input', () => { jbAuditPagina = 1; jbAuditRender(); });
 filter.addEventListener('change', () => { jbAuditPagina = 1; jbAuditRender(); });
-exportButton.addEventListener('click', jbAuditExportar);
+exportButton.addEventListener('click', async () => { if (window.jbDevAsegurarHistorial) await window.jbDevAsegurarHistorial(); jbAuditExportar(); });
 more.addEventListener('click', () => { jbAuditPagina++; jbAuditRender(); });
 clientSearch.addEventListener('input', () => { jbDeveloperClientPagina = 1; jbDeveloperClientRender(); });
 clientFilter.addEventListener('change', () => { jbDeveloperClientPagina = 1; jbDeveloperClientRender(); });
 clientMore.addEventListener('click', () => { jbDeveloperClientPagina++; jbDeveloperClientRender(); });
-clientExport.addEventListener('click', jbDeveloperClientExportar);
+clientExport.addEventListener('click', async () => { if (window.jbDevAsegurarHistorial) await window.jbDevAsegurarHistorial(); jbDeveloperClientExportar(); });
 document.getElementById('jbCleanOldChats').addEventListener('click', () => jbLimpiarChatsAntiguos(true));
 document.getElementById('jbRemoveOldPushData').addEventListener('click', jbEliminarDatosPushAntiguos);
+const jbPedirHistorial = forzar => { if (typeof window.jbDevAsegurarHistorial === 'function') window.jbDevAsegurarHistorial(forzar === true); };
+let jbPedirHistorialTimer = null;
+[search, clientSearch, document.getElementById('jbReservationManagerSearch')].forEach(el => {
+    if (!el) return;
+    el.addEventListener('input', () => {
+        clearTimeout(jbPedirHistorialTimer);
+        if ((el.value || '').trim().length >= 2) jbPedirHistorialTimer = setTimeout(() => jbPedirHistorial(false), 400);
+    });
+});
+[clientFilter, document.getElementById('jbReservationManagerFilter'), document.getElementById('jbReservationManagerFrom'), document.getElementById('jbReservationManagerTo')]
+    .forEach(el => { if (el) el.addEventListener('change', () => jbPedirHistorial(false)); });
+const jbBotonCargar = document.getElementById('jbDevCargarHistorial');
+if (jbBotonCargar) jbBotonCargar.addEventListener('click', () => jbPedirHistorial(true));
 search.dataset.bound = '1';
     }
 
@@ -4169,33 +4183,46 @@ updateRows();
 console.error('No se pudieron cargar las reservas para el registro de desarrollador:', error);
 status.textContent = `No se pudieron cargar las reservas: ${error.message}`;
     });
-    db.ref('reservas_archivadas').on('value', snapshot => {
-Object.keys(archived).forEach(id => delete archived[id]);
-snapshot.forEach(child => {
-    if (child.val()) archived[child.key] = child.val();
-});
-updateRows();
-    }, error => {
-console.error('No se pudo cargar el archivo de reservas:', error);
-status.textContent = `No se pudo consultar el archivo de reservas: ${error.message}`;
-    });
     const clientStatus = document.getElementById('jbDeveloperClientStatus');
-    jbDeveloperClientListener = snapshot => {
-        jbDeveloperClients = [];
-        snapshot.forEach(child => {
-            const cliente = child.val();
-            if (cliente && typeof cliente === 'object') {
-                jbDeveloperClients.push({ id: child.key, cliente });
-            }
+    // Archivo de reservas y directorio de clientes: se descargan UNA vez cuando buscas o lo pides
+    // (no quedan escuchando en vivo). Se reutilizan 3 minutos; el botón fuerza la actualización.
+    window.jbDevAsegurarHistorial = function (forzar) {
+        if (!forzar && jbDevHistorialPromesa && Date.now() - jbDevHistorialTs < JB_DEV_HISTORIAL_TTL_MS) {
+            return jbDevHistorialPromesa;
+        }
+        jbDevHistorialTs = Date.now();
+        status.textContent = 'Cargando historial y clientes…';
+        clientStatus.textContent = 'Cargando historial y clientes…';
+        const boton = document.getElementById('jbDevCargarHistorial');
+        if (boton) boton.disabled = true;
+        const promesa = Promise.all([
+            db.ref('reservas_archivadas').once('value'),
+            db.ref('clientes').once('value')
+        ]).then(([archivadas, clientes]) => {
+            Object.keys(archived).forEach(id => delete archived[id]);
+            archivadas.forEach(child => { if (child.val()) archived[child.key] = child.val(); });
+            jbDeveloperClients = [];
+            clientes.forEach(child => {
+                const cliente = child.val();
+                if (cliente && typeof cliente === 'object') jbDeveloperClients.push({ id: child.key, cliente });
+            });
+            jbDeveloperClientPagina = 1;
+            const hora = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+            clientStatus.textContent = `Historial y clientes cargados a las ${hora}. Usa el botón para actualizarlos.`;
+            updateRows();
+            status.textContent = `Reservas activas en vivo · archivo cargado a las ${hora}.`;
+        }).catch(error => {
+            console.error('No se pudo cargar el historial y los clientes:', error);
+            jbDevHistorialPromesa = null;
+            jbDevHistorialTs = 0;
+            status.textContent = `No se pudo cargar el historial: ${error.message}`;
+            clientStatus.textContent = `No se pudieron cargar los clientes: ${error.message}`;
+        }).finally(() => {
+            if (boton) boton.disabled = false;
         });
-        jbDeveloperClientPagina = 1;
-        clientStatus.textContent = 'Directorio de clientes sincronizado desde Firebase.';
-        jbDeveloperClientRender();
+        jbDevHistorialPromesa = promesa;
+        return promesa;
     };
-    db.ref('clientes').on('value', jbDeveloperClientListener, error => {
-        console.error('No se pudo cargar el directorio de clientes:', error);
-        clientStatus.textContent = `No se pudieron cargar los clientes: ${error.message}`;
-    });
     let lastRun = 0;
     try {
         lastRun = Number(localStorage.getItem(JB_CHAT_CLEANUP_LAST_RUN_KEY) || 0);
@@ -6650,6 +6677,7 @@ body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
   let archivedReservations = {};
   let editingId = null;
   let archiveListenerStarted = false;
+  let productsObserverStarted = false;
   let salesCounts = {};
   let saving = false;
 
@@ -6676,15 +6704,34 @@ body { scroll-padding-top: calc(var(--jb-admin-sticky-height, 140px) + 12px); }
   const visibilityObserver = new MutationObserver(() => {
     navBar.hidden = getComputedStyle(adminPanel).display === 'none';
     updateStickyLayout();
-    if (!navBar.hidden && !archiveListenerStarted && auth.currentUser) {
-      archiveListenerStarted = true;
-      db.ref('reservas_archivadas').on('value', snapshot => {
-        archivedReservations = snapshot.val() || {};
-        countProductSales();
-      }, error => {
-        console.error('No se pudieron cargar las ventas archivadas:', error);
-        setProductStatus(`No se pudieron calcular las ventas archivadas: ${error.message}`, true);
-      });
+    if (!navBar.hidden && !productsObserverStarted && auth.currentUser) {
+      productsObserverStarted = true;
+      // El archivo de reservas se descarga UNA vez, recién cuando la sección Productos entra en pantalla.
+      const cargarVentasArchivadas = () => {
+        if (archiveListenerStarted) return;
+        archiveListenerStarted = true;
+        setProductStatus('Calculando ventas…');
+        db.ref('reservas_archivadas').once('value').then(snapshot => {
+          archivedReservations = snapshot.val() || {};
+          countProductSales();
+          setProductStatus('');
+        }).catch(error => {
+          archiveListenerStarted = false;
+          console.error('No se pudieron cargar las ventas archivadas:', error);
+          setProductStatus(`No se pudieron calcular las ventas archivadas: ${error.message}`, true);
+        });
+      };
+      if ('IntersectionObserver' in window) {
+        const vigilante = new IntersectionObserver(entradas => {
+          if (entradas.some(entrada => entrada.isIntersecting)) {
+            vigilante.disconnect();
+            cargarVentasArchivadas();
+          }
+        }, { rootMargin: '200px' });
+        vigilante.observe(productSection);
+      } else {
+        cargarVentasArchivadas();
+      }
     }
   });
   visibilityObserver.observe(adminPanel, { attributes: true, attributeFilter: ['style'] });
