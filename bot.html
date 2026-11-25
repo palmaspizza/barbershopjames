@@ -7986,14 +7986,21 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     } catch(e) {}
   }
   // Nombre ya registrado → se exige el WhatsApp del titular (máx. 3 intentos)
-  function jbVerificarTelefonoChat(candidatos, nombreDisplay, nombreNorm) {
+  function jbVerificarTelefonoChat(candidatos, nombreDisplay, nombreNorm, alTerminar) {
     const conTel = candidatos.filter(c => c.telefono);
     const primero = nombreDisplay.split(' ')[0];
+    // Si el flujo que llamó tiene un paso siguiente (ej. buscar reservas), se ejecuta recién
+    // cuando la identificación terminó de verdad; si no, se muestra el menú principal.
+    const terminar = () => {
+      jbMenuMostrado = true;
+      if (typeof alTerminar === 'function') { try { alTerminar(); } catch(e) { console.error(e); } }
+      else jbMostrarMenuPrincipal();
+    };
     const crearNuevo = async () => {
       const id = await jbCrearClienteNuevo(nombreDisplay);
       jbGuardarSesion(id, nombreDisplay, nombreNorm);
       jbBot(`¡Bienvenido, ${primero}! 🎉 Ya te registré. ¿En qué te puedo ayudar?`);
-      jbMenuMostrado = true; jbMostrarMenuPrincipal();
+      terminar();
     };
     const kLock = 'jb_vf_' + nombreNorm; let est = { n: 0, hasta: 0 };
     try { est = JSON.parse(localStorage.getItem(kLock) || 'null') || est; } catch(e) {}
@@ -8024,8 +8031,9 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
         try { localStorage.removeItem(kLock); } catch(e) {}
         cerrar(); jbCliente('WhatsApp verificado');
         jbGuardarSesion(m.clienteId, m.nombreDisplay, m.nombreNorm);
+        window.jbActualizarTelefonoSesion(tel);
         jbBot(`¡Hola de nuevo, ${m.nombreDisplay.split(' ')[0]}! 👋 ¿En qué te ayudo hoy?`);
-        jbMenuMostrado = true; jbMostrarMenuPrincipal();
+        terminar();
         return;
       }
       // 2) El número no es de ningún "mismo nombre": el WhatsApp es la identidad real.
@@ -8039,8 +8047,9 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
         try { localStorage.removeItem(kLock); } catch(e) {}
         cerrar(); jbCliente('WhatsApp verificado');
         jbGuardarSesion(d.id, nom, d.nombreNormalizado || jbNormalizar(nom));
+        window.jbActualizarTelefonoSesion(tel);
         jbBot(`¡Hola de nuevo, ${nom.split(' ')[0]}! 👋 ¿En qué te ayudo hoy?`);
-        jbMenuMostrado = true; jbMostrarMenuPrincipal();
+        terminar();
         return;
         }
       }
@@ -8253,7 +8262,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
 
   // ── FLUJO PRINCIPAL DE IDENTIFICACIÓN ──────────────────────
   // Llamar esto al abrir el chat si no hay sesión en localStorage.
-  async function jbIdentificarCliente(textoNombre) {
+  async function jbIdentificarCliente(textoNombre, alTerminar) {
     const nombreDisplay = jbLimpiarNombre(textoNombre);
     const nombreNorm    = jbNormalizar(nombreDisplay);
 
@@ -8274,12 +8283,12 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
         jbGuardarSesion(clienteId, nombreDisplay, nombreNorm);
         jbBot(`¡Bienvenido, ${nombreDisplay.split(' ')[0]}! 🎉 Ya te registré. ¿En qué te puedo ayudar?`);
         jbMenuMostrado = true;
-        jbMostrarMenuPrincipal();
+        if (typeof alTerminar === 'function') alTerminar(); else jbMostrarMenuPrincipal();
         return;
       }
 
       // Nombre ya existente: nunca se enlaza solo por nombre; se verifica el WhatsApp
-      jbVerificarTelefonoChat(matches, nombreDisplay, nombreNorm);
+      jbVerificarTelefonoChat(matches, nombreDisplay, nombreNorm, alTerminar);
       return;
 
     } catch(err) {
@@ -8289,7 +8298,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       jbGuardarSesion(clienteId, nombreDisplay, nombreNorm);
       jbBot(`¡Hola, ${nombreDisplay.split(' ')[0]}! 😊 ¿En qué te ayudo?`);
       jbMenuMostrado = true;
-      jbMostrarMenuPrincipal();
+      if (typeof alTerminar === 'function') alTerminar(); else jbMostrarMenuPrincipal();
     }
   }
 
@@ -8312,8 +8321,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       const val = jbLimpiarNombre(input.value);
       if (val.length < 2) { input.style.borderColor = '#ff6b6b'; input.focus(); return; }
       form.remove(); jbDesbloquearInput(); jbCliente(val);
-      await jbIdentificarCliente(val);
-      if (fn) fn();
+      await jbIdentificarCliente(val, fn);
     }
     btn.onclick = enviar;
     input.onkeydown = e => { if (e.key === 'Enter') enviar(); };
