@@ -2936,15 +2936,19 @@ function cargarMisReservasAutomatico() {
                 consultas.push(db.ref('reservas').orderByChild('telefono').equalTo(variante).once('value'));
             });
         }
-        Promise.all(consultas)
-            .then(snapshots => {
+        Promise.all([
+            Promise.all(consultas),
+            telNorm ? window.jbBuscarClientesPorTelefono(telNorm).catch(() => []) : Promise.resolve([])
+        ])
+            .then(([snapshots, clientesTel]) => {
                 const hoy = formatearFechaSimple(new Date());
                 const porId = new Map();
                 snapshots.forEach(snapshot => {
                     snapshot.forEach(child => {
                         const reserva = child.val() || {};
                         if (reserva.fecha >= hoy &&
-                            !['cancelada', 'cancelado'].includes(String(reserva.estado || '').toLowerCase())) {
+                            !['cancelada', 'cancelado'].includes(String(reserva.estado || '').toLowerCase()) &&
+                            window.jbReservaEsMia(reserva, String(perfil.clienteId), perfil.nombreDisplay, clientesTel)) {
                             porId.set(child.key, { id: child.key, ...reserva });
                         }
                     });
@@ -3152,21 +3156,26 @@ function buscarMisReservasManual() {
             const hoyStr = formatearFechaSimple(new Date());
             const clientesEncontrados = await window.jbBuscarClientesPorTelefono(telefono);
             clientesEncontrados.sort((a, b) => Number(b.ultimaActividad || 0) - Number(a.ultimaActividad || 0));
-            let clienteEncontrado = clientesEncontrados[0] || null;
+            const idSesionActual = (typeof jbSesionCliente !== 'undefined' && jbSesionCliente) ? jbSesionCliente.clienteId : null;
+            let clienteEncontrado = window.jbElegirClientePorTelefono(clientesEncontrados, nombre, idSesionActual);
+            // Número compartido con otra persona: solo se consulta, no se cambia la sesión.
+            const telefonoCompartido = clientesEncontrados.length > 0 && !clienteEncontrado;
             const idsClientesTelefono = new Set(clientesEncontrados.map(cliente => cliente.id));
 
             snapshot.forEach(child => {
                 const reserva = { id: child.key, ...child.val() };
                 const coincideTelefono = normalizarTelefonoRecuperacion(reserva.telefono) === telefono;
                 const coincideCliente = idsClientesTelefono.has(String(reserva.clienteId || ''));
+                const nombreRef = clienteEncontrado ? (clienteEncontrado.nombreDisplay || clienteEncontrado.nombre || nombre) : nombre;
                 if (reserva.fecha >= hoyStr &&
                     !['cancelada', 'cancelado'].includes(String(reserva.estado || '').toLowerCase()) &&
-                    (coincideTelefono || coincideCliente)) {
+                    (coincideTelefono || coincideCliente) &&
+                    window.jbReservaEsMia(reserva, clienteEncontrado ? clienteEncontrado.id : null, nombreRef, clientesEncontrados)) {
                     reservasClienteActuales.push(reserva);
                 }
             });
 
-            if (!clienteEncontrado) {
+            if (!clienteEncontrado && !telefonoCompartido) {
                 const reservaVinculada = reservasClienteActuales.find(reserva => reserva.clienteId);
                 if (reservaVinculada) {
                     const clienteSnapshot = await db.ref(`clientes/${reservaVinculada.clienteId}`).once('value');
@@ -7934,6 +7943,38 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     return [...out.values()];
   }
   window.jbBuscarClientesPorTelefono = jbBuscarClientesPorTelefono;
+  // Varias personas pueden compartir un WhatsApp (familia, pareja). Entre los clientes de un
+  // número se elige: 1) el de la sesión actual, 2) el que tenga el mismo nombre (o una versión
+  // más corta/larga: "diego" ↔ "diego palma"). Si el nombre escrito no se parece a ninguno,
+  // devuelve null: es otra persona que comparte el número y NO se la enlaza con otro cliente.
+  // Sin nombre escrito se mantiene el comportamiento anterior (el más reciente).
+  // ¿Dos nombres son la misma persona? "diego" ↔ "diego palma" sí; "ana" ↔ "diana" no.
+  function jbNombresRelacionados(n1, n2){
+    const t1 = jbNormalizar(n1).split(' ').filter(Boolean);
+    const t2 = jbNormalizar(n2).split(' ').filter(Boolean);
+    if (!t1.length || !t2.length) return false;
+    const [corto, largo] = t1.length <= t2.length ? [t1, t2] : [t2, t1];
+    return corto.every(w => largo.includes(w));
+  }
+  window.jbNombresRelacionados = jbNombresRelacionados;
+  function jbElegirClientePorTelefono(clientes, nombreEscrito, idSesion){
+    if (!clientes || !clientes.length) return null;
+    const ord = [...clientes].sort((a, b) => Number(b.ultimaActividad || 0) - Number(a.ultimaActividad || 0));
+    if (idSesion) { const mismo = ord.find(c => c.id === idSesion); if (mismo) return mismo; }
+    if (!jbNormalizar(nombreEscrito)) return ord[0];
+    return ord.find(c => jbNombresRelacionados(c.nombreDisplay || c.nombre || '', nombreEscrito)) || null;
+  }
+  window.jbElegirClientePorTelefono = jbElegirClientePorTelefono;
+  // Con un WhatsApp compartido (familia/pareja), cada persona ve solo SUS reservas.
+  // Si el número lo usa solo una persona (o duplicados de la misma), no cambia nada.
+  function jbReservaEsMia(reserva, miId, miNombre, clientesTel){
+    const otros = (clientesTel || []).filter(c => c.id !== miId && miNombre &&
+      !jbNombresRelacionados(c.nombreDisplay || c.nombre || '', miNombre));
+    if (!otros.length) return true;
+    if (reserva.clienteId) return !otros.some(c => c.id === String(reserva.clienteId));
+    return jbNombresRelacionados(reserva.nombre, miNombre);
+  }
+  window.jbReservaEsMia = jbReservaEsMia;
   window.jbLimpiarNombre = jbLimpiarNombre;
   async function jbLimpiarClienteHuerfano(idPrevio, idActual){
     try {
@@ -7973,7 +8014,12 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     ok.onclick = async () => {
       if (ocupado) return; ocupado = true; setTimeout(() => ocupado = false, 800);
       const tel = normalizarTelefonoRecuperacion(input.value);
-      const m = tel && conTel.find(c => c.telefono === tel);
+      if (!tel) {
+        input.style.borderColor = '#ff6b6b'; input.value = ''; input.placeholder = 'Escribe un WhatsApp chileno válido';
+        return;
+      }
+      // 1) El número coincide con un cliente que tiene ese mismo nombre
+      const m = conTel.find(c => c.telefono === tel);
       if (m) {
         try { localStorage.removeItem(kLock); } catch(e) {}
         cerrar(); jbCliente('WhatsApp verificado');
@@ -7982,10 +8028,26 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
         jbMenuMostrado = true; jbMostrarMenuPrincipal();
         return;
       }
-      intentos++;
-      try { localStorage.setItem(kLock, JSON.stringify({ n: intentos, hasta: intentos >= 3 ? Date.now() + 15*60*1000 : 0 })); } catch(e) {}
-      if (intentos >= 3) { cerrar(); jbBot('No pudimos verificar ese número. Te registro como cliente nuevo 😊'); await crearNuevo(); return; }
-      input.style.borderColor = '#ff6b6b'; input.value = ''; input.placeholder = 'No coincide, intenta de nuevo';
+      // 2) El número no es de ningún "mismo nombre": el WhatsApp es la identidad real.
+      let duenos = [];
+      try { duenos = await jbBuscarClientesPorTelefono(tel); } catch(e) {}
+      if (duenos.length) {
+        // El número ya pertenece a un cliente (guardado con otro nombre, ej. "Diego Palma")
+        const d = jbElegirClientePorTelefono(duenos, nombreDisplay, null);
+        if (d) {
+        const nom = d.nombreDisplay || d.nombre || nombreDisplay;
+        try { localStorage.removeItem(kLock); } catch(e) {}
+        cerrar(); jbCliente('WhatsApp verificado');
+        jbGuardarSesion(d.id, nom, d.nombreNormalizado || jbNormalizar(nom));
+        jbBot(`¡Hola de nuevo, ${nom.split(' ')[0]}! 👋 ¿En qué te ayudo hoy?`);
+        jbMenuMostrado = true; jbMostrarMenuPrincipal();
+        return;
+        }
+      }
+      // 3) Número desconocido: es otra persona con el mismo nombre → cliente nuevo (sin trabas)
+      cerrar(); jbCliente('Soy nuevo');
+      jbBot('No encontré ese número con ese nombre, así que te registro como cliente nuevo 😊 Tu WhatsApp te lo pediré al reservar.');
+      await crearNuevo();
     };
     nuevo.onclick = async () => { cerrar(); jbCliente('Soy nuevo'); await crearNuevo(); };
     input.onkeydown = e => { if (e.key === 'Enter') ok.onclick(); };
@@ -8066,7 +8128,9 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     const clientes = await jbBuscarClientesPorTelefono(numero);
     clientes.sort((a, b) => Number(b.ultimaActividad || 0) - Number(a.ultimaActividad || 0));
 
-    let cliente = clientes[0] || null;
+    // Número compartido: solo se enlaza con un cliente de nombre parecido; si no, esta persona
+    // conserva su propio perfil y el número se le asigna a él.
+    let cliente = jbElegirClientePorTelefono(clientes, jbSesionCliente && jbSesionCliente.nombreDisplay, idPrevio);
     if (cliente) {
       const nombre = cliente.nombreDisplay || cliente.nombre || jbSesionCliente && jbSesionCliente.nombreDisplay || 'Cliente';
       jbGuardarSesion(cliente.id, nombre, cliente.nombreNormalizado || jbNormalizar(nombre));
@@ -9925,6 +9989,14 @@ function jbMostrarFormularioWhatsapp(){
   }
 
   function jbPreguntarConfirmar(){
+    // SEGURIDAD: no se puede llegar al resumen/confirmación sin WhatsApp válido y autorizado.
+    if (!/^56\d{9}$/.test(String((jbReserva && jbReserva.telefono) || '')) ||
+        jbReserva.acepta_contacto_whatsapp !== true) {
+      jbReserva.telefono = '';
+      jbReserva.acepta_contacto_whatsapp = false;
+      jbPreguntarWhatsapp();
+      return;
+    }
     if (!jbReserva._productoOfertaResuelta && !jbProductoOfertaEnCurso) {
       jbRegistrarPasoHistorial('confirmar');
       jbReserva.step = 'confirmar';
@@ -10391,6 +10463,17 @@ if(!jbResponderFAQ(texto)){
   // ============================================
   async function jbConfirmarReserva(){
     if(window._jbConfirmandoReserva === true){
+  return;
+}
+
+// SEGURIDAD: última barrera, sin WhatsApp válido y autorizado no se guarda la reserva.
+if (!jbReserva ||
+    !/^56\d{9}$/.test(String(jbReserva.telefono || '')) ||
+    jbReserva.acepta_contacto_whatsapp !== true) {
+  jbBot('Antes de confirmar necesito tu WhatsApp 📱');
+  jbReserva.telefono = '';
+  jbReserva.acepta_contacto_whatsapp = false;
+  jbPreguntarWhatsapp();
   return;
 }
 
@@ -11135,7 +11218,7 @@ async function jbLiberarBloqueoReserva(r){
           const snap = await db.ref('reservas').orderByChild('telefono').equalTo(variante).once('value');
           snap.forEach(ch => {
             const r = ch.val();
-            if (r && !idsYa.has(ch.key) && (!r.clienteId || r.clienteId === jbSesionCliente.clienteId) && new Date(r.fecha + 'T' + (r.hora || '23:59')) > ahora) {
+            if (r && !idsYa.has(ch.key) && (r.clienteId ? r.clienteId === jbSesionCliente.clienteId : (!jbSesionCliente.nombreDisplay || window.jbNombresRelacionados(r.nombre, jbSesionCliente.nombreDisplay))) && new Date(r.fecha + 'T' + (r.hora || '23:59')) > ahora) {
               idsYa.add(ch.key);
               reservasFirebase.push({ ...r, id: ch.key });
             }
