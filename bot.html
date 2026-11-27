@@ -9538,7 +9538,7 @@ function irAConfirmar() {
         if(typeof obtenerHorarioDelDiaDesdeFecha === 'function' && (obtenerHorarioDelDiaDesdeFecha(fStr) || []).length === 0) cerrado = true;
       } catch(e){}
       if(cerrado) return {etiqueta:'CERRADO', detalle:'No atendemos este día'};
-      if(off === 0) return {etiqueta:'TODAS OCUPADAS', detalle:'Ya no quedan horas para hoy'};
+      if(off === 0) return {etiqueta:'SIN HORAS', detalle:'Ya no quedan horas para hoy'};
       return {etiqueta:'COMPLETO', detalle:'Todas las horas ya están reservadas'};
     }
 
@@ -9656,7 +9656,7 @@ function irAConfirmar() {
             celda.onclick = () => { seleccionado = d; render(); };
           } else {
             celda.disabled = true;
-            celda.setAttribute('aria-label', `${textoLargo(d)}, todas ocupadas`);
+            celda.setAttribute('aria-label', `${textoLargo(d)}, sin horas`);
           }
           grid.appendChild(celda);
         }
@@ -13871,7 +13871,12 @@ window.addEventListener('load', function() {
     const reducirVideo = window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
         Boolean(conexion && (conexion.saveData || /^(slow-2g|2g)$/.test(conexion.effectiveType || '')));
     const esPantallaMovil = window.matchMedia('(max-width: 600px)').matches;
-    const fuentes = reducirVideo || esPantallaMovil ? ['videovisosjames1.mp4'] : sources;
+    // Equipos con poca memoria o pocos núcleos: un solo video liviano, sin rotar (menos carga)
+    const equipoLimitado = Boolean(
+        (navigator.deviceMemory && navigator.deviceMemory <= 2) ||
+        (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2)
+    );
+    const fuentes = reducirVideo || esPantallaMovil || equipoLimitado ? ['videovisosjames1.mp4'] : sources;
     let activePlayer = null;
     let nextSourceIndex = 0;
     let switching = false;
@@ -13941,7 +13946,7 @@ window.addEventListener('load', function() {
     }
 
     async function showNextVideo() {
-        if (switching || !activePlayer) return;
+        if (switching || !activePlayer || debePausar()) return;
         switching = true;
         const nextPlayer = players.find(player => player !== activePlayer);
 
@@ -13967,10 +13972,50 @@ window.addEventListener('load', function() {
             }
         }
         switching = false;
+        if (debePausar()) aplicarEstado();
     }
 
+    // ── Pausa inteligente: el video se detiene cuando el chat está abierto o la pestaña
+    //    está oculta, y se reanuda solo al cerrar el chat / volver a la pestaña.
+    function chatAbierto() {
+        const panel = document.getElementById('jbChatPanel');
+        return Boolean(panel && panel.classList.contains('jbOpen'));
+    }
+    function debePausar() {
+        return document.hidden || chatAbierto();
+    }
+    let temporizadorRotacion = null;
+    let rotacionLista = false;
+    function programarSiguiente() {
+        window.clearTimeout(temporizadorRotacion);
+        if (!rotacionLista || fuentes.length < 2 || debePausar()) return;
+        temporizadorRotacion = window.setTimeout(async () => {
+            await showNextVideo();
+            programarSiguiente();
+        }, 12000);
+    }
+    function aplicarEstado() {
+        if (debePausar()) {
+            window.clearTimeout(temporizadorRotacion);
+            players.forEach(player => { if (player && !player.paused) player.pause(); });
+        } else {
+            if (activePlayer) {
+                const intento = activePlayer.play();
+                if (intento && intento.catch) intento.catch(() => {});
+            }
+            programarSiguiente();
+        }
+    }
+    document.addEventListener('visibilitychange', aplicarEstado);
+    const panelChatVideo = document.getElementById('jbChatPanel');
+    if (panelChatVideo && 'MutationObserver' in window) {
+        new MutationObserver(aplicarEstado).observe(panelChatVideo, { attributes: true, attributeFilter: ['class'] });
+    }
+    window.jbVideoFondo = { pausar: () => { window.clearTimeout(temporizadorRotacion); players.forEach(p => p && p.pause()); }, reanudar: aplicarEstado };
+
     startFirstVideo().then(ready => {
-        if (ready && fuentes.length > 1) window.setInterval(showNextVideo, 12000);
+        rotacionLista = Boolean(ready);
+        aplicarEstado();
     });
 })();
 </script>
@@ -15558,6 +15603,30 @@ window.addEventListener('load', function() {
     });
   })();
 </script>
+<script>
+  // Tiempo real garantizado: si la pestaña estuvo oculta o se cayó internet, al volver se
+  // vuelve a pedir a Firebase el estado actual (días, horarios, reservas) y se repinta solo.
+  (function jbResincronizarAlVolver() {
+    let ocultoDesde = 0;
+    let ultimaSync = 0;
+    const resincronizar = () => {
+      const ahora = Date.now();
+      if (ahora - ultimaSync < 5000) return;
+      ultimaSync = ahora;
+      try {
+        const base = firebase.database();
+        base.goOffline();
+        base.goOnline();
+      } catch (e) { console.warn('No se pudo re-sincronizar Firebase:', e); }
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { ocultoDesde = Date.now(); return; }
+      if (ocultoDesde && Date.now() - ocultoDesde > 15000) resincronizar();
+      ocultoDesde = 0;
+    });
+    window.addEventListener('online', resincronizar);
+  })();
+</script>
 <!-- ============================================================
      ANIMACIÓN + SONIDO DE MENSAJES DEL BOT
      Bloque independiente: solo observa #jbChatBody y no toca la
@@ -15908,5 +15977,29 @@ window.addEventListener('load', function() {
 })();
 </script>
 
+
+<style id="jbRendimientoVideo">
+  /* Rendimiento: quitar efectos que obligan a recalcular cada fotograma del video */
+  #bg-video-container { contain: strict; }
+  #bg-video-container video {
+    filter: none !important;                 /* brillo/saturación casi imperceptibles pero costosos */
+    will-change: opacity;
+    transform: translateZ(0) scale(1.035);
+  }
+  #bg-overlay {
+    backdrop-filter: none !important;        /* desenfoque de 0,35px: invisible y muy costoso sobre video */
+    -webkit-backdrop-filter: none !important;
+  }
+  /* Tarjetas "cristal" sobre el video: mismo aspecto, desenfoque más liviano */
+  .leyenda-calendario, .jbSiteNav a, #jbBanner .jbBannerCard,
+  .mis-reservas-container, #jbResenas, .jbSiteHeader {
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+  #jbChatPanel {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+</style>
 </body>
 </html>
