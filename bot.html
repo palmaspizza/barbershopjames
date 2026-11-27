@@ -6144,12 +6144,24 @@ const reservasRefMostrar = db.ref("reservas");
         }
 
         function actualizarHorasAbiertasEnTiempoReal() {
+            // Repinta el selector de fecha del chat (con un pequeño retraso para agrupar varios cambios seguidos)
+            clearTimeout(window._jbTimerRefrescoSelector);
+            window._jbTimerRefrescoSelector = setTimeout(() => {
+                if (typeof window.jbRefrescarSelectorFecha === 'function') window.jbRefrescarSelectorFecha();
+            }, 120);
+
             if (fechaHorariosAbiertos && ventanaHorarios.style.display !== "none") {
                 renderizarHorasVentana(fechaHorariosAbiertos);
             }
 
             document.querySelectorAll(".jbHorasGrid[data-jb-fecha]").forEach(grid => {
                 const fecha = grid.dataset.jbFecha;
+                // Si el admin agregó/quitó horas o cerró el día, se reconstruye la grilla del chat
+                if (typeof grid._jbRender === 'function' && typeof jbHorasHabilitadasVisibles === 'function') {
+                    const mostradas = Array.from(grid.querySelectorAll(".jbHoraBtn")).map(b => b.dataset.jbHora).join(",");
+                    const vigentes = jbHorasHabilitadasVisibles(fecha).map(h => String(h).slice(0, 5)).join(",");
+                    if (mostradas !== vigentes) grid._jbRender();
+                }
                 const ocupadas = new Set(horasOcupadasDelDia(fecha));
                 grid.querySelectorAll(".jbHoraBtn").forEach(btn => {
                     const hora = horaNormalizada(btn.dataset.jbHora || btn.textContent);
@@ -9047,12 +9059,23 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     const grid = document.createElement('div');
     grid.className = 'jbHorasGrid';
     grid.dataset.jbFecha = fechaStr;
-    horas.forEach(h => {
+    const construirBotones = () => {
+    const horasActuales = jbHorasHabilitadasVisibles(fechaStr);
+    const ocupadasActuales = horasOcupadasDelDia(fechaStr);
+    grid.innerHTML = '';
+    if(!horasActuales.length){
+      const aviso = document.createElement('p');
+      aviso.style.cssText = 'color:#ffb4b4;text-align:center;margin:6px 0;';
+      aviso.textContent = 'Este día ya no tiene horas habilitadas. Cambia la fecha 👇';
+      grid.appendChild(aviso);
+      return;
+    }
+    horasActuales.forEach(h => {
       const btn = document.createElement('button');
       btn.className = 'jbHoraBtn';
       btn.textContent = h;
       btn.dataset.jbHora = String(h).slice(0, 5);
-      const estaTomada = ocupadasNormalizadas.includes(String(h).slice(0, 5));
+      const estaTomada = ocupadasActuales.includes(String(h).slice(0, 5));
       if (estaTomada) {
         btn.classList.add('jbHoraTomada');
         btn.disabled = true;
@@ -9084,6 +9107,9 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
 };
       grid.appendChild(btn);
     });
+    };
+    grid._jbRender = construirBotones;
+    construirBotones();
 
     const btnCambiar = document.createElement('button');
     btnCambiar.className = 'jbCambiarFechaLink';
@@ -9575,6 +9601,7 @@ function irAConfirmar() {
 
       function render(){
         cont.innerHTML = '';
+        if(seleccionado && horasLibresDe(seleccionado) === 0) seleccionado = null;
         const f = new Date(hoy.getFullYear(), hoy.getMonth()+mesIdx, 1);
         const anio = f.getFullYear(), mes = f.getMonth();
         const total = new Date(anio, mes+1, 0).getDate();
@@ -9676,16 +9703,14 @@ function irAConfirmar() {
         volver.onclick = () => { wrapper.remove(); jbDesbloquearInput(); jbMostrarSelectorFechaRapida(false); };
         cont.appendChild(volver);
       }
+      cont._jbRender = render;
       render();
       return cont;
     }
 
     // ───────────── ARMADO ─────────────
-    if(mostrarCalendario){
-      jbBot(`📅 Toca el día que quieres. Hoy es <b>${hoyTxt}</b>.`);
-      wrapper.appendChild(construirCalendario());
-    } else {
-      jbBot(`Hoy es <b>${hoyTxt}</b>. ¿Para qué día quieres tu hora? 👇`);
+    function armarVista1(){
+      wrapper.innerHTML = '';
       // Hoy, mañana y pasado mañana: siempre se muestran. Los que no tienen horas
       // aparecen en gris con etiqueta roja (SIN HORAS / COMPLETO / CERRADO).
       let hayDisponibleEnLos3 = false;
@@ -9711,7 +9736,33 @@ function irAConfirmar() {
       wrapper.appendChild(crearBtnCalendario());
     }
 
+    if(mostrarCalendario){
+      jbBot(`📅 Toca el día que quieres. Hoy es <b>${hoyTxt}</b>.`);
+      wrapper.appendChild(construirCalendario());
+    } else {
+      jbBot(`Hoy es <b>${hoyTxt}</b>. ¿Para qué día quieres tu hora? 👇`);
+      armarVista1();
+    }
+
     body.appendChild(wrapper);
+
+    // Tiempo real: cuando cambia algo en Firebase (días, horarios, reservas) se repinta
+    // este selector sin que el cliente tenga que recargar la página.
+    const refrescarSelector = () => {
+      if(!wrapper.isConnected){
+        if(window.jbRefrescarSelectorFecha === refrescarSelector) window.jbRefrescarSelectorFecha = null;
+        return;
+      }
+      try {
+        if(mostrarCalendario){
+          const cal = wrapper.firstElementChild;
+          if(cal && typeof cal._jbRender === 'function') cal._jbRender();
+        } else {
+          armarVista1();
+        }
+      } catch(e){ console.error('No se pudo refrescar el selector de fecha:', e); }
+    };
+    window.jbRefrescarSelectorFecha = refrescarSelector;
 
     // Mostrar desde el mensaje del bot (no al fondo), para que "Hoy" siempre se vea primero
     const irAlInicio = () => {
