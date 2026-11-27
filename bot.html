@@ -72,8 +72,8 @@
       </div>
     </div>
     <div id="bg-video-container" aria-hidden="true">
-        <video id="video-a" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="metadata"></video>
-        <video id="video-b" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="metadata"></video>
+        <video id="video-a" autoplay muted loop playsinline preload="metadata"></video>
+        <video id="video-b" autoplay muted loop playsinline preload="metadata"></video>
     </div>
     <div id="bg-overlay" aria-hidden="true"></div>
     
@@ -7390,7 +7390,7 @@ function marcarHorasOcupadasPorDuracion() {
   <div id="jbTyping">Escribiendo<span>.</span><span>.</span><span>.</span></div>
   <div id="jbQuickActions" role="group" aria-label="Opciones de reserva">
       <div class="jbQuickActionsTitle">¿Qué necesitas?</div>
-      <button type="button" class="jbQuickBtn jbBtnReservar" onclick="jbQuickReservarClick()">📅 Reservar una hora</button>
+      <button type="button" class="jbQuickBtn jbBtnReservar" onclick="jbPedirHora()">📅 Reservar una hora</button>
       <button type="button" class="jbQuickBtn" onclick="jbAbrirCancelarDesdeBoton()">📋 Mi reserva</button>
       <button id="jbQuickCambiar" type="button" class="jbQuickBtn" style="display:none;" onclick="jbPreguntarQueCambiar()">✏️ Cambiar opciones</button>
       <button type="button" class="jbQuickBtn" onclick="jbAbrirRecuperacion()">🔎 No encuentro mi reserva</button>
@@ -7783,6 +7783,7 @@ function jbRestaurarInterfazReserva(){
   jbLimpiarControlesReserva();
 
   jbRestaurandoEstado = true;
+  if (window.jbAnimSaltar) window.jbAnimSaltar();
 
   jbSistema(
     '↩️ <b>Retomamos tu reserva donde la dejaste.</b><br>' +
@@ -9278,8 +9279,6 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     jbBot('Elige tus servicios 👇 Puedes marcar varios:');
 
     const seleccionados = new Set();
-    window.__jbContinuarServicios = null;
-    jbQuickSet('espera');
     const wrapper = document.createElement('div');
     wrapper.id = 'jbServicioSelector';
     wrapper.style.cssText = 'width:100%;max-width:440px;max-height:48dvh;flex:0 0 auto;align-self:flex-start;display:flex;flex-direction:column;gap:0;background:#141422;border-radius:16px;overflow-y:auto;border:1px solid rgba(228,166,79,0.18);z-index:2;';
@@ -9356,14 +9355,14 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     function actualizarBotonContinuar(){
       const total = [...seleccionados].reduce((suma, servicio) => suma + servicio.precio, 0);
       btnConfirmar.disabled = seleccionados.size === 0;
-      // El "Continuar" ahora vive en el botón dorado de abajo (donde estaba "Reservar una hora")
-      btnConfirmar.style.display = 'none';
+      btnConfirmar.style.display = seleccionados.size ? 'block' : 'none';
+      btnConfirmar.textContent = seleccionados.size
+        ? `Continuar · $${total.toLocaleString('es-CL')} ➜`
+        : 'Continuar ➜';
       if(seleccionados.size){
-        window.__jbContinuarServicios = () => btnConfirmar.onclick();
-        jbQuickSet('continuar', total);
-      } else {
-        window.__jbContinuarServicios = null;
-        jbQuickSet('espera');
+        requestAnimationFrame(() => {
+          btnConfirmar.scrollIntoView({ behavior:'smooth', block:'nearest' });
+        });
       }
     }
 
@@ -9372,8 +9371,6 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       jbReserva.servicios = [...seleccionados];
       wrapper.remove();
       btnConfirmar.remove();
-      window.__jbContinuarServicios = null;
-      jbQuickSet('normal');
       jbDesbloquearInput();
       const names = jbReserva.servicios.map(s=>s.label||s.nombre).join(' + ');
       const total = jbReserva.servicios.reduce((a,s)=>a+s.precio,0);
@@ -9408,7 +9405,6 @@ function irAConfirmar() {
     const body = document.getElementById('jbChatBody');
     const hoy  = new Date(); hoy.setHours(0,0,0,0);
     const wrapper = document.createElement('div');
-    wrapper.id = 'jbDiaSelector';
     wrapper.style.cssText = 'width:98%;max-width:440px;align-self:flex-start;display:flex;flex-direction:column;gap:8px;margin:2px 0 8px;';
 
     const DIAS_LARGO = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -11950,6 +11946,7 @@ async function jbLiberarBloqueoReserva(r){
     if(!body || !estado || !estado.jbReserva) return;
 
     jbRestaurandoHistorial = true;
+    if (window.jbAnimSaltar) window.jbAnimSaltar();
     try {
       jbReserva = JSON.parse(JSON.stringify(estado.jbReserva));
       jbReservaCancelada = false;
@@ -12007,6 +12004,7 @@ async function jbLiberarBloqueoReserva(r){
     if(panel) panel.classList.add('jbOpen');
     if(!body) return;
     jbRestaurandoHistorial = true;
+    if (window.jbAnimSaltar) window.jbAnimSaltar();
     try {
       body.innerHTML = '';
       jbReserva = null;
@@ -12431,56 +12429,6 @@ async function jbLiberarBloqueoReserva(r){
   }
 
   window.jbPedirHora = function(){ jbIniciarFlujoReserva(); };
-
-  // ── Botón dorado de abajo: "Reservar una hora" ⇄ "Continuar" ──────────────
-  let jbQuickModo = 'normal';
-  let jbQuickObserver = null;
-  function jbQuickSet(modo, total){
-    const btn = document.querySelector('#jbQuickActions .jbBtnReservar');
-    if(!btn) return;
-    if(btn.dataset.textoOriginal === undefined) btn.dataset.textoOriginal = btn.textContent;
-    jbQuickModo = modo;
-    btn.classList.toggle('jbQuickEspera', modo === 'espera');
-    btn.classList.toggle('jbQuickContinuar', modo === 'continuar');
-    btn.setAttribute('aria-disabled', modo === 'espera' ? 'true' : 'false');
-    if(modo === 'espera')         btn.textContent = '👆 Elige un servicio arriba';
-    else if(modo === 'continuar') btn.textContent = `Continuar · $${Number(total||0).toLocaleString('es-CL')} ➜`;
-    else                          btn.textContent = btn.dataset.textoOriginal;
-    // Si el selector de servicios desaparece por cualquier motivo, volver a "Reservar una hora"
-    if(!jbQuickObserver){
-      const body = document.getElementById('jbChatBody');
-      if(body){
-        jbQuickObserver = new MutationObserver(() => {
-          if(jbQuickModo !== 'normal' && !document.getElementById('jbServicioSelector')){
-            window.__jbContinuarServicios = null;
-            jbQuickSet('normal');
-          }
-        });
-        jbQuickObserver.observe(body, { childList: true });
-      }
-    }
-  }
-  window.jbQuickReservarClick = function(){
-    const selector = document.getElementById('jbServicioSelector');
-    if(selector){
-      // Paso de servicios en pantalla: el botón dorado es "Continuar"
-      if(jbQuickModo === 'continuar' && typeof window.__jbContinuarServicios === 'function'){
-        window.__jbContinuarServicios();
-      } else {
-        selector.scrollIntoView({ behavior:'smooth', block:'center' });
-      }
-      return;
-    }
-    // Reserva en curso con pantallas visibles: no reiniciar por error
-    const flujoEnPantalla = jbReserva && document.querySelector(
-      '#jbChatBody .jbHorasGrid, #jbChatBody #jbFechaForm, #jbChatBody #jbNombreForm, #jbChatBody #jbDiaSelector'
-    );
-    if(flujoEnPantalla){
-      jbBot('Ya estás reservando 😊 Sigue con los botones de arriba. Si quieres cambiar algo, toca <b>✏️ Cambiar opciones</b>.');
-      return;
-    }
-    jbIniciarFlujoReserva();
-  };
 
   window.jbAbrirCancelarDesdeBoton = function(){
     const panel = document.getElementById('jbChatPanel');
@@ -13846,9 +13794,7 @@ window.addEventListener('load', function() {
     const reducirVideo = window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
         Boolean(conexion && (conexion.saveData || /^(slow-2g|2g)$/.test(conexion.effectiveType || '')));
     const esPantallaMovil = window.matchMedia('(max-width: 600px)').matches;
-    const soloUnVideo = reducirVideo || esPantallaMovil;
-    // En celular: primero intenta la versión liviana (360p). Si el archivo no existe, usa el original.
-    const fuentes = soloUnVideo ? ['videovisosjames1-movil.mp4', 'videovisosjames1.mp4'] : sources;
+    const fuentes = reducirVideo || esPantallaMovil ? ['videovisosjames1.mp4'] : sources;
     let activePlayer = null;
     let nextSourceIndex = 0;
     let switching = false;
@@ -13918,7 +13864,7 @@ window.addEventListener('load', function() {
     }
 
     async function showNextVideo() {
-        if (switching || !activePlayer || window.__jbVideoPausado) return;
+        if (switching || !activePlayer) return;
         switching = true;
         const nextPlayer = players.find(player => player !== activePlayer);
 
@@ -13946,13 +13892,8 @@ window.addEventListener('load', function() {
         switching = false;
     }
 
-    // Control externo: pausar/reanudar (chat abierto o pestaña oculta)
-    window.__jbVideoPausar = () => players.forEach(p => { if (p) p.pause(); });
-    window.__jbVideoReanudar = () => { if (activePlayer && activePlayer.getAttribute('src')) activePlayer.play().catch(() => {}); };
-
     startFirstVideo().then(ready => {
-        if (ready && window.__jbVideoPausado) window.__jbVideoPausar();
-        if (ready && fuentes.length > 1 && !soloUnVideo) window.setInterval(showNextVideo, 12000);
+        if (ready && fuentes.length > 1) window.setInterval(showNextVideo, 12000);
     });
 })();
 </script>
@@ -15540,57 +15481,355 @@ window.addEventListener('load', function() {
     });
   })();
 </script>
-
+<!-- ============================================================
+     ANIMACIÓN + SONIDO DE MENSAJES DEL BOT
+     Bloque independiente: solo observa #jbChatBody y no toca la
+     lógica de reservas. Los mensajes y botones siguen existiendo en
+     el DOM al instante (solo se muestran escalonados), así que
+     nada del flujo depende de este bloque.
+     Archivo de sonido: mensajebot.mp3 (junto a este HTML).
+     ============================================================ -->
 <style>
-  /* ── Botón dorado de abajo convertido en "Continuar" ── */
-  #jbQuickActions .jbBtnReservar.jbQuickContinuar {
-    font-weight: 900 !important;
-    border: 2px solid #5cf0ff !important;
-    animation: pulsoLlamativo 1.6s infinite !important;
-  }
-  #jbQuickActions .jbBtnReservar.jbQuickEspera {
-    background: #2a2a2e !important;
-    color: #b5b5b5 !important;
-    border: 1.5px dashed rgba(228,166,79,.6) !important;
-    box-shadow: none !important;
-    animation: none !important;
-    text-shadow: none !important;
-  }
-
-  /* ── Rendimiento en celular con el chat abierto ── */
-  @media (max-width: 700px), (hover: none) and (pointer: coarse) {
-    /* sin desenfoques costosos (el panel pasa a fondo sólido) */
-    body.jb-chat-open *,
-    body.jb-chat-open *::before,
-    body.jb-chat-open *::after {
-      -webkit-backdrop-filter: none !important;
-      backdrop-filter: none !important;
-    }
-    body.jb-chat-open #jbChatPanel { background: #121318 !important; }
-    body.jb-chat-open #jbChatHeader { background: #16171c !important; }
-    body.jb-chat-open #jbChatBody { background: #0d0e12 !important; }
-    /* las animaciones de la página que quedó detrás del chat se pausan */
-    body.jb-chat-open *:not(#jbChatPanel):not(#jbChatPanel *) {
-      animation-play-state: paused !important;
-    }
-  }
+  /* Mientras espera su turno, el elemento sigue en el DOM pero no se ve */
+  #jbChatBody > .jbAnimPend { display: none !important; }
 </style>
 <script>
-(function () {
-  var panel = document.getElementById('jbChatPanel');
-  if (!panel) return;
-  function sincronizar() {
-    var abierto = panel.classList.contains('jbOpen');
-    document.body.classList.toggle('jb-chat-open', abierto);
-    var pausar = abierto || document.hidden;
-    window.__jbVideoPausado = pausar;
-    if (pausar) { if (window.__jbVideoPausar) window.__jbVideoPausar(); }
-    else        { if (window.__jbVideoReanudar) window.__jbVideoReanudar(); }
+(function jbAnimacionMensajes(){
+  'use strict';
+
+  // ============================================
+  // AJUSTES (tiempos en milisegundos)
+  // ============================================
+  const AJUSTES = {
+    sonido: 'mensajebot.mp3',
+    volumen: 0.6,
+
+    esperaRespuesta: 400,         // desde que el cliente toca hasta la 1.ª respuesta del bot
+    esperaEntreBots: 500,         // base entre dos mensajes seguidos del bot
+    extraPorCaracter: 4,          // + ms por cada carácter del mensaje anterior...
+    extraMin: 100,                // ...con mínimo (mensaje corto  → 0,6 s)
+    extraMax: 400,                // ...y máximo (mensaje largo → 0,9 s)
+    esperaControles: 300,         // desde la pregunta hasta sus botones/tarjetas
+    esperaControlesSeguidos: 120, // entre dos bloques de controles seguidos
+    esperaSistema: 150,           // avisos pequeños del sistema
+
+    cascada: 55,                  // ms entre un botón y el siguiente
+    cascadaMax: 12,               // máximo de botones que entran en cascada
+    rafaga: 2500,                 // pasado este tiempo sin mensajes, se considera una respuesta nueva
+    seguridad: 10000              // red de seguridad: nada queda oculto más de 10 s
+  };
+  window.jbAnimAjustes = AJUSTES;  // se puede probar en vivo desde la consola
+
+  const body  = document.getElementById('jbChatBody');
+  const panel = document.getElementById('jbChatPanel');
+  if (!body || !panel || typeof MutationObserver === 'undefined') return;
+
+  const reducir = window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : { matches: false };
+
+  // Mensajes que el cliente debe leer sí o sí: llevan un brillo dorado
+  const RE_IMPORTANTE = /👇|¿|elige|ya no est[aá] disponible|reserva confirmada|resumen de tu reserva/i;
+  const SEL_ITEMS = 'button, .jbServItem, .jbDiaBtn';
+
+  // ============================================
+  // ESTADO
+  // ============================================
+  let cola = [];
+  let corriendo = false;
+  let timer = null;
+  let silencio = false;         // lo activa jbAnimSaltar() al restaurar historial
+  let ultimoReveal = 0;
+  let ultimoTipo = '';
+  let ultimoLen = 0;
+  let ultimoBot = null;         // última pregunta visible (ancla del scroll)
+  let focoPendiente = null;
+
+  const activo = () => panel.classList.contains('jbOpen') && !document.hidden;
+
+  // Lo llama el código existente justo antes de restaurar un estado guardado:
+  // lo que se agregue en ese mismo instante aparece de golpe, sin animación.
+  window.jbAnimSaltar = function(){
+    silencio = true;
+    setTimeout(() => { silencio = false; }, 0);
+  };
+
+  // ============================================
+  // SONIDO
+  // ============================================
+  let audio = null;
+  let audioFallo = false;
+  function prepararAudio(){
+    if (audio || audioFallo) return audio;
+    try {
+      audio = new Audio(AJUSTES.sonido);
+      audio.preload = 'auto';
+      audio.volume = AJUSTES.volumen;
+      audio.addEventListener('error', () => { audioFallo = true; });
+    } catch (e) { audioFallo = true; }
+    return audio;
   }
-  new MutationObserver(sincronizar).observe(panel, { attributes: true, attributeFilter: ['class'] });
-  document.addEventListener('visibilitychange', sincronizar);
-  sincronizar();
+  function sonar(){
+    const a = prepararAudio();
+    if (!a || audioFallo) return;
+    try {
+      a.volume = AJUSTES.volumen;
+      a.currentTime = 0;
+      const p = a.play();
+      if (p && p.catch) p.catch(() => {});
+    } catch (e) {}
+  }
+  // Los celulares (sobre todo iPhone) solo dejan sonar el audio si se "desbloquea"
+  // con un primer toque del cliente. Se hace en silencio la primera vez que toca algo.
+  function desbloquearAudio(){
+    const a = prepararAudio();
+    if (!a || audioFallo) return;
+    try {
+      a.muted = true;
+      const p = a.play();
+      const listo = () => { try { a.pause(); a.currentTime = 0; } catch (e) {} a.muted = false; };
+      if (p && p.then) p.then(listo).catch(() => { a.muted = false; });
+      else listo();
+    } catch (e) { try { a.muted = false; } catch (e2) {} }
+  }
+  ['pointerdown', 'touchstart', 'keydown'].forEach(ev =>
+    document.addEventListener(ev, desbloquearAudio, { once: true, capture: true, passive: true })
+  );
+  prepararAudio();
+
+  // ============================================
+  // FOCO: si el código intenta enfocar un campo que todavía está
+  // oculto esperando su turno, se enfoca apenas aparece.
+  // ============================================
+  const focoOriginal = HTMLElement.prototype.focus;
+  HTMLElement.prototype.focus = function(){
+    try {
+      if (this.closest && this.closest('#jbChatBody > .jbAnimPend')) {
+        focoPendiente = this;
+        return;
+      }
+    } catch (e) {}
+    return focoOriginal.apply(this, arguments);
+  };
+  function restaurarFoco(n){
+    const el = focoPendiente;
+    if (!el) return;
+    if (!el.isConnected) { focoPendiente = null; return; }
+    if (n.contains(el)) {                       // solo cuando aparece el elemento que contiene al campo
+      focoPendiente = null;
+      try { focoOriginal.call(el, { preventScroll: true }); } catch (e) {}
+    }
+  }
+
+  // ============================================
+  // ANIMACIONES (Web Animations: no pisan el CSS existente)
+  // ============================================
+  const REBOTE = 'cubic-bezier(.34,1.56,.64,1)';
+
+  function pop(el, origen){
+    if (reducir.matches || !el.animate) return;
+    el.animate([
+      { opacity: 0, transform: 'translateY(12px) scale(.6)',  transformOrigin: origen },
+      { opacity: 1, transform: 'translateY(0) scale(1)',      transformOrigin: origen }
+    ], { duration: 420, easing: REBOTE, fill: 'backwards' });
+  }
+  function popSuave(el, retraso){
+    if (reducir.matches || !el.animate) return;
+    el.animate([
+      { opacity: 0, transform: 'translateY(10px) scale(.9)' },
+      { opacity: 1, transform: 'translateY(0) scale(1)' }
+    ], { duration: 360, delay: retraso, easing: REBOTE, fill: 'backwards' });
+  }
+  function aparecer(el){
+    if (reducir.matches || !el.animate) return;
+    el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, fill: 'backwards' });
+  }
+  // Brillo dorado que pulsa dos veces
+  function destacar(el){
+    if (reducir.matches || !el.animate) return;
+    el.animate([
+      { boxShadow: '0 0 0 0 rgba(228,166,79,0)' },
+      { boxShadow: '0 0 0 2px rgba(228,166,79,.95), 0 0 20px 3px rgba(228,166,79,.55)', offset: .5 },
+      { boxShadow: '0 0 0 0 rgba(228,166,79,0)' }
+    ], { duration: 900, delay: 350, iterations: 2, easing: 'ease-in-out' });
+  }
+
+  function itemsDe(n){
+    return Array.from(n.querySelectorAll(SEL_ITEMS)).filter(el => {
+      const padre = el.parentElement && el.parentElement.closest(SEL_ITEMS);
+      return !(padre && n.contains(padre));
+    });
+  }
+
+  // ============================================
+  // SCROLL: deja visible la pregunta junto con sus opciones
+  // ============================================
+  function desplazar(it){
+    const maxTop = Math.max(0, body.scrollHeight - body.clientHeight);
+    let destino = maxTop;
+    const ancla = it.t === 'control' ? ultimoBot : null;
+    if (ancla && ancla.isConnected && ancla.parentNode === body) {
+      const delta = ancla.getBoundingClientRect().top - body.getBoundingClientRect().top - 8;
+      destino = Math.min(maxTop, body.scrollTop + delta);
+    }
+    destino = Math.max(0, destino);
+    if (reducir.matches || Math.abs(destino - body.scrollTop) < 2 || !body.scrollTo) {
+      body.scrollTop = destino;
+    } else {
+      body.scrollTo({ top: destino, behavior: 'smooth' });
+    }
+  }
+
+  // ============================================
+  // COLA
+  // ============================================
+  function tipoDe(n){
+    if (n.classList.contains('jbBubble')) {
+      if (n.classList.contains('jbCliente')) return 'cliente';
+      if (n.classList.contains('jbSistema')) return 'sistema';
+      return 'bot';
+    }
+    return 'control';
+  }
+
+  function calcularEspera(it, prevTipo, prevLen){
+    if (it.t === 'sistema') return AJUSTES.esperaSistema;
+    if (it.t === 'control') return prevTipo === 'control' ? AJUSTES.esperaControlesSeguidos : AJUSTES.esperaControles;
+    if (it.n.classList.contains('jbJames')) return 0;            // mensaje en vivo de James: sin demora
+    if (prevTipo === 'bot') {
+      const extra = Math.min(AJUSTES.extraMax, Math.max(AJUSTES.extraMin, prevLen * AJUSTES.extraPorCaracter));
+      return AJUSTES.esperaEntreBots + extra;
+    }
+    if (prevTipo === 'control') return AJUSTES.esperaEntreBots;
+    return AJUSTES.esperaRespuesta;                               // tras el mensaje del cliente
+  }
+
+  function revelar(it, conEfectos){
+    const n = it.n;
+    if (!n.classList.contains('jbAnimPend')) return;
+    n.classList.remove('jbAnimPend');
+    ultimoReveal = Date.now();
+    ultimoTipo = it.t;
+    if (it.t === 'bot') { ultimoLen = (n.textContent || '').length; ultimoBot = n; }
+    if (!n.isConnected) return;
+    restaurarFoco(n);
+    if (!conEfectos) return;
+
+    if (it.t === 'bot') {
+      sonar();
+      pop(n, n.classList.contains('jbCliente') ? 'right bottom' : 'left bottom');
+      if (RE_IMPORTANTE.test(n.textContent || '') || n.classList.contains('jbJames')) destacar(n);
+    } else if (it.t === 'sistema') {
+      pop(n, 'center bottom');
+    } else {
+      const lista = itemsDe(n);
+      if (lista.length && !n.matches(SEL_ITEMS)) {
+        aparecer(n);
+        lista.slice(0, AJUSTES.cascadaMax).forEach((el, i) => popSuave(el, i * AJUSTES.cascada));
+      } else {
+        pop(n, 'left bottom');
+      }
+      if (/RESUMEN DE TU RESERVA/i.test(n.textContent || '')) destacar(n);
+    }
+    desplazar(it);
+  }
+
+  function vaciarCola(){
+    clearTimeout(timer);
+    timer = null;
+    corriendo = false;
+    if (!cola.length) return;
+    const pendientes = cola;
+    cola = [];
+    pendientes.forEach(it => revelar(it, false));
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function paso(){
+    const it = cola[0];
+    if (!it) { corriendo = false; return; }
+    const vigente = (Date.now() - ultimoReveal) < AJUSTES.rafaga;
+    const espera = calcularEspera(it, vigente ? ultimoTipo : '', ultimoLen);
+    const cuando = Math.max(it.llegada, ultimoReveal) + espera;
+    timer = setTimeout(() => {
+      timer = null;
+      cola.shift();
+      revelar(it, activo());
+      paso();
+    }, Math.max(0, cuando - Date.now()));
+  }
+  function arrancar(){
+    if (corriendo) return;
+    corriendo = true;
+    paso();
+  }
+
+  function encolar(n){
+    const t = tipoDe(n);
+
+    // El cliente ya actuó: lo pendiente se muestra de una y su mensaje sale al instante
+    if (t === 'cliente') {
+      vaciarCola();
+      ultimoReveal = Date.now();
+      ultimoTipo = 'cliente';
+      ultimoBot = null;
+      if (activo()) pop(n, 'right bottom');
+      return;
+    }
+    // Elementos ocultos a propósito por el código existente: no se tocan
+    if (n.hidden || (n.style && n.style.display === 'none')) return;
+
+    if (t === 'sistema' && !cola.length && !corriendo) {
+      ultimoReveal = Date.now();
+      ultimoTipo = 'sistema';
+      pop(n, 'center bottom');
+      return;
+    }
+
+    // Si el código ya enfocó un campo de este elemento, se recuerda para devolverle el foco al mostrarlo
+    const enfocado = document.activeElement;
+    if (enfocado && enfocado !== document.body && n.contains(enfocado)) focoPendiente = enfocado;
+
+    n.classList.add('jbAnimPend');
+    const it = { n, t, llegada: Date.now() };
+    cola.push(it);
+
+    // Red de seguridad: pase lo que pase, nada queda oculto
+    setTimeout(() => {
+      if (n.classList.contains('jbAnimPend')) {
+        const i = cola.indexOf(it);
+        if (i > -1) cola.splice(i, 1);
+        revelar(it, false);
+      }
+    }, AJUSTES.seguridad);
+  }
+
+  // ============================================
+  // OBSERVADOR
+  // ============================================
+  const observador = new MutationObserver(registros => {
+    const nuevos = [];
+    try {
+      registros.forEach(r => r.addedNodes.forEach(n => {
+        if (n.nodeType === 1 && n.parentNode === body) nuevos.push(n);
+      }));
+      if (!nuevos.length) return;
+
+      // Chat cerrado, pestaña oculta o historial restaurándose: todo aparece de golpe
+      if (silencio || !activo()) { vaciarCola(); return; }
+
+      nuevos.forEach(encolar);
+      if (cola.length) arrancar();
+    } catch (e) {
+      console.warn('[jbAnimacion] se desactivó para estos mensajes:', e);
+      cola = []; corriendo = false; clearTimeout(timer);
+      nuevos.forEach(n => n.classList && n.classList.remove('jbAnimPend'));
+      body.querySelectorAll(':scope > .jbAnimPend').forEach(n => n.classList.remove('jbAnimPend'));
+    }
+  });
+  observador.observe(body, { childList: true });
 })();
 </script>
+
 </body>
 </html>
