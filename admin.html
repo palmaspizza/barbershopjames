@@ -3204,18 +3204,13 @@ function jbRenderMetricaFacilidad(){
             
             db.ref('diasCerrados').on('value', snapshot => {
                 const data = snapshot.val() || {};
-                diasCerrados = Object.values(data).map(d => d.fecha);
+                const lista = Object.values(data).filter(d => d && d.fecha);
+                diasCerrados = lista.filter(d => d.abierto !== true).map(d => d.fecha);
+                diasAbiertos = lista.filter(d => d.abierto === true).map(d => d.fecha);
                 renderCalendario();
                 if (diaSeleccionado) renderPanelDia();
             });
             
-            db.ref('diasAbiertos').on('value', snapshot => {
-                const data = snapshot.val() || {};
-                diasAbiertos = Object.values(data).map(d => d.fecha);
-                renderCalendario();
-                if (diaSeleccionado) renderPanelDia();
-            });
-
             db.ref('config/diasSemanaCerrados').on('value', snapshot => {
                 const dias = snapshot.val();
                 diasSemanaCerrados = Array.isArray(dias) ? dias.map(Number).filter(Number.isInteger) : [];
@@ -4587,9 +4582,10 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
             return diasSemanaCerrados.includes(diaSemana);
         }
 
-        // Quita de una lista de Firebase todas las fechas que cumplan el filtro
-        function quitarFechas(ruta, filtro) {
-            return db.ref(ruta).once('value').then(snapshot => {
+        // Quita de /diasCerrados todas las entradas cuya fecha cumpla el filtro
+        // (tanto cierres como excepciones de apertura viven en ese mismo nodo).
+        function quitarFechas(filtro) {
+            return db.ref('diasCerrados').once('value').then(snapshot => {
                 const tareas = [];
                 snapshot.forEach(child => {
                     const v = child.val();
@@ -4605,19 +4601,19 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
             const diaSemana = new Date(anio, mes - 1, dia).getDay();
             const semanaCerrada = diasSemanaCerrados.includes(diaSemana);
             const abrir = estaDiaCerrado(fecha, diaSemana);
-            const igual = f => f === fecha;
 
-            // Primero limpiamos cualquier excepción previa de ese día y luego
-            // guardamos solo la que haga falta respecto al día de semana.
-            Promise.all([quitarFechas('diasCerrados', igual), quitarFechas('diasAbiertos', igual)])
+            // Limpia cualquier registro previo de ese día y guarda solo el que haga falta:
+            //  - abrir un día cuyo día de semana está cerrado -> excepción {fecha, abierto:true}
+            //  - cerrar un día cuyo día de semana está abierto -> cierre {fecha}
+            quitarFechas(f => f === fecha)
                 .then(() => {
-                    if (abrir && semanaCerrada) return db.ref('diasAbiertos').push({ fecha });
+                    if (abrir && semanaCerrada) return db.ref('diasCerrados').push({ fecha, abierto: true });
                     if (!abrir && !semanaCerrada) return db.ref('diasCerrados').push({ fecha });
                 })
                 .then(() => mostrarToast(abrir ? 'Día abierto correctamente' : 'Día cerrado correctamente'))
                 .catch(err => {
-                    console.error(err);
-                    mostrarToast('No se pudo guardar el cambio');
+                    console.error('Error al guardar el día:', err);
+                    alert('No se pudo guardar el cambio: ' + (err && err.message ? err.message : err));
                 });
         }
         
@@ -4668,8 +4664,7 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
                 const [a, m, d] = String(f).split('-').map(Number);
                 return new Date(a, m - 1, d).getDay() === diaNum;
             };
-            quitarFechas('diasCerrados', esDeEseDia);
-            quitarFechas('diasAbiertos', esDeEseDia);
+            quitarFechas(esDeEseDia).catch(err => console.error('Error limpiando excepciones:', err));
             renderDiasSemanaConfig();
             renderBotonDomingos();
             renderCalendario();
