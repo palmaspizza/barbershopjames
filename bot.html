@@ -5088,6 +5088,7 @@ function renderGaleriaClientes(imagenes) {
         let modoGestionHorarios = false;
         let diasBloqueados = [];
         let diasSemanaCerrados = [];
+        let diasAbiertos = []; // excepciones: días abiertos a mano aunque su día de semana esté cerrado
         let horariosPersonalizados = {};
         let reservasPorDia = {};
         let bloqueosPorDia = {};
@@ -5194,10 +5195,13 @@ function renderGaleriaClientes(imagenes) {
         // Escuchar días bloqueados en tiempo real
         diasBloqueadosRef.on("value", snapshot => {
             diasBloqueados = [];
+            diasAbiertos = [];
             snapshot.forEach(child => {
                 const val = child.val();
                 if (val && val.fecha) {
-                    diasBloqueados.push(val.fecha);
+                    // {fecha, abierto:true} = excepción de apertura (la escribe el admin)
+                    if (val.abierto === true) diasAbiertos.push(val.fecha);
+                    else diasBloqueados.push(val.fecha);
                 }
             });
             actualizarBarraMes();
@@ -5231,7 +5235,7 @@ function obtenerHorario(fechaStr) {
     const fechaObj = new Date(anio, mes - 1, dia);
     const diaSemana = fechaObj.getDay();
 
-    if (diasSemanaCerrados.includes(diaSemana)) {
+    if (diasSemanaCerrados.includes(diaSemana) && !diasAbiertos.includes(fechaStr)) {
       return [];
     }
 
@@ -5290,7 +5294,7 @@ const fechaCelda = new Date(anio, mes - 1, dia);
 const diaSemana = fechaCelda.getDay(); // Esto obtiene el día de la semana (0=Domingo, 1=Lunes, etc.)
 
 // Modifique la línea siguiente:
-const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0 || diasSemanaCerrados.includes(diaSemana);
+const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.length === 0 || (diasSemanaCerrados.includes(diaSemana) && !diasAbiertos.includes(fechaActual));
 
 // ...
         const estaOcupado = horasReservadas.length >= horarioDelDia.length;
@@ -5327,17 +5331,22 @@ const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.leng
                 fechaSeleccionadaParaConfigurar = fechaActual;
                 abrirVentanaConfiguracionHorarios();
             } else if (modoBloqueoDias) {
-                if (estaBloqueado) {
-                    diasBloqueadosRef.once("value", snapshot => {
-                        snapshot.forEach(child => {
-                            if (child.val().fecha === fechaActual) {
-                                child.ref.remove();
-                            }
-                        });
+                const semanaCerrada = diasSemanaCerrados.includes(diaSemana);
+                diasBloqueadosRef.once("value").then(snapshot => {
+                    const tareas = [];
+                    snapshot.forEach(child => {
+                        const v = child.val();
+                        if (v && v.fecha === fechaActual) tareas.push(child.ref.remove());
                     });
-                } else {
-                    diasBloqueadosRef.push({ fecha: fechaActual });
-                }
+                    return Promise.all(tareas);
+                }).then(() => {
+                    // Misma lógica que admin.html: solo se guarda lo necesario
+                    if (estaBloqueado && semanaCerrada) return diasBloqueadosRef.push({ fecha: fechaActual, abierto: true });
+                    if (!estaBloqueado && !semanaCerrada) return diasBloqueadosRef.push({ fecha: fechaActual });
+                }).catch(err => {
+                    console.error("No se pudo guardar el día:", err);
+                    alert("No se pudo guardar el cambio: " + (err && err.message ? err.message : err));
+                });
             } else {
                 if (!estaBloqueado) {
                     fechaInput.value = fechaActual;
@@ -5351,11 +5360,25 @@ const estaBloqueado = diasBloqueados.includes(fechaActual) || horarioDelDia.leng
         }
 }
 
+function jbLimpiarExcepcionesDiaSemana(dia) {
+    return db.ref('diasCerrados').once('value').then(snapshot => {
+        const tareas = [];
+        snapshot.forEach(child => {
+            const v = child.val();
+            if (!v || !v.fecha) return;
+            const [a, m, d] = String(v.fecha).split('-').map(Number);
+            if (new Date(a, m - 1, d).getDay() === Number(dia)) tareas.push(child.ref.remove());
+        });
+        return Promise.all(tareas);
+    }).catch(err => console.error('Error limpiando excepciones:', err));
+}
+
 function cerrarDiaDeLaSemana(dia) {
     if (!diasSemanaCerrados.includes(dia)) {
         diasSemanaCerrados.push(dia);
     }
     db.ref('config/diasSemanaCerrados').set(diasSemanaCerrados);
+    jbLimpiarExcepcionesDiaSemana(dia);
     renderBotonDomingos();
     renderCalendario();
 }
@@ -5364,6 +5387,7 @@ function habilitarDiaDeLaSemana(dia) {
     const idx = diasSemanaCerrados.indexOf(dia);
     if (idx > -1) diasSemanaCerrados.splice(idx, 1);
     db.ref('config/diasSemanaCerrados').set(diasSemanaCerrados);
+    jbLimpiarExcepcionesDiaSemana(dia);
     renderBotonDomingos();
     renderCalendario();
 }
@@ -8662,9 +8686,10 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       db.ref('config/diasSemanaCerrados').once('value')
     ]);
     const diasCerradosActuales = [];
+    const diasAbiertosActuales = [];
     diasCerradosSnapshot.forEach(child => {
       const valor = child.val();
-      if (valor && valor.fecha) diasCerradosActuales.push(valor.fecha);
+      if (valor && valor.fecha) (valor.abierto === true ? diasAbiertosActuales : diasCerradosActuales).push(valor.fecha);
     });
     const [anio, mes, dia] = String(fechaStr).split('-').map(Number);
     const diaSemana = new Date(anio, mes - 1, dia).getDay();
@@ -8675,7 +8700,7 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       : (horarioSemanaSnapshot.val() || horarioSemana);
     const horarioDelDia = horariosEspecificos[fechaStr] || horarioBase;
     return !diasCerradosActuales.includes(fechaStr) &&
-      !diasSemanaCerrados.includes(diaSemana) &&
+      !(diasSemanaCerrados.includes(diaSemana) && !diasAbiertosActuales.includes(fechaStr)) &&
       Array.isArray(horarioDelDia) &&
       horarioDelDia.includes(hora);
   }
@@ -10795,9 +10820,10 @@ window._jbConfirmandoReserva = true;
         db.ref('config/diasSemanaCerrados').once('value')
       ]);
       const diasCerradosActuales = [];
+      const diasAbiertosActuales = [];
       diasCerradosSnapshot.forEach(child => {
         const valor = child.val();
-        if (valor && valor.fecha) diasCerradosActuales.push(valor.fecha);
+        if (valor && valor.fecha) (valor.abierto === true ? diasAbiertosActuales : diasCerradosActuales).push(valor.fecha);
       });
       const [anioReserva, mesReserva, diaReserva] = String(jbReserva.fecha).split('-').map(Number);
       const fechaReserva = new Date(anioReserva, mesReserva - 1, diaReserva);
@@ -10809,7 +10835,7 @@ window._jbConfirmandoReserva = true;
         : (horariosSemanaSnapshot.val() || horarioSemana);
       const horarioDelDiaActual = horariosEspecificosActuales[jbReserva.fecha] || horarioBaseActual;
       const diaNoDisponible = diasCerradosActuales.includes(jbReserva.fecha) ||
-        diasSemanaCerradosActuales.includes(diaSemanaReserva) ||
+        (diasSemanaCerradosActuales.includes(diaSemanaReserva) && !diasAbiertosActuales.includes(jbReserva.fecha)) ||
         !Array.isArray(horarioDelDiaActual) ||
         !horarioDelDiaActual.includes(jbReserva.hora);
       if (diaNoDisponible) {
