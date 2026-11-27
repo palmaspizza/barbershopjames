@@ -72,8 +72,8 @@
       </div>
     </div>
     <div id="bg-video-container" aria-hidden="true">
-        <video id="video-a" autoplay muted loop playsinline preload="metadata"></video>
-        <video id="video-b" autoplay muted loop playsinline preload="metadata"></video>
+        <video id="video-a" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="metadata"></video>
+        <video id="video-b" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="metadata"></video>
     </div>
     <div id="bg-overlay" aria-hidden="true"></div>
     
@@ -7390,7 +7390,7 @@ function marcarHorasOcupadasPorDuracion() {
   <div id="jbTyping">Escribiendo<span>.</span><span>.</span><span>.</span></div>
   <div id="jbQuickActions" role="group" aria-label="Opciones de reserva">
       <div class="jbQuickActionsTitle">¿Qué necesitas?</div>
-      <button type="button" class="jbQuickBtn jbBtnReservar" onclick="jbPedirHora()">📅 Reservar una hora</button>
+      <button type="button" class="jbQuickBtn jbBtnReservar" onclick="jbQuickReservarClick()">📅 Reservar una hora</button>
       <button type="button" class="jbQuickBtn" onclick="jbAbrirCancelarDesdeBoton()">📋 Mi reserva</button>
       <button id="jbQuickCambiar" type="button" class="jbQuickBtn" style="display:none;" onclick="jbPreguntarQueCambiar()">✏️ Cambiar opciones</button>
       <button type="button" class="jbQuickBtn" onclick="jbAbrirRecuperacion()">🔎 No encuentro mi reserva</button>
@@ -9278,6 +9278,8 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     jbBot('Elige tus servicios 👇 Puedes marcar varios:');
 
     const seleccionados = new Set();
+    window.__jbContinuarServicios = null;
+    jbQuickSet('espera');
     const wrapper = document.createElement('div');
     wrapper.id = 'jbServicioSelector';
     wrapper.style.cssText = 'width:100%;max-width:440px;max-height:48dvh;flex:0 0 auto;align-self:flex-start;display:flex;flex-direction:column;gap:0;background:#141422;border-radius:16px;overflow-y:auto;border:1px solid rgba(228,166,79,0.18);z-index:2;';
@@ -9354,14 +9356,14 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     function actualizarBotonContinuar(){
       const total = [...seleccionados].reduce((suma, servicio) => suma + servicio.precio, 0);
       btnConfirmar.disabled = seleccionados.size === 0;
-      btnConfirmar.style.display = seleccionados.size ? 'block' : 'none';
-      btnConfirmar.textContent = seleccionados.size
-        ? `Continuar · $${total.toLocaleString('es-CL')} ➜`
-        : 'Continuar ➜';
+      // El "Continuar" ahora vive en el botón dorado de abajo (donde estaba "Reservar una hora")
+      btnConfirmar.style.display = 'none';
       if(seleccionados.size){
-        requestAnimationFrame(() => {
-          btnConfirmar.scrollIntoView({ behavior:'smooth', block:'nearest' });
-        });
+        window.__jbContinuarServicios = () => btnConfirmar.onclick();
+        jbQuickSet('continuar', total);
+      } else {
+        window.__jbContinuarServicios = null;
+        jbQuickSet('espera');
       }
     }
 
@@ -9370,6 +9372,8 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
       jbReserva.servicios = [...seleccionados];
       wrapper.remove();
       btnConfirmar.remove();
+      window.__jbContinuarServicios = null;
+      jbQuickSet('normal');
       jbDesbloquearInput();
       const names = jbReserva.servicios.map(s=>s.label||s.nombre).join(' + ');
       const total = jbReserva.servicios.reduce((a,s)=>a+s.precio,0);
@@ -9404,6 +9408,7 @@ function irAConfirmar() {
     const body = document.getElementById('jbChatBody');
     const hoy  = new Date(); hoy.setHours(0,0,0,0);
     const wrapper = document.createElement('div');
+    wrapper.id = 'jbDiaSelector';
     wrapper.style.cssText = 'width:98%;max-width:440px;align-self:flex-start;display:flex;flex-direction:column;gap:8px;margin:2px 0 8px;';
 
     const DIAS_LARGO = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -12427,6 +12432,56 @@ async function jbLiberarBloqueoReserva(r){
 
   window.jbPedirHora = function(){ jbIniciarFlujoReserva(); };
 
+  // ── Botón dorado de abajo: "Reservar una hora" ⇄ "Continuar" ──────────────
+  let jbQuickModo = 'normal';
+  let jbQuickObserver = null;
+  function jbQuickSet(modo, total){
+    const btn = document.querySelector('#jbQuickActions .jbBtnReservar');
+    if(!btn) return;
+    if(btn.dataset.textoOriginal === undefined) btn.dataset.textoOriginal = btn.textContent;
+    jbQuickModo = modo;
+    btn.classList.toggle('jbQuickEspera', modo === 'espera');
+    btn.classList.toggle('jbQuickContinuar', modo === 'continuar');
+    btn.setAttribute('aria-disabled', modo === 'espera' ? 'true' : 'false');
+    if(modo === 'espera')         btn.textContent = '👆 Elige un servicio arriba';
+    else if(modo === 'continuar') btn.textContent = `Continuar · $${Number(total||0).toLocaleString('es-CL')} ➜`;
+    else                          btn.textContent = btn.dataset.textoOriginal;
+    // Si el selector de servicios desaparece por cualquier motivo, volver a "Reservar una hora"
+    if(!jbQuickObserver){
+      const body = document.getElementById('jbChatBody');
+      if(body){
+        jbQuickObserver = new MutationObserver(() => {
+          if(jbQuickModo !== 'normal' && !document.getElementById('jbServicioSelector')){
+            window.__jbContinuarServicios = null;
+            jbQuickSet('normal');
+          }
+        });
+        jbQuickObserver.observe(body, { childList: true });
+      }
+    }
+  }
+  window.jbQuickReservarClick = function(){
+    const selector = document.getElementById('jbServicioSelector');
+    if(selector){
+      // Paso de servicios en pantalla: el botón dorado es "Continuar"
+      if(jbQuickModo === 'continuar' && typeof window.__jbContinuarServicios === 'function'){
+        window.__jbContinuarServicios();
+      } else {
+        selector.scrollIntoView({ behavior:'smooth', block:'center' });
+      }
+      return;
+    }
+    // Reserva en curso con pantallas visibles: no reiniciar por error
+    const flujoEnPantalla = jbReserva && document.querySelector(
+      '#jbChatBody .jbHorasGrid, #jbChatBody #jbFechaForm, #jbChatBody #jbNombreForm, #jbChatBody #jbDiaSelector'
+    );
+    if(flujoEnPantalla){
+      jbBot('Ya estás reservando 😊 Sigue con los botones de arriba. Si quieres cambiar algo, toca <b>✏️ Cambiar opciones</b>.');
+      return;
+    }
+    jbIniciarFlujoReserva();
+  };
+
   window.jbAbrirCancelarDesdeBoton = function(){
     const panel = document.getElementById('jbChatPanel');
     if(panel && !panel.classList.contains('jbOpen')){
@@ -13791,7 +13846,9 @@ window.addEventListener('load', function() {
     const reducirVideo = window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
         Boolean(conexion && (conexion.saveData || /^(slow-2g|2g)$/.test(conexion.effectiveType || '')));
     const esPantallaMovil = window.matchMedia('(max-width: 600px)').matches;
-    const fuentes = reducirVideo || esPantallaMovil ? ['videovisosjames1.mp4'] : sources;
+    const soloUnVideo = reducirVideo || esPantallaMovil;
+    // En celular: primero intenta la versión liviana (360p). Si el archivo no existe, usa el original.
+    const fuentes = soloUnVideo ? ['videovisosjames1-movil.mp4', 'videovisosjames1.mp4'] : sources;
     let activePlayer = null;
     let nextSourceIndex = 0;
     let switching = false;
@@ -13861,7 +13918,7 @@ window.addEventListener('load', function() {
     }
 
     async function showNextVideo() {
-        if (switching || !activePlayer) return;
+        if (switching || !activePlayer || window.__jbVideoPausado) return;
         switching = true;
         const nextPlayer = players.find(player => player !== activePlayer);
 
@@ -13889,8 +13946,13 @@ window.addEventListener('load', function() {
         switching = false;
     }
 
+    // Control externo: pausar/reanudar (chat abierto o pestaña oculta)
+    window.__jbVideoPausar = () => players.forEach(p => { if (p) p.pause(); });
+    window.__jbVideoReanudar = () => { if (activePlayer && activePlayer.getAttribute('src')) activePlayer.play().catch(() => {}); };
+
     startFirstVideo().then(ready => {
-        if (ready && fuentes.length > 1) window.setInterval(showNextVideo, 12000);
+        if (ready && window.__jbVideoPausado) window.__jbVideoPausar();
+        if (ready && fuentes.length > 1 && !soloUnVideo) window.setInterval(showNextVideo, 12000);
     });
 })();
 </script>
@@ -15477,6 +15539,58 @@ window.addEventListener('load', function() {
       }
     });
   })();
+</script>
+
+<style>
+  /* ── Botón dorado de abajo convertido en "Continuar" ── */
+  #jbQuickActions .jbBtnReservar.jbQuickContinuar {
+    font-weight: 900 !important;
+    border: 2px solid #5cf0ff !important;
+    animation: pulsoLlamativo 1.6s infinite !important;
+  }
+  #jbQuickActions .jbBtnReservar.jbQuickEspera {
+    background: #2a2a2e !important;
+    color: #b5b5b5 !important;
+    border: 1.5px dashed rgba(228,166,79,.6) !important;
+    box-shadow: none !important;
+    animation: none !important;
+    text-shadow: none !important;
+  }
+
+  /* ── Rendimiento en celular con el chat abierto ── */
+  @media (max-width: 700px), (hover: none) and (pointer: coarse) {
+    /* sin desenfoques costosos (el panel pasa a fondo sólido) */
+    body.jb-chat-open *,
+    body.jb-chat-open *::before,
+    body.jb-chat-open *::after {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+    body.jb-chat-open #jbChatPanel { background: #121318 !important; }
+    body.jb-chat-open #jbChatHeader { background: #16171c !important; }
+    body.jb-chat-open #jbChatBody { background: #0d0e12 !important; }
+    /* las animaciones de la página que quedó detrás del chat se pausan */
+    body.jb-chat-open *:not(#jbChatPanel):not(#jbChatPanel *) {
+      animation-play-state: paused !important;
+    }
+  }
+</style>
+<script>
+(function () {
+  var panel = document.getElementById('jbChatPanel');
+  if (!panel) return;
+  function sincronizar() {
+    var abierto = panel.classList.contains('jbOpen');
+    document.body.classList.toggle('jb-chat-open', abierto);
+    var pausar = abierto || document.hidden;
+    window.__jbVideoPausado = pausar;
+    if (pausar) { if (window.__jbVideoPausar) window.__jbVideoPausar(); }
+    else        { if (window.__jbVideoReanudar) window.__jbVideoReanudar(); }
+  }
+  new MutationObserver(sincronizar).observe(panel, { attributes: true, attributeFilter: ['class'] });
+  document.addEventListener('visibilitychange', sincronizar);
+  sincronizar();
+})();
 </script>
 </body>
 </html>
