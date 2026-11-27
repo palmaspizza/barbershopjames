@@ -7786,11 +7786,7 @@ function jbRestaurarInterfazReserva(){
 
   jbSistema(
     '↩️ <b>Retomamos tu reserva donde la dejaste.</b><br>' +
-    'No necesitas repetir los datos que ya ingresaste.' +
-    (jbReserva.fecha
-      ? '<br><br>📅 <b>' + jbFormatFechaLegible(jbReserva.fecha) + (jbReserva.hora ? ' · ' + jbReserva.hora : '') + '</b>' +
-        '<br>Si no es el día que quieres, toca «Empezar de nuevo».'
-      : '')
+    'No necesitas repetir los datos que ya ingresaste.'
   );
 
   // Salida siempre disponible: descartar lo guardado y volver al inicio
@@ -8602,15 +8598,6 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
     const f = new Date(anio, mes - 1, dia);
     return `${JB_DIAS_SEMANA[f.getDay()]} ${dia} de ${JB_MESES_NOMBRES[mes-1]}`;
   }
-  // "Es HOY" / "Es MAÑANA" / "Dentro de N días" (según la fecha de Chile)
-  function jbDistanciaFechaTexto(fechaStr){
-    const [a,m,d] = String(fechaStr).split('-').map(Number);
-    const [ha,hm,hd] = jbAhoraSantiago().fecha.split('-').map(Number);
-    const dias = Math.round((Date.UTC(a,m-1,d) - Date.UTC(ha,hm-1,hd)) / 86400000);
-    if(dias === 0) return 'Es HOY';
-    if(dias === 1) return 'Es MAÑANA';
-    return `Dentro de ${dias} días`;
-  }
   function jbDiasDisponiblesDelMes(anio, mesIndex0){
     const totalDias = new Date(anio, mesIndex0 + 1, 0).getDate();
     const hoy = new Date(); hoy.setHours(0,0,0,0);
@@ -9061,12 +9048,6 @@ const jbEstadoInicialPromesa = jbCargarEstadoReservaPersistido();
 
   jbCliente(h);
 
-  // La hora y la fecha se guardan JUNTAS, con la fecha de la grilla que el cliente está viendo.
-  // Antes solo se guardaba la hora y se confiaba en la fecha global (que podía haber cambiado).
-  if(jbReserva.fecha !== fechaStr){
-    jbReserva.trazaFecha = `CORREGIDO: la fecha interna era ${jbReserva.fecha} pero la grilla mostrada era ${fechaStr}`;
-    jbReserva.fecha = fechaStr;
-  }
   jbReserva.hora = h;
   jbReserva.step = 'nombre';
 
@@ -9416,105 +9397,304 @@ function irAConfirmar() {
 }
 
   // ── SELECTOR RÁPIDO DE FECHA (botones, sin escribir) ───────────────────────
-  function jbMostrarSelectorFechaRapida(mostrarTodos){
+  function jbMostrarSelectorFechaRapida(mostrarCalendario){
     jbRegistrarPasoHistorial('dia');
-    mostrarTodos = mostrarTodos || false;
+    mostrarCalendario = mostrarCalendario === true;
     jbBloquearInput();
     const body = document.getElementById('jbChatBody');
     const hoy  = new Date(); hoy.setHours(0,0,0,0);
     const wrapper = document.createElement('div');
     wrapper.style.cssText = 'width:98%;max-width:440px;align-self:flex-start;display:flex;flex-direction:column;gap:8px;margin:2px 0 8px;';
 
-    const DIAS_ABR  = ['dom','lun','mar','mié','jue','vie','sáb'];
-    const MESES_ABR = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    const DIAS_LARGO = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    const DIAS_CORTO = ['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM']; // lunes primero
+    const MESES_ABR  = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
     const MESES_LONG = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const MAX_DIAS   = 60;
 
-    // Compacto: 14 días. Expandido: 60 días (2 meses)
-    const maxMostrar = mostrarTodos ? 60 : 14;
-    const diasDisp = [];
-    for(let i=0; i<60 && diasDisp.length<maxMostrar; i++){
-      const d = new Date(hoy); d.setDate(hoy.getDate()+i);
-      const yyyy = d.getFullYear();
-      const mm   = String(d.getMonth()+1).padStart(2,'0');
-      const dd   = String(d.getDate()).padStart(2,'0');
-      const fStr = `${yyyy}-${mm}-${dd}`;
-      const horas = jbHorasDisponibles(fStr);
-      if(typeof diasBloqueados !== 'undefined' && diasBloqueados.includes(fStr)) continue;
-      if(horas.length > 0) diasDisp.push({fecha: fStr, d, horas: horas.length});
+    if(!document.getElementById('jbDiaFilaStyle')){
+      const st = document.createElement('style');
+      st.id = 'jbDiaFilaStyle';
+      st.textContent = '.jbDiaFila:hover,.jbCalDia:hover{background:rgba(228,166,79,0.22)!important;border-color:#e4a64f!important;}.jbDiaFila:active,.jbCalDia:active{transform:scale(.97);}';
+      document.head.appendChild(st);
     }
 
-    if(diasDisp.length === 0){
+    const fStrDe = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const textoLargo = d => `${DIAS_LARGO[d.getDay()]} ${d.getDate()} de ${MESES_LONG[d.getMonth()]}`;
+    const horasLibresDe = d => {
+      const fStr = fStrDe(d);
+      if(typeof diasBloqueados !== 'undefined' && diasBloqueados.includes(fStr)) return 0;
+      return jbHorasDisponibles(fStr).length;
+    };
+    const offsetDe = d => Math.round((d - hoy) / 86400000);
+
+    function elegirDia(d){
+      wrapper.remove();
+      jbDesbloquearInput();
+      jbCliente(textoLargo(d));
+      jbBot(`<b>${jbFormatFechaLegible(fStrDe(d))}</b> 📅`);
+      jbSeleccionarFecha(fStrDe(d));
+    }
+
+    // Primer día disponible (para validar que haya algo)
+    let hayAlgo = false;
+    for(let i=0; i<MAX_DIAS; i++){
+      const d = new Date(hoy); d.setDate(hoy.getDate()+i);
+      if(horasLibresDe(d) > 0){ hayAlgo = true; break; }
+    }
+    if(!hayAlgo){
       jbBot('No tengo fechas disponibles los próximos 2 meses 😕 Contáctanos directamente por WhatsApp.');
       jbDesbloquearInput();
       return;
     }
 
-    jbBot(mostrarTodos ? '📅 Días disponibles en los próximos 2 meses — elige uno:' : '¿Para qué día? 📅 Elige abajo:');
+    const hoyTxt = textoLargo(hoy).toLowerCase();
 
-    function crearBtnDia(fecha, d, horas){
+    // ───────────── VISTA 1: HOY / MAÑANA / PASADO MAÑANA ─────────────
+    function crearBtnGrande(d, horas){
+      const off = offsetDe(d);
+      const esHoy = off === 0;
+      const etiqueta = off === 0 ? 'HOY' : (off === 1 ? 'MAÑANA' : (off === 2 ? 'PASADO MAÑANA' : ''));
       const btn = document.createElement('button');
-      btn.style.cssText = 'background:#1a1a2e;border:1.5px solid rgba(228,166,79,0.25);border-radius:12px;padding:10px 4px;cursor:pointer;text-align:center;transition:all .15s;color:#f1f1f1;font-family:inherit;';
-      const diaNum = d.getDate();
-      const esHoy  = diaNum === hoy.getDate() && d.getMonth()===hoy.getMonth() && d.getFullYear()===hoy.getFullYear();
+      btn.className = 'jbDiaFila';
+      btn.style.cssText = `display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;min-height:66px;padding:6px 12px 6px 6px;cursor:pointer;text-align:left;font-family:inherit;color:#f1f1f1;text-shadow:none;border-radius:14px;background:${esHoy?'rgba(228,166,79,0.14)':'#1a1a2e'};border:${esHoy?'2.5px solid #e4a64f':'1.5px solid rgba(228,166,79,0.35)'};`;
+      btn.setAttribute('aria-label', `${etiqueta ? etiqueta + ', ' : ''}${textoLargo(d)}, ${horas} horas disponibles`);
       btn.innerHTML = `
-        <div style="font-size:0.68rem;color:#888;text-transform:uppercase;letter-spacing:0.05em;">${esHoy?'HOY':DIAS_ABR[d.getDay()]}</div>
-        <div style="font-size:1.3rem;font-weight:800;color:${esHoy?'#e4a64f':'#f1f1f1'};line-height:1;">${diaNum}</div>
-        <div style="font-size:0.68rem;color:#888;">${MESES_ABR[d.getMonth()]}</div>
-        <div style="font-size:0.62rem;color:#e4a64f;margin-top:2px;">${horas} hora${horas!==1?'s':''}</div>`;
-      btn.onmouseover = ()=>{ btn.style.background='rgba(228,166,79,0.15)'; btn.style.borderColor='#e4a64f'; };
-      btn.onmouseout  = ()=>{ btn.style.background='#1a1a2e'; btn.style.borderColor='rgba(228,166,79,0.25)'; };
-      btn.onclick = ()=>{
-        wrapper.remove();
-        jbDesbloquearInput();
-        jbCliente(`${diaNum} de ${MESES_LONG[d.getMonth()]}`);
-        jbBot(`<b>${jbFormatFechaLegible(fecha)}</b> 📅`);
-        window._jbViaFecha = `tarjeta ${DIAS_ABR[d.getDay()]} ${diaNum} ${MESES_ABR[d.getMonth()]} (${mostrarTodos ? 'vista 60 días' : 'vista 14 días'})`;
-        jbSeleccionarFecha(fecha);
-      };
+        <div style="flex:none;width:56px;height:52px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:${esHoy?'#e4a64f':'#2b2c42'};color:${esHoy?'#1a1205':'#fff'};">
+          <div style="font-size:1.7rem;font-weight:900;line-height:1;text-shadow:none;">${d.getDate()}</div>
+          <div style="font-size:0.66rem;font-weight:700;text-transform:uppercase;margin-top:2px;text-shadow:none;">${MESES_ABR[d.getMonth()]}</div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+            ${etiqueta ? `<span style="background:#e4a64f;color:#1a1205;font-size:0.72rem;font-weight:800;padding:2px 9px;border-radius:20px;text-shadow:none;">${etiqueta}</span>` : ''}
+            <span style="font-size:1.12rem;font-weight:800;text-transform:uppercase;color:#fff;text-shadow:none;">${DIAS_LARGO[d.getDay()]}</span>
+          </div>
+          <div style="font-size:0.9rem;color:#d0d0d0;margin-top:1px;text-shadow:none;">${d.getDate()} de ${MESES_LONG[d.getMonth()]} · <span style="color:#e4a64f;">${horas} hora${horas!==1?'s':''} libre${horas!==1?'s':''}</span></div>
+        </div>
+        <div style="flex:none;color:#e4a64f;font-size:1.7rem;font-weight:700;line-height:1;text-shadow:none;">›</div>`;
+      btn.onclick = () => elegirDia(d);
       return btn;
     }
 
-    if(mostrarTodos){
-      // Vista expandida: agrupada por mes con encabezado
-      let mesActual = null;
-      let gridMes   = null;
-      diasDisp.forEach(({fecha, d, horas}) => {
-        const mesKey = d.getFullYear() + '-' + d.getMonth();
-        if(mesKey !== mesActual){
-          mesActual = mesKey;
-          const enc = document.createElement('div');
-          enc.style.cssText = 'color:#e4a64f;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:6px 2px 2px;border-bottom:1px solid rgba(228,166,79,0.2);margin-top:6px;';
-          enc.textContent = MESES_LONG[d.getMonth()].charAt(0).toUpperCase() + MESES_LONG[d.getMonth()].slice(1) + ' ' + d.getFullYear();
-          wrapper.appendChild(enc);
-          gridMes = document.createElement('div');
-          gridMes.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:6px;';
-          wrapper.appendChild(gridMes);
-        }
-        gridMes.appendChild(crearBtnDia(fecha, d, horas));
-      });
-    } else {
-      // Vista compacta: grid simple
-      const grid = document.createElement('div');
-      grid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:6px;';
-      diasDisp.forEach(({fecha, d, horas}) => grid.appendChild(crearBtnDia(fecha, d, horas)));
-      wrapper.appendChild(grid);
+    function motivoSinHoras(d){
+      const fStr = fStrDe(d);
+      const off = offsetDe(d);
+      let cerrado = false;
+      try {
+        if(typeof diasBloqueados !== 'undefined' && diasBloqueados.includes(fStr)) cerrado = true;
+        if(typeof diasDeLaSemanaBloqueados !== 'undefined' && diasDeLaSemanaBloqueados.map(Number).includes(d.getDay())) cerrado = true;
+        if(typeof obtenerHorarioDelDiaDesdeFecha === 'function' && (obtenerHorarioDelDiaDesdeFecha(fStr) || []).length === 0) cerrado = true;
+      } catch(e){}
+      if(cerrado) return {etiqueta:'CERRADO', detalle:'No atendemos este día'};
+      if(off === 0) return {etiqueta:'SIN HORAS', detalle:'Ya no quedan horas para hoy'};
+      return {etiqueta:'COMPLETO', detalle:'Todas las horas ya están reservadas'};
+    }
 
-      // Botón "Ver más días"
-      const btnOtro = document.createElement('button');
-      btnOtro.style.cssText = 'width:100%;padding:13px;background:rgba(228,166,79,0.08);border:1.5px solid rgba(228,166,79,0.35);color:#e4a64f;border-radius:12px;font-size:0.87rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .18s;margin-top:2px;';
-      btnOtro.textContent = '📆Elige un día ☝🏻 (Ver más días)';
-      btnOtro.onmouseover = ()=>{ btnOtro.style.background='rgba(228,166,79,0.18)'; };
-      btnOtro.onmouseout  = ()=>{ btnOtro.style.background='rgba(228,166,79,0.08)'; };
-      btnOtro.onclick = ()=>{
-        wrapper.remove();
-        jbDesbloquearInput();
-        jbMostrarSelectorFechaRapida(true);
+    function crearTarjetaSinHoras(d){
+      const off = offsetDe(d);
+      const etiqueta = off === 0 ? 'HOY' : (off === 1 ? 'MAÑANA' : 'PASADO MAÑANA');
+      const m = motivoSinHoras(d);
+      const box = document.createElement('div');
+      box.setAttribute('aria-label', `${etiqueta}, ${textoLargo(d)}, ${m.detalle}`);
+      box.style.cssText = 'display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;min-height:66px;padding:6px 12px 6px 6px;border-radius:14px;background:rgba(229,72,77,0.07);border:1.5px dashed rgba(229,72,77,0.55);font-family:inherit;';
+      box.innerHTML = `
+        <div style="flex:none;width:56px;height:52px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#2a2a2e;color:#8a8a8a;">
+          <div style="font-size:1.7rem;font-weight:900;line-height:1;">${d.getDate()}</div>
+          <div style="font-size:0.66rem;font-weight:700;text-transform:uppercase;margin-top:2px;">${MESES_ABR[d.getMonth()]}</div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+            <span style="background:#555;color:#fff;font-size:0.72rem;font-weight:800;padding:2px 9px;border-radius:20px;">${etiqueta}</span>
+            <span style="font-size:1.05rem;font-weight:800;text-transform:uppercase;color:#9a9a9a;">${DIAS_LARGO[d.getDay()]}</span>
+          </div>
+          <div style="font-size:0.85rem;color:#9a9a9a;margin-top:1px;">${d.getDate()} de ${MESES_LONG[d.getMonth()]}</div>
+        </div>
+        <div style="flex:none;background:#e5484d;color:#fff;font-size:0.72rem;font-weight:900;padding:5px 10px;border-radius:8px;text-align:center;line-height:1.1;letter-spacing:0.03em;">${m.etiqueta}</div>`;
+      return box;
+    }
+
+    function crearBtnCalendario(){
+      const b = document.createElement('button');
+      b.style.cssText = 'width:100%;padding:15px;background:rgba(228,166,79,0.08);border:1.5px solid rgba(228,166,79,0.45);color:#e4a64f;border-radius:14px;font-size:1.02rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:4px;text-shadow:none;';
+      b.textContent = '📆 Elegir otro día (calendario)';
+      b.onclick = () => { wrapper.remove(); jbDesbloquearInput(); jbMostrarSelectorFechaRapida(true); };
+      return b;
+    }
+
+    // ───────────── VISTA 2: CALENDARIO MENSUAL ─────────────
+    function construirCalendario(){
+      let mesIdx = 0, seleccionado = null;
+      const maxMesIdx = (() => { const f = new Date(hoy); f.setDate(hoy.getDate()+MAX_DIAS); return (f.getFullYear()-hoy.getFullYear())*12 + f.getMonth() - hoy.getMonth(); })();
+      // Mes inicial: el primero que tenga días disponibles
+      const mesTieneDias = idx => {
+        const f = new Date(hoy.getFullYear(), hoy.getMonth()+idx, 1);
+        const total = new Date(f.getFullYear(), f.getMonth()+1, 0).getDate();
+        for(let n=1; n<=total; n++){
+          const d = new Date(f.getFullYear(), f.getMonth(), n);
+          if(d < hoy || offsetDe(d) > MAX_DIAS) continue;
+          if(horasLibresDe(d) > 0) return true;
+        }
+        return false;
       };
-      wrapper.appendChild(btnOtro);
+      while(mesIdx < maxMesIdx && !mesTieneDias(mesIdx)) mesIdx++;
+
+      const cont = document.createElement('div');
+      cont.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+
+      function cambiarMes(dir){
+        mesIdx += dir; seleccionado = null; render();
+        const ancla = wrapper.previousElementSibling || wrapper;
+        body.scrollTop += ancla.getBoundingClientRect().top - body.getBoundingClientRect().top - 6;
+      }
+
+      function render(){
+        cont.innerHTML = '';
+        const f = new Date(hoy.getFullYear(), hoy.getMonth()+mesIdx, 1);
+        const anio = f.getFullYear(), mes = f.getMonth();
+        const total = new Date(anio, mes+1, 0).getDate();
+
+        // Encabezado con flechas
+        const head = document.createElement('div');
+        head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;';
+        const mkFlecha = (txt, dir) => {
+          const b = document.createElement('button');
+          const activo = dir < 0 ? mesIdx > 0 : mesIdx < maxMesIdx;
+          b.textContent = txt;
+          b.setAttribute('aria-label', dir < 0 ? 'Mes anterior' : 'Mes siguiente');
+          b.style.cssText = `flex:none;width:52px;height:46px;border-radius:12px;font-size:1.5rem;font-weight:800;font-family:inherit;text-shadow:none;cursor:${activo?'pointer':'default'};background:${activo?'rgba(228,166,79,0.15)':'transparent'};border:1.5px solid ${activo?'rgba(228,166,79,0.6)':'rgba(255,255,255,0.08)'};color:${activo?'#e4a64f':'#444'};`;
+          if(activo) b.onclick = () => cambiarMes(dir);
+          return b;
+        };
+        const titulo = document.createElement('div');
+        titulo.style.cssText = 'flex:1;text-align:center;color:#fff;font-size:1.2rem;font-weight:900;text-transform:uppercase;letter-spacing:0.04em;';
+        titulo.textContent = `${MESES_LONG[mes]} ${anio}`;
+        head.appendChild(mkFlecha('‹', -1)); head.appendChild(titulo); head.appendChild(mkFlecha('›', 1));
+        cont.appendChild(head);
+
+        // Grilla: nombres de día arriba, números debajo de su columna
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:grid;grid-template-columns:repeat(7,1fr);gap:4px;';
+        DIAS_CORTO.forEach((n, i) => {
+          const c = document.createElement('div');
+          c.textContent = n;
+          c.style.cssText = `text-align:center;font-size:0.7rem;font-weight:800;padding:4px 0;color:${i>=5?'#e4a64f':'#9a9a9a'};`;
+          grid.appendChild(c);
+        });
+        const vacios = (new Date(anio, mes, 1).getDay() + 6) % 7;
+        for(let i=0; i<vacios; i++) grid.appendChild(document.createElement('div'));
+
+        for(let n=1; n<=total; n++){
+          const d = new Date(anio, mes, n);
+          const off = offsetDe(d);
+          const celda = document.createElement('button');
+          const esHoy = off === 0;
+          const libres = (off >= 0 && off <= MAX_DIAS) ? horasLibresDe(d) : 0;
+          const disponible = libres > 0;
+          const esSel = seleccionado && fStrDe(seleccionado) === fStrDe(d);
+          celda.className = disponible ? 'jbCalDia' : '';
+          celda.innerHTML = `<div style="font-size:1.15rem;font-weight:900;line-height:1;text-shadow:none;">${n}</div>${esHoy ? '<div style="font-size:0.55rem;font-weight:800;margin-top:2px;text-shadow:none;">HOY</div>' : ''}`;
+          let est = 'height:48px;border-radius:10px;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;box-sizing:border-box;text-shadow:none;box-shadow:none;';
+          if(esSel)            est += 'background:#e4a64f;color:#1a1205;border:3px solid #fff;cursor:pointer;';
+          else if(disponible)  est += `background:${esHoy?'rgba(228,166,79,0.28)':'#1a1a2e'};color:#fff;border:${esHoy?'2.5px solid #e4a64f':'1.5px solid rgba(228,166,79,0.55)'};cursor:pointer;`;
+          else                 est += 'background:transparent;color:#4a4a4a;border:1px solid rgba(255,255,255,0.05);cursor:default;';
+          celda.style.cssText = est;
+          if(disponible){
+            celda.setAttribute('aria-label', `${textoLargo(d)}, ${libres} horas disponibles`);
+            celda.onclick = () => { seleccionado = d; render(); };
+          } else {
+            celda.disabled = true;
+            celda.setAttribute('aria-label', `${textoLargo(d)}, sin horas`);
+          }
+          grid.appendChild(celda);
+        }
+        cont.appendChild(grid);
+
+        // Botones grandes de mes DEBAJO del calendario (para no tener que subir)
+        const navAbajo = document.createElement('div');
+        navAbajo.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-top:4px;';
+        const mkNavGrande = (txt, dir) => {
+          const b = document.createElement('button');
+          b.textContent = txt;
+          b.style.cssText = 'width:100%;padding:15px;border-radius:14px;font-size:1.05rem;font-weight:900;cursor:pointer;font-family:inherit;text-shadow:none;background:rgba(228,166,79,0.14);border:2px solid #e4a64f;color:#f1c77c;';
+          b.onclick = () => cambiarMes(dir);
+          return b;
+        };
+        const nomMes = idx => MESES_LONG[new Date(hoy.getFullYear(), hoy.getMonth()+idx, 1).getMonth()];
+        if(mesIdx < maxMesIdx) navAbajo.appendChild(mkNavGrande(`Ver ${nomMes(mesIdx+1)} ›`, 1));
+        if(mesIdx > 0)         navAbajo.appendChild(mkNavGrande(`‹ Volver a ${nomMes(mesIdx-1)}`, -1));
+        if(navAbajo.children.length) cont.appendChild(navAbajo);
+
+        const leyenda = document.createElement('div');
+        leyenda.style.cssText = 'font-size:0.78rem;color:#9a9a9a;text-align:center;';
+        leyenda.innerHTML = 'Los días con <span style="color:#e4a64f;font-weight:700;">borde dorado</span> tienen horas libres. Los grises no.';
+        cont.appendChild(leyenda);
+
+        // Confirmación clara del día elegido
+        if(seleccionado){
+          const panel = document.createElement('div');
+          panel.style.cssText = 'border:2px solid #e4a64f;border-radius:14px;padding:12px;background:rgba(228,166,79,0.1);display:flex;flex-direction:column;gap:8px;text-align:center;';
+          panel.innerHTML = `<div style="font-size:0.8rem;color:#bbb;">Elegiste el día:</div>
+            <div style="font-size:1.3rem;font-weight:900;color:#fff;text-transform:uppercase;line-height:1.15;">${DIAS_LARGO[seleccionado.getDay()]}<br>${seleccionado.getDate()} de ${MESES_LONG[seleccionado.getMonth()]}</div>`;
+          const ok = document.createElement('button');
+          ok.textContent = '✅ Sí, quiero este día';
+          ok.style.cssText = 'width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#f1c77c,#e4a64f);color:#1a1205;font-size:1.05rem;font-weight:900;cursor:pointer;font-family:inherit;text-shadow:none;';
+          ok.onclick = () => elegirDia(seleccionado);
+          panel.appendChild(ok);
+          cont.appendChild(panel);
+          setTimeout(() => { try { panel.scrollIntoView({block:'nearest', behavior:'smooth'}); } catch(e){} }, 60);
+        }
+
+        const volver = document.createElement('button');
+        volver.textContent = '← Volver a Hoy / Mañana';
+        volver.style.cssText = 'width:100%;padding:12px;background:transparent;border:1.5px solid rgba(255,255,255,0.15);color:#ccc;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;text-shadow:none;';
+        volver.onclick = () => { wrapper.remove(); jbDesbloquearInput(); jbMostrarSelectorFechaRapida(false); };
+        cont.appendChild(volver);
+      }
+      render();
+      return cont;
+    }
+
+    // ───────────── ARMADO ─────────────
+    if(mostrarCalendario){
+      jbBot(`📅 Toca el día que quieres. Hoy es <b>${hoyTxt}</b>.`);
+      wrapper.appendChild(construirCalendario());
+    } else {
+      jbBot(`Hoy es <b>${hoyTxt}</b>. ¿Para qué día quieres tu hora? 👇`);
+      // Hoy, mañana y pasado mañana: siempre se muestran. Los que no tienen horas
+      // aparecen en gris con etiqueta roja (SIN HORAS / COMPLETO / CERRADO).
+      let hayDisponibleEnLos3 = false;
+      for(let i=0; i<=2; i++){
+        const d = new Date(hoy); d.setDate(hoy.getDate()+i);
+        const h = horasLibresDe(d);
+        if(h > 0){ hayDisponibleEnLos3 = true; wrapper.appendChild(crearBtnGrande(d, h)); }
+        else wrapper.appendChild(crearTarjetaSinHoras(d));
+      }
+      // Si ninguno de los 3 tiene horas, ofrecer directamente los 2 próximos disponibles
+      if(!hayDisponibleEnLos3){
+        const sep = document.createElement('div');
+        sep.style.cssText = 'color:#e4a64f;font-size:0.9rem;font-weight:800;padding:4px 2px 0;';
+        sep.textContent = 'Próximos días con horas libres:';
+        wrapper.appendChild(sep);
+        let n = 0;
+        for(let i=3; i<MAX_DIAS && n<2; i++){
+          const d = new Date(hoy); d.setDate(hoy.getDate()+i);
+          const h = horasLibresDe(d);
+          if(h > 0){ wrapper.appendChild(crearBtnGrande(d, h)); n++; }
+        }
+      }
+      wrapper.appendChild(crearBtnCalendario());
     }
 
     body.appendChild(wrapper);
-    jbScrollBottom();
+
+    // Mostrar desde el mensaje del bot (no al fondo), para que "Hoy" siempre se vea primero
+    const irAlInicio = () => {
+      const ancla = wrapper.previousElementSibling || wrapper;
+      body.scrollTop += ancla.getBoundingClientRect().top - body.getBoundingClientRect().top - 6;
+    };
+    irAlInicio();
+    setTimeout(irAlInicio, 80);
+    setTimeout(irAlInicio, 350);
   }
 
   // Input dual Día + Mes para evitar ambigüedad
@@ -9661,7 +9841,6 @@ function irAConfirmar() {
         }
       } else {
         jbBot(`¡Perfecto! El <b>${jbFormatFechaLegible(fechaStr)}</b> 📅`);
-        window._jbViaFecha = 'formulario día/mes';
         jbSeleccionarFecha(fechaStr);
       }
     };
@@ -9695,7 +9874,6 @@ function irAConfirmar() {
         jbMostrarSelectorFechaRapida(true);
       } else {
         jbBot(`¡Perfecto! El <b>${jbFormatFechaLegible(valor)}</b> 📅`);
-        window._jbViaFecha = 'botón de día sugerido';
         jbSeleccionarFecha(valor);
       }
     });
@@ -9708,9 +9886,6 @@ function irAConfirmar() {
   jbReserva.fecha = fechaStr;
   jbReserva.hora = null;
   jbReserva.step = 'hora';
-  // Traza para soporte: cómo se eligió este día
-  jbReserva.trazaFecha = `${window._jbViaFecha || 'sin dato'} → ${fechaStr}, elegido ${new Date().toLocaleString('es-CL',{timeZone:'America/Santiago'})}`;
-  window._jbViaFecha = null;
 
   // Persistir inmediatamente
   jbGuardarEstadoReserva(false);
@@ -9736,14 +9911,11 @@ function irAConfirmar() {
         const opcTxt = sugeridos.map(d=>jbFormatFechaLegible(d.fecha)).join(', ');
         // Guardar sugerencias para que si el cliente responde solo el número de día, sepamos el mes
         jbReserva.ultimasSugerencias = sugeridos.map(d => d.fecha);
-        jbBot(`Uy, el ${fechaLeg} ya no quedan horas disponibles 😕 Estos son los días cercanos con horas 👇`);
-        jbReserva.step = 'dia';
-        jbMostrarBotonesSugeridos(sugeridos);
+        jbBot(`Uy, el ${fechaLeg} ya no quedan horas disponibles 😕 Tengo disponibilidad el ${opcTxt}. ¿Te acomoda alguno de esos días, u otro?`);
       } else {
-        jbBot(`El ${fechaLeg} ya no tiene horas 😕 ¿Qué otro día te queda mejor? 👇`);
-        jbReserva.step = 'dia';
-        jbMostrarSelectorFechaRapida(true);
+        jbBot(`El ${fechaLeg} ya no tiene horas 😕 ¿Qué otro día te queda mejor?`);
       }
+      jbReserva.step = 'dia';
       return;
     }
     const fechaLeg = jbFormatFechaLegible(jbReserva.fecha);
@@ -10122,8 +10294,6 @@ function jbMostrarFormularioWhatsapp(alContinuar){
     if (jbReserva.step !== 'confirmar') jbRegistrarPasoHistorial('confirmar');
     jbReserva.step = 'confirmar';
     jbGuardarEstadoReserva(false);
-    // Lo que el cliente ve en el resumen: se verifica de nuevo al guardar
-    window._jbResumenMostrado = { fecha: jbReserva.fecha, hora: jbReserva.hora };
     const total = jbReserva.servicios.reduce((a,s)=>a+s.precio,0) + (Number(jbReserva.producto && jbReserva.producto.precio) || 0);
     const serviciosTexto = jbReserva.servicios.map(s=>s.label||s.nombre).join(' + ');
     const body = document.getElementById('jbChatBody');
@@ -10153,15 +10323,14 @@ function jbMostrarFormularioWhatsapp(alContinuar){
           <span style="font-size:1.2rem;">📅</span>
           <div>
             <div style="font-size:0.72rem;color:#888;">Fecha</div>
-            <div style="font-size:1.6rem;font-weight:800;color:#e4a64f;line-height:1.15;">${jbFormatFechaLegible(jbReserva.fecha)}</div>
-            <div style="font-size:.85rem;color:#f1f1f1;margin-top:2px;">${jbDistanciaFechaTexto(jbReserva.fecha)} · ¿Es el día que querías?</div>
+            <div style="font-size:1.4rem;font-weight:700;color:#f1f1f1;">${jbFormatFechaLegible(jbReserva.fecha)}</div>
           </div>
         </div>
         <div style="display:flex;gap:10px;align-items:center;">
           <span style="font-size:1.2rem;">🕐</span>
           <div>
             <div style="font-size:0.72rem;color:#888;">Hora</div>
-            <div style="font-size:1.4rem;font-weight:800;color:#e4a64f;">${jbReserva.hora}</div>
+            <div style="font-size:1.1rem;font-weight:800;color:#e4a64f;">${jbReserva.hora}</div>
           </div>
         </div>
         ${jbReserva.producto ? `<div style="display:flex;gap:10px;align-items:center;border-top:1px solid rgba(255,255,255,.06);padding-top:8px;">
@@ -10584,18 +10753,6 @@ if (!jbReserva ||
   return;
 }
 
-// SEGURIDAD: lo que se guarda debe ser EXACTAMENTE lo que el cliente vio en el resumen.
-{
-  const mostrado = window._jbResumenMostrado;
-  if (mostrado && (mostrado.fecha !== jbReserva.fecha || mostrado.hora !== jbReserva.hora)) {
-    console.warn('Fecha/hora distinta al resumen mostrado:', mostrado, jbReserva.fecha, jbReserva.hora);
-    window._jbResumenMostrado = null;
-    jbBot('El día u hora cambió mientras confirmabas. Revisa este resumen y confirma de nuevo 👇');
-    jbPreguntarConfirmar();
-    return;
-  }
-}
-
 window._jbConfirmandoReserva = true;
     jbBot('Guardando tu hora... ⏳');
     let bloqueoRef = null;
@@ -10814,9 +10971,6 @@ if(legacyKey){
       }
       reservaIdPersistida = ref.key;
       reservaPersistida = { ...nuevaReserva };
-      try {
-        ref.child('trazaFecha').set(`${jbReserva.trazaFecha || 'sin dato'} | resumen mostró ${jbReserva.fecha} ${jbReserva.hora}`).catch(() => {});
-      } catch (e) {}
       if (nuevaReserva.producto) {
         const productoRef = db.ref(`productos/${nuevaReserva.producto.id}`);
         let stockDisponibleReservado = false;
@@ -15324,199 +15478,5 @@ window.addEventListener('load', function() {
     });
   })();
 </script>
-<style id="jbRitmoEstilos">
-  /* Elementos que esperan su turno para aparecer */
-  #jbChatBody > .jbPend { display: none !important; }
-
-  @keyframes jbPop {
-    0%   { opacity: 0; transform: translateY(16px) scale(.6); }
-    55%  { opacity: 1; transform: translateY(-4px) scale(1.07); }
-    78%  { transform: translateY(1px) scale(.98); }
-    100% { opacity: 1; transform: none; }
-  }
-  @keyframes jbSubir {
-    0%   { opacity: 0; transform: translateY(14px); }
-    100% { opacity: 1; transform: none; }
-  }
-  @keyframes jbBtnPop {
-    0%   { opacity: 0; transform: scale(.7); }
-    60%  { opacity: 1; transform: scale(1.06); }
-    100% { opacity: 1; transform: none; }
-  }
-  /* Brillo dorado: solo para lo que el cliente DEBE leer o responder */
-  @keyframes jbBrillo {
-    0%, 100% { box-shadow: 0 4px 12px rgba(0,0,0,.13), 0 0 0 0 rgba(228,166,79,0); }
-    50%      { box-shadow: 0 4px 12px rgba(0,0,0,.13), 0 0 0 5px rgba(228,166,79,.30), 0 0 20px rgba(228,166,79,.50); }
-  }
-
-  #jbChatBody > .jbShow { animation: jbPop .48s cubic-bezier(.2,.9,.3,1.15) both; transform-origin: 0 100%; }
-  #jbChatBody > .jbShow.jbCliente { animation-duration: .3s; transform-origin: 100% 100%; }
-  #jbChatBody > .jbShowCtl { animation: jbSubir .35s ease-out both; }
-  #jbChatBody > .jbShowCtl button.jbCasc {
-    animation: jbBtnPop .4s cubic-bezier(.2,.9,.3,1.15) both;
-    animation-delay: var(--jb-d, 0ms);
-  }
-  #jbChatBody > .jbBubble.jbAtencion {
-    border-color: rgba(228,166,79,.6);
-    animation: jbPop .5s cubic-bezier(.2,.9,.3,1.15) both, jbBrillo 1.3s ease-in-out .5s 2;
-  }
-  #jbChatBody > .jbShowCtl.jbAtencion {
-    animation: jbSubir .35s ease-out both, jbBrillo 1.3s ease-in-out .4s 2;
-    border-radius: 16px;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    #jbChatBody > .jbShow, #jbChatBody > .jbShowCtl,
-    #jbChatBody > .jbShowCtl button.jbCasc, #jbChatBody > .jbBubble.jbAtencion,
-    #jbChatBody > .jbShowCtl.jbAtencion { animation: none !important; }
-  }
-</style>
-<script>
-  // Ritmo del chat: cada mensaje/control del bot aparece de a uno, con animación "pop"
-  // y sonido (mensajebot.mp3). Lo que el cliente debe leer o responder se destaca con
-  // un brillo dorado. No toca la lógica de reservas: solo observa #jbChatBody.
-  (function jbRitmoChat() {
-    // ── AJUSTES (milisegundos) ────────────────────────────────────────────────
-    const CFG = {
-      respuestaMs: 400,      // tras el mensaje del cliente, antes de la respuesta del bot
-      baseMs: 500,           // espera mínima entre dos mensajes del bot
-      porCaracterMs: 4,      // + tiempo de lectura según el largo del mensaje anterior
-      maxCaracteres: 100,    // tope de caracteres que suman tiempo (500 + 100*4 = 900 ms máx.)
-      aControlMs: 300,       // espera entre un mensaje y los botones/tarjetas que siguen
-      entreControlesMs: 250,
-      inicioSinEfectosMs: 2500, // al cargar la página no se anima el historial
-      sonido: 'mensajebot.mp3',
-      volumen: 0.6
-    };
-    // Mensajes que el cliente debe leer o responder → brillo dorado
-    const IMPORTANTE = /👇|¿|elige|selecciona|confirma|revisa|reserva confirmada|cancelad[ao]|ya no está disponible/i;
-
-    const body = document.getElementById('jbChatBody');
-    const panel = document.getElementById('jbChatPanel');
-    if (!body || !panel || !window.MutationObserver) return;
-
-    const inicio = Date.now();
-    const reducirMovimiento = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-    try { window.jbSonidoActivo = localStorage.getItem('jb_sonido') !== '0'; } catch (e) { window.jbSonidoActivo = true; }
-    window.jbAlternarSonido = function () {
-      window.jbSonidoActivo = !window.jbSonidoActivo;
-      try { localStorage.setItem('jb_sonido', window.jbSonidoActivo ? '1' : '0'); } catch (e) {}
-      return window.jbSonidoActivo;
-    };
-
-    let audio = null;
-    try { audio = new Audio(CFG.sonido); audio.preload = 'auto'; audio.volume = CFG.volumen; } catch (e) {}
-    function sonar() {
-      if (!audio || !window.jbSonidoActivo) return;
-      try { audio.currentTime = 0; const p = audio.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
-    }
-
-    const cola = [];
-    let corriendo = false, timer = null, ultimo = null, tUltimo = 0, ultimoPrompt = null, tPrompt = 0;
-
-    const esBurbuja = el => el.classList.contains('jbBubble');
-    const esCliente = el => el.classList.contains('jbCliente');
-    const esBot = el => esBurbuja(el) && !esCliente(el) && !el.classList.contains('jbSistema');
-    const panelAbierto = () => panel.classList.contains('jbOpen');
-    const sinEfectos = () => !panelAbierto() || document.hidden || (Date.now() - inicio) < CFG.inicioSinEfectosMs;
-
-    function espera(a, b) {
-      if (reducirMovimiento) return 150;
-      if (esCliente(a)) return esBurbuja(b) ? CFG.respuestaMs : 250;
-      if (esBurbuja(a)) {
-        if (!esBurbuja(b)) return CFG.aControlMs;
-        if (esCliente(b)) return 0;
-        const largo = Math.min((a.textContent || '').length, CFG.maxCaracteres);
-        return CFG.baseMs + largo * CFG.porCaracterMs;
-      }
-      return esBurbuja(b) ? 350 : CFG.entreControlesMs;
-    }
-
-    function desplazar(el) {
-      try {
-        const b = body.getBoundingClientRect();
-        if (ultimoPrompt && ultimoPrompt.isConnected && !esBurbuja(el) && (Date.now() - tPrompt) < 5000) {
-          // Pregunta + opciones: que se vea la pregunta; si no cabe todo, se alinea arriba
-          const p = ultimoPrompt.getBoundingClientRect();
-          const e = el.getBoundingClientRect();
-          const cabe = (e.bottom - p.top) <= body.clientHeight - 12;
-          const delta = cabe ? (e.bottom - b.bottom + 8) : (p.top - b.top - 8);
-          body.scrollTo({ top: body.scrollTop + delta, behavior: 'smooth' });
-        } else {
-          body.scrollTo({ top: body.scrollHeight, behavior: 'smooth' });
-        }
-      } catch (e) { body.scrollTop = body.scrollHeight; }
-    }
-
-    function revelar(el) {
-      el.classList.remove('jbPend');
-      const siguiente = cola[0];
-      const texto = el.textContent || '';
-      const importante = esBot(el) && (IMPORTANTE.test(texto) || (siguiente && !esBurbuja(siguiente)));
-      const resumen = !esBurbuja(el) && texto.indexOf('RESUMEN DE TU RESERVA') !== -1;
-      if (!reducirMovimiento) {
-        if (esBurbuja(el)) {
-          el.classList.add('jbShow');
-        } else {
-          el.classList.add('jbShowCtl');
-          el.querySelectorAll('button').forEach((btn, i) => {
-            btn.classList.add('jbCasc');
-            btn.style.setProperty('--jb-d', Math.min(i, 10) * 45 + 'ms');
-          });
-        }
-        if (importante || resumen) el.classList.add('jbAtencion');
-        setTimeout(() => {
-          el.classList.remove('jbShow', 'jbShowCtl', 'jbAtencion');
-          el.querySelectorAll('button.jbCasc').forEach(btn => { btn.classList.remove('jbCasc'); btn.style.removeProperty('--jb-d'); });
-        }, 3200);
-      }
-      if (importante) { ultimoPrompt = el; tPrompt = Date.now(); }
-      if (esBot(el) || el.classList.contains('jbJames')) sonar();
-      // Los campos de texto nacen ocultos: devolverles el foco que el chat les pide
-      const campo = el.querySelector('input:not([type=hidden]):not([type=checkbox]):not([type=radio]), textarea');
-      if (campo) { try { campo.focus({ preventScroll: true }); } catch (e) {} }
-      requestAnimationFrame(() => desplazar(el));
-    }
-
-    function vaciar() {
-      clearTimeout(timer);
-      while (cola.length) cola.shift().classList.remove('jbPend');
-      corriendo = false;
-    }
-
-    function procesar() {
-      try {
-        clearTimeout(timer);
-        while (cola.length && !cola[0].isConnected) cola.shift();
-        if (!cola.length) { corriendo = false; return; }
-        corriendo = true;
-        const el = cola[0];
-        const falta = (ultimo ? espera(ultimo, el) : 0) - (Date.now() - tUltimo);
-        if (falta > 30) { timer = setTimeout(procesar, falta); return; }
-        cola.shift();
-        revelar(el);
-        ultimo = el; tUltimo = Date.now();
-        procesar();
-      } catch (e) { console.warn('Ritmo del chat desactivado por un error:', e); vaciar(); }
-    }
-
-    new MutationObserver(muts => {
-      const nuevos = [];
-      muts.forEach(m => m.addedNodes.forEach(n => {
-        if (n.nodeType === 1 && n.parentNode === body && !n._jbVisto) { n._jbVisto = true; nuevos.push(n); }
-      }));
-      if (!nuevos.length) return;
-      // Carga inicial, chat cerrado, pestaña oculta o restauración masiva: aparece todo de una vez
-      if (sinEfectos() || nuevos.length > 8) { vaciar(); return; }
-      nuevos.forEach(n => { n.classList.add('jbPend'); cola.push(n); });
-      if (!corriendo) procesar();
-    }).observe(body, { childList: true });
-
-    // Si el chat se cierra o la pestaña se oculta, se muestra todo lo pendiente
-    new MutationObserver(() => { if (!panelAbierto()) vaciar(); }).observe(panel, { attributes: true, attributeFilter: ['class'] });
-    document.addEventListener('visibilitychange', () => { if (document.hidden) vaciar(); });
-  })();
-</script>
-
 </body>
 </html>
