@@ -1512,10 +1512,10 @@ window.addEventListener('load', function(){
                                 <button class="btn-cerrar-modal" style="color: red; font-size: 330%;" onclick="cerrarPanelDia()">×</button>
                             </div>
                             <div class="acciones-dia">
-                                <button class="btn-accion btn-cerrar-dia" id="btn-cerrar-dia" onclick="toggleDiaCerrado();actualizarPagina()">
+                                <button class="btn-accion btn-cerrar-dia" id="btn-cerrar-dia" onclick="toggleDiaCerrado()">
                                     🔒 Cerrar día
                                 </button>
-                                <button class="btn-accion btn-abrir-dia" id="btn-abrir-dia" onclick="toggleDiaCerrado();actualizarPagina()">
+                                <button class="btn-accion btn-abrir-dia" id="btn-abrir-dia" onclick="toggleDiaCerrado()">
                                     🔓 Abrir día
                                 </button>
                                 <button class="btn-accion btn-ver-horarios" onclick="editarHorarioEspecifico()">
@@ -1842,6 +1842,7 @@ window.addEventListener('load', function(){
         let reservas = {};
         let diasCerrados = [];
         let diasSemanaCerrados = [];
+        let diasAbiertos = []; // domingos (u otros días) abiertos individualmente aunque el día de semana esté cerrado
         let horarioSemana = ["11:00","12:00","13:00","14:00","16:00","17:00","18:00","19:00","20:00","21:30"];
         let horarioDomingo = ["11:00","12:00","13:00","14:00","16:00","17:00","18:00","19:00","20:00","21:30"];
         let horariosEspecificos = {};
@@ -3205,14 +3206,23 @@ function jbRenderMetricaFacilidad(){
                 const data = snapshot.val() || {};
                 diasCerrados = Object.values(data).map(d => d.fecha);
                 renderCalendario();
+                if (diaSeleccionado) renderPanelDia();
             });
             
+            db.ref('diasAbiertos').on('value', snapshot => {
+                const data = snapshot.val() || {};
+                diasAbiertos = Object.values(data).map(d => d.fecha);
+                renderCalendario();
+                if (diaSeleccionado) renderPanelDia();
+            });
+
             db.ref('config/diasSemanaCerrados').on('value', snapshot => {
                 const dias = snapshot.val();
                 diasSemanaCerrados = Array.isArray(dias) ? dias.map(Number).filter(Number.isInteger) : [];
                 renderDiasSemanaConfig();
                 renderCalendario();
                 renderBotonDomingos();
+                if (diaSeleccionado) renderPanelDia();
             });
             
             db.ref('config/horarioSemana').on('value', snapshot => {
@@ -4482,9 +4492,7 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
                 const diaSemana = fecha.getDay();
                 const esHoy = fecha.toDateString() === new Date().toDateString();
                 
-                const esDiaSemanaCerrado = diasSemanaCerrados.includes(diaSemana);
-                const esDiaEspecificoCerrado = diasCerrados.includes(fechaStr);
-                const estaCerrado = esDiaSemanaCerrado || esDiaEspecificoCerrado;
+                const estaCerrado = estaDiaCerrado(fechaStr, diaSemana);
                 
                 const numReservas = Object.values(reservas).filter(r => r.fecha === fechaStr).length;
                 
@@ -4532,9 +4540,7 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
             const [anio, mes, dia] = diaSeleccionado.split('-').map(Number);
             const fecha = new Date(anio, mes - 1, dia);
             const diaSemana = fecha.getDay();
-            const esDiaSemanaCerrado = diasSemanaCerrados.includes(diaSemana);
-            const esDiaEspecificoCerrado = diasCerrados.includes(diaSeleccionado);
-            const estaCerrado = esDiaSemanaCerrado || esDiaEspecificoCerrado;
+            const estaCerrado = estaDiaCerrado(diaSeleccionado, diaSemana);
             
             document.getElementById('dia-seleccionado-texto').textContent = 
                 ` ${diaSeleccionado}`;
@@ -4574,22 +4580,45 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
             document.getElementById('panel-dia').classList.remove('active');
         }
 
-        function toggleDiaCerrado() {
-            const esCerrado = diasCerrados.includes(diaSeleccionado);
-            
-            if (esCerrado) {
-                db.ref('diasCerrados').once('value', snapshot => {
-                    snapshot.forEach(child => {
-                        if (child.val().fecha === diaSeleccionado) {
-                            child.ref.remove();
-                        }
-                    });
+        // Estado final de un día: la excepción individual manda sobre el día de semana.
+        function estaDiaCerrado(fechaStr, diaSemana) {
+            if (diasAbiertos.includes(fechaStr)) return false;
+            if (diasCerrados.includes(fechaStr)) return true;
+            return diasSemanaCerrados.includes(diaSemana);
+        }
+
+        // Quita de una lista de Firebase todas las fechas que cumplan el filtro
+        function quitarFechas(ruta, filtro) {
+            return db.ref(ruta).once('value').then(snapshot => {
+                const tareas = [];
+                snapshot.forEach(child => {
+                    const v = child.val();
+                    if (v && filtro(v.fecha)) tareas.push(child.ref.remove());
                 });
-                mostrarToast('Día abierto correctamente');
-            } else {
-                db.ref('diasCerrados').push({ fecha: diaSeleccionado });
-                mostrarToast('Día cerrado correctamente');
-            }
+                return Promise.all(tareas);
+            });
+        }
+
+        function toggleDiaCerrado() {
+            const fecha = diaSeleccionado;
+            const [anio, mes, dia] = fecha.split('-').map(Number);
+            const diaSemana = new Date(anio, mes - 1, dia).getDay();
+            const semanaCerrada = diasSemanaCerrados.includes(diaSemana);
+            const abrir = estaDiaCerrado(fecha, diaSemana);
+            const igual = f => f === fecha;
+
+            // Primero limpiamos cualquier excepción previa de ese día y luego
+            // guardamos solo la que haga falta respecto al día de semana.
+            Promise.all([quitarFechas('diasCerrados', igual), quitarFechas('diasAbiertos', igual)])
+                .then(() => {
+                    if (abrir && semanaCerrada) return db.ref('diasAbiertos').push({ fecha });
+                    if (!abrir && !semanaCerrada) return db.ref('diasCerrados').push({ fecha });
+                })
+                .then(() => mostrarToast(abrir ? 'Día abierto correctamente' : 'Día cerrado correctamente'))
+                .catch(err => {
+                    console.error(err);
+                    mostrarToast('No se pudo guardar el cambio');
+                });
         }
         
         // ============================================
@@ -4633,6 +4662,14 @@ function generarBotonWhatsappExperiencia(nombre, telefono, codigoDificultad) {
             // para que renderBotonDomingos y renderDiasSemanaConfig lean el estado nuevo
             diasSemanaCerrados = nuevoArray;
             db.ref('config/diasSemanaCerrados').set(nuevoArray);
+            // "Todos los domingos" (o el día que sea) se aplica a todas las fechas:
+            // se borran las excepciones individuales de ese día de la semana.
+            const esDeEseDia = f => {
+                const [a, m, d] = String(f).split('-').map(Number);
+                return new Date(a, m - 1, d).getDay() === diaNum;
+            };
+            quitarFechas('diasCerrados', esDeEseDia);
+            quitarFechas('diasAbiertos', esDeEseDia);
             renderDiasSemanaConfig();
             renderBotonDomingos();
             renderCalendario();
