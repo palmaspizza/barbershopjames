@@ -9538,7 +9538,7 @@ function irAConfirmar() {
         if(typeof obtenerHorarioDelDiaDesdeFecha === 'function' && (obtenerHorarioDelDiaDesdeFecha(fStr) || []).length === 0) cerrado = true;
       } catch(e){}
       if(cerrado) return {etiqueta:'CERRADO', detalle:'No atendemos este día'};
-      if(off === 0) return {etiqueta:'SIN HORAS', detalle:'Ya no quedan horas para hoy'};
+      if(off === 0) return {etiqueta:'TODAS OCUPADAS', detalle:'Ya no quedan horas para hoy'};
       return {etiqueta:'COMPLETO', detalle:'Todas las horas ya están reservadas'};
     }
 
@@ -9656,7 +9656,7 @@ function irAConfirmar() {
             celda.onclick = () => { seleccionado = d; render(); };
           } else {
             celda.disabled = true;
-            celda.setAttribute('aria-label', `${textoLargo(d)}, sin horas`);
+            celda.setAttribute('aria-label', `${textoLargo(d)}, todas ocupadas`);
           }
           grid.appendChild(celda);
         }
